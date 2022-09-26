@@ -1,0 +1,4 @@
+name = "CriticalTransitions"
+uuid = "251e6cd3-3112-48a5-99dd-66efcfd18334"
+authors = ["reykboerner <reyk.boerner@fu-berlin.de>"]
+version = "0.1.0"
