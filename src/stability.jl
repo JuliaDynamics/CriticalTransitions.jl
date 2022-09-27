@@ -7,17 +7,19 @@ include("StochSystem.jl")
 function equilib(sys::StochSystem, state::Vector;
     dt=0.01,
     tmax=1e3,
-    precision=1e-5,
+    abstol=1e-5,
     solver=nothing)
     
-    condition(u, t, integrator) = norm(integrator.uprev-u) < precision
+    condition(u, t, integrator) = norm(integrator.uprev-u) < abstol
     affect!(integrator) = terminate!(integrator)
     equilib_cond = DiscreteCallback(condition, affect!)
 
     prob = ODEProblem(sys.f, state, (0, tmax), sys.p)
     sol = solve(prob, solver; dt=dt, callback=equilib_cond, save_on=false, save_start=false)
 
-    return sol.u
+    sol.u
 end;
 
-
+function fixedpoints(sys:StochSystem, box; kwargs...)
+    fixedpoints(sys.f, box, p=sys.p; kwargs...)
+end
