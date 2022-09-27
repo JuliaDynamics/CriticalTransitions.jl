@@ -14,12 +14,8 @@ function equilib(sys::StochSystem, state::Vector;
     affect!(integrator) = terminate!(integrator)
     equilib_cond = DiscreteCallback(condition, affect!)
 
-    prob = ODEProblem(sys.f, state, (0, tmax), sys.p)
+    prob = ODEProblem(sys.f, state, (0, tmax), p(sys))
     sol = solve(prob, solver; dt=dt, callback=equilib_cond, save_on=false, save_start=false)
 
     sol.u
 end;
-
-function fixedpoints(sys:StochSystem, box; kwargs...)
-    fixedpoints(sys.f, box, p=sys.p; kwargs...)
-end
