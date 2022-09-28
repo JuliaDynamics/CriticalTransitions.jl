@@ -51,9 +51,13 @@ A = equilib(sys, [1,1])
 ```
 
 ### Git cheat sheet
+
+remote = the GitHub server; local = your computer
+
 #### Before any editing session
-* `git status` to check that there are no local changes
-* `git pull` to get the latest version from online (remote)
+* `git remote update` to refresh info about changes on remote
+* `git status` to check whether you are ahead of, behind, or in sync with remote
+* `git pull` to get the latest version from remote
 
 > Never use `git pull` if there are still uncommitted local changes!
 
