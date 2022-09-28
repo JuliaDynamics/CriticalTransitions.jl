@@ -12,6 +12,3 @@ function is_iip(f::Function)
     # Asserts if f is in-place (true) or out-of-place (false)
     occursin("!", String(Symbol(f)))
 end;
-
-
-

@@ -8,6 +8,6 @@ include("simulation.jl")
 export StochSystem
 export equilib, fixedpoints
 export simulate, relax
-export tods
+export tocds
     
 end # module CriticalTransitions
