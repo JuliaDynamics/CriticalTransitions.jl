@@ -38,7 +38,7 @@ function p(sys::StochSystem)
     [sys.pf, sys.pg]
 end;
 
-function tods(sys::StochSystem)
+function tocds(sys::StochSystem; state=zeros(sys.dim))
     # Turns a StochSystem into a ContinuousDynamicalSystem
-    ds = ContinuousDynamicalSystem(sys.f, zeros(sys.dim), sys.pf)
+    ds = ContinuousDynamicalSystem(sys.f, state, sys.pf)
 end

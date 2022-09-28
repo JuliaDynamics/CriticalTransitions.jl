@@ -21,5 +21,5 @@ function equilib(sys::StochSystem, state::Vector;
 end;
 
 function fixedpoints(sys::StochSystem, box)
-    DynamicalSystems.fixedpoints(tods(sys), box)
+    DynamicalSystems.fixedpoints(tocds(sys), box)
 end
