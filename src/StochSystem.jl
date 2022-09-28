@@ -10,6 +10,7 @@ CovMatrix = Union{Matrix, UniformScaling{Bool}, Diagonal{Bool, Vector{Bool}}};
 struct StochSystem
     f::Function
     pf::Parameters
+    dim::Int64
     σ::Float64
     g::Function
     pg::Parameters
@@ -17,11 +18,12 @@ struct StochSystem
     process::Any
 end
 
-# Additional methods of StochSystem
-StochSystem(f, pf) = StochSystem(f, pf, 1.0, idfunc, nothing, I, "white-gauss")
-StochSystem(f, pf, σ) = StochSystem(f, pf, σ, idfunc, nothing, I, "white-gauss")
-StochSystem(f, pf, σ, Σ) = StochSystem(f, pf, σ, idfunc, nothing, Σ, "white-gauss")
+# Methods of StochSystem
+StochSystem(f, pf, dim) = StochSystem(f, pf, dim, 1.0, idfunc, nothing, I, "white-gauss")
+StochSystem(f, pf, dim, σ) = StochSystem(f, pf, dim, σ, idfunc, nothing, I, "white-gauss")
+StochSystem(f, pf, dim, σ, Σ) = StochSystem(f, pf, dim, σ, idfunc, nothing, Σ, "white-gauss")
 
+# Core functions acting on StochSystem
 function σg(sys::StochSystem)
     # Multiplies the noise strength σ of a StochSystem with its noise function g
     if is_iip(sys.f)
@@ -35,3 +37,8 @@ function p(sys::StochSystem)
     # Concatenates the deterministic and stochastic parameter vectors pf and pg of a StochSystem
     [sys.pf, sys.pg]
 end;
+
+function tods(sys::StochSystem)
+    # Turns a StochSystem into a ContinuousDynamicalSystem
+    ds = ContinuousDynamicalSystem(sys.f, zeros(sys.dim), sys.pf)
+end
