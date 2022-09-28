@@ -19,3 +19,7 @@ function equilib(sys::StochSystem, state::Vector;
 
     sol.u
 end;
+
+function fixedpoints(sys::StochSystem, box)
+    DynamicalSystems.fixedpoints(tods(sys), box)
+end
