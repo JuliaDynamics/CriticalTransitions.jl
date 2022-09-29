@@ -1,3 +1,5 @@
+using StaticArrays
+
 function FitzHughNagumo!(du, u, p, t)
     x, y = u
     ϵ, β, α, γ, κ, I = p[1]
