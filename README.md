@@ -32,12 +32,11 @@ Currently the following functions are implemented:
 * `fixedpoints(sys, box)`: wrapper for `fixedpoints` function of DynamicalSystems
 * `simulate(sys, init; kwargs...)`: integrates the stochastic system forward in time
 * `relax(sys, init; kwargs...)`: integrates the deterministic part of the system forward in time (evolution in the absence of noise)
+* `transition(sys, x_i, x_f; kwargs...)`: simulate a sample transition trajectory from point x_i to point x_f
 
 ### Example: Bistable FitzHugh-Nagumo model
 ```
 include("src/CriticalTransitions.jl")
-include("systems/fitzhughnagumo.jl")
-
 using .CriticalTransitions
 
 # Parameters
@@ -46,8 +45,8 @@ p = [1., 3., 1., 1., 1., 0.]
 # StochSystem
 sys = StochSystem(fitzhughnagumo, p, 2)
 
-# Find equilibrium starting from point [1,1]
-A = equilib(sys, [1,1])
+# Simulate noisy trajectory starting from point [1,1]
+sim = simulate(sys, [1.,1.])
 ```
 
 ### Git cheat sheet

@@ -4,7 +4,7 @@ include("StochSystem.jl")
 include("noise.jl")
 
 function simulate(sys::StochSystem, init::Vector;
-    dt=nothing,
+    dt=0.01,
     tmax=1e3,
     solver=EM(),
     callback=nothing)
