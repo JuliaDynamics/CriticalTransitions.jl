@@ -19,9 +19,9 @@ struct StochSystem
 end
 
 # Methods of StochSystem
-StochSystem(f, pf, dim) = StochSystem(f, pf, dim, 1.0, idfunc, nothing, I, "white-gauss")
-StochSystem(f, pf, dim, σ) = StochSystem(f, pf, dim, σ, idfunc, nothing, I, "white-gauss")
-StochSystem(f, pf, dim, σ, Σ) = StochSystem(f, pf, dim, σ, idfunc, nothing, Σ, "white-gauss")
+StochSystem(f, pf, dim) = StochSystem(f, pf, dim, 1.0, idfunc, nothing, I(dim), "WhiteGauss")
+StochSystem(f, pf, dim, σ) = StochSystem(f, pf, dim, σ, idfunc, nothing, I(dim), "WhiteGauss")
+StochSystem(f, pf, dim, σ, Σ) = StochSystem(f, pf, dim, σ, idfunc, nothing, Σ, "WhiteGauss")
 
 # Core functions acting on StochSystem
 function σg(sys::StochSystem)
