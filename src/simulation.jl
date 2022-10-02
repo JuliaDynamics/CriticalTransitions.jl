@@ -30,7 +30,7 @@ function relax(sys::StochSystem, init::Vector;
     sol
 end;
 
-function transition_(sys::StochSystem, x_i::Vector, x_f::Vector;
+function transition(sys::StochSystem, x_i::Vector, x_f::Vector;
     rad_i=1.0,
     rad_f=1.0,
     dt=0.01,
