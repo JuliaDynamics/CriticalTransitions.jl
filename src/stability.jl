@@ -22,9 +22,9 @@ end;
 
 function fixedpoints(sys::StochSystem, box)
     DynamicalSystems.fixedpoints(tocds(sys), box)
-end
+end;
 
 function fixedpoints(sys::StochSystem, bmin::Vector, bmax::Vector)
     box = intervals_to_box(bmin, bmax, sys.dim)
     DynamicalSystems.fixedpoints(tocds(sys), box)
-end
+end;

@@ -9,4 +9,4 @@ function gauss(sys::StochSystem)
         W = CorrelatedWienerProcess(sys.Σ, 0.0, zeros(sys.dim))
     end
     W
-end
+end;

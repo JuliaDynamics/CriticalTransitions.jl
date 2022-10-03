@@ -16,7 +16,7 @@ struct StochSystem
     pg::Parameters
     Σ::CovMatrix
     process::Any
-end
+end;
 
 # Methods of StochSystem
 StochSystem(f, pf, dim) = StochSystem(f, pf, dim, 1.0, idfunc, nothing, I(dim), "WhiteGauss")
@@ -41,4 +41,4 @@ end;
 function tocds(sys::StochSystem; state=zeros(sys.dim))
     # Turns a StochSystem into a ContinuousDynamicalSystem
     ContinuousDynamicalSystem(sys.f, state, p(sys))
-end
+end;

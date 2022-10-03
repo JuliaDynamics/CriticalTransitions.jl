@@ -9,9 +9,10 @@ include("../systems/fitzhughnagumo.jl")
 
 export StochSystem
 export equilib, fixedpoints
-export simulate, relax, transition
-export tocds
+export simulate, relax, transition, transitions
+export tocds, make_jld2
 
 export FitzHughNagumo, FitzHughNagumo!
+export idfunc, idfunc!
 
 end # module CriticalTransitions
