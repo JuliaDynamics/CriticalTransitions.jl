@@ -43,7 +43,7 @@ using .CriticalTransitions
 p = [1., 3., 1., 1., 1., 0.]
 
 # StochSystem
-sys = StochSystem(fitzhughnagumo, p, 2)
+sys = StochSystem(FitzHughNagumo, p, 2)
 
 # Simulate noisy trajectory starting from point [1,1]
 sim = simulate(sys, [1.,1.])

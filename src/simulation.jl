@@ -7,11 +7,12 @@ function simulate(sys::StochSystem, init::Vector;
     dt=0.01,
     tmax=1e3,
     solver=EM(),
-    callback=nothing)
+    callback=nothing,
+    progress=true)
 
     if sys.process == "WhiteGauss"
         prob = SDEProblem(sys.f, σg(sys), init, (0, tmax), p(sys), noise=gauss(sys))
-        sol = solve(prob, solver; dt=dt, callback=callback)
+        sol = solve(prob, solver; dt=dt, callback=callback, progress=progress)
         sol
     else
         ArgumentError("ERROR: Noise process not yet implemented.")
@@ -36,13 +37,14 @@ function transition(sys::StochSystem, x_i::Vector, x_f::Vector;
     dt=0.01,
     tmax=1e2,
     solver=EM(),
+    progress=true,
     cut_start=true)
 
     condition(u,t,integrator) = norm(u - x_f) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
 
-    sim = simulate(sys, x_i, dt=dt, tmax=tmax, solver=solver, callback=cb_ball)
+    sim = simulate(sys, x_i, dt=dt, tmax=tmax, solver=solver, callback=cb_ball, progress=progress)
 
     if sim.t[end] == tmax
         error("WARNING: Simulation stopped before a transition occurred.")        
