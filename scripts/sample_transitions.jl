@@ -6,25 +6,25 @@ Date: 3 Oct 2022
 Note: To enable multi-threading, run the file with "julia --nthreads N sample_transitions.jl",
 where N is to be replaced with the number of cores to be used.
 """
-
-using Printf
+# Load modules
+using DifferentialEquations, Printf
+include("../src/CriticalTransitions.jl")
+using .CriticalTransitions
 
 ###########################################################
 # SETTINGS ################################################
 ###########################################################
 
-# System settings
-f = FitzHughNagumo      # deterministic function
-dim = 2                 # system dimension
-Σ = [1 0; 0 1]          # covariance matrix
-process = "WhiteGauss"  # noise process
-
-# Parameter settings
+# FitzHughNagumo parameters
 σ = 0.18                # noise intensity
 ϵ = 1.0                 # time scale parameter
 
 β, α, γ, κ, Ι = 3., 1., 1., 1., 0.
 pf = [ϵ, β, α, γ, κ, Ι]
+
+# Noise settings
+Σ = [1 0; 0 1]          # covariance matrix
+process = "WhiteGauss"  # noise process
 
 # Transition settings
 AtoB = true             # if false, transition B->A
@@ -35,23 +35,18 @@ rad_f = 0.1             # ball radius around final point
 N = 100                 # number of samples
 tmax = Int64(1e3)       # maximum simulation time
 dt = 0.01               # time step
-solver = EM()           # SDEProblem solver
+solver = EM()			# SDEProblem solver
 
 # I/O settings
 filetext = "fhn_transAB_eps$(@sprintf "%.2e" ϵ)_noise$(@sprintf "%.2e" σ)_eye_$(N)"
-code_path = "../src/"
 save_path = "../data/"
 
 ###########################################################
 # End of settings. ########################################
 ###########################################################
 
-# Load modules
-include(code_path*"CriticalTransitions.jl")
-using .CriticalTransitions
-
 # Instantiate system
-sys = StochSystem(f, pf, dim, σ, idfunc, nothing, Σ, process)
+sys = StochSystem(FitzHughNagumo, pf, 2, σ, idfunc, nothing, Σ, process)
 
 # Get fixed points
 pts, eigs, stab = fixedpoints(sys, [-10,-10], [10,10])
@@ -76,9 +71,12 @@ write(file, "system_info", sys_string(sys, verbose=true))
 write(file, "run_info", info0*"\n"*info1*"\n"*info2)
 
 # Call transitions function
-samples, times = transitions(sys, A, B, N=N;
+samples, times, idx = transitions(sys, A, B, N;
     rad_i=rad_i, rad_f=rad_f, dt=dt, tmax=tmax, solver=solver,
     savefile=file)
+
+# Save which sample numbers transitioned
+write(file, "sample_idxs", sort(idx))
 
 # Close file
 println("... Done! Closing file...")

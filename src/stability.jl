@@ -4,7 +4,7 @@ using LinearAlgebra
 
 include("StochSystem.jl")
 
-function equilib(sys::StochSystem, state::Vector;
+function equilib(sys::StochSystem, state::State;
     dt=0.01,
     tmax=1e3,
     abstol=1e-5,

@@ -4,7 +4,7 @@ include("StochSystem.jl")
 include("noise.jl")
 include("io.jl")
 
-function simulate(sys::StochSystem, init::Vector;
+function simulate(sys::StochSystem, init::State;
     dt=0.01,
     tmax=1e3,
     solver=EM(),
@@ -20,7 +20,7 @@ function simulate(sys::StochSystem, init::Vector;
     end
 end;
 
-function relax(sys::StochSystem, init::Vector;
+function relax(sys::StochSystem, init::State;
     dt=0.01,
     tmax=1e3,
     solver=Euler(),
@@ -32,7 +32,7 @@ function relax(sys::StochSystem, init::Vector;
     sol
 end;
 
-function transition(sys::StochSystem, x_i::Vector, x_f::Vector;
+function transition(sys::StochSystem, x_i::State, x_f::State;
     rad_i=1.0,
     rad_f=1.0,
     dt=0.01,
@@ -68,7 +68,7 @@ function transition(sys::StochSystem, x_i::Vector, x_f::Vector;
     sim, simt, success
 end;
 
-function transitions(sys::StochSystem, x_i::Vector, x_f::Vector, N=1;
+function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     rad_i=1.0,
     rad_f=1.0,
     dt=0.01,
@@ -78,28 +78,25 @@ function transitions(sys::StochSystem, x_i::Vector, x_f::Vector, N=1;
     cut_start=true,
     savefile=nothing)
 
-    samples, times = [], []
+    samples, times, idx = [], [], []
 
-    i = 1
     Threads.@threads for n = tqdm(1:N)
         sim, simt, success = transition(sys, x_i, x_f;
                     rad_i=rad_i, rad_f=rad_f, dt=dt, tmax=tmax,
                     solver=solver, progress=false, cut_start=cut_start)
         
         if success
-            
+            push!(idx, n)
             # store or save in .jld2 file
             if savefile == nothing
                 push!(samples, sim);
                 push!(times, simt);
             else
-                write(savefile, "paths/path "*string(i), sim)
-                write(savefile, "times/times "*string(i), simt)
+                write(savefile, "paths/path "*string(n), sim)
+                write(savefile, "times/times "*string(n), simt)
             end
-
-            i += 1
         end
     end
 
-    samples, times
+    samples, times, idx
 end;
