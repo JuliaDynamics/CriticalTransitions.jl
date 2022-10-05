@@ -15,7 +15,7 @@ Clone the repo using `git clone https://github.com/reykboerner/CriticalTransitio
 ### Setting up a StochSystem
 A `StochSystem` defines a stochastic dynamical system of the form
 
-$$ \text{d}x = f(\vec x(t); \, p_f) \, \text{d}t + \sigma g(\vec x(t); \, p_g) \, \Sigma \cdot \text{d}\mathcal{N} \ ,$$
+$$ \text{d}\vec x = f(\vec x(t); \ p_f)  \text{d}t + \sigma g(\vec x(t);  \ p_g)  \Sigma \cdot \text{d}\mathcal{N} \ ,$$
 
 where $x \in \mathbb{R}^\text{dim}$ and $\mathcal N$ denotes a stochastic process.
 
