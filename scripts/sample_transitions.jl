@@ -1,11 +1,15 @@
 """
 Script to generate an ensemble of noise-induced transitions in the FitzHughNagumo system
-Author: Reyk Börner
+Author: Reyk Börner (reyk.boerner@reading.ac.uk)
 Date: 3 Oct 2022
 
-Note: To enable multi-threading, run the file with "julia --nthreads N sample_transitions.jl",
-where N is to be replaced with the number of cores to be used.
+Note: To enable multi-threading, run the file with "julia --threads N sample_transitions.jl",
+where N is to be replaced with the desired number of cores.
+
+Note: To access the sampling data in Julia, use the JLD2 package and do 
+data = jldopen("filepath/filename.jld2")
 """
+
 # Load modules
 using DifferentialEquations, Printf
 include("../src/CriticalTransitions.jl")
@@ -28,14 +32,14 @@ process = "WhiteGauss"  # noise process
 
 # Transition settings
 AtoB = true             # if false, transition B->A
-rad_i = 0.05            # ball radius around initial point
+rad_i = 0.03            # ball radius around initial point
 rad_f = 0.1             # ball radius around final point
 
 # Run settings
-N = 100                 # number of samples
+N = 20                 	# number of samples
 tmax = Int64(1e3)       # maximum simulation time
 dt = 0.01               # time step
-solver = EM()			# SDEProblem solver
+solver = EM()		# SDEProblem solver
 
 # I/O settings
 filetext = "fhn_transAB_eps$(@sprintf "%.2e" ϵ)_noise$(@sprintf "%.2e" σ)_eye_$(N)"
@@ -57,10 +61,11 @@ if AtoB
     A, B = B, A
 end
 
-# Store info
+# I/O info
 info0 = "$(N) transition samples of $(sys.f) system with noise intensity $(sys.σ)."
 info1 = "Start/end conditions:\n Initial state: $(A), ball radius $(rad_i)\n Final state: $(B), ball radius $(rad_f)"
 info2 = "Run details:\n time step dt=$(dt), maximum duration tmax=$(tmax), solver=$(string(solver))"
+info3 = "Dataset info:\n paths: transition path arrays of dimension (state × time), where a state is a vector [u,v]\n times: arrays of time values of the corresponding paths"
 
 println(info0*"\n... "*info1*"\n... "*info2)
 println("... saving data to $(save_path*filetext).jld2.")
@@ -69,6 +74,7 @@ println("... saving data to $(save_path*filetext).jld2.")
 file = make_jld2(filetext, save_path)
 write(file, "system_info", sys_string(sys, verbose=true))
 write(file, "run_info", info0*"\n"*info1*"\n"*info2)
+write(file, "data_info", info3)
 
 # Call transitions function
 samples, times, idx = transitions(sys, A, B, N;

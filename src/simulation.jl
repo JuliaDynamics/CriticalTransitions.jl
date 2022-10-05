@@ -10,6 +10,10 @@ function simulate(sys::StochSystem, init::State;
     solver=EM(),
     callback=nothing,
     progress=true)
+    """
+    Integrates sys forward in time
+    init: initial condition
+    """
 
     if sys.process == "WhiteGauss"
         prob = SDEProblem(sys.f, σg(sys), init, (0, tmax), p(sys), noise=gauss(sys))
@@ -25,6 +29,10 @@ function relax(sys::StochSystem, init::State;
     tmax=1e3,
     solver=Euler(),
     callback=nothing)
+    """
+    Integrates sys forward in time in the absence of noise (deterministic dynamics).
+    init: initial condition
+    """
     
     prob = ODEProblem(sys.f, init, (0, tmax), p(sys))
     sol = solve(prob, solver; dt=dt, callback=callback)
@@ -40,6 +48,12 @@ function transition(sys::StochSystem, x_i::State, x_f::State;
     solver=EM(),
     progress=true,
     cut_start=true)
+    """
+    Simulates a sample transition from x_i to x_f.
+    rad_i:      ball radius around x_i
+    rad_f:      ball radius around x_f
+    cut_start:  if false, saves the whole trajectory up to the transition
+    """
 
     condition(u,t,integrator) = norm(u - x_f) < rad_f
     affect!(integrator) = terminate!(integrator)
@@ -49,7 +63,6 @@ function transition(sys::StochSystem, x_i::State, x_f::State;
 
     success = true
     if sim.t[end] == tmax
-        println("WARNING: Simulation stopped before a transition occurred.")
         success = false
     end
     
@@ -74,19 +87,32 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     dt=0.01,
     tmax=1e2,
     solver=EM(),
-    progress=true,
     cut_start=true,
-    savefile=nothing)
+    savefile=nothing,
+    progress=true,
+    verbose=true)
+    """
+    Generates N transition samples of sys from x_i to x_f.
+    Supports multi-threading.
+    rad_i:      ball radius around x_i
+    rad_f:      ball radius around x_f
+    cut_start:  if false, saves the whole trajectory up to the transition
+    savefile:   if not nothing, saves data to a specified open .jld2 file
+    """
 
     samples, times, idx = [], [], []
 
     Threads.@threads for n = tqdm(1:N)
+        println("Simulation $(n): starting...")
         sim, simt, success = transition(sys, x_i, x_f;
                     rad_i=rad_i, rad_f=rad_f, dt=dt, tmax=tmax,
-                    solver=solver, progress=false, cut_start=cut_start)
+                    solver=solver, progress=verbose, cut_start=cut_start)
         
         if success
+
+            println("Simulation $(n): reached competing state after $(simt[end]) time units.")
             push!(idx, n)
+            
             # store or save in .jld2 file
             if savefile == nothing
                 push!(samples, sim);
@@ -95,6 +121,8 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
                 write(savefile, "paths/path "*string(n), sim)
                 write(savefile, "times/times "*string(n), simt)
             end
+        else
+            println("WARNING: Simulation $(n) stopped before a transition occurred.")
         end
     end
 
