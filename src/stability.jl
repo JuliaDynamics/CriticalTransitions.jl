@@ -1,5 +1,5 @@
 using DynamicalSystems
-using DifferentialEquations
+using OrdinaryDiffEq
 using LinearAlgebra
 
 include("StochSystem.jl")

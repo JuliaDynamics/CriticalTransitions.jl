@@ -1,4 +1,4 @@
-using DifferentialEquations, ProgressBars
+using OrdinaryDiffEq, StochasticDiffEq, ProgressBars
 
 include("StochSystem.jl")
 include("noise.jl")

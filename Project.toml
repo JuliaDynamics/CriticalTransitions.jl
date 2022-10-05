@@ -1,4 +1,19 @@
 name = "CriticalTransitions"
 uuid = "251e6cd3-3112-48a5-99dd-66efcfd18334"
-authors = ["reykboerner <reyk.boerner@fu-berlin.de>"]
+repo = "https://github.com/reykboerner/CriticalTransitions.jl.git"
 version = "0.1.0"
+
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+DiffEqNoiseProcess = "77a26b50-5914-5dd7-bc55-306e6241c503"
+DynamicalSystems = "61744808-ddfa-5f27-97ff-6e42cc95d634"
+Formatting = "59287772-0a20-5a39-b81b-1366585eb4c0"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+ProgressBars = "49802e3a-d2f1-5c88-81d8-b72133a6f568"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
+
+[compat]
+julia = "1.8"

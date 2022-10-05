@@ -17,7 +17,7 @@ A `StochSystem` defines a stochastic dynamical system of the form
 
 $$ \text{d}\vec x = f(\vec x(t); \ p_f)  \text{d}t + \sigma g(\vec x(t);  \ p_g)  \Sigma \cdot \text{d}\mathcal{N} \ ,$$
 
-where $x \in \mathbb{R}^\text{dim}$ and $\mathcal N$ denotes a stochastic process.
+where $\vec x \in \mathbb{R}^\text{dim}$ and $\mathcal N$ denotes a stochastic process.
 
 An instance of StochSystem is created via `StochSystem(f, pf, dim [, σ [, g, pg, Σ , process]])`,
 taking the following arguments:

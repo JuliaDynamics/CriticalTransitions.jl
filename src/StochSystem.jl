@@ -1,4 +1,4 @@
-using LinearAlgebra, StaticArrays
+using LinearAlgebra, StaticArrays, DiffEqNoiseProcess
 
 include("utils.jl")
 
