@@ -1,6 +1,4 @@
-using Formatting, Dates, JLD2
-
-include("StochSystem.jl")
+include("../StochSystem.jl")
 
 function make_jld2(text::String, relpath::String="")
     """

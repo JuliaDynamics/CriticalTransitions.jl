@@ -1,8 +1,6 @@
-using OrdinaryDiffEq, StochasticDiffEq, ProgressBars
-
-include("StochSystem.jl")
-include("noise.jl")
-include("io.jl")
+include("../StochSystem.jl")
+include("../noiseprocesses/gaussian.jl")
+include("../io/io.jl")
 
 function simulate(sys::StochSystem, init::State;
     dt=0.01,
@@ -41,10 +39,10 @@ function relax(sys::StochSystem, init::State;
 end;
 
 function transition(sys::StochSystem, x_i::State, x_f::State;
-    rad_i=1.0,
-    rad_f=1.0,
+    rad_i=0.1,
+    rad_f=0.1,
     dt=0.01,
-    tmax=1e2,
+    tmax=1e3,
     solver=EM(),
     progress=true,
     cut_start=true)
@@ -82,10 +80,10 @@ function transition(sys::StochSystem, x_i::State, x_f::State;
 end;
 
 function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
-    rad_i=1.0,
-    rad_f=1.0,
+    rad_i=0.1,
+    rad_f=0.1,
     dt=0.01,
-    tmax=1e2,
+    tmax=1e3,
     solver=EM(),
     cut_start=true,
     savefile=nothing,

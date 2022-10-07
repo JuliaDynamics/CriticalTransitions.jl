@@ -1,5 +1,5 @@
-include("StochSystem.jl")
-include("utils.jl")
+include("../StochSystem.jl")
+include("../utils.jl")
 
 function gauss(sys::StochSystem)
     # Returns a Wiener process for given covariance matrix and dimension of a StochSystem

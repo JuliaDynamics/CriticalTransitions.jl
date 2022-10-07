@@ -1,8 +1,4 @@
-using DynamicalSystems
-using OrdinaryDiffEq
-using LinearAlgebra
-
-include("StochSystem.jl")
+include("../StochSystem.jl")
 
 function equilib(sys::StochSystem, state::State;
     dt=0.01,

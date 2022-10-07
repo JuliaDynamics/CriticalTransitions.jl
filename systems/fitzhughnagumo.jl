@@ -1,4 +1,8 @@
-using StaticArrays
+"""
+Dynamical systems specification file
+"""
+
+# FitzHughNagumo model
 
 function FitzHughNagumo!(du, u, p, t)
     x, y = u

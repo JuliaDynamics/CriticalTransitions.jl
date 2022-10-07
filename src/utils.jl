@@ -1,4 +1,7 @@
-using DynamicalSystems
+"""
+Utility functions for CriticalTransitions.jl
+Functions in this file are independent of types/functions defined in CriticalTransitions
+"""
 
 function idfunc(u, p, t)
     # Identity function for noise function g (out-of-place)

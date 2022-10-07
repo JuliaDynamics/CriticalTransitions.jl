@@ -1,5 +1,3 @@
-using LinearAlgebra, StaticArrays, DiffEqNoiseProcess
-
 include("utils.jl")
 
 # Define custom types
@@ -41,5 +39,5 @@ end;
 
 function tocds(sys::StochSystem; state=zeros(sys.dim))
     # Turns a StochSystem into a ContinuousDynamicalSystem
-    ContinuousDynamicalSystem(sys.f, state, p(sys))
+    ContinuousDynamicalSystem(sys.f, state, [sys.pf, [0.]])
 end;
