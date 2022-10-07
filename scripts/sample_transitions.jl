@@ -11,9 +11,9 @@ data = jldopen("filepath/filename.jld2")
 """
 
 # Load modules
-using DifferentialEquations, Printf
 include("../src/CriticalTransitions.jl")
-using .CriticalTransitions
+using .CriticalTransitions, Printf
+
 
 ###########################################################
 # SETTINGS ################################################
@@ -68,7 +68,7 @@ info2 = "Run details:\n time step dt=$(dt), maximum duration tmax=$(tmax), solve
 info3 = "Dataset info:\n paths: transition path arrays of dimension (state × time), where a state is a vector [u,v]\n times: arrays of time values of the corresponding paths"
 
 println(info0*"\n... "*info1*"\n... "*info2)
-println("... saving data to $(save_path*filetext).jld2.")
+println("... Saving data to yymmdd_$(save_path*filetext).jld2.")
 
 # Create data file
 file = make_jld2(filetext, save_path)
@@ -77,6 +77,7 @@ write(file, "run_info", info0*"\n"*info1*"\n"*info2)
 write(file, "data_info", info3)
 
 # Call transitions function
+precompile(transitions, (StochSystem, State, State, Int64,))
 samples, times, idx = transitions(sys, A, B, N;
     rad_i=rad_i, rad_f=rad_f, dt=dt, tmax=tmax, solver=solver,
     savefile=file)
@@ -85,7 +86,8 @@ samples, times, idx = transitions(sys, A, B, N;
 write(file, "sample_idxs", sort(idx))
 
 # Close file
-println("... Done! Closing file...")
+println("... Done! Closing file.")
+println("... Summary: In $(length(idx)) of $(N) samples, a transition occurred.")
 close(file)
 
 # End of script ###########################################
