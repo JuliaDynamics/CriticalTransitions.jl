@@ -18,7 +18,7 @@ include("../systems/fitzhughnagumo.jl")
 export StochSystem, State
 export equilib, fixedpoints
 export simulate, relax, transition, transitions
-export tocds, make_jld2, make_h5, sys_string, sys_info
+export tocds, make_jld2, make_h5, sys_string, sys_info, intervals_to_box
 
 export FitzHughNagumo, FitzHughNagumo!
 export idfunc, idfunc!

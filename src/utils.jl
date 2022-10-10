@@ -18,9 +18,10 @@ function is_iip(f::Function)
     occursin("!", String(Symbol(f)))
 end;
 
-function intervals_to_box(bmin::Vector, bmax::Vector, dim::Int64)
+function intervals_to_box(bmin::Vector, bmax::Vector)
     # Generates a box from specifying the interval limits
     intervals = []
+    dim = length(bmin)
     for i in 1:dim
         push!(intervals, bmin[i]..bmax[i])
     end
