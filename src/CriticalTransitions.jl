@@ -1,6 +1,6 @@
 module CriticalTransitions
 
-using Formatting, Dates, JLD2, ProgressBars
+using Formatting, Dates, JLD2, HDF5, ProgressBars
 using DynamicalSystems
 using OrdinaryDiffEq, StochasticDiffEq, DiffEqNoiseProcess
 using LinearAlgebra, StaticArrays
@@ -18,7 +18,7 @@ include("../systems/fitzhughnagumo.jl")
 export StochSystem, State
 export equilib, fixedpoints
 export simulate, relax, transition, transitions
-export tocds, make_jld2, sys_string, sys_info
+export tocds, make_jld2, make_h5, sys_string, sys_info
 
 export FitzHughNagumo, FitzHughNagumo!
 export idfunc, idfunc!

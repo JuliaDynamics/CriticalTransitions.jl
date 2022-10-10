@@ -84,6 +84,7 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     rad_f=0.1,
     dt=0.01,
     tmax=1e3,
+    Nmax=1000,
     solver=EM(),
     cut_start=true,
     savefile=nothing,
@@ -98,29 +99,33 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     savefile:   if not nothing, saves data to a specified open .jld2 file
     """
 
-    samples, times, idx = [], [], []
+    samples::Vector{Float64}, times::Vector{Float64}, idx::Vector{Int64}, simt = [], [], [], []
 
-    Threads.@threads for n = tqdm(1:N)
-        println("Simulation $(n): starting...")
+    n = 1
+    Threads.@threads for j = 1:Nmax
+        
+        print("\r--> Simulation $(j) running...\n--> $(n-1) samples transitioned, $(N-n+1) remaining\n--> The last transition took $(length(simt)*dt) time units")
+        
         sim, simt, success = transition(sys, x_i, x_f;
                     rad_i=rad_i, rad_f=rad_f, dt=dt, tmax=tmax,
-                    solver=solver, progress=verbose, cut_start=cut_start)
+                    solver=solver, progress=false, cut_start=cut_start)
         
         if success
-
-            println("Simulation $(n): reached competing state after $(simt[end]) time units.")
-            push!(idx, n)
-            
-            # store or save in .jld2 file
             if savefile == nothing
                 push!(samples, sim);
                 push!(times, simt);
-            else
-                write(savefile, "paths/path "*string(n), sim)
-                write(savefile, "times/times "*string(n), simt)
+            else # store or save in .jld2/.h5 file
+                write(savefile, "paths/path "*string(j), sim)
+                write(savefile, "times/times "*string(j), simt)
             end
+            push!(idx, j)
+            n += 1
+        end
+
+        if n == N+1
+            break
         else
-            println("WARNING: Simulation $(n) stopped before a transition occurred.")
+            continue
         end
     end
 

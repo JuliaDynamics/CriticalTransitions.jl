@@ -1,5 +1,7 @@
 **/.ipynb_checkpoints/**
 /data/
-*.ipynb
+/docs/
 **/devtest.jl
 *.mem
+*.ipynb
+/**/test.h5

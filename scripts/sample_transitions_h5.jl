@@ -6,13 +6,13 @@ Date: 3 Oct 2022
 Note: To enable multi-threading, run the file with "julia --threads N sample_transitions.jl",
 where N is to be replaced with the desired number of cores.
 
-Note: To access the sampling data in Julia, use the JLD2 package and do 
-data = jldopen("filepath/filename.jld2")
+Note: This script saves the data in HDF5 format.
+To access the sampling data in Julia, use the HDF5 package
+and do data = h5open("filepath/filename.h5", "r").
 """
 
 # Load modules
-include("../src/CriticalTransitions.jl")
-using .CriticalTransitions, Printf
+using CriticalTransitions, Printf, HDF5, Dates
 
 
 ###########################################################
@@ -20,7 +20,7 @@ using .CriticalTransitions, Printf
 ###########################################################
 
 # FitzHughNagumo parameters
-σ = 0.15                # noise intensity
+σ = 0.22               # noise intensity
 ϵ = 1.0                 # time scale parameter
 
 β, α, γ, κ, Ι = 3., 1., 1., 1., 0.
@@ -36,9 +36,10 @@ rad_i = 0.03            # ball radius around initial point
 rad_f = 0.1             # ball radius around final point
 
 # Run settings
-N = 500                	# number of samples
-tmax = Int64(1e3)       # maximum simulation time
-dt = 0.01               # time step
+N = 25              	# number of transition samples
+Nmax = 100              # maximum number of attempts
+tmax = Int64(1e4)       # maximum simulation time per attempt
+dt = 0.02               # time step
 solver = EM()		# SDEProblem solver
 
 # I/O settings
@@ -52,9 +53,8 @@ save_path = "../data/"
 # Instantiate system
 sys = StochSystem(FitzHughNagumo, pf, 2, σ, idfunc, nothing, Σ, process)
 
-# Get fixed points
-pts, eigs, stab = fixedpoints(sys, [-10,-10], [10,10])
-A, B = pts[stab]
+# Fixed points
+A, B = [-sqrt(2/3), -sqrt(2/27)], [sqrt(2/3), sqrt(2/27)]
 
 # A->B or B->A?
 if AtoB
@@ -67,27 +67,36 @@ info1 = "Start/end conditions:\n Initial state: $(A), ball radius $(rad_i)\n Fin
 info2 = "Run details:\n time step dt=$(dt), maximum duration tmax=$(tmax), solver=$(string(solver))"
 info3 = "Dataset info:\n paths: transition path arrays of dimension (state × time), where a state is a vector [u,v]\n times: arrays of time values of the corresponding paths"
 
-println(info0*"\n... "*info1*"\n... "*info2)
-println("... Saving data to yymmdd_$(save_path*filetext).jld2.")
+println(info0*"\n--> "*info1*"\n--> "*info2)
+println("--> Saving data to $(save_path).")
 
 # Create data file
-file = make_jld2(filetext, save_path)
-write(file, "system_info", sys_string(sys, verbose=true))
-write(file, "run_info", info0*"\n"*info1*"\n"*info2)
-write(file, "data_info", info3)
+#file = make_h5(filetext, save_path)
+file = make_h5(filetext)
+
+create_group(file, "paths")
+create_group(file, "times")
+paths = file["paths"]
+times = file["times"]
+attributes(paths)["data dimensions"] = "[coordinate (rows) × time (columns)], coordinates = [u,v], arbitrary units"
+attributes(times)["data dimensions"] = "[time (since beginning of simulation)], arbitrary units"
+attributes(file)["system_info"] = sys_string(sys, verbose=true)
+attributes(file)["data_info"] = info3
 
 # Call transitions function
-precompile(transitions, (StochSystem, State, State, Int64,))
+tstart = now()
 samples, times, idx = transitions(sys, A, B, N;
     rad_i=rad_i, rad_f=rad_f, dt=dt, tmax=tmax, solver=solver,
-    savefile=file, Nmax=1000)
+    savefile=file, Nmax=Nmax)
 
-# Save which sample numbers transitioned
-write(file, "sample_idxs", string(sort(idx)))
+# Finalize file
+attributes(file)["run_info"] = info0*"\n"*info1*"\n"*info2*"\nRuntime: $(now()-tstart)"
+write(file, "path_numbers", sort(idx))
 
 # Close file
-println("... Done! Closing file.")
-println("... Summary: In $(length(idx)) of $(N) samples, a transition occurred.")
+println("... Done! Closing file. Run took $(now()-tstart).")
 close(file)
+println("... Summary: $(length(idx)) samples transitioned.")
+
 
 # End of script ###########################################

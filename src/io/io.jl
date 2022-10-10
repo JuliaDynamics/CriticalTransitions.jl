@@ -11,6 +11,18 @@ function make_jld2(text::String, relpath::String="")
     jldopen(str, "a+")
 end;
 
+function make_h5(text::String, relpath::String="")
+    """
+    Creates/opens a .h5 file with date stamp and specified filename.
+        Format: "ddmmyy_text.jdl2"
+        Relative path specified by relpath (ending with "/").
+    """
+    time = Dates.now()
+    str = relpath*Dates.format(time, "yymmdd")*"_"*text*".h5"
+    h5open(str, "cw")
+end;
+
+
 function sys_info(sys::StochSystem)
     # Prints StochSystem info in clean, readable format
 printfmt("StochSystem
