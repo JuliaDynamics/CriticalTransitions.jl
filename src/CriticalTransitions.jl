@@ -1,6 +1,6 @@
 module CriticalTransitions
 
-using Formatting, Dates, JLD2, ProgressBars
+using Formatting, Dates, JLD2, ProgressBars, ProgressMeter
 using DynamicalSystems
 using OrdinaryDiffEq, StochasticDiffEq, DiffEqNoiseProcess
 using LinearAlgebra, StaticArrays
