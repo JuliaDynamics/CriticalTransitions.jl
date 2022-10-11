@@ -67,7 +67,7 @@ end
 
 # I/O info
 info0 = "$(N) transition samples of $(sys.f) system with noise intensity $(sys.σ) and time scale parameter $(ϵ)."
-info1 = "Start/end conditions:\n Initial state: $(A), ball radius $(rad_i)\n Final state: $(B), ball radius $(rad_f)"
+info1 = "Start/end conditions:\n Initial state: $(B), ball radius $(rad_i)\n Final state: $(A), ball radius $(rad_f)"
 info2 = "Run details:\n time step dt=$(dt), maximum duration tmax=$(tmax), solver=$(string(solver))"
 info3 = "Dataset info:\n paths: transition path arrays of dimension (state × time), where a state is a vector [u,v]\n times: arrays of time values of the corresponding paths"
 
@@ -91,19 +91,19 @@ attributes(file)["data_info"] = info3
 
 # Call transitions function
 tstart = now()
-samples, times, idx = transitions(sys, B, A, N;
+samples, times, idx, reject = transitions(sys, B, A, N;
     rad_i=rad_i, rad_f=rad_f, dt=dt, tmax=tmax, solver=solver,
     savefile=file, Nmax=Nmax)
 
 # Finalize file
 runtime = canonicalize(Dates.CompoundPeriod(Millisecond(now()-tstart)))
 attributes(file)["run_info"] = info0*"\n"*info1*"\n"*info2*"\nRuntime: $(runtime)"
-write(file, "success_fraction", length(idx)/Nmax)
+write(file, "success_fraction", length(idx)/(reject+length(idx)))
 write(file, "path_numbers", sort(idx))
 
 # Close file
 println("... Done! Closing file. Run took $(runtime).")
 close(file)
-println("... Summary: $(length(idx)) samples transitioned.")
+println("... Summary: $(length(idx))/$(reject+length(idx)) samples transitioned.")
 
 # End of script ###########################################

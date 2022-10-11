@@ -63,7 +63,7 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     savefile:   if not nothing, saves data to a specified open .jld2 file
     """
 
-    samples, times, idx::Vector{Int64}, simt = [], [], [], []
+    samples, times, idx::Vector{Int64}, r_idx::Vector{Int64}, simt = [], [], [], [], []
 
     Threads.@threads for j = tqdm(1:Nmax)
         
@@ -89,8 +89,10 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
             else
                 continue
             end
+        else
+            push!(r_idx, j)
         end
     end
 
-    samples, times, idx
+    samples, times, idx, length(r_idx)
 end;
