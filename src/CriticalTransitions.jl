@@ -11,7 +11,9 @@ include("utils.jl")
 include("io/io.jl")
 include("noiseprocesses/gaussian.jl")
 include("systemanalysis/stability.jl")
+include("systemanalysis/basinsofattraction.jl")
 include("trajectories/simulation.jl")
+include("trajectories/transition.jl")
 
 include("../systems/fitzhughnagumo.jl")
 
