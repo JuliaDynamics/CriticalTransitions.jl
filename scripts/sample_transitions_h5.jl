@@ -12,7 +12,8 @@ and do data = h5open("filepath/filename.h5", "r").
 """
 
 # Load modules
-using CriticalTransitions, Printf, HDF5, Dates
+include("../src/CriticalTransitions.jl")
+using .CriticalTransitions, Printf, HDF5, Dates
 
 
 ###########################################################
@@ -20,7 +21,7 @@ using CriticalTransitions, Printf, HDF5, Dates
 ###########################################################
 
 # FitzHughNagumo parameters
-σ = 0.22               # noise intensity
+σ = 0.15               # noise intensity
 ϵ = 1.0                 # time scale parameter
 
 β, α, γ, κ, Ι = 3., 1., 1., 1., 0.
@@ -36,8 +37,8 @@ rad_i = 0.03            # ball radius around initial point
 rad_f = 0.1             # ball radius around final point
 
 # Run settings
-N = 25              	# number of transition samples
-Nmax = 100              # maximum number of attempts
+N = 10              	# number of transition samples
+Nmax = 1000              # maximum number of attempts
 tmax = Int64(1e4)       # maximum simulation time per attempt
 dt = 0.02               # time step
 solver = EM()		# SDEProblem solver
@@ -71,8 +72,7 @@ println(info0*"\n--> "*info1*"\n--> "*info2)
 println("--> Saving data to $(save_path).")
 
 # Create data file
-#file = make_h5(filetext, save_path)
-file = make_h5(filetext)
+file = make_h5(filetext, save_path)
 
 create_group(file, "paths")
 create_group(file, "times")
@@ -83,6 +83,9 @@ attributes(times)["data dimensions"] = "[time (since beginning of simulation)], 
 attributes(file)["system_info"] = sys_string(sys, verbose=true)
 attributes(file)["data_info"] = info3
 
+
+
+
 # Call transitions function
 tstart = now()
 samples, times, idx = transitions(sys, A, B, N;
@@ -90,13 +93,13 @@ samples, times, idx = transitions(sys, A, B, N;
     savefile=file, Nmax=Nmax)
 
 # Finalize file
-attributes(file)["run_info"] = info0*"\n"*info1*"\n"*info2*"\nRuntime: $(now()-tstart)"
+runtime = canonicalize(Dates.CompoundPeriod(Millisecond(now()-tstart)))
+attributes(file)["run_info"] = info0*"\n"*info1*"\n"*info2*"\nRuntime: $(runtime)"
 write(file, "path_numbers", sort(idx))
 
 # Close file
-println("... Done! Closing file. Run took $(now()-tstart).")
+println("... Done! Closing file. Run took $(runtime).")
 close(file)
 println("... Summary: $(length(idx)) samples transitioned.")
-
 
 # End of script ###########################################

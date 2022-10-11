@@ -44,7 +44,7 @@ Currently the following functions are implemented:
 > Note: The `scripts` folder contains run scripts, e.g. for sampling or data analysis.
 
 ### Example: Bistable FitzHugh-Nagumo model
-```
+```julia
 include("src/CriticalTransitions.jl")
 using .CriticalTransitions
 
