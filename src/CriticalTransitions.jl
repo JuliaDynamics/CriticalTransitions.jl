@@ -1,7 +1,7 @@
 module CriticalTransitions
 
 using Formatting, Dates, JLD2, HDF5, ProgressBars, ProgressMeter
-using DynamicalSystems
+using DynamicalSystems, IntervalRootFinding
 using OrdinaryDiffEq, StochasticDiffEq, DiffEqNoiseProcess
 using LinearAlgebra, StaticArrays
 
@@ -16,7 +16,7 @@ include("trajectories/simulation.jl")
 include("../systems/fitzhughnagumo.jl")
 
 export StochSystem, State
-export equilib, fixedpoints, basins
+export equilib, fixedpoints, basins, basinboundary
 export simulate, relax, transition, transitions
 export tocds, make_jld2, make_h5, sys_string, sys_info, intervals_to_box
 

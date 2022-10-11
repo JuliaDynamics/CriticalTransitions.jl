@@ -1,10 +1,10 @@
 function intmultints(v)
-# here v is a vector of intervals
-w = v[1];
-for ii ∈ 2:length(v)
-    w = w ∩ v[ii];
-end
-return w
+    # here v is a vector of intervals
+    w = v[1];
+    for ii ∈ 2:length(v)
+        w = w ∩ v[ii];
+    end
+    w
 end
 
 function vthreshold(u, A, B, C, box)
@@ -38,13 +38,7 @@ function normalise(A::Vector)
     return A/norm(A)
 end
 
-using ProgressMeter
-
-using IntervalRootFinding
-
-using ProgressMeter
-
-function plane(A, B, C, box)
+function plane(A, B, C, box; step::Vector = [0.1, 0.1])
 
     # box is a hyperrectangle in R^d         
     # here A is the starting vector, and B and C are vectors that determine the direction of the plane
@@ -104,8 +98,8 @@ function plane(A, B, C, box)
         end
         φₛ = intmultints(ϕₛ)
         ## so right now we have φₜ, φₛ and we wish to subsequently loop over these 
-        U₁ = range(0, φₜ.lo; step = -0.25);
-        U₂ = range(0, φₜ.hi; step = 0.25);
+        U₁ = range(0, φₜ.lo; step = -step[1]);
+        U₂ = range(0, φₜ.hi; step = step[2]);
 
         #println([length(U₁), length(U₂)])
 
@@ -132,7 +126,7 @@ function plane(A, B, C, box)
 
         q = findmax(W)[2];
 
-        return V[q][1];
+        V[q][1];
 
         ## method three
 
@@ -172,10 +166,3 @@ function plane(A, B, C, box)
     #return V
     end
 end
-
-
-# a = -50..50
-
-# box = a × a × a
-
-# V = @time plane([0,0,0], [1,2,3], [-1,1,4], box)
