@@ -34,3 +34,7 @@ function basinboundary(X, Y, h; coords::String = "plane", A::Vector = [], B::Vec
     end
     
 end
+
+# Additional method for convenience:
+# Takes the output of basins directly as input
+basinboundary(boa) = basinboundary(boa[1], boa[2], boa[3])
