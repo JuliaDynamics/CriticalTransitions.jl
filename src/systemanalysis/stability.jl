@@ -14,7 +14,6 @@ For more robust results, use `fixedpoints`.
 * `dt = 0.01`: time step of the ODE solver.
 * `solver = Euler()`: ODE solver used for evolving the state.
 """
-
 function equilib(sys::StochSystem, state::State;
     dt=0.01,
     tmax=1e5,
