@@ -1,6 +1,6 @@
+docs/build/
 **/.ipynb_checkpoints/**
 /data/
-/docs/
 **/devtest.jl
 *.mem
 *.ipynb
