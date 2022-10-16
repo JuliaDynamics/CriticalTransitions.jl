@@ -1,7 +1,22 @@
-# Package documentation
+# CriticalTransitions.jl
 
-Hello world!
+*A Julia package for the numerical investigation of critical transitions in stochastic dynamical systems.*
 
-```@docs
-CriticalTransitions.equilib(sys::StochSystem, state::State; kwargs...)
-```
+Building on [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/) and [`DynamicalSystems.jl`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/), this newly developing package aims to provide a toolbox for stochastic dynamics, with a focus on tipping phenomena and metastability.
+
+!!! info "Current features"
+    * **Stability analysis**: fixed points, linear stability, basins of attraction, basin boundary
+    * **Stochastic simulation**: Gaussian noise, uncorrelated and correlated, additive and multiplicative
+    * **Transition path sampling**: parallelized ensemble sampling
+
+!!! ukw "Planned features"
+    * **Rare event simulation**: importance sampling, AMS
+    * **Large deviations**: instantons and quasipotentials
+    * **Edge tracking**
+    * **Langevin MCMC path sampling**
+    * ...?
+
+
+Developers: Reyk Börner, Ryan Deeley, and Raphael Römer
+
+This work is part of the [CriticalEarth](https://criticalearth.eu) project.
