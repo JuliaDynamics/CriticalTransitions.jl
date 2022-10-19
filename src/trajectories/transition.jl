@@ -118,6 +118,7 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
         range = tqdm(1:Nmax)
     else
         range = 1:Nmax
+    end
 
     Threads.@threads for j in range
         
