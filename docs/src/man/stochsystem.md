@@ -16,3 +16,7 @@ taking the following arguments:
 * `pg` (Vector or Nothing): Parameter vector of the noise term.
 * `Σ` (Matrix): Noise covariance matrix. Defaults to `I` (identity matrix).
 * `process` (String): Noise process. Defaults to `white-gauss` (independent n-dimensional Brownian motion).
+
+```@docs
+StochSystem
+```

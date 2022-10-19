@@ -13,7 +13,9 @@ makedocs(
         "Guide" => Any[
             "Defining a StochSystem" => "man/stochsystem.md",
             "Stability analysis" => "man/systemanalysis.md",
-            "Simulating the system" => "man/simulation.md"
+            "Simulating the system" => "man/simulation.md",
+            "Noise processes" => "man/noise.md",
+            "Utilities" => "man/utils.md"
         ],
         "Predefined systems" => "man/systems.md"
     ]

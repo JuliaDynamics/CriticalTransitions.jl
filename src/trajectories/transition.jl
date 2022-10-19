@@ -2,6 +2,29 @@ include("../StochSystem.jl")
 include("../io/io.jl")
 include("simulation.jl")
 
+"""
+    transition(sys::StochSystem, x_i::State, x_f::State; kwargs...)
+Generates a sample transition from point `x_i` to point `x_f`.
+
+This function simulates `sys` in time, starting from initial condition `x_i`, until entering a `sys.dim`-dimensional ball of radius `rad_f` around `x_f`.
+
+## Keyword arguments
+* `rad_i=0.1`: radius of ball around `x_i`
+* `rad_f=0.1`: radius of ball around `x_f`
+* `cut_start=true`: if `false`, returns the whole trajectory up to the transition
+* `dt=0.01`: time step of integration
+* `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
+* `solver=EM()`: numerical solver. Defaults to Euler-Mayurama
+* `progress`: shows a progress bar with respect to `tmax`
+
+## Output
+`[path, times, success]`
+* `path` (Matrix): transition path (size [dim × N], where N is the number of time points)
+* `times` (Vector): time values (since start of simulation) of the path points (size N)
+* `success` (bool): if `true`, a transition occured (i.e. the ball around `x_f` has been reached), else `false`
+
+See also [`transitions`](@ref), [`simulate`](@ref).
+"""
 function transition(sys::StochSystem, x_i::State, x_f::State;
     rad_i=0.1,
     rad_f=0.1,
@@ -43,6 +66,41 @@ function transition(sys::StochSystem, x_i::State, x_f::State;
     sim, simt, success
 end;
 
+
+"""
+    transitions(sys::StochSystem, x_i::State, x_f::State, N=1; kwargs...)
+Generates an ensemble of `N` transition samples of `sys` from point `x_i` to point `x_f`.
+
+This function repeatedly calls the [`transition`](@ref) function to efficiently generate an ensemble of transitions, which are saved to a file or returned as an array of paths. Multi-threading is enabled.
+
+## Keyword arguments
+* `rad_i=0.1`: radius of ball around `x_i`
+* `rad_f=0.1`: radius of ball around `x_f`
+* `cut_start=true`: if `false`, returns the whole trajectory up to the transition
+* `Nmax`: number of attempts before the algorithm stops even if less than `N` transitions occurred.
+* `dt=0.01`: time step of integration
+* `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
+* `solver=EM()`: numerical solver. Defaults to Euler-Mayurama
+* `progress`: shows a progress bar with respect to `Nmax`
+* `savefile`: if `nothing`, no data is saved to a file. To save to a file, see below.
+
+See also [`transition`](@ref).
+
+## Saving data to file
+The `savefile` keyword argument allows saving the data to a `.jld2` or `.h5` file. To do so:
+1. Create and open a file by typing `file = jld2open("filename.jld2", "a+")` or `file = h5open("filename.h5", "cw")`. This requires `JLD2.jl`/`HDF5.jl`; the convenience functions [`make_jld2`](@ref), [`make_h5`](@ref) provide this out of the box.
+2. Pass the label `file` to the `savefile` argument of `transitions`.
+3. Don't forget to `close(file)` at the end.
+
+## Output
+`[samples, times, idx, N_fail]`
+* `samples` (Array of Matrices): sample paths. Each path i has size (dim × N_i), where N_i is the number of path points
+* `times` (Array of Vectors): time values (since simulation start) of path points for each path
+* `idx` (Array): list of sample indices i that produced a transition
+* `N_fail` (Int): number of samples that failed to produce a transition
+
+> An example script using `transitions` is available [here](https://github.com/reykboerner/CriticalTransitions.jl/blob/main/scripts/sample_transitions_h5.jl).
+"""
 function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     rad_i=0.1,
     rad_f=0.1,
@@ -52,20 +110,16 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     solver=EM(),
     cut_start=true,
     savefile=nothing,
-    progress=true,
-    verbose=true)
-    """
-    Generates N transition samples of sys from x_i to x_f.
-    Supports multi-threading.
-    rad_i:      ball radius around x_i
-    rad_f:      ball radius around x_f
-    cut_start:  if false, saves the whole trajectory up to the transition
-    savefile:   if not nothing, saves data to a specified open .jld2 file
-    """
+    progress=true)
 
     samples, times, idx::Vector{Int64}, r_idx::Vector{Int64}, simt = [], [], [], [], []
 
-    Threads.@threads for j = tqdm(1:Nmax)
+    if progress
+        range = tqdm(1:Nmax)
+    else
+        range = 1:Nmax
+
+    Threads.@threads for j in range
         
         sim, simt, success = transition(sys, x_i, x_f;
                     rad_i=rad_i, rad_f=rad_f, dt=dt, tmax=tmax,

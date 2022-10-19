@@ -19,14 +19,14 @@ using CriticalTransitions, Printf, HDF5, Dates
 ###########################################################
 
 # FitzHughNagumo parameters
-σ = 0.09               # noise intensity
-ϵ = 0.01                 # time scale parameter
+σ = 0.22               # noise intensity
+ϵ = 0.1                 # time scale parameter
 
 β, α, γ, κ, Ι = 3., 1., 1., 1., 0.
 pf = [ϵ, β, α, γ, κ, Ι]
 
 # Noise settings
-Σ = [1 0; 0 1]          # covariance matrix
+Σ = [1. 0.; 0. 1.]          # covariance matrix
 process = "WhiteGauss"  # noise process
 
 # Transition settings
@@ -35,10 +35,10 @@ rad_i = 0.03            # ball radius around initial point
 rad_f = 0.1             # ball radius around final point
 
 # Run settings
-N = 50              	# number of transition samples
-Nmax = 10000              # maximum number of attempts
-tmax = Int64(1e4)       # maximum simulation time per attempt
-dt = 0.005               # time step
+N = 500              	# number of transition samples
+Nmax = 1000 #10000              # maximum number of attempts
+tmax = 1e3       # maximum simulation time per attempt
+dt = 0.01               # time step
 solver = EM()		# SDEProblem solver
 
 ###########################################################

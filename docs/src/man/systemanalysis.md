@@ -1,14 +1,13 @@
 # Analyzing a system's stability properties
 
+## Fixed points
 ```@docs
 equilib(sys::StochSystem, state::State; kwargs...)
-```
-
-```@docs
 fixedpoints(sys::StochSystem, bmin, bmax)
 ```
 
+## Basins of attraction
 ```@docs
-fixedpoints(sys::StochSystem, box)
+basins(sys::StochSystem, A, B, C, H; kwargs)
+basinboundary(X, Y, h; kwargs...)
 ```
-

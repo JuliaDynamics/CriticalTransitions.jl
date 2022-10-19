@@ -30,21 +30,6 @@ function equilib(sys::StochSystem, state::State;
     sol.u[1]
 end;
 
-"""
-    fixedpoints(sys::StochSystem, box)
-Returns fixed points, their eigenvalues and stability of the system `sys` within the state space volume `box`.
-
-> This is a wrapper around the [`fixedpoints`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/chaos/periodicity/#ChaosTools.fixedpoints) function of `DynamicalSystems.jl`.
-> For info on how to generate a `box`, see [`intervals_to_box`](@ref).
-
-## Output
-`[fp, eigs, stable]`
-* `fp`: `Dataset` of fixed points
-* `eigs`: vector of Jacobian eigenvalues of each fixed point
-* `stable`: vector of booleans indicating the stability of each fixed point (`true`=stable, `false`=unstable)
-
-$(METHODLIST)
-"""
 function fixedpoints(sys::StochSystem, box)
     DynamicalSystems.fixedpoints(tocds(sys), box)
 end;
@@ -58,15 +43,18 @@ Returns fixed points, their eigenvalues and stability of the system `sys` within
 ## Input
 * `bmin` (Vector): lower limits of the state space box to be considered, as a vector of coordinates
 * `bmax` (Vector): upper limits
+* alternatively `box` (IntervalBox) can replace `bmin` and `bmax`
 
-## Example
-`fixedpoints(sys, [-2,-1,0], [2,1,1])` finds the fixed points of the 3D system `sys` in a cube defined by the intervals `[-2,2] × [-1,1] × [0,1]`.
+> Example: `fixedpoints(sys, [-2,-1,0], [2,1,1])` finds the fixed points of the 3D system `sys` in a cube defined by the intervals `[-2,2] × [-1,1] × [0,1]`.
 
 ## Output
 `[fp, eigs, stable]`
 * `fp`: `Dataset` of fixed points
 * `eigs`: vector of Jacobian eigenvalues of each fixed point
 * `stable`: vector of booleans indicating the stability of each fixed point (`true`=stable, `false`=unstable)
+
+## Additional methods
+* `fixedpoints(sys::StochSystem, box)`
 """
 function fixedpoints(sys::StochSystem, bmin::Vector, bmax::Vector)
     box = intervals_to_box(bmin, bmax)
