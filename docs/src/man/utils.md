@@ -5,7 +5,7 @@
 ### `StochSystem` utility functions
 
 ```@docs
-tocds(sys::StochSystem; state=zeros(sys.dim)
+tocds(sys::StochSystem; state=zeros(sys.dim))
 σg(sys::StochSystem)
 p(sys::StochSystem)
 sys_info(sys::StochSystem)

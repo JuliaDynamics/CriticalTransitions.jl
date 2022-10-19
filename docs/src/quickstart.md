@@ -1,4 +1,4 @@
-# Getting started
+# Quickstart
 
 ## Installation
 As this module is not published yet, there are two ways to access it:
@@ -19,7 +19,7 @@ The general workflow of `CriticalTransitions` essentially follows two steps:
 
 ## Methods
 
-Currently the following functions are implemented to analyze a StochSystem.
+Currently the following functions are implemented to analyze a [`StochSystem`](@ref).
 
 ```@index
 Pages = ["man/simulation.md", "man/systemanalysis.md"]

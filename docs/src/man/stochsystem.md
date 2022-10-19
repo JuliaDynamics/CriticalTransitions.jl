@@ -23,5 +23,5 @@ taking the following arguments:
 * `StochSystem(f, pf, dim, σ, Σ)`
 
 ```@docs
-StochSystem(f, pf, dim [, σ [, g, pg, Σ, process]])
+StochSystem
 ```

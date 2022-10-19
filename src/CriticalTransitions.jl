@@ -22,9 +22,11 @@ export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
 export simulate, relax, transition, transitions
 export tocds, make_jld2, make_h5, sys_string, sys_info, intervals_to_box
+export is_iip
 
 export FitzHughNagumo, FitzHughNagumo!
 export idfunc, idfunc!
+export gauss
 
 export EM, I # functions inherited from dependencies
 

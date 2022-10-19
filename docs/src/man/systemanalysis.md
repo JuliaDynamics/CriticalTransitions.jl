@@ -3,7 +3,7 @@
 ## Fixed points
 ```@docs
 equilib(sys::StochSystem, state::State; kwargs...)
-fixedpoints(sys::StochSystem, bmin, bmax)
+fixedpoints
 ```
 
 ## Basins of attraction

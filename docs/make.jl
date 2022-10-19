@@ -8,9 +8,9 @@ makedocs(
     
     pages=Any[
         "Home" => "index.md",
-        "Getting started" => "quickstart.md",
+        "Quickstart" => "quickstart.md",
         "Tutorial" => "tutorial.md",
-        "Guide" => Any[
+        "Manual" => Any[
             "Defining a StochSystem" => "man/stochsystem.md",
             "Stability analysis" => "man/systemanalysis.md",
             "Simulating the system" => "man/simulation.md",

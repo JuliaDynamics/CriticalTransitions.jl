@@ -7,7 +7,7 @@ State = Union{Vector, SVector}
 
 # Define StochSystem
 """
-    StochSystem(f, pf, dim [, σ [, g, pg, Σ, process]])
+    StochSystem(f, pf, dim, σ, g, pg, Σ, process)
 Defines a stochastic dynamical system in `CriticalTransitions.jl`. See [documentation](https://reykboerner.github.io/CriticalTransitions.jl/dev/man/stochsystem/).
 """
 struct StochSystem
@@ -18,7 +18,7 @@ struct StochSystem
     g::Function
     pg::Parameters
     Σ::CovMatrix
-    process::Any
+    process::Any    
 end;
 
 # Methods of StochSystem
