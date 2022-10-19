@@ -17,6 +17,11 @@ taking the following arguments:
 * `Σ` (Matrix): Noise covariance matrix. Defaults to `I` (identity matrix).
 * `process` (String): Noise process. Defaults to `white-gauss` (independent n-dimensional Brownian motion).
 
+### Shortcut methods
+* `StochSystem(f, pf, dim)`
+* `StochSystem(f, pf, dim, σ)`
+* `StochSystem(f, pf, dim, σ, Σ)`
+
 ```@docs
-StochSystem
+StochSystem(f, pf, dim [, σ [, g, pg, Σ, process]])
 ```
