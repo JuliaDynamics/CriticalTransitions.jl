@@ -17,7 +17,8 @@ makedocs(
             "Noise processes" => "man/noise.md",
             "Utilities" => "man/utils.md"
         ],
-        "Predefined systems" => "man/systems.md"
+        "Predefined systems" => "man/systems.md",
+        "Development stage" => "man/dev.md"
     ]
 )
 

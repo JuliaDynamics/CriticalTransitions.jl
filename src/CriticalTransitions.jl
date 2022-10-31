@@ -18,6 +18,8 @@ include("trajectories/transition.jl")
 
 include("../systems/fitzhughnagumo.jl")
 
+include("../dev/fhn_pathspace_sampling.jl")
+
 export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
 export simulate, relax, transition, transitions
@@ -29,5 +31,7 @@ export idfunc, idfunc!
 export gauss
 
 export EM, I # functions inherited from dependencies
+
+export FitzHughNagumoSPDE, fhn_pathspace_sampling
 
 end # module CriticalTransitions
