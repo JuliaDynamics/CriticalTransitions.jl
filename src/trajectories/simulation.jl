@@ -26,13 +26,9 @@ function simulate(sys::StochSystem, init::State;
     callback=nothing,
     progress=true,
     kwargs...)
- 
-    if sys.process == "WhiteGauss"
-        prob = SDEProblem(sys.f, σg(sys), init, (0, tmax), p(sys), noise=stochprocess(sys))
-        sol = solve(prob, solver; dt=dt, callback=callback, progress=progress, kwargs...)
-    else
-        ArgumentError("ERROR: Noise process not yet implemented.")
-    end
+
+    prob = SDEProblem(sys.f, σg(sys), init, (0, tmax), p(sys), noise=stochprocess(sys))
+    solve(prob, solver; dt=dt, callback=callback, progress=progress, kwargs...)
 end;
 
 """
@@ -61,5 +57,5 @@ function relax(sys::StochSystem, init::State;
     kwargs...)
     
     prob = ODEProblem(sys.f, init, (0, tmax), p(sys))
-    sol = solve(prob, solver; dt=dt, callback=callback, kwargs...)
+    solve(prob, solver; dt=dt, callback=callback, kwargs...)
 end;
