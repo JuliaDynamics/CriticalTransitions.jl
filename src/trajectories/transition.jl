@@ -22,6 +22,7 @@ This function simulates `sys` in time, starting from initial condition `x_i`, un
 * `path` (Matrix): transition path (size [dim × N], where N is the number of time points)
 * `times` (Vector): time values (since start of simulation) of the path points (size N)
 * `success` (bool): if `true`, a transition occured (i.e. the ball around `x_f` has been reached), else `false`
+* `kwargs...`: keyword arguments passed to [`simulate`](@ref)
 
 See also [`transitions`](@ref), [`simulate`](@ref).
 """
@@ -32,19 +33,14 @@ function transition(sys::StochSystem, x_i::State, x_f::State;
     tmax=1e3,
     solver=EM(),
     progress=true,
-    cut_start=true)
-    """
-    Simulates a sample transition from x_i to x_f.
-    rad_i:      ball radius around x_i
-    rad_f:      ball radius around x_f
-    cut_start:  if false, saves the whole trajectory up to the transition
-    """
+    cut_start=true,
+    kwargs...)
 
     condition(u,t,integrator) = norm(u - x_f) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
 
-    sim = simulate(sys, x_i, dt=dt, tmax=tmax, solver=solver, callback=cb_ball, progress=progress)
+    sim = simulate(sys, x_i, dt=dt, tmax=tmax, solver=solver, callback=cb_ball, progress=progress, kwargs...)
 
     success = true
     if sim.t[end] == tmax

@@ -1,5 +1,5 @@
 include("../StochSystem.jl")
-include("../noiseprocesses/gaussian.jl")
+include("../noiseprocesses/stochprocess.jl")
 
 """
     simulate(sys::StochSystem, init::State; kwargs...)
@@ -13,6 +13,7 @@ This function uses the [`SDEProblem`](https://diffeq.sciml.ai/stable/types/sde_t
 * `solver=EM()`: numerical solver. Defaults to Euler-Mayurama
 * `callback=nothing`: callback condition
 * `progress=true`: shows a progress bar during simulation
+* `kwargs...`: keyword arguments for `solve(SDEProblem)`
 
 For more info, see [`SDEProblem`](https://diffeq.sciml.ai/stable/types/sde_types/#SciMLBase.SDEProblem).
 
@@ -23,11 +24,12 @@ function simulate(sys::StochSystem, init::State;
     tmax=1e3,
     solver=EM(),
     callback=nothing,
-    progress=true)
+    progress=true,
+    kwargs...)
  
     if sys.process == "WhiteGauss"
-        prob = SDEProblem(sys.f, σg(sys), init, (0, tmax), p(sys), noise=gauss(sys))
-        sol = solve(prob, solver; dt=dt, callback=callback, progress=progress)
+        prob = SDEProblem(sys.f, σg(sys), init, (0, tmax), p(sys), noise=stochprocess(sys))
+        sol = solve(prob, solver; dt=dt, callback=callback, progress=progress, kwargs...)
     else
         ArgumentError("ERROR: Noise process not yet implemented.")
     end
@@ -44,6 +46,7 @@ This function integrates `sys.f` forward in time, using the [`ODEProblem`](https
 * `tmax=1e3`: total time of simulation
 * `solver=Euler()`: numerical solver. Defaults to explicit forward Euler
 * `callback=nothing`: callback condition
+* `kwargs...`: keyword arguments for `solve(ODEProblem)`
 
 For more info, see [`ODEProblem`](https://diffeq.sciml.ai/stable/types/ode_types/#SciMLBase.ODEProblem). 
 For stochastic integration, see [`simulate`](@ref).
@@ -54,8 +57,9 @@ function relax(sys::StochSystem, init::State;
     dt=0.01,
     tmax=1e3,
     solver=Euler(),
-    callback=nothing)
+    callback=nothing,
+    kwargs...)
     
     prob = ODEProblem(sys.f, init, (0, tmax), p(sys))
-    sol = solve(prob, solver; dt=dt, callback=callback)
+    sol = solve(prob, solver; dt=dt, callback=callback, kwargs...)
 end;
