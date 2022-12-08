@@ -2,9 +2,9 @@
 
 A `StochSystem` defines a stochastic dynamical system of the form
 
-``\text{d}\vec x = f(\vec x(t); \ p_f)  \text{d}t + \sigma g(\vec x(t);  \ p_g)  \Sigma \cdot \text{d}\mathcal{N} \ ,``
+``\text{d}\vec x = f(\vec x(t); \ p_f)  \text{d}t + \sigma g(\vec x(t);  \ p_g)  \Gamma \cdot \text{d}\mathcal{N} \ ,``
 
-where $\vec x \in \mathbb{R}^\text{dim}$ and $\mathcal N$ denotes a stochastic process.
+where $\vec x \in \mathbb{R}^\text{dim}$, $\Sigma = \Gamma \Gamma^\top \in \mathbb R^{N\times N}$ is the (positive definite) noise covariance matrix and $\mathcal N$ denotes a stochastic process.
 
 An instance of StochSystem is created via `StochSystem(f, pf, dim [, σ [, g, pg, Σ , process]])`,
 taking the following arguments:
