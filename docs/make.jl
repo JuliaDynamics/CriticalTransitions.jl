@@ -14,6 +14,7 @@ makedocs(
             "Defining a StochSystem" => "man/stochsystem.md",
             "Stability analysis" => "man/systemanalysis.md",
             "Simulating the system" => "man/simulation.md",
+            "Analysing transition paths" => "man/paths.md",
             "Noise processes" => "man/noise.md",
             "Utilities" => "man/utils.md"
         ],

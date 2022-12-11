@@ -19,8 +19,9 @@ The general workflow of `CriticalTransitions` essentially follows two steps:
 
 ## Methods
 
-Currently the following functions are implemented to analyze a [`StochSystem`](@ref).
+Currently the following functions are implemented to analyze a [`StochSystem`](@ref) and 
+corresponding sample transition paths.
 
 ```@index
-Pages = ["man/simulation.md", "man/systemanalysis.md"]
+Pages = ["man/simulation.md", "man/systemanalysis.md", "man/paths.md"]
 ```
