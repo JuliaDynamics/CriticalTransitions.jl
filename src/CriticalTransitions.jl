@@ -15,6 +15,7 @@ include("systemanalysis/basinsofattraction.jl")
 include("systemanalysis/basinboundary.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
+include("pathproperties/action.jl")
 
 include("../systems/fitzhughnagumo.jl")
 
@@ -25,6 +26,7 @@ export equilib, fixedpoints, basins, basinboundary
 export simulate, relax, transition, transitions
 export tocds, make_jld2, make_h5, sys_string, sys_info, intervals_to_box
 export is_iip
+export fw_integrand, fw_action
 
 export FitzHughNagumo, FitzHughNagumo!
 export idfunc, idfunc!

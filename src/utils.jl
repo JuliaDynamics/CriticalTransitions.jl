@@ -51,3 +51,20 @@ function intervals_to_box(bmin::Vector, bmax::Vector)
     end
     box
 end;
+
+"""
+    anorm(vec, A; square=false)
+Calculates the norm of the vector `vec` with respect to the A-metric, where `A` is a 
+square matrix of dimension `(lenth(vec) x length(vec))`.
+
+# Keyword arguments
+* `square`: if `true`, returns square of norm; else, returns norm.
+"""
+function anorm(vec, A; square=false)
+    normsquared = dot(vec, A * vec)
+    if square
+        return normsquared
+    else
+        return sqrt(normsquared)
+    end
+end;
