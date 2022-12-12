@@ -8,7 +8,7 @@ Building on [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/) and [`
     * **Stability analysis**: fixed points, linear stability, basins of attraction, basin boundary
     * **Stochastic simulation**: Gaussian noise, uncorrelated and correlated, additive and multiplicative
     * **Transition path sampling**: parallelized ensemble sampling
-    * **Large deviation theory**: Freidlin-Wentzell action calculation
+    * **Large deviation theory**: Freidlin-Wentzell and Onsager-Machlup action calculation
 
 !!! ukw "Planned features"
     * **Rare event simulation**: importance sampling, AMS
