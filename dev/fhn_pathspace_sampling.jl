@@ -90,6 +90,7 @@ function fhn_pathspace_sampling(ϵ, σ, T, dz, init=nothing;
     κ=1.0,
     Ι=0.0,
     save_every=100,
+    divterm=true,
     burnin=10)
 
     # number of points to discretize path
@@ -113,7 +114,7 @@ function fhn_pathspace_sampling(ϵ, σ, T, dz, init=nothing;
     end
 
     # Setup SPDE problem
-    spde(eps, sigma) = StochSystem(FitzHughNagumoSPDE, [eps, β, α, γ, κ, Ι, a, sigma, dz],
+    spde(eps, sigma) = StochSystem(FitzHughNagumoSPDE, [eps, β, α, γ, κ, Ι, a, Int(divterm)*sigma, dz],
     2N, sqrt(2/dz)*sigma, idfunc, nothing, cov, "WhiteGauss")
 
     sim = simulate(spde(ϵ,σ), init, dt=dt, tmax=tmax)
