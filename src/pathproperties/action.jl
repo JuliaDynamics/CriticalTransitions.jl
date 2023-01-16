@@ -45,7 +45,7 @@ function om_action(sys::StochSystem, path, time)
     S = 0
     for i in 1:(size(path, 2) - 1)
         S += (integrand[i+1] + integrand[i])/2 * (time[i+1]-time[i])
-        S -= sys.σ^2 * (div_b(sys, path[:,i+1]) + div_b(sys, path[:,i]))/2 * (time[i+1]-time[i])
+        S += sys.σ^2 * (div_b(sys, path[:,i+1]) + div_b(sys, path[:,i]))/2 * (time[i+1]-time[i])
     end
     S/2
 end
