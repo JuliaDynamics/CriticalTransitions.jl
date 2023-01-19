@@ -68,3 +68,27 @@ function anorm(vec, A; square=false)
         return sqrt(normsquared)
     end
 end;
+
+"""
+    subnorm(vec; directions=[1,...,N])
+Returns the Euclidean norm of the vector `vec`; however, if `directions` are specified, the
+norm is only computed along the specified components of the vector, i.e. in a subspace of
+dimension `length(directions)`.
+
+# Keyword arguments
+* `directions`: a vector containing the indices of the components of `vec` to
+be included. Defaults to `1:length(vec)`, i.e. all components.
+
+# Example
+`subnorm([3,7,4]; directions=[1,3]` calculates the norm of only the 1st and 3rd components
+of the vector [3,7,4]:
+
+``\\sqrt{3^2+4^2} = 5``.
+"""
+function subnorm(vec; directions=1:length(vec))
+    sum = 0
+    for i in directions
+        sum += vec[i]^2
+    end
+    sqrt(sum)
+end;

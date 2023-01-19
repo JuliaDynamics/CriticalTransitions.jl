@@ -1,4 +1,5 @@
 include("../StochSystem.jl")
+include("../utils.jl")
 include("../io/io.jl")
 include("simulation.jl")
 
@@ -14,6 +15,9 @@ This function simulates `sys` in time, starting from initial condition `x_i`, un
 * `cut_start=true`: if `false`, returns the whole trajectory up to the transition
 * `dt=0.01`: time step of integration
 * `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
+* `rad_dims=nothing`: the directions in phase space to consider when calculating the radii
+`rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
+insert a vector of indices of the dimensions to be included.
 * `solver=EM()`: numerical solver. Defaults to Euler-Mayurama
 * `progress`: shows a progress bar with respect to `tmax`
 
@@ -34,9 +38,10 @@ function transition(sys::StochSystem, x_i::State, x_f::State;
     solver=EM(),
     progress=true,
     cut_start=true,
+    rad_dims=nothing,
     kwargs...)
 
-    condition(u,t,integrator) = norm(u - x_f) < rad_f
+    condition(u,t,integrator) = subnorm(u - x_f; directions=rad_dims) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
 
@@ -76,6 +81,9 @@ This function repeatedly calls the [`transition`](@ref) function to efficiently 
 * `Nmax`: number of attempts before the algorithm stops even if less than `N` transitions occurred.
 * `dt=0.01`: time step of integration
 * `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
+* `rad_dims=nothing`: the directions in phase space to consider when calculating the radii
+`rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
+insert a vector of indices of the dimensions to be included.
 * `solver=EM()`: numerical solver. Defaults to Euler-Mayurama
 * `progress`: shows a progress bar with respect to `Nmax`
 * `savefile`: if `nothing`, no data is saved to a file. To save to a file, see below.
@@ -105,6 +113,7 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     Nmax=1000,
     solver=EM(),
     cut_start=true,
+    rad_dims=nothing,
     savefile=nothing,
     progress=true)
 
@@ -119,7 +128,7 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     Threads.@threads for j in range
         
         sim, simt, success = transition(sys, x_i, x_f;
-                    rad_i=rad_i, rad_f=rad_f, dt=dt, tmax=tmax,
+                    rad_i=rad_i, rad_f=rad_f, rad_dims=rad_dims, dt=dt, tmax=tmax,
                     solver=solver, progress=false, cut_start=cut_start)
         
         if success
