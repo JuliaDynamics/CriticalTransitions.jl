@@ -52,8 +52,7 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     solver=EM(),
     cut_start=true,
     savefile=nothing,
-    progress=true,
-    verbose=true)
+    showprogress::Bool=true)
     """
     Generates N transition samples of sys from x_i to x_f.
     Supports multi-threading.
@@ -65,15 +64,20 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
 
     samples, times, idx::Vector{Int64}, simt = [], [], [], []
 
-    Threads.@threads for j = tqdm(1:Nmax)
+    iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
+
+    Threads.@threads for j ∈ iterator
         
         sim, simt, success = transition(sys, x_i, x_f;
                     rad_i=rad_i, rad_f=rad_f, dt=dt, tmax=tmax,
                     solver=solver, progress=false, cut_start=cut_start)
         
-        if success
-            print("\rStatus: $(length(idx))/$(N) transitions complete.")
-        
+        if success 
+            
+            if showprogress
+                print("\rStatus: $(length(idx))/$(N) transitions complete.")
+            end
+
             if savefile == nothing
                 push!(samples, sim);
                 push!(times, simt);
