@@ -43,7 +43,7 @@ function basins(sys::StochSystem, A, B, C, H; fp = nothing, bstep::Vector = [0.0
 
     # here H is a hyperrectangle contained in R^d
     # bstep is the incremental steps you will take across your basin of attraction defined on some plane
-    # pstep is a vector of steps (increments) for mechanism behind finding a box from a plane
+    # pstep is a vector of steps (increments) for mechanism behind finding a plane from a box
 
 
     projs = plane(A, B, C, H; step = pstep);
