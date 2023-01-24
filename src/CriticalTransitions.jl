@@ -16,6 +16,7 @@ include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 
 include("../systems/fitzhughnagumo.jl")
+include("../systems/modifiedtruscottbrindley.jl")
 
 export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
@@ -23,7 +24,11 @@ export simulate, relax, transition, transitions
 export tocds, make_jld2, make_h5, sys_string, sys_info, intervals_to_box
 
 export FitzHughNagumo, FitzHughNagumo!
+export modifiedtruscottbrindley, modifiedtruscottbrindley!
+export modtb_αξσ
 export idfunc, idfunc!
+export additive_idx, additive_idx!
+export multiplicative_idx, multiplicative_idx!
 
 export EM, I # functions inherited from dependencies
 
