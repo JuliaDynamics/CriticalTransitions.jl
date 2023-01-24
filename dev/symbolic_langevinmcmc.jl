@@ -55,16 +55,16 @@ function symbolise_spde(sys::StochSystem)
     state_vars = @eval @variables $([Symbol("x$i") for i=1:sys.dim]...);
 
     # next, the deterministic drift of the system in symbolic form
-    drift = sys.f(x,[sys.pf],@variables t)
+    drift = sys.f(state_vars,[sys.pf],@variables t)
 
     # next, the jacobian of the drift in symbolic form
-    jacobian = Symbolics.jacobian(drift,x);
+    jacobian = Symbolics.jacobian(drift,state_vars);
 
     # next, the penultimate deterministic term in the LangevinMCMC SPDE
-    grad_dot_term = Symbolics.gradient(dot(drift, inv(sys.Σ)*drift), x);
+    grad_dot_term = Symbolics.gradient(dot(drift, inv(sys.Σ)*drift), state_vars);
     
     # finally, the last deterministic term in the LangevinMCMC SPDE
-    grad_div_term = Symbolics.gradient(tr(Jsymb), x); # since the divergence is purely the trace of the jacobian
+    grad_div_term = Symbolics.gradient(tr(jacobian), state_vars); # since the divergence is purely the trace of the jacobian
     
     return state_vars, jacobian, grad_dot_term, grad_div_term
 
