@@ -20,6 +20,6 @@ FitzHughNagumo!(du, u, p, t)
 
 ## Thermohaline Circulation box models
 
-```
-rooth_smooth(u, p, t)
 ```@docs
+rooth_smooth(u, p, t; kwargs...)
+```
