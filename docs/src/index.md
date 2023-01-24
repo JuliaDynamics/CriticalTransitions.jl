@@ -2,7 +2,7 @@
 
 *A Julia package for the numerical investigation of critical transitions in stochastic dynamical systems.*
 
-Building on [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/) and [`DynamicalSystems.jl`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/), this newly developing package aims to provide a toolbox for stochastic dynamics, with a focus on tipping phenomena and metastability.
+Building on [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/) and [`DynamicalSystems.jl`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/), this newly developing package aims to provide a toolbox for stochastic dynamical systems, with a focus on tipping phenomena and metastability.
 
 !!! info "Current features"
     * **Stability analysis**: fixed points, linear stability, basins of attraction, basin boundary

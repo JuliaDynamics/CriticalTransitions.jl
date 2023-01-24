@@ -1,7 +1,7 @@
 include("utils.jl")
 
 # Define custom types
-Parameters = Union{Vector{Float64}, Vector{Int64}, Nothing};
+Parameters = Union{Vector{Any}, Nothing};
 CovMatrix = Union{Matrix, UniformScaling{Bool}, Diagonal{Bool, Vector{Bool}}};
 State = Union{Vector, SVector}
 

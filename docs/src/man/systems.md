@@ -17,3 +17,9 @@ where ``\epsilon`` is the parameter of time scale separation between the state v
 FitzHughNagumo(u, p, t)
 FitzHughNagumo!(du, u, p, t)
 ```
+
+## Thermohaline Circulation box models
+
+```
+rooth_smooth(u, p, t)
+```@docs
