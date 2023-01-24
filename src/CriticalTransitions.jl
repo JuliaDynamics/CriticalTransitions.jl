@@ -4,6 +4,7 @@ using Formatting, Dates, JLD2, HDF5, ProgressBars, ProgressMeter, DocStringExten
 using DynamicalSystems, IntervalRootFinding
 using OrdinaryDiffEq, StochasticDiffEq, DiffEqNoiseProcess
 using LinearAlgebra, StaticArrays, ForwardDiff
+using Symbolics
 
 include("StochSystem.jl")
 include("utils.jl")
@@ -18,8 +19,11 @@ include("trajectories/transition.jl")
 include("pathproperties/action.jl")
 
 include("../systems/fitzhughnagumo.jl")
+include("../systems/modifiedtruscottbrindley.jl")
 
 include("../dev/fhn_pathspace_sampling.jl")
+
+include("../dev/symbolic_langevinmcmc.jl")
 
 export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
@@ -29,11 +33,17 @@ export is_iip
 export fw_integrand, fw_action
 
 export FitzHughNagumo, FitzHughNagumo!
+export modifiedtruscottbrindley, modifiedtruscottbrindley!
+export modtb_αξσ
 export idfunc, idfunc!
+export additive_idx, additive_idx!
+export multiplicative_idx, multiplicative_idx!
 export gauss
 
 export EM, I # functions inherited from dependencies
 
 export FitzHughNagumoSPDE, fhn_pathspace_sampling
+
+export langevinmcmc_spde, symbolise_spde, langevinmcmc
 
 end # module CriticalTransitions

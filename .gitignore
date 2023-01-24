@@ -1,7 +1,9 @@
-docs/build/
 **/.ipynb_checkpoints/**
 /data/
 **/devtest.jl
 *.mem
 *.ipynb
 /**/test.h5
+docs/build/
+/ryan/  
+.vscode/

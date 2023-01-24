@@ -52,6 +52,51 @@ function intervals_to_box(bmin::Vector, bmax::Vector)
     box
 end;
 
+function additive_idx!(du, u, p, t, idx)
+    du[indx] .= 1.
+end;
+
+function additive_idx(u,p,t,idx)
+    du = zeros(length(u))
+    du[idx] .= 1.
+    SVector{length(u)}(du)
+end;
+
+function multiplicative_idx!(du, u, p, t, idx)
+    du[indx] .= u[idx]
+end;
+
+function multiplicative_idx(u, p, t, idx)
+    du = zeros(length(u))
+    du[idx] = u[idx]
+    SVector{length(u)}(du)
+end
+
+
+function multiplicative_first!(du, u, p, t)
+    du[1] = u[1];
+end;
+
+function multiplicative_first(u, p, t)
+    
+    du = zeros(length(u));
+    du[1] = u[1];
+
+    SVector{length(u)}(du)
+end;
+
+function additive_first!(du, u, p, t)
+    du[1] = 1;
+end;
+
+function additive_first(u, p, t)
+    
+    du = zeros(length(u));
+    du[1] = 1;
+
+    SVector{length(u)}(du)
+end;
+
 """
     anorm(vec, A; square=false)
 Calculates the norm of the vector `vec` with respect to the A-metric, where `A` is a 

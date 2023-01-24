@@ -110,25 +110,30 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     cut_start=true,
     rad_dims=1:sys.dim,
     savefile=nothing,
-    progress=true)
+    showprogress::Bool=true)
+    """
+    Generates N transition samples of sys from x_i to x_f.
+    Supports multi-threading.
+    rad_i:      ball radius around x_i
+    rad_f:      ball radius around x_f
+    cut_start:  if false, saves the whole trajectory up to the transition
+    savefile:   if not nothing, saves data to a specified open .jld2 file
+    """
 
-    samples, times, idx::Vector{Int64}, r_idx::Vector{Int64}, simt = [], [], [], [], []
+    iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
-    if progress
-        range = tqdm(1:Nmax)
-    else
-        range = 1:Nmax
-    end
-
-    Threads.@threads for j in range
+    Threads.@threads for j ∈ iterator
         
         sim, simt, success = transition(sys, x_i, x_f;
                     rad_i=rad_i, rad_f=rad_f, rad_dims=rad_dims, dt=dt, tmax=tmax,
                     solver=solver, progress=false, cut_start=cut_start)
         
-        if success
-            print("\rStatus: $(length(idx))/$(N) transitions complete.")
-        
+        if success 
+            
+            if showprogress
+                print("\rStatus: $(length(idx))/$(N) transitions complete.")
+            end
+
             if savefile == nothing
                 push!(samples, sim);
                 push!(times, simt);
