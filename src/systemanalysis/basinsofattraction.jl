@@ -35,7 +35,11 @@ function AVPtype(method::String, p::Vector)
     end
 end
 
-function basins(sys::StochSystem, A, B, C, H; fp = nothing, bstep::Vector = [0.01, 0.01], pstep::Vector == [0.1, 0.1], method::String = "defaultCT", AVPparams = [])
+"""
+    basins(sys::StochSystem, A, B, C, H; kwargs...)
+Computes the basins of attraction of StochSystem `sys` on a plane spanned by the points `A`, `B`, `C` and limited by the box `H`.
+"""
+function basins(sys::StochSystem, A, B, C, H; fp = nothing, bstep::Vector = [0.01, 0.01], pstep::Vector = [0.1, 0.1], method::String = "defaultCT", AVPparams = [])
 
     # here H is a hyperrectangle contained in R^d
     # bstep is the incremental steps you will take across your basin of attraction defined on some plane

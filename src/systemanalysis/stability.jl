@@ -1,8 +1,22 @@
 include("../StochSystem.jl")
 
+"""
+    equilib(sys::StochSystem, state::State; kwargs...)
+Returns the equilibrium solution of the system `sys` for given initial condition `state`.
+
+> Warning: This algorithm simply evolves the deterministic system forward in time until a steady-state condition is satisfied.
+> Thus, the algorithm may output a false solution if it gets stuck in a quasi-equilibrium, or slowly evolving state.
+> For more robust results, use `fixedpoints`.
+
+## Keyword arguments:
+* `abstol = 1e-5`: steady-state condition. Simulation ends when the rate of change (Euclidean distance in state space) of the state falls below `abstol`.
+* `tmax = 1e5`: maximum simulation time before the algorithm stops even if the steady-state condition is not reached.
+* `dt = 0.01`: time step of the ODE solver.
+* `solver = Euler()`: ODE solver used for evolving the state.
+"""
 function equilib(sys::StochSystem, state::State;
     dt=0.01,
-    tmax=1e3,
+    tmax=1e5,
     abstol=1e-5,
     solver=Euler())
     
@@ -20,6 +34,28 @@ function fixedpoints(sys::StochSystem, box)
     DynamicalSystems.fixedpoints(tocds(sys), box)
 end;
 
+"""
+    fixedpoints(sys::StochSystem, bmin::Vector, bmax::Vector)
+Returns fixed points, their eigenvalues and stability of the system `sys` within the state space volume defined by `bmin` and `bmax`.
+
+> This is a wrapper around the [`fixedpoints`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/chaos/periodicity/#ChaosTools.fixedpoints) function of `DynamicalSystems.jl`.
+
+## Input
+* `bmin` (Vector): lower limits of the state space box to be considered, as a vector of coordinates
+* `bmax` (Vector): upper limits
+* alternatively `box` (IntervalBox) can replace `bmin` and `bmax`
+
+> Example: `fixedpoints(sys, [-2,-1,0], [2,1,1])` finds the fixed points of the 3D system `sys` in a cube defined by the intervals `[-2,2] × [-1,1] × [0,1]`.
+
+## Output
+`[fp, eigs, stable]`
+* `fp`: `Dataset` of fixed points
+* `eigs`: vector of Jacobian eigenvalues of each fixed point
+* `stable`: vector of booleans indicating the stability of each fixed point (`true`=stable, `false`=unstable)
+
+## Additional methods
+* `fixedpoints(sys::StochSystem, box)`
+"""
 function fixedpoints(sys::StochSystem, bmin::Vector, bmax::Vector)
     box = intervals_to_box(bmin, bmax)
     DynamicalSystems.fixedpoints(tocds(sys), box)

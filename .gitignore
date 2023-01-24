@@ -1,9 +1,9 @@
-.vscode/
-/ryan/
 **/.ipynb_checkpoints/**
 /data/
-/docs/
 **/devtest.jl
 *.mem
 *.ipynb
 /**/test.h5
+docs/build/
+/ryan/  
+.vscode/

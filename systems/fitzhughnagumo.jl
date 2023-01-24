@@ -4,6 +4,12 @@ Dynamical systems specification file
 
 # FitzHughNagumo model
 
+"""
+    FitzHughNagumo!(du, u, p, t)
+In-place definition of the FitzHugh-Nagumo system.
+
+See also [`FitzHughNagumo`](@ref).
+"""
 function FitzHughNagumo!(du, u, p, t)
     x, y = u
     ϵ, β, α, γ, κ, I = p[1]
@@ -12,6 +18,12 @@ function FitzHughNagumo!(du, u, p, t)
     du[2] = -β*y + x
 end
 
+"""
+    FitzHughNagumo(u, p, t)
+Out-of-place definition of the FitzHugh-Nagumo system.
+
+See also [`FitzHughNagumo!`](@ref).
+"""
 function FitzHughNagumo(u,p,t)
     x, y = u
     ϵ, β, α, γ, κ, I = p[1]

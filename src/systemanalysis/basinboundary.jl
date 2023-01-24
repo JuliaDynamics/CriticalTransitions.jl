@@ -2,6 +2,10 @@ function planetophase(A::Vector, B::Vector, C::Vector, proj::Vector)
     A + proj[1]*(B-A) + proj[2]*(C-A)
 end
 
+"""
+    basinboundary(X, Y, h; kwargs...)
+Computes the basin boundary for given basins of attraction.
+"""
 function basinboundary(X, Y, h; coords::String = "plane", A::Vector = [], B::Vector = [], C::Vector = [])
 
     bb = [];
@@ -34,3 +38,7 @@ function basinboundary(X, Y, h; coords::String = "plane", A::Vector = [], B::Vec
     end
     
 end
+
+# Additional method for convenience:
+# Takes the output of basins directly as input
+basinboundary(boa) = basinboundary(boa[1], boa[2], boa[3])
