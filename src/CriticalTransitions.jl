@@ -20,6 +20,7 @@ include("pathproperties/action.jl")
 
 include("../systems/fitzhughnagumo.jl")
 include("../systems/modifiedtruscottbrindley.jl")
+include("../systems/thc_box/rooth_model.jl")
 
 include("../dev/fhn_pathspace_sampling.jl")
 
@@ -35,6 +36,8 @@ export fw_integrand, fw_action
 export FitzHughNagumo, FitzHughNagumo!
 export modifiedtruscottbrindley, modifiedtruscottbrindley!
 export modtb_αξσ
+export rooth_smooth
+
 export idfunc, idfunc!
 export additive_idx, additive_idx!
 export multiplicative_idx, multiplicative_idx!
@@ -43,7 +46,6 @@ export gauss
 export EM, I # functions inherited from dependencies
 
 export FitzHughNagumoSPDE, fhn_pathspace_sampling
-
 export langevinmcmc_spde, symbolise_spde, langevinmcmc
 
 end # module CriticalTransitions
