@@ -120,6 +120,8 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     savefile:   if not nothing, saves data to a specified open .jld2 file
     """
 
+    samples, times, idx::Vector{Int64}, r_idx::Vector{Int64} = [], [], [], []
+
     iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
     Threads.@threads for j ∈ iterator
