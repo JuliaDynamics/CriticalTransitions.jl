@@ -41,8 +41,8 @@ function mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Float64;
     result = Vector{Optim.OptimizationResults}(undef, blocks)
     result[1] = optimize(f, init, method, Optim.Options(iterations=block_iterations))
     
-    range = showprogress ? tqdm(2:blocks) : 2:blocks
-    for m in range
+    iterator = showprogress ? tqdm(2:blocks) : 2:blocks
+    for m in iterator
         print(m)
         result[m] = optimize(f, result[m-1].minimizer, method,
             Optim.Options(iterations=block_iterations))
@@ -68,8 +68,8 @@ function mam(sys::StochSystem, init::Matrix, T::Float64;
     result = Vector{Optim.OptimizationResults}(undef, blocks)
     result[1] = optimize(f, init, method, Optim.Options(iterations=block_iterations))
     
-    range = showprogress ? tqdm(2:blocks) : 2:blocks
-    for m in range
+    iterator = showprogress ? tqdm(2:blocks) : 2:blocks
+    for m in iterator
         print(m)
         result[m] = optimize(f, result[m-1].minimizer, method,
             Optim.Options(iterations=block_iterations))
