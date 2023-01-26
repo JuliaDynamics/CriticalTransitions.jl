@@ -2,31 +2,33 @@
 
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://reykboerner.github.io/CriticalTransitions.jl/dev/)
 
-A Julia package for the numerical investigation of critical transitions in metastable systems, building on `DifferentialEquations.jl` and `DynamicalSystems.jl`.
+A Julia package for the numerical investigation of critical transitions in metastable systems, based on `DifferentialEquations.jl` and `DynamicalSystems.jl`.
 
 ## Usage
 See [package documentation](https://reykboerner.github.io/CriticalTransitions.jl/dev/).
 
 ## Example: Bistable FitzHugh-Nagumo model
 ```julia
-include("src/CriticalTransitions.jl")
-using .CriticalTransitions
+using CriticalTransitions
 
-# Parameters
+# System parameters
 p = [1., 3., 1., 1., 1., 0.]
+noise_strength = 0.2
 
-# StochSystem
-sys = StochSystem(FitzHughNagumo, p, 2)
+# Define stochastic system
+sys = StochSystem(FitzHughNagumo, p, 2, noise_strength)
 
 # Get stable fixed points
-eqs, eigs, stab = fixedpoints(sys, [-2,-2], [2,2])
-fp1, fp2 = eqs[stab]
+fps, eigs, stab = fixedpoints(sys, [-2,-2], [2,2])
+fp1, fp2 = fps[stab]
 
-# Simulate noisy trajectory starting from fixed point 1
-sim = simulate(sys, fp1)
+# Generate noise-induced transition from one fixed point to the other
+path, times, success = transition(sys, fp1, fp2)
+
+# ... and more, check out the documentation!
 ```
 
-### Git cheat sheet
+## Git cheat sheet for co-developers
 
 remote = the GitHub server; local = your computer
 
