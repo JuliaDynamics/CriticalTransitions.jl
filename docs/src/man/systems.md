@@ -37,7 +37,9 @@ The variables ``P`` and ``Z`` represent the concentration of phytoplankton (prey
 * ```\xi```: the time-scale separation between the evolution of phytoplankton and zooplankton 
 * ```m```: the zooplankton mortality rate 
 
-The model (cite...) is a modified version of the Truscott-Brindley system (cite ...), with a quadratic mortality term to enable bistability. In non-dimensional form, the above dynamics can be written...       
+The model (cite...) is a modified version of the Truscott-Brindley system (cite ...), with a quadratic mortality term to enable bistability. Following a non-dimensionalisation of the system, the dynamical equations convert to:
+...
+which we capture in the functions ... .
 
 ## Thermohaline Circulation box models
 
