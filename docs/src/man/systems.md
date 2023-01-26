@@ -38,8 +38,10 @@ The variables ``P`` and ``Z`` represent the concentration of phytoplankton (prey
 * ```m```: the zooplankton mortality rate 
 
 The model (cite...) is a modified version of the Truscott-Brindley system (cite ...), with a quadratic mortality term to enable bistability. Following a non-dimensionalisation of the system, the dynamical equations convert to:
+
 ...
-which we capture in the functions ... .
+
+Here, the functions ... and ... implement the non-dimensional form of the system. 
 
 ## Thermohaline Circulation box models
 
