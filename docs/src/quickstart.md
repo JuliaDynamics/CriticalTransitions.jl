@@ -23,7 +23,7 @@ Currently the following functions are implemented to analyze a [`StochSystem`](@
 corresponding sample transition paths.
 
 ```@index
-Pages = ["man/simulation.md", "man/systemanalysis.md", "man/paths.md"]
+Pages = ["man/systemanalysis.md", "man/simulation.md", "man/sampling.md", "man/largedeviations.md"]
 ```
 
 ## Systems
@@ -32,4 +32,10 @@ The following deterministic ODE systems have been implemented so far:
 
 ```@index
 Pages = ["man/systems.md"]
+```
+
+## Table of contents
+
+```@contents
+Depth = 3
 ```
