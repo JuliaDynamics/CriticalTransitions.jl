@@ -1,6 +1,6 @@
 # Predefined dynamical systems
 
-## FitzHugh-Nagumo system
+## FitzHugh-Nagumo system (1)
 
 A 2D system given by
 
