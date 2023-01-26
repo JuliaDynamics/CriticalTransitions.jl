@@ -5,6 +5,7 @@ using DynamicalSystems, IntervalRootFinding
 using OrdinaryDiffEq, StochasticDiffEq, DiffEqNoiseProcess
 using LinearAlgebra, StaticArrays, ForwardDiff
 using Symbolics
+using Optim
 
 include("StochSystem.jl")
 include("utils.jl")
@@ -17,13 +18,13 @@ include("systemanalysis/basinboundary.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 include("pathproperties/action.jl")
+include("actionminimizers/mam.jl")
 
 include("../systems/fitzhughnagumo.jl")
 include("../systems/modifiedtruscottbrindley.jl")
 include("../systems/thc_box/rooth_model.jl")
 
 include("../dev/fhn_pathspace_sampling.jl")
-
 include("../dev/symbolic_langevinmcmc.jl")
 
 export StochSystem, State
@@ -32,6 +33,7 @@ export simulate, relax, transition, transitions
 export tocds, make_jld2, make_h5, sys_string, sys_info, intervals_to_box
 export is_iip
 export fw_integrand, fw_action
+export mam
 
 export FitzHughNagumo, FitzHughNagumo!
 export modifiedtruscottbrindley, modifiedtruscottbrindley!
