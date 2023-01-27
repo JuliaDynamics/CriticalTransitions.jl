@@ -52,4 +52,4 @@ function modtb_αξσ(α, ξ, σ) # a convenient three-parameter version of the 
     StochSystem(f, vcat([α], pf_wo_αξ, [ξ]), dim, σ, g, pg, Σ, process)
 end;
 
-# test with kalel
+# test with kalel (v2)
