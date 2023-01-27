@@ -43,7 +43,6 @@ function mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Float64;
     
     iterator = showprogress ? tqdm(2:blocks) : 2:blocks
     for m in iterator
-        print(m)
         result[m] = optimize(f, result[m-1].minimizer, method,
             Optim.Options(iterations=block_iterations))
     end
@@ -70,7 +69,6 @@ function mam(sys::StochSystem, init::Matrix, T::Float64;
     
     iterator = showprogress ? tqdm(2:blocks) : 2:blocks
     for m in iterator
-        print(m)
         result[m] = optimize(f, result[m-1].minimizer, method,
             Optim.Options(iterations=block_iterations))
     end
