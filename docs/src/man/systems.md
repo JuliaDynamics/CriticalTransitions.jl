@@ -61,6 +61,7 @@ Below, the functions ```modifiedtruscottbrindley(u,p,t)``` and ```modifiedtrusco
 ```@docs
 modifiedtruscottbrindley(u, p, t)
 modifiedtruscottbrindley!(du, u, p, t)
+modtb_αξσ(α, ξ, σ)
 ```
 
 ## Thermohaline Circulation box models
