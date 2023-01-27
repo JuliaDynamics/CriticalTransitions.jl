@@ -35,9 +35,8 @@ export is_iip
 export fw_integrand, fw_action
 export mam
 
-export FitzHughNagumo, FitzHughNagumo!
-export modifiedtruscottbrindley, modifiedtruscottbrindley!
-export modtb_αξσ
+export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ
+export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ
 export rooth_smooth
 
 export idfunc, idfunc!
