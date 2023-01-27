@@ -16,6 +16,7 @@ where ``\epsilon`` is the parameter of time scale separation between the state v
 ```@docs
 FitzHughNagumo(u, p, t)
 FitzHughNagumo!(du, u, p, t)
+fhn_ϵσ(ϵ, σ)   
 ```
 
 ## Modified Truscott-Brindley system
