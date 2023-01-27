@@ -54,7 +54,7 @@ Specifically, here we introduce the dimensionless variables ``\tilde{P}, \tilde{
 ```  
 where ``P_1, P_0, Z_1, Z_0`` and ``t_0`` are constants to be determined in the non-dimensionalisation process. We take ``P_0 = h, Z_0 = a/m, t_0 = 1/a`` and subsequently introduce the following dimensionless parameters ``\alpha := r/a, \beta := h/k, \gamma := a/(mh)``. The values of the (dimensionless) constants ``P_1`` and ``Z_1`` are tuned according to the user's preference; they can be chosen in  a way such that the fixed points of the system are all contained within the ``[0,1]\times [0,1]`` subspace, for instance.  
 
-Below, the functions ```modifiedtruscottbrindley(u,p,t)``` and ```modifiedtruscottbrindley!(u,p,t)``` implement the non-dimensional form of the system. 
+Below, the functions [`modifiedtruscottbrindley`](@ref) and [`modifiedtruscottbrindley!`](@ref) implement the non-dimensional form of the system. 
 
 ```@docs
 modifiedtruscottbrindley(u, p, t)
