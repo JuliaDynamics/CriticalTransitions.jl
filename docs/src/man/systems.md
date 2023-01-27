@@ -18,6 +18,31 @@ FitzHughNagumo(u, p, t)
 FitzHughNagumo!(du, u, p, t)
 ```
 
+## Modified Truscott-Brindley system
+
+A two-dimensional predator-prey system given by 
+
+```math
+\begin{aligned}
+\frac{\text{d} P}{\text{d} t} &= rP\bigg(1-\frac{P}{K}\bigg)-a\frac{P^2}{h^2+P^2}Z \\
+\frac{\text{d} Z}{\text{d} t} &= \xi\bigg(\frac{aP^2}{h^2+P^2}Z - mZ^2\bigg)
+\end{aligned}
+```
+The variables ``P`` and ``Z`` represent the concentration of phytoplankton (prey) and zooplankton (predator) species respectively. The system parameters can be interpreted as follows: 
+
+* ```r```: the phytoplankton growth rate
+* ```K```: the carrying capacity of the phytoplankton
+* ```a```: the maximal predation rate
+* ```h```: the half-saturation constant
+* ```\xi```: the time-scale separation between the evolution of phytoplankton and zooplankton 
+* ```m```: the zooplankton mortality rate 
+
+The model (cite...) is a modified version of the Truscott-Brindley system (cite ...), with a quadratic mortality term to enable bistability. Following a non-dimensionalisation of the system, the dynamical equations convert to:
+
+...
+
+Here, the functions ... and ... implement the non-dimensional form of the system. 
+
 ## Thermohaline Circulation box models
 
 ```@docs
