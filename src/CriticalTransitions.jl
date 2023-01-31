@@ -26,6 +26,7 @@ include("../systems/thc_box/rooth_model.jl")
 
 include("../dev/fhn_pathspace_sampling.jl")
 include("../dev/symbolic_langevinmcmc.jl")
+include("../dev/residence_times.jl")
 
 export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
