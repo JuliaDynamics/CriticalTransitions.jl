@@ -177,4 +177,7 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
     
     safesave(savename, struct2dict(everything))
 
+    println("... Done! Closing file. Run took $(runtime).")
+    println("... Summary: $(length(idx))/$(reject+length(idx)) samples transitioned.")
+
 end
