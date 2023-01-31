@@ -6,6 +6,7 @@ using OrdinaryDiffEq, StochasticDiffEq, DiffEqNoiseProcess
 using LinearAlgebra, StaticArrays, ForwardDiff
 using Symbolics
 using Optim
+using Printf, DrWatson, Dates
 
 include("StochSystem.jl")
 include("utils.jl")
@@ -49,6 +50,6 @@ export EM, I # functions inherited from dependencies
 
 export FitzHughNagumoSPDE, fhn_pathspace_sampling
 export langevinmcmc_spde, symbolise_spde, langevinmcmc
-export residence_time, residence_times
+export residence_time, residence_times, ResTimes, temporal, runandsavetimes
 
 end # module CriticalTransitions
