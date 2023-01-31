@@ -87,3 +87,86 @@ function get_res_times(restimes::Dict, sample_size::Int64, no_of_samples::Int64)
     rtimes, mtimes
 
 end
+
+struct ResTimes
+    data_dimensions::String
+    res_times::Dict
+end
+
+struct temporal
+    system_info::String
+    data_info::String
+    run_info::String
+    success_fraction::Float64
+    path_numbers::Vector
+    data::ResTimes
+end
+
+function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N; 
+    R2L = true,
+    rad_i = 0.1,
+    rad_f = 0.1,
+    dt=0.01,
+    tmax=1e3,
+    Nmax=1000,
+    solver=EM())
+
+    # the direction of transition
+    if R2L
+        direction = "R2L"
+    else
+        direction = "L2R"
+    end
+
+    # file name and save name directory
+    filepath = "/home/ryand/Documents/Oldenburg/Data/";
+    filename = "$(systag)_$(direction)_σ$(sys.σ)_N$(N)";
+    time = Dates.now();
+    savename = filepath*Dates.format(time, "ddmmyy")*"_"*filename*".jld2"
+    #savename = "/ryand/home/Documents/Oldenburg/Data/$(systag)_$(direction)_σ$(sys.σ)_N$(N)"
+
+    # compute and define fixed points
+    fps = fixedpoints(sys, fixedpoints_dims[1:2], fixedpoints_dims[3:4]);
+    sfps = fps[1][fps[3]];
+    R = sfps[findmax(sfps[:,1])[2],:];
+    L = sfps[findmin(sfps[:,1])[2],:];
+
+    # transitioning from right to left or left to right?
+    if ~R2L
+        R, L = L, R
+    end
+    
+    # I/O info
+    info0 = "Attempting $(N) transition samples of $(systag) system with noise intensity $(sys.σ)."
+    info1 = "Start/end conditions:\n Initial state: $(R), ball radius $(rad_i)\n Final state: $(L), ball radius $(rad_f)"
+    info2 = "Run details:\n time step dt=$(dt), maximum duration tmax=$(tmax), solver=$(string(solver))"
+    info3 = "Dataset info:\n paths: transition path arrays of dimension (state × time), where a state is a vector [u,v]\n times: arrays of time values of the corresponding paths"
+
+    println(info0*"\n--> "*info1*"\n--> "*info2)
+    println("--> Saving data to $(filepath).")
+
+    # create components of the data file struct
+    data_dimensions = "[time (since beginning of simulation)], arbitrary units";
+    system_info = sys_string(sys, verbose=true);
+    data_info = info3;
+
+    # call transitions function 
+    tstart = now();
+    times, idx, reject = residence_times(sys, R, L, N;
+    rad_i, rad_f, dt, tmax, solver, Nmax, savefile=nothing);
+
+    # finalise run
+    runtime = canonicalize(Dates.CompoundPeriod(Millisecond(now()-tstart)));
+    # run statistics
+    run_info = info0*"\n"*info1*"\n"*info2*"\nRuntime: $(runtime)";
+    success_fraction = length(idx)/(reject+length(idx));
+    path_numbers = sort(idx);
+
+    # create realisations of the structs
+    data = ResTimes(data_dimensions, Dict(["transition $(i)" for i ∈ idx] .=> times));
+
+    everything = temporal(system_info, data_info, run_info, success_fraction, path_numbers, data);
+    
+    safesave(savename, struct2dict(everything))
+
+end
