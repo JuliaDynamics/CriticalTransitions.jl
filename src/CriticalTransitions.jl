@@ -6,6 +6,7 @@ using OrdinaryDiffEq, StochasticDiffEq, DiffEqNoiseProcess
 using LinearAlgebra, StaticArrays, ForwardDiff
 using Symbolics
 using Optim
+using Printf, DrWatson, Dates, Statistics
 
 include("StochSystem.jl")
 include("utils.jl")
@@ -26,6 +27,7 @@ include("../systems/thc_box/rooth_model.jl")
 
 include("../dev/fhn_pathspace_sampling.jl")
 include("../dev/symbolic_langevinmcmc.jl")
+include("../dev/residence_times.jl")
 
 export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
@@ -35,9 +37,8 @@ export is_iip
 export fw_integrand, fw_action
 export mam
 
-export FitzHughNagumo, FitzHughNagumo!
-export modifiedtruscottbrindley, modifiedtruscottbrindley!
-export modtb_αξσ
+export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ
+export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ
 export rooth_smooth
 
 export idfunc, idfunc!
@@ -49,5 +50,6 @@ export EM, I # functions inherited from dependencies
 
 export FitzHughNagumoSPDE, fhn_pathspace_sampling
 export langevinmcmc_spde, symbolise_spde, langevinmcmc
+export residence_time, residence_times, ResTimes, temporal, runandsavetimes, get_res_times
 
 end # module CriticalTransitions
