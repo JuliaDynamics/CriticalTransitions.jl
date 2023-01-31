@@ -1,22 +1,6 @@
 include("../StochSystem.jl")
 include("../utils.jl")
 
-function fw_integrand(sys::StochSystem, path, time)
-    v = zeros(size(path))
-    v[:,1] .= (path[:,2] .- path[:,1]) ./ (time[2] .- time[1])
-    v[:,end] .= (path[:,end] .- path[:,end-1]) ./ (time[end] .- time[end-1])
-    for i in 2:(size(path, 2) - 1)
-        v[:, i] .= (path[:,i+1] .- path[:,i-1]) ./ (time[i+1] .- time[i-1])
-    end
-    A = inv(sys.Σ)
-    sqnorm = zeros(size(path, 2))
-    for i in 1:size(path, 2)
-        drift = sys.f(path[:,i], p(sys), time[i])
-        sqnorm[i] = anorm(v[:,i] - drift, A, square=true)
-    end
-    sqnorm
-end;
-
 """
     fw_action(sys::StochSystem, path, time)
 Calculates the Freidlin-Wentzell action of a given `path` with time points `time` in a 
@@ -48,9 +32,48 @@ function om_action(sys::StochSystem, path, time)
         S += sys.σ^2 * (div_b(sys, path[:,i+1]) + div_b(sys, path[:,i]))/2 * (time[i+1]-time[i])
     end
     S/2
-end
+end;
+
+function fw_integrand(sys::StochSystem, path, time)
+    v = path_velocity(path, time, order=4)
+    A = inv(sys.Σ)
+    sqnorm = zeros(size(path, 2))
+    for i in 1:size(path, 2)
+        drift = sys.f(path[:,i], p(sys), time[i])
+        sqnorm[i] = anorm(v[:,i] - drift, A, square=true)
+    end
+    sqnorm
+end;
 
 function div_b(sys::StochSystem, x)
     b(x) = sys.f(x, p(sys), 0)
     tr(ForwardDiff.jacobian(b, x))
-end
+end;
+
+function path_velocity(path, time; order=4)
+    v = zeros(size(path))
+
+    if order == 2
+        # 1st order forward/backward differences for end points
+        v[:,1] .= (path[:,2] .- path[:,1])/(time[2] - time[1])
+        v[:,end] .= (path[:,end] .- path[:,end-1])/(time[end] - time[end-1])
+        # 2nd order central differences for internal points
+        for i in 2:(size(path, 2) - 1)
+            v[:,i] .= (path[:,i+1] .- path[:,i-1])/(time[i+1] - time[i-1])
+        end
+
+    elseif order == 4
+        # 1st order forward/backward differences for end points
+        v[:,1] .= (path[:,2] .- path[:,1])/(time[2] - time[1])
+        v[:,end] .= (path[:,end] .- path[:,end-1])/(time[end] - time[end-1])
+        # 2nd order central differences for neighbors of end points
+        v[:,2] .= (path[:,3] .- path[:,1])/(time[3] - time[1])
+        v[:,end-1] .= (path[:,end] .- path[:,end-2])/(time[end] - time[end-2])
+        # 4th order central differences for internal points
+        for i in 3:(size(path, 2) - 2)
+            v[:,i] .= ((-path[:,i+2] .+ 8*path[:,i+1] .- 8*path[:,i-1] .+ path[:,i-2])/
+                (6*(time[i+1] - time[i-1])))
+        end
+    end
+    v
+end;
