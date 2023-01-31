@@ -125,7 +125,7 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
     elseif comp == "windows"
         filepath = "C:\\Users\\ryand\\Documents\\Oldenburg\\Data\\"
     elseif comp == "tethys"
-        filepath = "nothing yet"
+        filepath = "/home/ryand/Data/"
     end
 
     filename = "$(systag)_$(direction)_σ$(sys.σ)_N$(N)";
