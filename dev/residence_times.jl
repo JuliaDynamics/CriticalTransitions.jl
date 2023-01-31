@@ -36,6 +36,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
     solver=EM(),
     progress=true,
     rad_dims=1:sys.dim,
+    Nmax = 1000,
     savefile = nothing,
     showprogress::Bool = true,
     kwargs...)
