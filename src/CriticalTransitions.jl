@@ -48,5 +48,6 @@ export EM, I # functions inherited from dependencies
 
 export FitzHughNagumoSPDE, fhn_pathspace_sampling
 export langevinmcmc_spde, symbolise_spde, langevinmcmc
+export residence_time, residence_times
 
 end # module CriticalTransitions
