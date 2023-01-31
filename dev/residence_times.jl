@@ -110,7 +110,7 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
     tmax=1e3,
     Nmax=1000,
     solver=EM(), 
-    comp = "linux comp")
+    comp = "linux")
 
     # the direction of transition
     if R2L
