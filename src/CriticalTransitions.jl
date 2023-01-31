@@ -6,7 +6,7 @@ using OrdinaryDiffEq, StochasticDiffEq, DiffEqNoiseProcess
 using LinearAlgebra, StaticArrays, ForwardDiff
 using Symbolics
 using Optim
-using Printf, DrWatson, Dates
+using Printf, DrWatson, Dates, Statistics
 
 include("StochSystem.jl")
 include("utils.jl")
