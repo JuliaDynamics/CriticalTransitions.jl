@@ -78,3 +78,12 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
     times, idx, length(r_idx)
 
 end
+
+function get_res_times(restimes::Dict, sample_size::Int64, no_of_samples::Int64)
+
+    rtimes = [restimes["transition $(i)"] for i ∈ 1:length(restimes)];
+    mtimes = [mean(rtimes[(ii-1)*sample_size+1:ii*sample_size]) for ii ∈ 1:no_of_samples];
+
+    rtimes, mtimes
+
+end
