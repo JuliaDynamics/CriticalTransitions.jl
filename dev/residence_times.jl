@@ -109,7 +109,8 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
     dt=0.01,
     tmax=1e3,
     Nmax=1000,
-    solver=EM())
+    solver=EM(), 
+    comp = "linux comp")
 
     # the direction of transition
     if R2L
@@ -119,7 +120,14 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
     end
 
     # file name and save name directory
-    filepath = "/home/ryand/Documents/Oldenburg/Data/";
+    if comp == "linux"
+        filepath = "/home/ryand/Documents/Oldenburg/Data/";
+    elseif comp == "windows"
+        filepath = "C:\\Users\\ryand\\Documents\\Oldenburg\\Data\\"
+    elseif comp == "tethys"
+        filepath = "nothing yet"
+    end
+
     filename = "$(systag)_$(direction)_σ$(sys.σ)_N$(N)";
     time = Dates.now();
     savename = filepath*Dates.format(time, "ddmmyy")*"_"*filename*".jld2"
