@@ -65,7 +65,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
                 #print("\rStatus: $(length(findall(idx.!==0))+1)/$(N) transitions complete.")
             end
 
-            if savefile == nothing && i[] 
+            if savefile == nothing
                 times[i[]] = restime;
                 #push!(times, restime);
             else # store or save in .jld2 file
