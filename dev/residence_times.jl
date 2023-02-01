@@ -51,15 +51,11 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
 
     Threads.@threads for jj ∈ iterator
         
-        if i[] ≥ N
-            break
-        end
-
         restime, success = residence_time(sys, x_i, x_f;
                     rad_i, rad_f, rad_dims, dt, tmax,
                     solver, progress, kwargs...)
         
-        if success #&& i[] < N
+        if success && i[] < N
             
             Threads.atomic_add!(i, 1); # safely add 1 to the counter
 
@@ -77,15 +73,9 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
             end
         
             idx[i[]] = jj;
-            #push!(idx, j)
 
-            # if length(findall(idx.!==0)) > max(1, N - Threads.nthreads())
-            #     break
-            # else
-            #     continue
-            # end
-        # elseif i[] ≥ N
-        #     break
+        elseif i[] ≥ N
+            break
         else
             Threads.atomic_add!(j, 1); # safely add 1 to the counter
             r_idx[j[]] = jj 
