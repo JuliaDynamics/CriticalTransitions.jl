@@ -60,7 +60,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
             Threads.atomic_add!(i, 1); # safely add 1 to the counter
 
             if showprogress
-                print("\rStatus: $(length(findall(idx.!==0))+1)/$(N) transitions complete.")
+                print("\rStatus: $(i[])/$(N) transitions complete.")
             end
 
             if savefile == nothing
