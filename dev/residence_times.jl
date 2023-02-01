@@ -75,7 +75,9 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
             idx[i[]] = jj;
             #push!(idx, j)
 
-            if length(findall(idx.!==0)) > max(1, N - Threads.nthreads())
+            println(length(findall(idx.!==0)))
+
+            if length(findall(idx.!==0)) > N#max(1, N - Threads.nthreads())
                 break
             else
                 continue
