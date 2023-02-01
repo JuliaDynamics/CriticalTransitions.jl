@@ -70,6 +70,34 @@ function symbolise_spde(sys::StochSystem)
 
 end
 
+function jacobian(sys::StochSystem)
+    # creating symbolic state variables
+    state_vars = @eval @variables $([Symbol("x$i") for i=1:sys.dim]...);
+
+    # next, the deterministic drift of the system in symbolic form        
+    drift = sys.f(state_vars,[sys.pf],@variables t);
+    
+    # next, the jacobian of the drift in symbolic form
+    jacobian = Symbolics.jacobian(drift,state_vars)
+
+end
+
+function jacobian(sys:StochSystem, x::State)
+
+    # loading the Jacobian in symbolic form
+    jacobian = jacobian(sys);
+
+    # calling the Jacobian at the state value x
+    state_vars = @eval @variables $([Symbol("x$i") for i=1:sys.dim]...);
+    J = substitute.(jacobian, (Dict(zip(state_vars,x)),)); # the jacobian evaluated at x
+    Jx = Symbolics.value.(J);
+
+    return jacobian, Jx
+
+end
+    
+
+
 function langevinmcmc(sys::StochSystem, init;    
     T = 15,         # physical end time
     tmax = 250.0,   # virtual end time
