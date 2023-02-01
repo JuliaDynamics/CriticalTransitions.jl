@@ -49,7 +49,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
 
     iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
-    Threads.@threads for j ∈ iterator
+    Threads.@threads for jj ∈ iterator
         
         restime, success = residence_time(sys, x_i, x_f;
                     rad_i, rad_f, rad_dims, dt, tmax,
