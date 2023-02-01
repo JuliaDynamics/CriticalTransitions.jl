@@ -55,7 +55,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
                     rad_i, rad_f, rad_dims, dt, tmax,
                     solver, progress, kwargs...)
         
-        if success 
+        if success && i[] < N
             
             Threads.atomic_add!(i, 1); # safely add 1 to the counter
 
@@ -65,7 +65,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
                 #print("\rStatus: $(length(findall(idx.!==0))+1)/$(N) transitions complete.")
             end
 
-            if savefile == nothing
+            if savefile == nothing && i[] 
                 times[i[]] = restime;
                 #push!(times, restime);
             else # store or save in .jld2 file
@@ -73,15 +73,15 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
             end
         
             idx[i[]] = jj;
-            #push!(idx, j)
+            # #push!(idx, j)
 
-            # println(length(findall(idx.!==0)))
-
-            if i[] > N#max(1, N - Threads.nthreads())
-                break
-            else
-                continue
-            end
+            # if i[] ≥ N #max(1, N - Threads.nthreads())
+            #     break
+            # else
+            #     continue
+            # end
+        elseif i[] ≥ N
+            break
         else
             Threads.atomic_add!(j, 1); # safely add 1 to the counter
             r_idx[j[]] = jj 
