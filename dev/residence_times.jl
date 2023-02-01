@@ -42,7 +42,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
     kwargs...)
 
     #times::Vector, idx::Vector{Int64}, r_idx::Vector{Int64} = [], [], []
-    times::Vector, idx::Vector{Int64}, r_idx::Vector{Int64} = zeros(Float64,N), zeros(Int64, N), Int64(Int64, Nmax) 
+    times::Vector, idx::Vector{Int64}, r_idx::Vector{Int64} = zeros(Float64,N), zeros(Int64, N), zeros(Int64, Nmax) 
 
     i = Threads.Atomic{Int}(0); # assign a race-free counter for the number of transitions
     j = Threads.Atomic{Int}(0); # assign a race-free counter for the number of non-transitions
