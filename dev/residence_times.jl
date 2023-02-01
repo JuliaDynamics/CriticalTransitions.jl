@@ -51,6 +51,10 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
 
     Threads.@threads for jj ∈ iterator
         
+        if i[] ≥ N
+            break
+        end
+
         restime, success = residence_time(sys, x_i, x_f;
                     rad_i, rad_f, rad_dims, dt, tmax,
                     solver, progress, kwargs...)
