@@ -41,7 +41,11 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
     showprogress::Bool = true,
     kwargs...)
 
-    times::Vector, idx::Vector{Int64}, r_idx::Vector{Int64} = [], [], []
+    #times::Vector, idx::Vector{Int64}, r_idx::Vector{Int64} = [], [], []
+    times::Vector, idx::Vector{Int64}, r_idx::Vector{Int64} = zeros(Float64,N), zeros(Int64, N), Int64(Int64, Nmax) 
+
+    i = Threads.Atomic{Int}(0); # assign a race-free counter for the number of transitions
+    j = Threads.Atomic{Int}(0); # assign a race-free counter for the number of non-transitions
 
     iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
@@ -53,29 +57,34 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
         
         if success 
             
+            Threads.atomic_add!(i, 1); # safely add 1 to the counter
+
             if showprogress
                 print("\rStatus: $(length(idx)+1)/$(N) transitions complete.")
             end
 
             if savefile == nothing
-                push!(times, restime);
+                times[i[]] = restime;
+                #push!(times, restime);
             else # store or save in .jld2 file
-                write(savefile, "times/times "*string(j), restime)
+                write(savefile, "times/times "*string(jj), restime)
             end
         
-            push!(idx, j)
+            idx[i[]] = jj;
+            #push!(idx, j)
 
-            if length(idx) > max(1, N - Threads.nthreads())
+            if length(findall(idx.!==0)) > max(1, N - Threads.nthreads())
                 break
             else
                 continue
             end
         else
-            push!(r_idx, j)
+            Threads.atomic_add!(j, 1); # safely add 1 to the counter
+            r_idx[j[]] = jj 
         end
     end
 
-    times, idx, length(r_idx)
+    times, idx, length(findall(r_idx.!==0))
 
 end
 
