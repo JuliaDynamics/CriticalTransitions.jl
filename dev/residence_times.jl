@@ -59,8 +59,10 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
             
             Threads.atomic_add!(i, 1); # safely add 1 to the counter
 
+            println(i[])    
+
             if showprogress
-                print("\rStatus: $(length(findall(idx.!==0))+1)/$(N) transitions complete.")
+                #print("\rStatus: $(length(findall(idx.!==0))+1)/$(N) transitions complete.")
             end
 
             if savefile == nothing
@@ -120,6 +122,7 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
     Nmax=1000,
     solver=EM(), 
     comp = "linux",
+    showprogress = true,
     save = true)
 
     # the direction of transition
@@ -171,7 +174,7 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
     # call transitions function 
     tstart = now();
     times, idx, reject = residence_times(sys, R, L, N;
-    rad_i, rad_f, dt, tmax, solver, Nmax, savefile=nothing);
+    rad_i, rad_f, dt, tmax, solver, Nmax, showprogress, savefile=nothing);
 
     # finalise run
     runtime = canonicalize(Dates.CompoundPeriod(Millisecond(now()-tstart)));
@@ -188,7 +191,7 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
     if save
         safesave(savename, struct2dict(everything))
     end
-    
+
     println("... Done! Closing file. Run took $(runtime).")
     println("... Summary: $(length(idx))/$(reject+length(idx)) samples transitioned.")
 
