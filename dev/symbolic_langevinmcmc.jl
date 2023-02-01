@@ -85,14 +85,14 @@ end
 function jacobian(sys::StochSystem, x::Vector)
 
     # loading the Jacobian in symbolic form
-    jacobian = jacobian(sys);
+    jacobian1 = jacobian(sys);
 
     # calling the Jacobian at the state value x
     state_vars = @eval @variables $([Symbol("x$i") for i=1:sys.dim]...);
-    J = substitute.(jacobian, (Dict(zip(state_vars,x)),)); # the jacobian evaluated at x
+    J = substitute.(jacobian1, (Dict(zip(state_vars,x)),)); # the jacobian evaluated at x
     Jx = Symbolics.value.(J);
 
-    return jacobian, Jx
+    return jacobian1, Jx
 
 end
     
