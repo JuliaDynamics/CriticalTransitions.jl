@@ -59,7 +59,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
                     rad_i, rad_f, rad_dims, dt, tmax,
                     solver, progress, kwargs...)
         
-        if success && i[] < N
+        if success #&& i[] < N
             
             Threads.atomic_add!(i, 1); # safely add 1 to the counter
 
@@ -84,8 +84,8 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
             # else
             #     continue
             # end
-        elseif i[] ≥ N
-            break
+        # elseif i[] ≥ N
+        #     break
         else
             Threads.atomic_add!(j, 1); # safely add 1 to the counter
             r_idx[j[]] = jj 
