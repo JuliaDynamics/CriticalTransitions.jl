@@ -18,8 +18,8 @@ include("systemanalysis/basinsofattraction.jl")
 include("systemanalysis/basinboundary.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
-include("pathproperties/action.jl")
-include("actionminimizers/mam.jl")
+include("largedeviations/action.jl")
+include("largedeviations/mam.jl")
 
 include("../systems/fitzhughnagumo.jl")
 include("../systems/modifiedtruscottbrindley.jl")
@@ -44,6 +44,7 @@ export rooth_smooth
 export idfunc, idfunc!
 export additive_idx, additive_idx!
 export multiplicative_idx, multiplicative_idx!
+export anorm, subnorm
 export gauss
 
 export EM, I # functions inherited from dependencies

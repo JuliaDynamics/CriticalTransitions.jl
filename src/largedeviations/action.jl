@@ -9,11 +9,14 @@ drift field specified by the deterministic dynamics of `sys`.
 The path must be a `(D x N)` matrix, where `D` is the dimensionality of the system `sys` and
 `N` is the number of path points. The `time` array must have length `N`.
 
-Returns a single number, which is the value of the action integral
+Returns a single number, which is the value of the action functional
 
-``S_T[\\phi_t] = \\frac{1}{2} \\int_0^T || \\dot \\phi_t - b ||^2 dt``
+``S_T[\\phi_t] = \\frac{1}{2} \\int_0^T || \\dot \\phi_t - b ||^2_A dt``
 
-where ``\\phi_t`` denotes the path and ``b`` the drift field.
+where ``\\phi_t`` denotes the path in state space, ``b`` the drift field, and ``T`` the
+total time of the path. The norm is taken with respect to the matrix ``A``
+(see [anorm](@ref)), which is the Cholesky decomposition of the covariance matrix
+``\\Sigma = AA^\\top`` specified by `sys.Σ`.
 """
 function fw_action(sys::StochSystem, path, time)
     integrand = fw_integrand(sys, path, time)
@@ -24,16 +27,39 @@ function fw_action(sys::StochSystem, path, time)
     S/2
 end;
 
+"""
+    om_action(sys::StochSystem, path, time)
+Calculates the Onsager-Machlup action of a given `path` with time points `time` for the
+drift field `sys.f` at noise strength `sys.σ`.
+
+The path must be a `(D x N)` matrix, where `D` is the dimensionality of the system `sys` and
+`N` is the number of path points. The `time` array must have length `N`.
+
+Returns a single number, which is the value of the action functional
+
+``I^{\\sigma}_T[\\phi_t] = \\frac{1}{2} \\int_0^T || \\dot \\phi_t - b ||^2_A +
+\\frac{\\sigma^2}{2} \\nabla \\dot b dt``
+
+where ``\\phi_t`` denotes the path in state space, ``b`` the drift field, ``T`` the total
+time of the path, and ``\\sigma`` the noise strength. The norm is taken with respect to the
+matrix ``A`` (see [anorm](@ref)), which is the Cholesky decomposition of the covariance
+matrix ``\\Sigma = AA^\\top`` specified by `sys.Σ`.
+"""
 function om_action(sys::StochSystem, path, time)
-    integrand = fw_integrand(sys, path, time)
     S = 0
     for i in 1:(size(path, 2) - 1)
-        S += (integrand[i+1] + integrand[i])/2 * (time[i+1]-time[i])
-        S += sys.σ^2 * (div_b(sys, path[:,i+1]) + div_b(sys, path[:,i]))/2 * (time[i+1]-time[i])
+        S += sys.σ^2/2 * ((div_b(sys, path[:,i+1]) + div_b(sys, path[:,i]))/2 *
+            (time[i+1]-time[i]))
     end
-    S/2
+    fw_action(sys, path, time) + S/2
 end;
 
+"""
+    fw_integrand(sys::StochSystem, path, time)
+Computes the squared ``A``-norm ``|| \\dot \\phi_t - b ||^2_A`` (see `fw_action` for
+details). Returns a vector of length `N` containing the values of the above squared norm for
+each time point in the vector `time`.
+"""
 function fw_integrand(sys::StochSystem, path, time)
     v = path_velocity(path, time, order=4)
     A = inv(sys.Σ)
@@ -45,11 +71,25 @@ function fw_integrand(sys::StochSystem, path, time)
     sqnorm
 end;
 
+"""
+    div_b(sys::StochSystem, x)
+Computes the divergence of the drift field `sys.f` at the given point `x`.
+"""
 function div_b(sys::StochSystem, x)
     b(x) = sys.f(x, p(sys), 0)
     tr(ForwardDiff.jacobian(b, x))
 end;
 
+"""
+    path_velocity(path, time; order=4)
+Returns the velocity along a given `path` with time points given by `time`.
+
+## Keyword arguments
+* `order = 4`: Accuracy of the finite difference approximation.
+  `4`th order corresponds to a five-point stencil, `2`nd order to a three-point stencil.
+  In both cases, central differences are used except at the end points, where a forward or
+  backward difference is used.
+"""
 function path_velocity(path, time; order=4)
     v = zeros(size(path))
 
