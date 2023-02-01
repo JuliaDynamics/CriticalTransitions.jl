@@ -82,7 +82,7 @@ function jacobian(sys::StochSystem)
 
 end
 
-function jacobian(sys:StochSystem, x::State)
+function jacobian(sys::StochSystem, x::State)
 
     # loading the Jacobian in symbolic form
     jacobian = jacobian(sys);
