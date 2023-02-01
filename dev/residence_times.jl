@@ -119,7 +119,8 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
     tmax=1e3,
     Nmax=1000,
     solver=EM(), 
-    comp = "linux")
+    comp = "linux",
+    save = true)
 
     # the direction of transition
     if R2L
@@ -184,8 +185,10 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
 
     everything = temporal(system_info, data_info, run_info, success_fraction, path_numbers, data);
     
-    safesave(savename, struct2dict(everything))
-
+    if save
+        safesave(savename, struct2dict(everything))
+    end
+    
     println("... Done! Closing file. Run took $(runtime).")
     println("... Summary: $(length(idx))/$(reject+length(idx)) samples transitioned.")
 
