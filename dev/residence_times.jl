@@ -41,47 +41,60 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
     showprogress::Bool = true,
     kwargs...)
 
-    times::Vector, idx::Vector{Int64}, r_idx::Vector{Int64} = [], [], []
+    #times::Vector, idx::Vector{Int64}, r_idx::Vector{Int64} = [], [], []
+    times::Vector, idx::Vector{Int64}, r_idx::Vector{Int64} = zeros(Float64,N), zeros(Int64, N), zeros(Int64, Nmax) 
+
+    i = Threads.Atomic{Int}(0); # assign a race-free counter for the number of transitions
+    j = Threads.Atomic{Int}(0); # assign a race-free counter for the number of non-transitions
 
     iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
-    Threads.@threads for j ∈ iterator
+    Threads.@threads for jj ∈ iterator
         
         restime, success = residence_time(sys, x_i, x_f;
                     rad_i, rad_f, rad_dims, dt, tmax,
                     solver, progress, kwargs...)
         
-        if success 
+        if success && i[] < N
             
+            Threads.atomic_add!(i, 1); # safely add 1 to the counter
+
+            println(i[])    
+
             if showprogress
-                print("\rStatus: $(length(idx)+1)/$(N) transitions complete.")
+                #print("\rStatus: $(length(findall(idx.!==0))+1)/$(N) transitions complete.")
             end
 
             if savefile == nothing
-                push!(times, restime);
+                times[i[]] = restime;
+                #push!(times, restime);
             else # store or save in .jld2 file
-                write(savefile, "times/times "*string(j), restime)
+                write(savefile, "times/times "*string(jj), restime)
             end
         
-            push!(idx, j)
+            idx[i[]] = jj;
+            # #push!(idx, j)
 
-            if length(idx) > max(1, N - Threads.nthreads())
-                break
-            else
-                continue
-            end
+            # if i[] ≥ N #max(1, N - Threads.nthreads())
+            #     break
+            # else
+            #     continue
+            # end
+        elseif i[] ≥ N
+            break
         else
-            push!(r_idx, j)
+            Threads.atomic_add!(j, 1); # safely add 1 to the counter
+            r_idx[j[]] = jj 
         end
     end
 
-    times, idx, length(r_idx)
+    times, idx, length(findall(r_idx.!==0))
 
 end
 
-function get_res_times(restimes::Dict, sample_size::Int64, no_of_samples::Int64)
+function get_res_times(restimes::Dict, idx, sample_size::Int64, no_of_samples::Int64)
 
-    rtimes = [restimes["transition $(i)"] for i ∈ 1:length(restimes)];
+    rtimes = [restimes["transition $(i)"] for i ∈ idx];
     mtimes = [mean(rtimes[(ii-1)*sample_size+1:ii*sample_size]) for ii ∈ 1:no_of_samples];
 
     rtimes, mtimes
@@ -109,7 +122,10 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
     dt=0.01,
     tmax=1e3,
     Nmax=1000,
-    solver=EM())
+    solver=EM(), 
+    comp = "linux",
+    showprogress = true,
+    save = true)
 
     # the direction of transition
     if R2L
@@ -119,7 +135,14 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
     end
 
     # file name and save name directory
-    filepath = "/home/ryand/Documents/Oldenburg/Data/";
+    if comp == "linux"
+        filepath = "/home/ryand/Documents/Oldenburg/Data/";
+    elseif comp == "windows"
+        filepath = "C:\\Users\\ryand\\Documents\\Oldenburg\\Data\\"
+    elseif comp == "tethys"
+        filepath = "/home/ryand/Data/"
+    end
+
     filename = "$(systag)_$(direction)_σ$(sys.σ)_N$(N)";
     time = Dates.now();
     savename = filepath*Dates.format(time, "ddmmyy")*"_"*filename*".jld2"
@@ -153,7 +176,7 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
     # call transitions function 
     tstart = now();
     times, idx, reject = residence_times(sys, R, L, N;
-    rad_i, rad_f, dt, tmax, solver, Nmax, savefile=nothing);
+    rad_i, rad_f, dt, tmax, solver, Nmax, showprogress, savefile=nothing);
 
     # finalise run
     runtime = canonicalize(Dates.CompoundPeriod(Millisecond(now()-tstart)));
@@ -167,6 +190,11 @@ function runandsavetimes(sys::StochSystem, systag::String, fixedpoints_dims, N;
 
     everything = temporal(system_info, data_info, run_info, success_fraction, path_numbers, data);
     
-    safesave(savename, struct2dict(everything))
+    if save
+        safesave(savename, struct2dict(everything))
+    end
+
+    println("... Done! Closing file. Run took $(runtime).")
+    println("... Summary: $(length(idx))/$(reject+length(idx)) samples transitioned.")
 
 end
