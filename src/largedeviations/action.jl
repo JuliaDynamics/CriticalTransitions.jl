@@ -15,7 +15,7 @@ Returns a single number, which is the value of the action functional
 
 where ``\\phi_t`` denotes the path in state space, ``b`` the drift field, and ``T`` the
 total time of the path. The norm is taken with respect to the matrix ``A``
-(see [anorm](@ref)), which is the Cholesky decomposition of the covariance matrix
+(see [`anorm`](@ref)), which is the Cholesky decomposition of the covariance matrix
 ``\\Sigma = AA^\\top`` specified by `sys.Σ`.
 """
 function fw_action(sys::StochSystem, path, time)
