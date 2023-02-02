@@ -102,9 +102,7 @@ function langevinmcmc(sys::StochSystem, init;
     T = 15,         # physical end time
     tmax = 250.0,   # virtual end time
     Δt = 1e-3,      # virtual time step
-    noise = sys.σ,  # noise strength of additive term
-    annealing = false,  # simulated annealing
-    showprogress= true)
+    )
 
     N = size(init, 2); # the number of columns in the initial condition gives the number of components of the path 
     Δz = T/(N-1); # the physical time step
@@ -117,21 +115,12 @@ function langevinmcmc(sys::StochSystem, init;
     t = 0; # the current virtual time value 
 
     # defining the number of functions used in langevin mcmc 
-    println("... Symbolizing SPDE")
+
     state_vars, jacobian, grad_dot_term, grad_div_term = symbolise_spde(sys);
 
     p = [sys.dim, sys.σ, sys.Σ, Δz, state_vars, jacobian, grad_dot_term, grad_div_term]; # langevinmcmcSPDE parameters 
 
-    println("... Initializing sampling")
-
-    iterator = showprogress ? tqdm(1:Nstep) : 1:Nstep
     for it ∈ 1:Nstep
-
-        if annealing
-            _noise = noise*(Nstep-it)/Nstep
-        else
-            _noise = noise
-        end
 
         update = langevinmcmc_spde(vec(paths[it,:,:]'), [p], t); # this gives the virtual-time derivatives for all components on the current path
 
@@ -141,7 +130,7 @@ function langevinmcmc(sys::StochSystem, init;
             update_mod[jj,:] = update[(jj-1)*N+1:jj*N];
         end 
 
-        paths[it+1,:,:] = paths[it,:,:] .+ (Δt * update_mod .+ _noise * sqrt(2*Δt/Δz)*randn(sys.dim,N)); # the Euler-Maruyama step 
+        paths[it+1,:,:] = paths[it,:,:] .+ (Δt * update_mod .+ sys.σ * √(2*Δt/Δz)*randn(sys.dim,N)); # the Euler-Maruyama step 
         
         # reseting the fixed end points
         for jj ∈ 1:sys.dim
