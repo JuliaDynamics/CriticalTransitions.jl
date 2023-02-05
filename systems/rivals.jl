@@ -40,7 +40,7 @@ function rivals_ϵσ(ϵ, σ) # a convenient two-parameter version of the FitzHug
     # defining the StochSystem
     f(u,p,t) = rivals(u,p,t);
     α₁ = 0.1; α₂ = 0.3; β₁ = 0.18; β₂ = 0.1; # standard parameters without ϵ (time-scale separation parameter)
-    pf_wo_ϵ = [α, α₂, β₁, β₂]; # parameter vector without ϵ
+    pf_wo_ϵ = [α₁, α₂, β₁, β₂]; # parameter vector without ϵ
     dim = 2;
     g(u,p,t) = multiplicative_idx(u,p,t,[true,true]);
     pg = nothing; 
