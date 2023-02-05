@@ -25,6 +25,7 @@ include("largedeviations/gmam.jl")
 include("../systems/fitzhughnagumo.jl")
 include("../systems/modifiedtruscottbrindley.jl")
 include("../systems/thc_box/rooth_model.jl")
+include("../systems/rivals.jl")
 
 include("../dev/fhn_pathspace_sampling.jl")
 include("../dev/symbolic_langevinmcmc.jl")
