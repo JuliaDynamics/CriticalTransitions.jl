@@ -19,7 +19,7 @@ The `method` keyword argument takes solver methods of the
 the option `solver = "HeymannVandenEijnden"` uses the original gMAM
 algorithm[^1].
 
-[^1]: Heymann and Vanden-Eijnden (2008), DOI: 10.1103/PhysRevLett.100.140601
+[^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
 function gmam(sys::StochSystem, x_i::State, x_f::State, arclength=1;
     N = 100,
@@ -76,7 +76,7 @@ Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `
 * `diff_order = 4`: order of the finite differencing along the path. Either `2` or `4`.
 * `cov_inv` = nothing: inverse of the covariance matrix `sys.Σ`. If `nothing`, it is computed.
 
-[^1]: Heymann and Vanden-Eijnden (2008), DOI: 10.1103/PhysRevLett.100.140601
+[^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
 function heymann_vandeneijnden_step(sys::StochSystem, path, N, L;
     tau = 0.1,

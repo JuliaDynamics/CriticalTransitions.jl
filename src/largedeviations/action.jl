@@ -45,8 +45,8 @@ The path must be a `(D x N)` matrix, where `D` is the dimensionality of the syst
 
 Returns a single number, which is the value of the action functional
 
-``I^{\\sigma}_T[\\phi_t] = \\frac{1}{2} \\int_0^T || \\dot \\phi_t - b(\\phi_t) ||^2_Q +
-\\frac{\\sigma^2}{2} \\nabla \\dot b dt``
+``I^{\\sigma}_T[\\phi_t] = \\frac{1}{2} \\int_0^T \\left( || \\dot \\phi_t - b(\\phi_t) ||^2_Q +
+\\frac{\\sigma^2}{2} \\div(b) \\right) \\, dt``
 
 where ``\\phi_t`` denotes the path in state space, ``b`` the drift field, ``T`` the total
 time of the path, and ``\\sigma`` the noise strength. The subscript ``Q`` refers to the
@@ -80,8 +80,8 @@ of the Freidlin-Wentzell action ``S_T(\\phi)`` over all travel times ``T>0``, wh
 denotes the path's parameterization in physical time (see [`fw_action`](@ref)). It is given
 by the integral
 
-``\\bar S = \\int_0^L ||\\varphi'||_Q \\, ||b(\\varphi)||_Q - \\langle \\varphi', \\,
-    b(\\varphi) \\rangle_Q \\, ds``
+``\\bar S[\\varphi] = \\int_0^L \\left( ||\\varphi'||_Q \\, ||b(\\varphi)||_Q - \\langle \\varphi', \\,
+    b(\\varphi) \\rangle_Q \\right) \\, ds``
 
 where ``s`` is the arclength coordinate, ``L`` the arclength, ``b`` the drift field, and the
 subscript ``Q`` refers to the generalized dot product ``\\langle a, b \\rangle_Q := a^{\\top}
