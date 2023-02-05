@@ -85,7 +85,7 @@ function repellers_idx(fps::Tuple)
     idx = [false for i ∈ 1:num];
     for ii ∈ 1:num
         real_parts = [real(eigenvalues[ii][jj]) for jj ∈ 1:dim];
-        if all(real_parts .< 0) 
+        if all(real_parts .> 0) 
             idx[ii] = true;
         end
     end
@@ -99,7 +99,7 @@ function attractors_idx(fps::Tuple)
     idx = [false for i ∈ 1:num];
     for ii ∈ 1:num
         real_parts = [real(eigenvalues[ii][jj]) for jj ∈ 1:dim];
-        if all(real_parts .> 0) 
+        if all(real_parts .< 0) 
             idx[ii] = true;
         end
     end
