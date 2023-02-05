@@ -61,7 +61,7 @@ function fixedpoints(sys::StochSystem, bmin::Vector, bmax::Vector)
     DynamicalSystems.fixedpoints(tocds(sys), box)
 end;
 
-function saddles_idx(fps)
+function saddles_idx(fps::Tuple)
     num = size(fps[1],1); # number of fixed points
     dim = size(fps[1],2); # dimension of the system
     eigenvalues = fps[2];
@@ -69,11 +69,38 @@ function saddles_idx(fps)
     for ii ∈ 1:num
         imag_parts = [imag(eigenvalues[ii][jj]) for jj ∈ 1:dim]
         if all(imag_parts.==0) # we have purely real eigenvalues
-            println("yes")
             real_parts = [real(eigenvalues[ii][jj]) for jj ∈ 1:dim];
             if prod(real_parts) < 0 # we have at least positive eigenvalue and at least one negative eigenvalue
                 idx[ii] = true;
             end
+        end
+    end
+    idx
+end
+
+function repellers_idx(fps::Tuple)
+    num = size(fps[1],1); # number of fixed points
+    dim = size(fps[1],2); # dimension of the system
+    eigenvalues = fps[2];
+    idx = [false for i ∈ 1:num];
+    for ii ∈ 1:num
+        real_parts = [real(eigenvalues[ii][jj]) for jj ∈ 1:dim];
+        if all(real_parts .< 0) 
+            idx[ii] = true;
+        end
+    end
+    idx
+end
+
+function attractors_idx(fps::Tuple)
+    num = size(fps[1],1); # number of fixed points
+    dim = size(fps[1],2); # dimension of the system
+    eigenvalues = fps[2];
+    idx = [false for i ∈ 1:num];
+    for ii ∈ 1:num
+        real_parts = [real(eigenvalues[ii][jj]) for jj ∈ 1:dim];
+        if all(real_parts .> 0) 
+            idx[ii] = true;
         end
     end
     idx
