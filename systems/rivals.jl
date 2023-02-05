@@ -8,8 +8,8 @@ function rivals!(du, u, p, t)
     x, y = u
     ϵ, α₁, α₂, β₁, β₂ = p[1]
 
-    du[1] = x(x-α₁)(1-x)-β₁x*y
-    du[2] = ϵ*(y*(y-α₂)*(1-y)-β₂x*y)
+    du[1] = x*(x-α₁)*(1-x)-β₁*x*y
+    du[2] = ϵ*(y*(y-α₂)*(1-y)-β₂*x*y)
 
 end
 
@@ -23,8 +23,8 @@ function rivals(u, p, t)
     x, y = u    
     ϵ, α₁, α₂, β₁, β₂ = p[1]
 
-    dx = x*(x-α₁)*(1-x)-β₁x*y
-    dy = ϵ*(y*(y-α₂)*(1-y)-β₂x*y)
+    dx = x*(x-α₁)*(1-x)-β₁*x*y
+    dy = ϵ*(y*(y-α₂)*(1-y)-β₂*x*y)
 
     SVector{2}(dx, dy)
 
