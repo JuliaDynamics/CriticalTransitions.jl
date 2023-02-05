@@ -23,7 +23,7 @@ function rivals(u, p, t)
     x, y = u    
     ϵ, α₁, α₂, β₁, β₂ = p[1]
 
-    dx = x(x-α₁)(1-x)-β₁x*y
+    dx = x*(x-α₁)*(1-x)-β₁x*y
     dy = ϵ*(y*(y-α₂)*(1-y)-β₂x*y)
 
     SVector{2}(dx, dy)
