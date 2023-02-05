@@ -41,6 +41,7 @@ export mam, gmam
 
 export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ
 export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ
+export rivals!, rivals, rivals_ϵσ 
 export rooth_smooth
 
 export idfunc, idfunc!
