@@ -28,6 +28,12 @@ StochSystem(f, pf, dim, σ, Σ) = StochSystem(f, pf, dim, σ, idfunc, nothing, �
 
 # Core functions acting on StochSystem
 """
+    drift(sys::StochSystem, x::State)
+Returns the drift field ``b(x)`` of the StochSystem `sys` at the state vector `x`.
+"""
+drift(sys::StochSystem, x::State) = sys.f(x, [sys.pf], 0)
+
+"""
     σg(sys::StochSystem)
 Multiplies the noise strength `σ` of a StochSystem `sys` with its noise function `g`.
 """
@@ -48,9 +54,15 @@ function p(sys::StochSystem)
 end;
 
 """
-    tocds(sys::StochSystem; state=zeros(sys.dim))
+    to_cds(sys::StochSystem; state=zeros(sys.dim))
 Converts a `StochSystem` into a [`ContinuousDynamicalSystem`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/ds/general/) of [`DynamicalSystems.jl`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/).
 """
-function tocds(sys::StochSystem; state=zeros(sys.dim))
-    ContinuousDynamicalSystem(sys.f, state, [sys.pf, [0.]])
+function to_cds(sys::StochSystem; state=zeros(sys.dim))
+    ContinuousDynamicalSystem(sys.f, state, [sys.pf])
 end;
+
+"""
+    tocds(sys::StochSystem; state=zeros(sys.dim))
+Alias for [`to_cds`](@ref). Only kept for backwards compatibility purposes.
+"""
+tocds = to_cds
