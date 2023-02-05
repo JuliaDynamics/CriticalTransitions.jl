@@ -29,6 +29,7 @@ include("../systems/thc_box/rooth_model.jl")
 include("../dev/fhn_pathspace_sampling.jl")
 include("../dev/symbolic_langevinmcmc.jl")
 include("../dev/residence_times.jl")
+include("../dev/edgetrack_ct.jl")
 
 export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
@@ -55,5 +56,6 @@ export FitzHughNagumoSPDE, fhn_pathspace_sampling
 export langevinmcmc_spde, symbolise_spde, langevinmcmc
 export jacobian
 export residence_time, residence_times, ResTimes, temporal, runandsavetimes, get_res_times
+export edgetracking, bisect_to_edge, attractor_mapper
 
 end # module CriticalTransitions
