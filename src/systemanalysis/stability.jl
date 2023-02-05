@@ -60,3 +60,21 @@ function fixedpoints(sys::StochSystem, bmin::Vector, bmax::Vector)
     box = intervals_to_box(bmin, bmax)
     DynamicalSystems.fixedpoints(tocds(sys), box)
 end;
+
+function saddles_idx(fps)
+    num = size(fps[1],1); # number of fixed points
+    dim = size(fps[1],2); # dimension of the system
+    eigenvalues = fps[2];
+    idx = [false for i ∈ 1:num];
+    for ii ∈ 1:num
+        imag_parts = [imag(eigenvalues[ii][jj]) for jj ∈ 1:dim]
+        if all(imag_parts.==0) # we have purely real eigenvalues
+            println("yes")
+            real_parts = [real(eigenvalues[ii][jj]) for jj ∈ 1:dim];
+            if prod(real_parts) < 0 # we have at least positive eigenvalue and at least one negative eigenvalue
+                idx[ii] = true;
+            end
+        end
+    end
+    idx
+end

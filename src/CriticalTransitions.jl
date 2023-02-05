@@ -34,6 +34,7 @@ include("../dev/edgetrack_ct.jl")
 
 export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
+export saddles_idx, repellers_idx, attractors_idx
 export simulate, relax, transition, transitions
 export tocds, to_cds, drift
 export make_jld2, make_h5, sys_string, sys_info, intervals_to_box
