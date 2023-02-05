@@ -36,8 +36,9 @@ function mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real;
     
     println("=== Initializing MAM action minimizer ===")
 
+    A = inv(sys.Σ)
     init = reduce(hcat, range(x_i, x_f, length=N))
-    f(x) = fw_action(sys, fix_ends(x, x_i, x_f), range(0.0, T, length=N))
+    f(x) = fw_action(sys, fix_ends(x, x_i, x_f), range(0.0, T, length=N); cov_inv=A)
     result = Vector{Optim.OptimizationResults}(undef, blocks)
     result[1] = optimize(f, init, method, Optim.Options(iterations=block_iterations))
     
@@ -68,8 +69,9 @@ function mam(sys::StochSystem, init::Matrix, T::Real;
     
     println("=== Initializing MAM action minimizer ===")
 
+    A = inv(sys.Σ)
     f(x) = fw_action(sys, fix_ends(x, init[:,1], init[:,end]),
-        range(0.0, T, length=size(init, 2)))
+        range(0.0, T, length=size(init, 2)); cov_inv=A)
     result = Vector{Optim.OptimizationResults}(undef, blocks)
     result[1] = optimize(f, init, method, Optim.Options(iterations=block_iterations))
     

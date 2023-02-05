@@ -2,7 +2,7 @@ include("../StochSystem.jl")
 include("../utils.jl")
 
 """
-    fw_action(sys::StochSystem, path, time)
+    fw_action(sys::StochSystem, path, time; kwargs...)
 Calculates the Freidlin-Wentzell action of a given `path` with time points `time` in a 
 drift field specified by the deterministic dynamics of `sys`.
 
@@ -11,15 +11,23 @@ The path must be a `(D x N)` matrix, where `D` is the dimensionality of the syst
 
 Returns a single number, which is the value of the action functional
 
-``S_T[\\phi_t] = \\frac{1}{2} \\int_0^T || \\dot \\phi_t - b ||^2_A dt``
+``S_T[\\phi_t] = \\frac{1}{2} \\int_0^T || \\dot \\phi_t - b(\\phi_t) ||^2_Q dt``
 
 where ``\\phi_t`` denotes the path in state space, ``b`` the drift field, and ``T`` the
-total time of the path. The norm is taken with respect to the matrix ``A``
-(see [`anorm`](@ref)), which is the Cholesky decomposition of the covariance matrix
-``\\Sigma = AA^\\top`` specified by `sys.Σ`.
+total time of the path. The subscript ``Q`` refers to the
+generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see [`anorm`](@ref)). Here
+``Q`` is the noise covariance matrix `sys.Σ`.
+
+## Keyword arguments
+* `cov_inv = nothing`: Inverse of the covariance matrix ``\\Sigma``.
+  If `nothing`, ``\\Sigma^{-1}`` is computed automatically.
 """
-function fw_action(sys::StochSystem, path, time)
-    integrand = fw_integrand(sys, path, time)
+function fw_action(sys::StochSystem, path, time; cov_inv=nothing)
+    # Inverse of covariance matrix
+    (cov_inv == nothing) ? A = inv(sys.Σ) : A = cov_inv
+    
+    # Compute action integral
+    integrand = fw_integrand(sys, path, time, A)
     S = 0
     for i in 1:(size(path, 2) - 1)
         S += (integrand[i+1] + integrand[i])/2 * (time[i+1]-time[i])
@@ -28,7 +36,7 @@ function fw_action(sys::StochSystem, path, time)
 end;
 
 """
-    om_action(sys::StochSystem, path, time)
+    om_action(sys::StochSystem, path, time; kwargs...)
 Calculates the Onsager-Machlup action of a given `path` with time points `time` for the
 drift field `sys.f` at noise strength `sys.σ`.
 
@@ -37,32 +45,80 @@ The path must be a `(D x N)` matrix, where `D` is the dimensionality of the syst
 
 Returns a single number, which is the value of the action functional
 
-``I^{\\sigma}_T[\\phi_t] = \\frac{1}{2} \\int_0^T || \\dot \\phi_t - b ||^2_A +
+``I^{\\sigma}_T[\\phi_t] = \\frac{1}{2} \\int_0^T || \\dot \\phi_t - b(\\phi_t) ||^2_Q +
 \\frac{\\sigma^2}{2} \\nabla \\dot b dt``
 
 where ``\\phi_t`` denotes the path in state space, ``b`` the drift field, ``T`` the total
-time of the path, and ``\\sigma`` the noise strength. The norm is taken with respect to the
-matrix ``A`` (see [anorm](@ref)), which is the Cholesky decomposition of the covariance
-matrix ``\\Sigma = AA^\\top`` specified by `sys.Σ`.
+time of the path, and ``\\sigma`` the noise strength. The subscript ``Q`` refers to the
+generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see [`anorm`](@ref)). Here
+``Q`` is the noise covariance matrix `sys.Σ`.
+
+## Keyword arguments
+* `cov_inv = nothing`: Inverse of the covariance matrix ``\\Sigma``.
+  If `nothing`, ``\\Sigma^{-1}`` is computed automatically.
 """
-function om_action(sys::StochSystem, path, time)
+function om_action(sys::StochSystem, path, time; cov_inv=nothing)
+    # Inverse of covariance matrix
+    (cov_inv == nothing) ? A = inv(sys.Σ) : A = cov_inv
+    
+    # Compute action integral
     S = 0
     for i in 1:(size(path, 2) - 1)
         S += sys.σ^2/2 * ((div_b(sys, path[:,i+1]) + div_b(sys, path[:,i]))/2 *
             (time[i+1]-time[i]))
     end
-    fw_action(sys, path, time) + S/2
+    fw_action(sys, path, time, cov_inv=A) + S/2
 end;
 
 """
-    fw_integrand(sys::StochSystem, path, time)
+    geometric_action(sys::StochSystem, path, arclength=1; kwargs...)
+Calculates the geometric action of a given `path` with specified `arclength` for the drift
+field `sys.f`.
+
+For a given path ``\\varphi``, the geometric action ``\\bar S`` corresponds to the minimum
+of the Freidlin-Wentzell action ``S_T(\\phi)`` over all travel times ``T>0``, where ``\\phi``
+denotes the path's parameterization in physical time (see [`fw_action`](@ref)). It is given
+by the integral
+
+``\\bar S = \\int_0^L ||\\varphi'||_Q \\, ||b(\\varphi)||_Q - \\langle \\varphi', \\,
+    b(\\varphi) \\rangle_Q \\, ds``
+
+where ``s`` is the arclength coordinate, ``L`` the arclength, ``b`` the drift field, and the
+subscript ``Q`` refers to the generalized dot product ``\\langle a, b \\rangle_Q := a^{\\top}
+\\cdot Q^{-1} b`` (see [`anorm`](@ref)). Here ``Q`` is the noise covariance matrix `sys.Σ`.
+
+## Keyword arguments
+* `cov_inv = nothing`: Inverse of the covariance matrix ``\\Sigma``.
+  If `nothing`, ``\\Sigma^{-1}`` is computed automatically. 
+
+Returns the value of the geometric action ``\\bar S``.
+"""
+function geometric_action(sys::StochSystem, path, arclength=1; cov_inv=nothing)
+    N = size(path, 2)
+    v = path_velocity(path, range(0, arclength, length=N), order=4)
+    (cov_inv == nothing) ? A = inv(sys.Σ) : A = cov_inv
+
+    integrand = zeros(N)
+    for i in 1:N
+        drift = sys.f(path[:,i], p(sys), 0)
+        integrand[i] = anorm(v[:,i], A)*anorm(drift, A) - dot(v[:,i], A, drift)
+    end
+
+    S = 0
+    for i in 1:N-1
+        S += (integrand[i+1] + integrand[i])/2
+    end
+    S * arclength/(N-1)
+end
+
+"""
+    fw_integrand(sys::StochSystem, path, time, A)
 Computes the squared ``A``-norm ``|| \\dot \\phi_t - b ||^2_A`` (see `fw_action` for
 details). Returns a vector of length `N` containing the values of the above squared norm for
 each time point in the vector `time`.
 """
-function fw_integrand(sys::StochSystem, path, time)
+function fw_integrand(sys::StochSystem, path, time, A)
     v = path_velocity(path, time, order=4)
-    A = inv(sys.Σ)
     sqnorm = zeros(size(path, 2))
     for i in 1:size(path, 2)
         drift = sys.f(path[:,i], p(sys), time[i])
@@ -76,7 +132,7 @@ end;
 Computes the divergence of the drift field `sys.f` at the given point `x`.
 """
 function div_b(sys::StochSystem, x)
-    b(x) = sys.f(x, p(sys), 0)
+    b(x) = drift(sys, x)
     tr(ForwardDiff.jacobian(b, x))
 end;
 

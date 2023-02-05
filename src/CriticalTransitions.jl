@@ -5,7 +5,7 @@ using DynamicalSystems, IntervalRootFinding
 using OrdinaryDiffEq, StochasticDiffEq, DiffEqNoiseProcess
 using LinearAlgebra, StaticArrays, ForwardDiff
 using Symbolics
-using Optim
+using Optim, Dierckx
 using Printf, DrWatson, Dates, Statistics
 
 include("StochSystem.jl")
@@ -20,6 +20,7 @@ include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 include("largedeviations/action.jl")
 include("largedeviations/mam.jl")
+include("largedeviations/gmam.jl")
 
 include("../systems/fitzhughnagumo.jl")
 include("../systems/modifiedtruscottbrindley.jl")
@@ -32,10 +33,11 @@ include("../dev/residence_times.jl")
 export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
 export simulate, relax, transition, transitions
-export tocds, make_jld2, make_h5, sys_string, sys_info, intervals_to_box
+export tocds, to_cds, drift
+export make_jld2, make_h5, sys_string, sys_info, intervals_to_box
 export is_iip
-export fw_integrand, fw_action
-export mam
+export fw_integrand, fw_action, om_action, geometric_action
+export mam, gmam
 
 export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ
 export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ
