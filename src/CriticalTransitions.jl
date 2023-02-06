@@ -48,6 +48,7 @@ export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ
 export rivals!, rivals, rivals_ϵσ 
 export rooth_smooth
 export transition2, transitions2
+export residence_time2, residence_times2
 
 export idfunc, idfunc!
 export additive_idx, additive_idx!
