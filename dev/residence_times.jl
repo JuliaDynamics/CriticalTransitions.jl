@@ -41,7 +41,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
     showprogress::Bool = true,
     kwargs...)
 
-    times::Vector, idx::Vector{Int64}, r_idx::Vector{Int64} = zeros(Float64,N), zeros(Int64, N), zeros(Int64, Nmax) 
+    times::Vector, idx::Vector{Int64}, r_idx = zeros(Float64,N), zeros(Int64, N), 0.
 
     i = Threads.Atomic{Int}(0); # assign a race-free counter for the number of transitions
     j = Threads.Atomic{Int}(0); # assign a race-free counter for the number of non-transitions
@@ -75,14 +75,52 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
             break
         else
             Threads.atomic_add!(j, 1); # safely add 1 to the counter
-            r_idx[j[]] = jj 
+            r_idx += 1 
         end
 
     end
 
     times = times[findall(v->v!=0.,times)]; 
 
-    times, idx, length(findall(r_idx.!==0))
+    idx = times[findall(v->v!=0.,idx)];
+
+    times, idx, r_idx
+
+end
+
+function residence_time2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State;
+    rad_i=0.1,
+    rad_f=0.1,
+    dt=0.01,
+    tmax=1e3,
+    solver=EM(),
+    progress=true,
+    rad_dims=1:sys.dim, 
+    kwargs...)
+
+    condition(u,t,integrator) = subnorm(u - x_f1; directions=rad_dims) < rad_f || subnorm(u - x_f2; directions=rad_dims) < rad_f
+    affect!(integrator) = terminate!(integrator)
+    cb_ball = DiscreteCallback(condition, affect!)
+
+    sim = simulate(sys, x_i, dt=dt, tmax=tmax, solver=solver, callback=cb_ball, progress=progress, kwargs...)
+
+    restime, desination = sim.t[end], sim.u[:,end]; 
+
+    success = true
+    if restime == tmax
+        success = false
+    end
+
+    new_state = 0; # means the system did not transition to a new attracting state in the simulation
+    if success # i.e. the simulation ended prematurely (and hence transitioned)
+        if subnorm(destination - x_f1; directions=rad_dims) < rad_f    
+            new_state = 1; # means the system transitioned to the new attracting state x_f1
+        else # we must therefore have that subnorm(destination - x_f1; directions=rad_dims) < rad_f 
+            new_state = 2;      
+        end
+    end
+
+    restime, success, new_state
 
 end
 
