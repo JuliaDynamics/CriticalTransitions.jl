@@ -1,7 +1,7 @@
 include("../src/StochSystem.jl")
 
 """
-    edgetracking(sys::StochSystem, u1, u2, attractors; kwargs...)
+    edgetracking(sys::StochSystem, u1::State, u2::State, attractors::Vector; kwargs...)
 Runs the edge tracking algorithm.
 
 ## Input 
