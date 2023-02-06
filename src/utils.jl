@@ -99,19 +99,16 @@ end;
 
 """
     anorm(vec, A; square=false)
-Calculates the norm of the vector `vec` with respect to the A-metric, where `A` is a 
-square matrix of dimension `(lenth(vec) x length(vec))`.
+Calculates the generalized ``A``-norm of the vector `vec`, 
+``||v||_A := \\sqrt(v^\\top \\cdot A \\cdot v)``, 
+where `A` is a square matrix of dimension `(lenth(vec) x length(vec))`.
 
 # Keyword arguments
 * `square`: if `true`, returns square of norm; else, returns norm.
 """
 function anorm(vec, A; square=false)
-    normsquared = dot(vec, A * vec)
-    if square
-        return normsquared
-    else
-        return sqrt(normsquared)
-    end
+    normsquared = dot(vec, A, vec)
+    square ? normsquared : sqrt(normsquared)
 end;
 
 """
