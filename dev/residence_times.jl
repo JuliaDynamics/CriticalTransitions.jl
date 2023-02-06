@@ -104,7 +104,7 @@ function residence_time2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State;
 
     sim = simulate(sys, x_i, dt=dt, tmax=tmax, solver=solver, callback=cb_ball, progress=progress, kwargs...)
 
-    restime, destination = sim.t[end], sim.u[:,end]; 
+    restime, destination = sim.t[end], sim.u[end]; 
 
     success = true
     if restime == tmax
