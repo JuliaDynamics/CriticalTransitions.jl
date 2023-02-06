@@ -41,7 +41,6 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
     showprogress::Bool = true,
     kwargs...)
 
-    #times::Vector, idx::Vector{Int64}, r_idx::Vector{Int64} = [], [], []
     times::Vector, idx::Vector{Int64}, r_idx::Vector{Int64} = zeros(Float64,N), zeros(Int64, N), zeros(Int64, Nmax) 
 
     i = Threads.Atomic{Int}(0); # assign a race-free counter for the number of transitions
@@ -50,51 +49,38 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
     iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
     Threads.@threads for jj ∈ iterator
+    
+        restime, success = residence_time(sys, x_i, x_f;
+                rad_i, rad_f, rad_dims, dt, tmax,
+                solver, progress, kwargs...)
         
-        if i[] < N # less than N transitions have been recorded
-
-            restime, success = residence_time(sys, x_i, x_f;
-                    rad_i, rad_f, rad_dims, dt, tmax,
-                    solver, progress, kwargs...)
-        
-            if success
+        if success && i[] < N
             
-                Threads.atomic_add!(i, 1); # safely add 1 to the counter
-
-                println(i[])    
             Threads.atomic_add!(i, 1); # safely add 1 to the counter
 
-                if showprogress
-                    print("\rStatus: $(length(findall(idx.!==0))+1)/$(N) transitions complete.")
-                end
-
-                if savefile == nothing
-                    times[i[]] = restime;
-                    #push!(times, restime);
-                else # store or save in .jld2 file
-                    write(savefile, "times/times "*string(jj), restime)
-                end
-        
-                idx[i[]] = jj;
-            # #push!(idx, j)
-
-            # if i[] ≥ N #max(1, N - Threads.nthreads())
-            #     break
-            # else
-            #     continue
-            # end
-        # elseif i[] ≥ N
-        #     break
-            else
-                Threads.atomic_add!(j, 1); # safely add 1 to the counter
-                r_idx[j[]] = jj 
+            if showprogress
+                print("\rStatus: $(length(findall(idx.!==0))+1)/$(N) transitions complete.")
             end
 
-        else # i[] ≥ N and so the required number of transitions have been recorded
+            if savefile == nothing
+                times[i[]] = restime;
+                #push!(times, restime);
+            else # store or save in .jld2 file
+                write(savefile, "times/times "*string(jj), restime)
+            end
+        
+            idx[i[]] = jj;
+
+        elseif i[] ≥ N
             break
+        else
+            Threads.atomic_add!(j, 1); # safely add 1 to the counter
+            r_idx[j[]] = jj 
         end
 
     end
+
+    times = times[findall(v->v!=0.,times)]; 
 
     times, idx, length(findall(r_idx.!==0))
 
