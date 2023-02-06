@@ -82,7 +82,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
 
     times = times[findall(v->v!=0.,times)]; 
 
-    idx = times[findall(v->v!=0.,idx)];
+    idx = idx[findall(v->v!=0.,idx)];
 
     times, idx, r_idx
 
@@ -137,10 +137,9 @@ function residence_times2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State
     showprogress::Bool = true,
     kwargs...)
 
-    times::Vector, idx::Array{Float64}, r_idx = zeros(Float64,N), zeros(Float64, N, 2), 0.
+    times::Vector, idx::Array{Float64}, fails = zeros(Float64,N), zeros(Float64, N, 2), Nmax
 
     i = Threads.Atomic{Int}(0); # assign a race-free counter for the number of transitions
-    j = Threads.Atomic{Int}(0); # assign a race-free counter for the number of non-transitions
 
     iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
@@ -155,7 +154,7 @@ function residence_times2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State
             Threads.atomic_add!(i, 1); # safely add 1 to the counter
 
             if showprogress
-                print("\rStatus: $(length(findall(idx[:,1].!==0))+1)/$(N) transitions complete.")
+                print("\rStatus: $(length(findall(idx[:,1].!=0))+1)/$(N) transitions complete.")
             end
 
             if savefile == nothing
@@ -168,19 +167,22 @@ function residence_times2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State
             idx[i[],:] = [jj,new_state];
 
         elseif i[] ≥ N
+            
             break
-        else
-            Threads.atomic_add!(j, 1); # safely add 1 to the counter
-            r_idx += 1 
+        
         end
 
     end
 
     times = times[findall(v->v!=0.,times)]; 
 
-    idx = times[findall(v->v!=0.,idx[:,1]),:];
+    idx = idx[findall(v->v!=0.,idx[:,1]),:];
 
-    times, idx, r_idx
+    if ~isempty(idx)
+        fails = idx[end,1] - length(idx[1,:])
+    end
+
+    times, idx, fails
 
 end
 
