@@ -8,8 +8,8 @@ function rivals!(du, u, p, t)
     x, y = u
     ϵ, α₁, α₂, β₁, β₂ = p[1]
 
-    du[1] = x(x-α₁)(1-x)-β₁x*y
-    du[2] = ϵ*(y*(y-α₂)*(1-y)-β₂x*y)
+    du[1] = x*(x-α₁)*(1-x)-β₁*x*y
+    du[2] = ϵ*(y*(y-α₂)*(1-y)-β₂*x*y)
 
 end
 
@@ -23,8 +23,8 @@ function rivals(u, p, t)
     x, y = u    
     ϵ, α₁, α₂, β₁, β₂ = p[1]
 
-    dx = x(x-α₁)(1-x)-β₁x*y
-    dy = ϵ*(y*(y-α₂)*(1-y)-β₂x*y)
+    dx = x*(x-α₁)*(1-x)-β₁*x*y
+    dy = ϵ*(y*(y-α₂)*(1-y)-β₂*x*y)
 
     SVector{2}(dx, dy)
 
@@ -39,8 +39,8 @@ This setup fixes the parameters α₁ = 0.1, α₂ = 0.3, β₁ = 0.18, β₂ = 
 function rivals_ϵσ(ϵ, σ) # a convenient two-parameter version of the FitzHugh Nagumo system 
     # defining the StochSystem
     f(u,p,t) = rivals(u,p,t);
-    α₁ = 0.1, α₂ = 0.3, β₁ = 0.18, β₂ = 0.1; # standard parameters without ϵ (time-scale separation parameter)
-    pf_wo_ϵ = [α, α₂, β₁, β₂]; # parameter vector without ϵ
+    α₁ = 0.1; α₂ = 0.3; β₁ = 0.18; β₂ = 0.1; # standard parameters without ϵ (time-scale separation parameter)
+    pf_wo_ϵ = [α₁, α₂, β₁, β₂]; # parameter vector without ϵ
     dim = 2;
     g(u,p,t) = multiplicative_idx(u,p,t,[true,true]);
     pg = nothing; 

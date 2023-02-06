@@ -51,33 +51,49 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
 
     Threads.@threads for jj ∈ iterator
         
-        restime, success = residence_time(sys, x_i, x_f;
+        if i[] < N # less than N transitions have been recorded
+
+            restime, success = residence_time(sys, x_i, x_f;
                     rad_i, rad_f, rad_dims, dt, tmax,
                     solver, progress, kwargs...)
         
-        if success && i[] < N
+            if success
             
+                Threads.atomic_add!(i, 1); # safely add 1 to the counter
+
+                println(i[])    
             Threads.atomic_add!(i, 1); # safely add 1 to the counter
 
-            if showprogress
-                print("\rStatus: $(i[])/$(N) transitions complete.")
-            end
+                if showprogress
+                    print("\rStatus: $(length(findall(idx.!==0))+1)/$(N) transitions complete.")
+                end
 
-            if savefile == nothing
-                times[i[]] = restime;
-                #push!(times, restime);
-            else # store or save in .jld2 file
-                write(savefile, "times/times "*string(jj), restime)
-            end
+                if savefile == nothing
+                    times[i[]] = restime;
+                    #push!(times, restime);
+                else # store or save in .jld2 file
+                    write(savefile, "times/times "*string(jj), restime)
+                end
         
-            idx[i[]] = jj;
+                idx[i[]] = jj;
+            # #push!(idx, j)
 
-        elseif i[] ≥ N
+            # if i[] ≥ N #max(1, N - Threads.nthreads())
+            #     break
+            # else
+            #     continue
+            # end
+        # elseif i[] ≥ N
+        #     break
+            else
+                Threads.atomic_add!(j, 1); # safely add 1 to the counter
+                r_idx[j[]] = jj 
+            end
+
+        else # i[] ≥ N and so the required number of transitions have been recorded
             break
-        else
-            Threads.atomic_add!(j, 1); # safely add 1 to the counter
-            r_idx[j[]] = jj 
         end
+
     end
 
     times, idx, length(findall(r_idx.!==0))
