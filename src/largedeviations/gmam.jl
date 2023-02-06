@@ -21,7 +21,7 @@ algorithm[^1].
 
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
-function gmam(sys::StochSystem, x_i::State, x_f::State, arclength=1;
+function gmam(sys::StochSystem, x_i::State, x_f::State, arclength=1.0;
     N = 100,
     maxiter = 100,
     converge = 1e-5,

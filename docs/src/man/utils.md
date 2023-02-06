@@ -2,7 +2,7 @@
 
 ## Interface to `DynamicalSystems.jl`
 
-!!! tip "Using the functionality of `DynamicalSystems.jl`"
+!!! tip "Using the functionality of DynamicalSystems.jl"
     A [`StochSystem`](@ref) can easily be turned into a
     [`ContinuousDynamicalSystem`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/ds/general/#Dynamical-System-Definition)
     of `DynamicalSystems.jl` using the function [`to_cds`](@ref).
@@ -20,7 +20,7 @@ ls = lyapunovspectrum(to_cds(sys), 10000)
 
 ```@docs
 to_cds(sys::StochSystem; state=zeros(sys.dim))
-tocds(sys::StochSystem; state=zeros(sys.dim))
+tocds
 ```
 
 ## `StochSystem` utility functions

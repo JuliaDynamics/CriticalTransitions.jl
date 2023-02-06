@@ -93,7 +93,7 @@ subscript ``Q`` refers to the generalized dot product ``\\langle a, b \\rangle_Q
 
 Returns the value of the geometric action ``\\bar S``.
 """
-function geometric_action(sys::StochSystem, path, arclength=1; cov_inv=nothing)
+function geometric_action(sys::StochSystem, path, arclength=1.0; cov_inv=nothing)
     N = size(path, 2)
     v = path_velocity(path, range(0, arclength, length=N), order=4)
     (cov_inv == nothing) ? A = inv(sys.Σ) : A = cov_inv
