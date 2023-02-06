@@ -137,7 +137,7 @@ function residence_times2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State
     showprogress::Bool = true,
     kwargs...)
 
-    times::Vector, idx::Array{Float64}, fails = zeros(Float64,N), zeros(Float64, N, 2), Nmax
+    times::Vector, idx::Array{Float64}, fails = zeros(Float64,N), zeros(Float64, N, 2), Threads.Atomic{Int}(0)
 
     i = Threads.Atomic{Int}(0); # assign a race-free counter for the number of transitions
 
@@ -170,6 +170,8 @@ function residence_times2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State
             
             break
         
+        else
+            Threads.atomic_add!(fails, 1); # safely add 1 to the counter
         end
 
     end
@@ -178,11 +180,7 @@ function residence_times2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State
 
     idx = idx[findall(v->v!=0.,idx[:,1]),:];
 
-    if ~isempty(idx)
-        fails = idx[end,1] - length(idx[1,:])
-    end
-
-    times, idx, fails
+    times, idx, fails[]
 
 end
 
