@@ -178,7 +178,7 @@ function residence_times2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State
 
     times = times[findall(v->v!=0.,times)]; 
 
-    idx = times[findall(v->v!=0.,idx[:,1])];
+    idx = times[findall(v->v!=0.,idx[:,1]),:];
 
     times, idx, r_idx
 
