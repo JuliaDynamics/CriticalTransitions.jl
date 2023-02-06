@@ -31,7 +31,7 @@ include("../dev/fhn_pathspace_sampling.jl")
 include("../dev/symbolic_langevinmcmc.jl")
 include("../dev/residence_times.jl")
 include("../dev/edgetrack_ct.jl")
-include("../ryan/flexibletransitions.jl")
+include("../dev/flexibletransitions.jl")
 
 export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
