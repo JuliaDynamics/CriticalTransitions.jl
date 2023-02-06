@@ -31,6 +31,7 @@ include("../dev/fhn_pathspace_sampling.jl")
 include("../dev/symbolic_langevinmcmc.jl")
 include("../dev/residence_times.jl")
 include("../dev/edgetrack_ct.jl")
+include("../ryan/flexibletransitions.jl")
 
 export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
@@ -46,6 +47,7 @@ export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ
 export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ
 export rivals!, rivals, rivals_ϵσ 
 export rooth_smooth
+export transition2, transitions2
 
 export idfunc, idfunc!
 export additive_idx, additive_idx!
