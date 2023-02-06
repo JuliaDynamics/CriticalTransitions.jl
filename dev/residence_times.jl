@@ -155,7 +155,7 @@ function residence_times2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State
             Threads.atomic_add!(i, 1); # safely add 1 to the counter
 
             if showprogress
-                print("\rStatus: $(length(findall(idx.!==0))+1)/$(N) transitions complete.")
+                print("\rStatus: $(length(findall(idx[:,1].!==0))+1)/$(N) transitions complete.")
             end
 
             if savefile == nothing
@@ -178,7 +178,7 @@ function residence_times2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State
 
     times = times[findall(v->v!=0.,times)]; 
 
-    idx = times[findall(v->v!=0.,idx)];
+    idx = times[findall(v->v!=0.,idx[:,1])];
 
     times, idx, r_idx
 
