@@ -1,8 +1,8 @@
 include("../StochSystem.jl")
-include("../pathproperties/action.jl")
+include("action.jl")
 
 """
-    mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Float64; kwargs...)
+    mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real; kwargs...)
 Runs the Minimum Action Method (MAM) to find the minimum action path (instanton) between an
 initial state `x_i` and final state `x_f`.
 
@@ -24,10 +24,10 @@ number of iterations each.
 ## Output
 The output can be controlled via the `output` keyword argument.
 
-## Alternative input
-* `mam(sys::StochSystem, init::Matrix, T::Float64; kwargs...)`
+## Alternative methods
+* `mam(sys::StochSystem, init::Matrix, T::Real; kwargs...)`
 """
-function mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Float64;
+function mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real;
     blocks = 10,
     block_iterations = 10,
     method = LBFGS(),
@@ -54,7 +54,12 @@ function mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Float64;
     end
 end
 
-function mam(sys::StochSystem, init::Matrix, T::Float64;
+"""
+    mam(sys::StochSystem, init::Matrix, T::Real; kwargs...)
+Alternative method for `mam`, taking an initial path `init` as input instead of the path's
+start point, end point, and number of points.
+"""
+function mam(sys::StochSystem, init::Matrix, T::Real;
     blocks = 10,
     block_iterations = 10,
     method = LBFGS(),

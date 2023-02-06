@@ -15,7 +15,10 @@ This function simulates `sys` in time, starting from initial condition `x_i`, un
 * `cut_start=true`: if `false`, returns the whole trajectory up to the transition
 * `dt=0.01`: time step of integration
 * `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
-* `rad_dims=1:sys.dim`: the directions in phase space to consider when calculating the radii `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space, insert a vector of indices of the dimensions to be included.* `solver=EM()`: numerical solver. Defaults to Euler-Mayurama
+* `rad_dims=1:sys.dim`: the directions in phase space to consider when calculating the radii
+  `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
+  insert a vector of indices of the dimensions to be included.
+* `solver=EM()`: numerical solver. Defaults to Euler-Mayurama.
 * `progress`: shows a progress bar with respect to `tmax`
 
 ## Output
@@ -78,7 +81,9 @@ This function repeatedly calls the [`transition`](@ref) function to efficiently 
 * `Nmax`: number of attempts before the algorithm stops even if less than `N` transitions occurred.
 * `dt=0.01`: time step of integration
 * `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
-* `rad_dims=1:sys.dim`: the directions in phase space to consider when calculating the radii `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space, insert a vector of indices of the dimensions to be included.
+* `rad_dims=1:sys.dim`: the directions in phase space to consider when calculating the radii
+  `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
+  insert a vector of indices of the dimensions to be included.
 * `solver=EM()`: numerical solver. Defaults to Euler-Mayurama
 * `progress`: shows a progress bar with respect to `Nmax`
 * `savefile`: if `nothing`, no data is saved to a file. To save to a file, see below.

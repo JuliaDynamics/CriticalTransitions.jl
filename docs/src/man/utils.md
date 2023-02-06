@@ -6,8 +6,6 @@
 
 ```@docs
 tocds(sys::StochSystem; state=zeros(sys.dim))
-σg(sys::StochSystem)
-p(sys::StochSystem)
 sys_info(sys::StochSystem)
 sys_string(sys::StochSystem; verbose=true)
 ```
@@ -17,6 +15,12 @@ sys_string(sys::StochSystem; verbose=true)
 ```@docs
 idfunc(u, p, t)
 idfunc!(du, u, p, t)
+```
+
+### Vector norms
+```@docs
+anorm(vec, A; square=false)
+subnorm(vec; directions=[1,...,N])
 ```
 
 ### `sys.dim`-dimensional box
