@@ -3,18 +3,8 @@ Pathspace Langevin MCMC sampling for the FitzHugh-Nagumo model
 Author: Reyk
 """
 
-include("../src/StochSystem.jl")
-include("../src/trajectories/simulation.jl")
-
-# Central finite difference, first derivative
-function central(f, idx, dz)
-    (f[idx+1] - f[idx-1])/(2*dz)
-end
-
-# Central finite difference, second derivative
-function central2(f, idx, dz)
-    (f[idx+1] - 2f[idx] + f[idx-1])/(dz^2)
-end
+#include("../src/StochSystem.jl")
+#include("../src/trajectories/simulation.jl")
 
 """
     FitzHughNagumoSPDE(u, p, t)

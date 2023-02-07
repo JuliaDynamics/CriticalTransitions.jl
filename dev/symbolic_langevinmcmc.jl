@@ -1,4 +1,4 @@
-include("../src/StochSystem.jl")
+#include("../src/StochSystem.jl")
 
 #sys = fhn_ϵσ(0.1,0.1)
 

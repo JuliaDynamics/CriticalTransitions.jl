@@ -1,10 +1,10 @@
 using ProgressBars, Statistics, DifferentialEquations, DynamicalSystems, IntervalRootFinding, IntervalArithmetic, LinearAlgebra, StaticArrays, CairoMakie
 
-include("../StochSystem.jl")
-include("../trajectories/transition.jl")
-include("../../systems/modifiedtruscottbrindley.jl")
-include("../../systems/fitzhughnagumo.jl")
-include("stability.jl")
+#include("../StochSystem.jl")
+#include("../trajectories/transition.jl")
+#include("../../systems/modifiedtruscottbrindley.jl")
+#include("../../systems/fitzhughnagumo.jl")
+#include("stability.jl")
 
 # function for N of sigma
 

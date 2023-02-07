@@ -1,5 +1,5 @@
-include("../StochSystem.jl")
-include("../utils.jl")
+#include("../StochSystem.jl")
+#include("../utils.jl")
 
 """
     gauss(sys::StochSystem)
