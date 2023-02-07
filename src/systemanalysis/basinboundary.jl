@@ -11,10 +11,10 @@ function basinboundary(X, Y, h; coords::String = "plane", A::Vector = [], B::Vec
     bb = [];
 
     for ii ∈ 1:size(h,2)     
-        for jj ∈ 1:size(h,1)-1
-           if h[jj,ii] != h[jj+1,ii]
-                if !any(v->v==-1, [h[jj,ii], h[jj+1, ii]])
-                    np = [X[ii], (Y[jj]+Y[jj+1])/2];
+        for jj ∈ 1:size(h,1)-1 # traversing through each column of the basins of attraction
+           if h[jj,ii] != h[jj+1,ii] # if two points on top of each other are not in the same boa
+                if !any(v->v==-1, [h[jj,ii], h[jj+1, ii]]) # each of these points go to detected attractor
+                    np = [X[ii], (Y[jj]+Y[jj+1])/2]; # the value
                     bb = push!(bb,np);
                 else # i.e. one of the points has value negative 1
                     if h[jj,ii] == -1 # i.e. the saddle point is here
@@ -28,12 +28,12 @@ function basinboundary(X, Y, h; coords::String = "plane", A::Vector = [], B::Vec
         end
     end
 
-    bb = unique(bb); 
+    bb = unique(bb); # to account for the saddles counted twice
 
     if coords == "plane"
-        planecoords = [bb[jj][ii] for ii ∈ 1:2, jj ∈ 1:length(bb)]
+        planecoords = [bb[jj][ii] for ii ∈ 1:2, jj ∈ 1:length(bb)] # convert into nice matrix form
     elseif coords == "phase"
-        bb_plane = planetophase.(Ref(A), Ref(B), Ref(C), bb);
+        bb_plane = planetophase.(Ref(A), Ref(B), Ref(C), bb); 
         phasecoords = [bb_plane[jj][ii] for ii ∈ 1:length(A), jj ∈ 1:length(bb)]    
     end
     
