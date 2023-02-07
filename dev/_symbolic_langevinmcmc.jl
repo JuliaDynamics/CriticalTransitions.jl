@@ -2,15 +2,6 @@
 
 #sys = fhn_ϵσ(0.1,0.1)
 
-# Central finite difference, second derivative
-function central(f, idx, dz)
-    (f[idx+1] - f[idx-1])/(2*dz)
-end
-
-function central2(f, idx, dz)
-    (f[idx+1] - 2f[idx] + f[idx-1])/(dz^2)
-end
-
 function langevinmcmc_spde(u, p, t)
     
     ## in the parameters vector we need:
