@@ -40,11 +40,11 @@ function mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real;
     init = reduce(hcat, range(x_i, x_f, length=N))
     f(x) = fw_action(sys, fix_ends(x, x_i, x_f), range(0.0, T, length=N); cov_inv=A)
     result = Vector{Optim.OptimizationResults}(undef, blocks)
-    result[1] = optimize(f, init, method, Optim.Options(iterations=block_iterations))
+    result[1] = Optim.optimize(f, init, method, Optim.Options(iterations=block_iterations))
     
     iterator = showprogress ? tqdm(2:blocks) : 2:blocks
     for m in iterator
-        result[m] = optimize(f, result[m-1].minimizer, method,
+        result[m] = Optim.optimize(f, result[m-1].minimizer, method,
             Optim.Options(iterations=block_iterations))
     end
 
@@ -73,11 +73,11 @@ function mam(sys::StochSystem, init::Matrix, T::Real;
     f(x) = fw_action(sys, fix_ends(x, init[:,1], init[:,end]),
         range(0.0, T, length=size(init, 2)); cov_inv=A)
     result = Vector{Optim.OptimizationResults}(undef, blocks)
-    result[1] = optimize(f, init, method, Optim.Options(iterations=block_iterations))
+    result[1] = Optim.optimize(f, init, method, Optim.Options(iterations=block_iterations))
     
     iterator = showprogress ? tqdm(2:blocks) : 2:blocks
     for m in iterator
-        result[m] = optimize(f, result[m-1].minimizer, method,
+        result[m] = Optim.optimize(f, result[m-1].minimizer, method,
             Optim.Options(iterations=block_iterations))
     end
 
