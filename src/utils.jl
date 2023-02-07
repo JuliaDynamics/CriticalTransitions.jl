@@ -134,3 +134,12 @@ function subnorm(vec; directions=1:length(vec))
     end
     sqrt(sum)
 end;
+
+# Central finite difference, second derivative
+function central(f, idx, dz)
+    (f[idx+1] - f[idx-1])/(2*dz)
+end
+
+function central2(f, idx, dz)
+    (f[idx+1] - 2f[idx] + f[idx-1])/(dz^2)
+end
