@@ -42,7 +42,7 @@ The model (as discussed [here](http://dx.doi.org/10.1016/j.ecocom.2014.10.003)) 
 
 ```math
 \begin{aligned}
-\displaystyle\frac{\text{d} \tilde{P}}{\text{d} \tau} &= \alpha \tilde{P}\bigg(1-\beta\frac{\tilde{P}}{P_1}\bigg)-\frac{\gamma (\tilde{P}/\sqrt{P_1})^2(\tilde{Z}/Z_1)^2}{1+(\tilde{P}/P_1)^2} \\
+\displaystyle\frac{\text{d} \tilde{P}}{\text{d} \tau} &= \alpha \tilde{P}\bigg(1-\beta\frac{\tilde{P}}{P_1}\bigg)-\frac{\gamma (\tilde{P}/\sqrt{P_1})^2(\tilde{Z}/Z_1)}{1+(\tilde{P}/P_1)^2} \\
 \displaystyle\frac{\text{d} \tilde{Z}}{\text{d} \tau} &= \xi\tilde{Z}\bigg(\frac{(\tilde{P}/P_1)^2}{1+(\tilde{P}/P_1)^2} - \frac{\tilde{Z}}{Z_1}\bigg)
 \end{aligned}
 ```
