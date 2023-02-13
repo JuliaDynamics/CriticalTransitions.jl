@@ -134,3 +134,13 @@ function subnorm(vec; directions=1:length(vec))
     end
     sqrt(sum)
 end;
+
+"""
+    smoothabs(x, xi=1000)
+Smooth approximation of `abs(x)`, ``|x| = x \\tanh(\\xi x)``, where ``xi`` controls the
+accuracy of the approximation. The exact absolute value function is obtained in the limit
+``\\xi \\to \\infty``.
+"""
+function smoothabs(x, xi=1000)
+    x*tanh(x*xi)
+end

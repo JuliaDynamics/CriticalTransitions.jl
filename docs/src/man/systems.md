@@ -66,5 +66,7 @@ modtb_αξσ(α, ξ, σ)
 ## Thermohaline Circulation box models
 
 ```@docs
+stommel(u, p, t; kwargs...)
+cessi(u, p, t)
 rooth_smooth(u, p, t; kwargs...)
 ```

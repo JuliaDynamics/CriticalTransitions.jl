@@ -24,7 +24,8 @@ include("largedeviations/gmam.jl")
 
 include("../systems/fitzhughnagumo.jl")
 include("../systems/modifiedtruscottbrindley.jl")
-include("../systems/thc_box/rooth_model.jl")
+include("../systems/thc_box/rooth.jl")
+include("../systems/thc_box/stommel.jl")
 include("../systems/rivals.jl")
 
 include("../dev/fhn_pathspace_sampling.jl")
@@ -46,7 +47,7 @@ export mam, gmam
 export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ
 export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ
 export rivals!, rivals, rivals_ϵσ 
-export rooth_smooth
+export rooth_smooth, stommel, cessi
 export transition2, transitions2
 export residence_time2, residence_times2
 
