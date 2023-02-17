@@ -138,8 +138,18 @@ end;
 # Central finite difference, second derivative
 function central(f, idx, dz)
     (f[idx+1] - f[idx-1])/(2*dz)
-end
+end;
 
 function central2(f, idx, dz)
     (f[idx+1] - 2f[idx] + f[idx-1])/(dz^2)
-end
+end;
+
+"""
+    smoothabs(x, xi=1000)
+Smooth approximation of `abs(x)`, ``|x| = x \\tanh(\\xi x)``, where ``xi`` controls the
+accuracy of the approximation. The exact absolute value function is obtained in the limit
+``\\xi \\to \\infty``.
+"""
+function smoothabs(x, xi=1000)
+    x*tanh(x*xi)
+end;
