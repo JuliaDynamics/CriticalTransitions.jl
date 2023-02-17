@@ -1,7 +1,7 @@
-include("../src/StochSystem.jl")
-include("../src/utils.jl")
-include("../src/io/io.jl")
-include("../src/trajectories/simulation.jl")
+#include("../src/StochSystem.jl")
+#include("../src/utils.jl")
+#include("../src/io/io.jl")
+#include("../src/trajectories/simulation.jl")
 
 function residence_time(sys::StochSystem, x_i::State, x_f::State;
     rad_i=0.1,

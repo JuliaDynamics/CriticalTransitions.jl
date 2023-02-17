@@ -1,4 +1,4 @@
-include("../src/StochSystem.jl")
+#include("../src/StochSystem.jl")
 
 """
     edgetracking(sys::StochSystem, u1::State, u2::State, attractors::Vector; kwargs...)

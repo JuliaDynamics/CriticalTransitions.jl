@@ -1,4 +1,4 @@
-include("../StochSystem.jl")
+#include("../StochSystem.jl")
 
 """
     equilib(sys::StochSystem, state::State; kwargs...)
