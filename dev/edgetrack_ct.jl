@@ -46,9 +46,10 @@ function edgetracking(sys::StochSystem, u1::State, u2::State, attractors::Vector
     kwargs...)
     
     diffeq = (;alg = solver)
-    attrs = Dict(i => Dataset(attractors[i]) for i in 1:length(attractors))
-    pinteg = parallel_integrator(to_cds(sys), [u1, u2]; diffeq)
-    mapper = AttractorsViaProximity(to_cds(sys), attrs, ϵ_mapper; diffeq, dt, kwargs...)
+    cds = to_cds(sys)
+    attrs = Dict(i => Dataset([attractors[i]]) for i in 1:length(attractors))
+    pinteg = parallel_integrator(cds, [u1, u2]; diffeq)
+    mapper = AttractorsViaProximity(cds, attrs, ϵ_mapper; diffeq, dt, kwargs...)
     
     track_edge(pinteg, mapper;
         eps1=eps1, eps2=eps2, converge=converge, dt=dt, maxit=maxit,
