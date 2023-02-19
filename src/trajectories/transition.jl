@@ -1,8 +1,3 @@
-#include("../StochSystem.jl")
-#include("../utils.jl")
-#include("../io/io.jl")
-#include("simulation.jl")
-
 """
     transition(sys::StochSystem, x_i::State, x_f::State; kwargs...)
 Generates a sample transition from point `x_i` to point `x_f`.

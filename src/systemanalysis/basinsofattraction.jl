@@ -1,6 +1,4 @@
-#include("planeofbox.jl")
-#include("stability.jl")
-#include("../StochSystem.jl")
+include("planeofbox.jl")
 
 function toattractors(V::Dataset)
     Dict(i => Dataset([V[i]]) for i in 1:length(V))

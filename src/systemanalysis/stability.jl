@@ -1,5 +1,3 @@
-#include("../StochSystem.jl")
-
 """
     equilib(sys::StochSystem, state::State; kwargs...)
 Returns the equilibrium solution of the system `sys` for given initial condition `state`.

@@ -1,5 +1,4 @@
-#include("../StochSystem.jl")
-#include("../noiseprocesses/stochprocess.jl")
+include("../noiseprocesses/stochprocess.jl")
 
 """
     simulate(sys::StochSystem, init::State; kwargs...)
