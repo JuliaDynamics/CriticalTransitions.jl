@@ -52,7 +52,7 @@ function edgetracking(sys::StochSystem, u1::State, u2::State, attractors::Vector
     mapper = AttractorsViaProximity(cds, attrs, ϵ_mapper; diffeq, dt, kwargs...)
     
     track_edge(pinteg, mapper;
-        eps1=eps1, eps2=eps2, converge=converge, dt=dt, maxit=maxit,
+        eps1=eps1, eps2=eps2, converge=converge, dt=dt, tmax=tmax, maxit=maxit,
         verbose=verbose, output_all=output_all)
 end;
 
@@ -61,7 +61,7 @@ end;
 Internal function for the edge tracking algorithm. See [`edgetracking`](@ref) for details.
 """
 function track_edge(pinteg, mapper::AttractorMapper;
-    eps1=1e-9, eps2=1e-8, converge=1e-5, dt=0.01, maxit=100,
+    eps1=1e-9, eps2=1e-8, converge=1e-5, dt=0.01, tmax=Inf, maxit=100,
     verbose=false, output_all=false)
     
     verbose && println("=== Starting edge tracking algorithm ===")
