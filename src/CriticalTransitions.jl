@@ -8,8 +8,8 @@ using Symbolics
 using Optim, Dierckx
 using Printf, DrWatson, Dates, Statistics
 
-include("StochSystem.jl")
 include("utils.jl")
+include("StochSystem.jl")
 
 include("io/io.jl")
 include("noiseprocesses/gaussian.jl")
@@ -41,7 +41,7 @@ export simulate, relax, transition, transitions
 export tocds, to_cds, drift
 export make_jld2, make_h5, sys_string, sys_info, intervals_to_box
 export is_iip
-export fw_integrand, fw_action, om_action, geometric_action
+export fw_integrand, fw_action, om_action, action, geometric_action
 export mam, gmam
 
 export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ

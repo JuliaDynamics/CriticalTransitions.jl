@@ -17,6 +17,12 @@ geometric_action(sys::StochSystem, path, arclength=1; kwargs...)
 om_action(sys::StochSystem, path, time; kwargs...)
 ```
 
+For convenience, a general [`action`](@ref) function is available where the type of functional is set as an argument:
+
+```@docs
+action(sys::StochSystem, path::Matrix, time, functional; kwargs...)
+```
+
 ## Minimum action paths
 We provide the following two methods to calculate *instantons*, or minimum action paths,
 between two states of a `StochSystem`.

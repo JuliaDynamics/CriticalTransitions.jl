@@ -71,6 +71,22 @@ function om_action(sys::StochSystem, path, time; cov_inv=nothing)
 end;
 
 """
+    action(sys::StochSystem, path::Matrix, time, functional; kwargs...)
+Computes the action functional specified by `functional` for a given StochSystem `sys` and
+`path` parameterized by `time`.
+
+* `functional = "FW"`: Returns the Freidlin-Wentzell action ([`fw_action`](@ref))
+* `functional = "OM"`: Returns the Onsager-Machlup action ([`om_action`](@ref))
+"""
+function action(sys::StochSystem, path::Matrix, time, functional; kwargs...)
+    if functional == "FW"
+        return fw_action(sys, path, time; kwargs...)
+    elseif functional == "OM"
+        return om_action(sys, path, time; kwargs...)
+    end
+end;
+
+"""
     geometric_action(sys::StochSystem, path, arclength=1; kwargs...)
 Calculates the geometric action of a given `path` with specified `arclength` for the drift
 field `sys.f`.

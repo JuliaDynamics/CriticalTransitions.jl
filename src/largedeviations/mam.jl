@@ -15,6 +15,7 @@ path points is `Δt = T/N`. The minimization is performed in consecutive blocks 
 number of iterations each.
 
 ## Keyword arguments
+* `functional = "FW"`: type of action functional to minimize. Defaults to [`fw_action`](@ref)
 * `blocks = 10`: number of blocks
 * `block_iterations = 10`: number of iterations per block
 * `method = LBFGS()`: minimization algorithm (see [`Optim`](https://julianlsolvers.github.io/Optim.jl/stable/#))
@@ -28,6 +29,7 @@ The output can be controlled via the `output` keyword argument.
 * `mam(sys::StochSystem, init::Matrix, T::Real; kwargs...)`
 """
 function mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real;
+    functional="FW",
     blocks = 10,
     block_iterations = 10,
     method = LBFGS(),
@@ -38,7 +40,7 @@ function mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real;
 
     A = inv(sys.Σ)
     init = reduce(hcat, range(x_i, x_f, length=N))
-    f(x) = fw_action(sys, fix_ends(x, x_i, x_f), range(0.0, T, length=N); cov_inv=A)
+    f(x) = action(sys, fix_ends(x, x_i, x_f), range(0.0, T, length=N), functional; cov_inv=A)
     result = Vector{Optim.OptimizationResults}(undef, blocks)
     result[1] = Optim.optimize(f, init, method, Optim.Options(iterations=block_iterations))
     
