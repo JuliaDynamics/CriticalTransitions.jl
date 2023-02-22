@@ -19,4 +19,5 @@ described by [Skufca et al. (2006)](https://journals.aps.org/prl/pdf/10.1103/Phy
 
 ```@docs
 edgetracking(sys::StochSystem, u1::State, u2::State, attractors::Vector; kwargs...)
+bisect_to_edge(sys::StochSystem, u1::State, u2::State, attractors::Vector; kwargs...)
 ```

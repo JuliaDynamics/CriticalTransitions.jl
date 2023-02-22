@@ -57,6 +57,25 @@ function edgetracking(sys::StochSystem, u1::State, u2::State, attractors::Vector
 end;
 
 """
+    bisect_to_edge(sys::StochSystem, u1::State, u2::State, attractors::Vector; kwargs...)
+"""
+function bisect_to_edge(sys::StochSystem, u1::State, u2::State, attractors::Vector;
+    eps1=1e-9,
+    dt=0.01,
+    ϵ_mapper=0.1,
+    solver=Vern9(),
+    kwargs...)
+
+    diffeq = (;alg = solver)
+    cds = to_cds(sys)
+    attrs = Dict(i => Dataset([attractors[i]]) for i in 1:length(attractors))
+    pinteg = parallel_integrator(cds, [u1, u2]; diffeq)
+    mapper = AttractorsViaProximity(cds, attrs, ϵ_mapper; diffeq, dt, kwargs...)
+
+    bisect_to_edge(pinteg, mapper, abstol=eps1)
+end
+
+"""
     track_edge(pinteg, mapper::AttractorMapper; kwargs...)
 Internal function for the edge tracking algorithm. See [`edgetracking`](@ref) for details.
 """
