@@ -58,6 +58,16 @@ end;
 
 """
     bisect_to_edge(sys::StochSystem, u1::State, u2::State, attractors::Vector; kwargs...)
+Bisects to the basin boundary between two initial points `u1` and `u2`. Returns the two 
+final points, one on each side of the basin boundary, that are less than `eps1` apart 
+from each other. 
+
+## Keyword arguments
+* `eps1=1e-9`: tolerance for final distance between the two states
+* `dt=0.01`: time step for AttractorMapper
+* `ϵ_mapper=0.1`: ϵ parameter for AttractorMapper
+* `solver=Vern9()`: solver for AttractorMapper
+* `kwargs...`: additional `kwargs` that can be passed to AttractorMapper
 """
 function bisect_to_edge(sys::StochSystem, u1::State, u2::State, attractors::Vector;
     eps1=1e-9,
