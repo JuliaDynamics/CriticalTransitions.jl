@@ -44,7 +44,7 @@ export is_iip
 export fw_integrand, fw_action, om_action, action, geometric_action
 export mam, gmam
 
-export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ
+export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ, fhn_ϵσ_backward
 export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ
 export rivals!, rivals, rivals_ϵσ 
 export rooth_smooth, stommel, cessi

@@ -53,3 +53,16 @@ function fhn_ϵσ(ϵ, σ) # a convenient two-parameter version of the FitzHugh N
     process = "WhiteGauss";
     StochSystem(f, vcat([ϵ], pf_wo_ϵ), dim, σ, g, pg, Σ, process)
 end;
+
+function fhn_ϵσ_backward(ϵ, σ) # a convenient two-parameter version of the FitzHugh Nagumo system 
+    # defining the StochSystem
+    f(u,p,t) = -FitzHughNagumo(u,p,t);
+    β = 3; α = γ = κ = 1; I = 0; # standard parameters without ϵ (time-scale separation parameter)
+    pf_wo_ϵ = [β, α, γ, κ, I]; # parameter vector without ϵ
+    dim = 2;
+    g = idfunc;
+    pg = nothing; 
+    Σ = [1 0; 0 1];
+    process = "WhiteGauss";
+    StochSystem(f, vcat([ϵ], pf_wo_ϵ), dim, σ, g, pg, Σ, process)
+end;
