@@ -29,14 +29,15 @@ end;
 Prints StochSystem info of `sys` in structured format.
 """
 function sys_info(sys::StochSystem)
-printfmt("StochSystem
+printfmt("{:}-dimensional stochastic dynamical system
  - f (deterministic function):  {:}
  - pf (parameters of f):        {:}
  - g (noise function):          {:}
  - pg (parameters of g):        {:}
  - σ (noise intensity):         {:.3e}
  - Σ (covariance matrix):       {:}
- - process (noise process):     {:}", sys.f, sys.pf, sys.g, sys.pg, sys.σ, sys.Σ, sys.process)
+ - process (noise process):     {:}", sys.dim, sys.f, sys.pf, sys.g, sys.pg, sys.σ, sys.Σ,
+ sys.process)
 end;
 
 """
@@ -53,3 +54,6 @@ function sys_string(sys::StochSystem; verbose=true)
         string(sys)
     end
 end;
+
+# Pretty printing
+Base.show(io::IO, sys::StochSystem) = sys_info(sys)
