@@ -43,7 +43,7 @@ This setup fixes the parameters β = 5/112, γ = 112/2.3625, P₁ = β, Z₁ = 5
 function modtb_αξσ(α, ξ, σ; forward = true) # a convenient three-parameter version of the modifiedtruscottbrindley system 
     f(u,p,t) = modifiedtruscottbrindley(u,p,t);
     if ~forward
-        f(u,p,t) = -f(u,p,t);
+        f(u,p,t) = -modifiedtruscottbrindley(u,p,t);
     end
     β = 5/112; γ = 112/(45*0.0525); P₁ = β; Z₁ = 5/6; # standard parameters without α (growth rate) and ξ (time-scale separation)
     pf_wo_αξ = [β, γ, P₁, Z₁]; # parameters vector without α or ξ
