@@ -24,6 +24,7 @@ include("largedeviations/gmam.jl")
 
 include("../systems/fitzhughnagumo.jl")
 include("../systems/modifiedtruscottbrindley.jl")
+include("../systems/originaltruscottbrindley.jl")
 include("../systems/thc_box/rooth.jl")
 include("../systems/thc_box/stommel.jl")
 include("../systems/rivals.jl")
@@ -33,6 +34,7 @@ include("../dev/symbolic_langevinmcmc.jl")
 include("../dev/residence_times.jl")
 include("../dev/edgetrack_ct.jl")
 include("../dev/flexibletransitions.jl")
+
 
 export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
