@@ -35,6 +35,42 @@ function originaltruscottbrindley(u,p,t)
 end
 
 """
+    rampedoriginaltruscottbrindley!(du, u, p, t)
+In-place definition of the ramped original Truscott-Brindley system. 
+
+See also [`rampedoriginaltruscottbrindley`](@ref).
+"""
+function rampedoriginaltruscottbrindley!(du, u, p, t)
+
+    P, Z, r = u
+    K, Rₘ, α, γ, μ, v, Ttrans, Tramp = p[1]
+
+    du[1] = r*P*(1-P/K)-Rₘ*Z*P^2/(α^2+P^2);
+    du[2] = γ*Rₘ*Z*P^2/(α^2+P^2)-μ*Z;
+    du[3] = t ∈ Ttrans..(Ttrans+Tramp) ? v : 0;
+
+end
+
+"""
+    rampedoriginaltruscottbrindley(u, p, t)
+Out-of-place definition of the ramped original Truscott-Brindley system. 
+
+See also [`rampedoriginaltruscottbrindley!`](@ref).
+"""
+function rampedoriginaltruscottbrindley(u, p, t)
+
+    P, Z, r = u
+    K, Rₘ, α, γ, μ, v, Ttrans, Tramp = p[1]
+
+    dP = r*P*(1-P/K)-Rₘ*Z*P^2/(α^2+P^2);
+    dZ = γ*Rₘ*Z*P^2/(α^2+P^2)-μ*Z;
+    dr = t ∈ Ttrans..(Ttrans+Tramp) ? v : 0;
+
+    SVector{3}([dP,dZ,dr])
+
+end
+
+"""
     origtb_rσ(r, σ)
 A shortcut command for returning a StochSystem of the original Truscott-Brindley system in a default setup with multiplicative anisotropic noise. 
     

@@ -49,6 +49,7 @@ export mam, gmam
 export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ, fhn_ϵσ_backward
 export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ, modtb_αξσ_backward
 export originaltruscottbrindley, originaltruscottbrindley!, origtb_rσ
+export rampedoriginaltruscottbrindley, rampedoriginaltruscottbrindley!, rorigtb_vTtrTraσ
 export rivals!, rivals, rivals_ϵσ 
 export rooth_smooth, stommel, cessi
 export transition2, transitions2
