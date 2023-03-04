@@ -1,0 +1,53 @@
+"""
+Dynamical systems specification file
+"""
+
+# modified Truscott-Brindley system
+
+"""
+    originaltruscottbrindley!(du, u, p, t)
+In-place definition of the original Truscott-Brindley system. 
+
+See also [`originaltruscottbrindley`](@ref).
+"""
+function originaltruscottbrindley!(du, u, p, t)
+    P, Z = u
+    r, K, Rₘ, α, γ, μ = p[1]
+
+    du[1] = r*P*(1-P/K)-Rₘ*Z*P^2/(α^2+P^2);
+    du[2] = γ*Rₘ*Z*P^2/(α^2+P^2)-μ*Z;
+end
+
+"""
+    originaltruscottbrindley(u, p, t)
+Out-of-place definition of the original Truscott-Brindley system. 
+
+See also [`originaltruscottbrindley!`](@ref).
+"""
+function originaltruscottbrindley(u,p,t)
+    P, Z = u
+    r, K, Rₘ, α, γ, μ = p[1]
+
+    dP = r*P*(1-P/K)-Rₘ*Z*P^2/(α^2+P^2);
+    dZ = γ*Rₘ*Z*P^2/(α^2+P^2)-μ*Z;
+
+    SVector{2}([dP, dZ])
+end
+
+"""
+    origtb_rσ(r, σ)
+A shortcut command for returning a StochSystem of the original Truscott-Brindley system in a default setup with multiplicative anisotropic noise. 
+    
+This setup fixes the parameters K = 108, Rₘ = 0.7, α = 5.7, γ = 0.05, μ = 0.012 and leaves the values of the growth rate parameter r as a function argument. The prescribed noise process is multiplicative and anisotropic: the first variable is peturbed by Gaussian white noise realisations that are multiplied by the variable's current value; the second variable has no stochastic component. The noise strength σ is left as the remaining function argument.
+"""
+function origtb_rσ(r, σ) # a convenient three-parameter version of the modifiedtruscottbrindley system 
+    f(u,p,t) = modifiedtruscottbrindley(u,p,t);
+    K = 108; Rₘ = 0.7; α = 5.7; γ = 0.05; μ = 0.012; # standard parameters without α (growth rate) and ξ (time-scale separation)
+    pf_wo_r = [K, Rₘ, α, γ, μ]; # parameters vector without α or ξ
+    dim = 2;
+    g(u,p,t) = multiplicative_idx(u,p,t,[true,false]);
+    pg = nothing; 
+    Σ = [1 0; 0 0];
+    process = "WhiteGauss";
+    StochSystem(f, vcat([r], pf_wo_r), dim, σ, g, pg, Σ, process)
+end;
