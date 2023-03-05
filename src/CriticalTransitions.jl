@@ -52,7 +52,7 @@ export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ, modtb_
 export originaltruscottbrindley, originaltruscottbrindley!, origtb_rσ
 export rampedoriginaltruscottbrindley, rampedoriginaltruscottbrindley!, rorigtb_vTtrTraσ
 export originaltruscottbrindley1, originaltruscottbrindley1!, origtb1_rσ
-export rampedoriginaltruscottbrindley1, rampedoriginaltruscottbrindley1!, rorigtb_vTtrTraσ1
+export rampedoriginaltruscottbrindley1, rampedoriginaltruscottbrindley1!, rorigtb1_vTtrTraσ
 export rivals!, rivals, rivals_ϵσ 
 export rooth_smooth, stommel, cessi
 export transition2, transitions2
