@@ -25,6 +25,7 @@ include("largedeviations/gmam.jl")
 include("../systems/fitzhughnagumo.jl")
 include("../systems/modifiedtruscottbrindley.jl")
 include("../systems/originaltruscottbrindley.jl")
+include("../systems/originaltruscottbrindley1.jl")
 include("../systems/thc_box/rooth.jl")
 include("../systems/thc_box/stommel.jl")
 include("../systems/rivals.jl")
@@ -50,6 +51,8 @@ export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ, fhn_ϵσ_backward
 export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ, modtb_αξσ_backward
 export originaltruscottbrindley, originaltruscottbrindley!, origtb_rσ
 export rampedoriginaltruscottbrindley, rampedoriginaltruscottbrindley!, rorigtb_vTtrTraσ
+export originaltruscottbrindley1, originaltruscottbrindley1!, origtb1_rσ
+export rampedoriginaltruscottbrindley1, rampedoriginaltruscottbrindley1!, rorigtb_vTtrTraσ1
 export rivals!, rivals, rivals_ϵσ 
 export rooth_smooth, stommel, cessi
 export transition2, transitions2
