@@ -72,6 +72,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
             idx[i[]] = jj;
 
         elseif i[] ≥ N
+            println("Script finished running.")
             break
         else
             Threads.atomic_add!(j, 1); # safely add 1 to the counter
