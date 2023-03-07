@@ -43,8 +43,11 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
 
     times::Vector, idx::Vector{Int64}, r_idx = zeros(Float64,N), zeros(Int64, N), 0.
 
+    NoTh = Threads.nthreads();
+
     i = Threads.Atomic{Int}(0); # assign a race-free counter for the number of transitions
     j = Threads.Atomic{Int}(0); # assign a race-free counter for the number of non-transitions
+    k = Threads.Atomic{Int}(0); # assign a race-free counter for the number of iterations to go  
 
     iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
@@ -72,7 +75,8 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
             idx[i[]] = jj;
 
         elseif i[] ≥ N
-            println("Script finished running.")
+            Threads.atomic_add!(k, 1); # safely add 1 to the counter
+            println("Will be finished in $(NoTh-k[]) further iterations.")
             break
         else
             Threads.atomic_add!(j, 1); # safely add 1 to the counter
