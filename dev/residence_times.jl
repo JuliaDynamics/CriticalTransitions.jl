@@ -76,7 +76,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
 
         elseif i[] ≥ N
             Threads.atomic_add!(k, 1); # safely add 1 to the counter
-            println("\rStatus: Transitions complete. Script will finish running in $(NoTh-k[]) further iterations.")
+            print("\rStatus: Transitions complete. Script will finish running in $(NoTh-k[]) further iterations.")
             break
         else
             Threads.atomic_add!(j, 1); # safely add 1 to the counter
