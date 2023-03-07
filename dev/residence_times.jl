@@ -53,6 +53,8 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
 
     Threads.@threads for jj ∈ iterator
     
+        println("tmax")
+
         restime, success = residence_time(sys, x_i, x_f;
                 rad_i, rad_f, rad_dims, dt, tmax,
                 solver, progress, kwargs...)
@@ -75,6 +77,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
             idx[i[]] = jj;
 
         elseif i[] ≥ N
+            tmax=1;
             Threads.atomic_add!(k, 1); # safely add 1 to the counter
             print("\rStatus: Transitions complete. Script will finish running in $(NoTh-k[]) further iterations.")
             break
