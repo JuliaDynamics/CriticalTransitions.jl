@@ -3,6 +3,103 @@
 #include("../src/io/io.jl")
 #include("../src/trajectories/simulation.jl")
 
+function exit_time(sys::StochSystem, x_i::State, x_f::State;
+    rad_i=0.1,
+    rad_f=0.1,
+    dt=0.01,
+    tmax=1e3,
+    solver=EM(),
+    progress=true,
+    rad_dims=1:sys.dim, 
+    kwargs...)
+
+    trans = transition(sys, x_i, x_f; rad_i, rad_f, dt, tmax, solver, progress, rad_dims)[2:3]; # run the transition function with cut_start=true
+
+    times = trans[1]; success = trans[2]; 
+
+    if success
+        restime, transtime = times[end], times[end]-times[1]
+    else
+        restime,transtime = NaN, NaN
+    end
+
+    restime, transtime, success
+
+end
+
+function exit_times(sys::StochSystem, x_i::State, x_f::State, N=1;
+    rad_i=0.1,
+    rad_f=0.1,
+    dt=0.01,
+    tmax=1e3,
+    solver=EM(),
+    progress=true,
+    rad_dims=1:sys.dim,
+    Nmax = 1000,
+    savefile = nothing,
+    showprogress::Bool = true,
+    kwargs...)
+
+    times::Vector, idx::Vector{Int64}, r_idx = zeros(Float64,N,2), zeros(Int64, N), 0.
+
+    NoTh = Threads.nthreads();
+
+    i = Threads.Atomic{Int}(0); # assign a race-free counter for the number of transitions
+    j = Threads.Atomic{Int}(0); # assign a race-free counter for the number of non-transitions
+    k = Threads.Atomic{Int}(0); # assign a race-free counter for the number of iterations to go  
+
+    iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
+
+    Threads.@threads for jj ∈ iterator
+    
+        #println("$(tmax)")
+
+        if i[] < N
+            restime, transtime, success = exit_time(sys, x_i, x_f;
+                rad_i, rad_f, dt, tmax,
+                solver, progress, rad_dims, 
+                kwargs...)
+        else 
+            success = false;
+        end
+        
+        if success && i[] < N
+            
+            Threads.atomic_add!(i, 1); # safely add 1 to the counter
+
+            if showprogress
+                print("\rStatus: $(length(findall(idx.!==0))+1)/$(N) transitions complete.")
+            end
+
+            if savefile == nothing
+                times[i[],:] = [restime,transtime];
+                #push!(times, restime);
+            else # store or save in .jld2 file
+                write(savefile, "times/times "*string(jj), [restime,transtime])
+            end
+        
+            idx[i[]] = jj;
+
+        elseif i[] ≥ N
+            #tmax=1;
+            Threads.atomic_add!(k, 1); # safely add 1 to the counter
+            print("\rStatus: Transitions complete. Script will finish running in $(min(NoTh-k[],Nmax-N-j[]-k[])) further iterations.")
+            break
+        else
+            Threads.atomic_add!(j, 1); # safely add 1 to the counter
+            r_idx += 1 
+        end
+
+    end
+
+    times = times[findall(v->v!=0.,times[:,1])]; 
+
+    idx = idx[findall(v->v!=0.,idx)];
+
+    times, idx, r_idx
+
+end
+
 function residence_time(sys::StochSystem, x_i::State, x_f::State;
     rad_i=0.1,
     rad_f=0.1,
@@ -43,16 +140,25 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
 
     times::Vector, idx::Vector{Int64}, r_idx = zeros(Float64,N), zeros(Int64, N), 0.
 
+    NoTh = Threads.nthreads();
+
     i = Threads.Atomic{Int}(0); # assign a race-free counter for the number of transitions
     j = Threads.Atomic{Int}(0); # assign a race-free counter for the number of non-transitions
+    k = Threads.Atomic{Int}(0); # assign a race-free counter for the number of iterations to go  
 
     iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
     Threads.@threads for jj ∈ iterator
     
-        restime, success = residence_time(sys, x_i, x_f;
+        #println("$(tmax)")
+
+        if i[] < N
+            restime, success = residence_time(sys, x_i, x_f;
                 rad_i, rad_f, rad_dims, dt, tmax,
                 solver, progress, kwargs...)
+        else 
+            success = false;
+        end
         
         if success && i[] < N
             
@@ -72,6 +178,9 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
             idx[i[]] = jj;
 
         elseif i[] ≥ N
+            #tmax=1;
+            Threads.atomic_add!(k, 1); # safely add 1 to the counter
+            print("\rStatus: Transitions complete. Script will finish running in $(min(NoTh-k[],Nmax-N-j[]-k[])) further iterations.")
             break
         else
             Threads.atomic_add!(j, 1); # safely add 1 to the counter

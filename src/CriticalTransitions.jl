@@ -24,6 +24,8 @@ include("largedeviations/gmam.jl")
 
 include("../systems/fitzhughnagumo.jl")
 include("../systems/modifiedtruscottbrindley.jl")
+include("../systems/originaltruscottbrindley.jl")
+include("../systems/originaltruscottbrindley1.jl")
 include("../systems/thc_box/rooth.jl")
 include("../systems/thc_box/stommel.jl")
 include("../systems/rivals.jl")
@@ -33,6 +35,7 @@ include("../dev/symbolic_langevinmcmc.jl")
 include("../dev/residence_times.jl")
 include("../dev/edgetrack_ct.jl")
 include("../dev/flexibletransitions.jl")
+
 
 export StochSystem, State
 export equilib, fixedpoints, basins, basinboundary
@@ -45,7 +48,12 @@ export fw_integrand, fw_action, om_action, action, geometric_action
 export mam, gmam
 
 export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ, fhn_ϵσ_backward
-export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ
+export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ, modtb_αξσ_backward
+export rampedmodifiedtruscottbrindley, modifiedtruscottbrindley!, rmodtb_ξvTtrTraσ
+export originaltruscottbrindley, originaltruscottbrindley!, origtb_rσ
+export rampedoriginaltruscottbrindley, rampedoriginaltruscottbrindley!, rorigtb_vTtrTraσ
+export originaltruscottbrindley1, originaltruscottbrindley1!, origtb1_rσ
+export rampedoriginaltruscottbrindley1, rampedoriginaltruscottbrindley1!, rorigtb1_vTtrTraσ
 export rivals!, rivals, rivals_ϵσ 
 export rooth_smooth, stommel, cessi
 export transition2, transitions2
@@ -63,6 +71,7 @@ export FitzHughNagumoSPDE, fhn_pathspace_sampling
 export langevinmcmc_spde, symbolise_spde, langevinmcmc
 export jacobian
 export residence_time, residence_times, ResTimes, temporal, runandsavetimes, get_res_times
+export exit_time, exit_times
 export edgetracking, bisect_to_edge, attractor_mapper
 
 end # module CriticalTransitions
