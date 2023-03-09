@@ -40,7 +40,7 @@ function exit_times(sys::StochSystem, x_i::State, x_f::State, N=1;
     showprogress::Bool = true,
     kwargs...)
 
-    times::Vector, idx::Vector{Int64}, r_idx = zeros(Float64,N,2), zeros(Int64, N), 0.
+    times::Matrix, idx::Vector{Int64}, r_idx = zeros(Float64,N,2), zeros(Int64, N), 0.
 
     NoTh = Threads.nthreads();
 
