@@ -13,7 +13,7 @@ function exit_time(sys::StochSystem, x_i::State, x_f::State;
     rad_dims=1:sys.dim, 
     kwargs...)
 
-    trans = transition(sys,, x_i,x_f; rad_i, rad_f, dt, tmax, solver, progress, rad_dims)[2:3]; # run the transition function with cut_start=true
+    trans = transition(sys, x_i, x_f; rad_i, rad_f, dt, tmax, solver, progress, rad_dims)[2:3]; # run the transition function with cut_start=true
 
     times = trans[1]; success = trans[2]; 
 
