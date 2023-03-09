@@ -92,7 +92,7 @@ function exit_times(sys::StochSystem, x_i::State, x_f::State, N=1;
 
     end
 
-    times = times[findall(v->v!=0.,times[:,1])]; 
+    times = times[findall(v->v!=0.,times[:,1]),:]; 
 
     idx = idx[findall(v->v!=0.,idx)];
 
