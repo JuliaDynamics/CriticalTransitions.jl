@@ -100,30 +100,6 @@ function exit_times(sys::StochSystem, x_i::State, x_f::State, N=1;
 
 end
 
-function exit_times(sys::StochSystem, x_i::State, x_f::State;
-    rad_i=0.1,
-    rad_f=0.1,
-    dt=0.01,
-    tmax=1e3,
-    solver=EM(),
-    progress=true,
-    rad_dims=1:sys.dim, 
-    kwargs...)
-
-    trans = transition(sys,, x_i,x_f; rad_i, rad_f, dt, tmax, solver, progress, rad_dims)[2:3];
-
-    times = trans[1]; success = trans[2]; 
-
-    if success
-        restime, transtime = times[end], times[end]-times[1]
-    else
-        restime,transtime = NaN, NaN
-    end
-
-    restime, transtime, success
-
-end
-
 function residence_time(sys::StochSystem, x_i::State, x_f::State;
     rad_i=0.1,
     rad_f=0.1,
