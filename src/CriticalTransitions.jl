@@ -71,6 +71,7 @@ export FitzHughNagumoSPDE, fhn_pathspace_sampling
 export langevinmcmc_spde, symbolise_spde, langevinmcmc
 export jacobian
 export residence_time, residence_times, ResTimes, temporal, runandsavetimes, get_res_times
+export exit_time, exit_times
 export edgetracking, bisect_to_edge, attractor_mapper
 
 end # module CriticalTransitions
