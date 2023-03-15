@@ -12,7 +12,7 @@ See also [`modifiedtruscottbrindleywithdimensions`](@ref).
 """
 function modifiedtruscottbrindleywithdimensions!(du, u, p, t)
     P, Z = u
-    r, K, a, h, m, ξ = P
+    r, K, a, h, m, ξ = p[1]
 
     du[1] = (1/ξ)*(r*P*(1-P/K)-a*P^2*Z/(h^2+P^2))
     du[2] = a*P^2*Z/(h^2+P^2)-m*Z^2
@@ -26,7 +26,7 @@ See also [`modifiedtruscottbrindleywithdimensions!`](@ref).
 """
 function modifiedtruscottbrindleywithdimensions(u, p, t)
     P, Z = u
-    r, K, a, h, m, ξ = P
+    r, K, a, h, m, ξ = p[1]
 
     dP = (1/ξ)*(r*P*(1-P/K)-a*P^2*Z/(h^2+P^2))
     dZ = a*P^2*Z/(h^2+P^2)-m*Z^2
