@@ -6,6 +6,10 @@
 Computes the minimizer of the Freidlin-Wentzell action using the geometric minimum
 action method (gMAM). Beta version, to be further documented.
 
+To set an initial path different from a straight line, see the multiple dispatch method
+
+* `gmam(sys::StochSystem, init::Matrix, arclength::Float64; kwargs...)`.
+
 ## Keyword arguments
 * `N = 100`: number of discretized path points
 * `maxiter = 100`: maximum number of iterations before the algorithm stops
@@ -31,6 +35,62 @@ function gmam(sys::StochSystem, x_i::State, x_f::State, arclength=1.0;
     println("=== Initializing gMAM action minimizer ===")
     A = inv(sys.Σ)
     path = reduce(hcat, range(x_i, x_f, length=N))
+    S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength; cov_inv=A)
+    paths = [path]
+    action = [S(path)]
+
+    for i in 1:maxiter
+        println("\r... Iteration $(i)")
+
+        if method == "HeymannVandenEijnden"
+            update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
+                tau=tau, cov_inv=A)
+        else
+            update = optimize(S, path, method, Optim.Options(iterations=1))
+            update_path = Optim.minimizer(update)
+        end
+
+        # re-interpolate
+        s = zeros(N)
+        for j in 2:N
+            s[j] = s[j-1] + anorm(update_path[:,j] - update_path[:,j-1], sys.Σ) #! anorm or norm?
+        end
+        s_length = s/s[end]*arclength
+        interp = ParametricSpline(s_length, update_path, k=3)
+        path = reduce(hcat, [interp(x) for x in range(0, arclength, length=N)])
+        push!(paths, path)
+        push!(action, S(path))
+
+        if abs(action[end]-action[end-1]) < converge
+            println("Converged after $(i) iterations.")
+            return paths, action
+            break
+        end
+    end
+    @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
+    paths, action
+end
+
+"""
+    gmam(sys::StochSystem, init::Matrix, arclength::Float64; kwargs...)
+Runs the geometric Minimum Action Method (gMAM) to find the minimum action path (instanton) from an
+initial condition `init`, given a system `sys` and total arc length `arclength`.
+
+The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dimension
+`sys.dim` of the system and `N` is the number of path points.
+
+For more information see the main method,
+[`gmam(sys::StochSystem, x_i::State, x_f::State, arclength::Float64; kwargs...)`](@ref).
+"""
+function gmam(sys::StochSystem, init::Matrix, arclength=1.0;
+    maxiter = 100,
+    converge = 1e-5,
+    method = LBFGS(),
+    tau = 0.1)
+
+    println("=== Initializing gMAM action minimizer ===")
+    A = inv(sys.Σ)
+    path = init;
     S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength; cov_inv=A)
     paths = [path]
     action = [S(path)]
