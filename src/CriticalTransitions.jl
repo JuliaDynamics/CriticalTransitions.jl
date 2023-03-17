@@ -35,6 +35,8 @@ include("../dev/symbolic_langevinmcmc.jl")
 include("../dev/residence_times.jl")
 include("../dev/edgetrack_ct.jl")
 include("../dev/flexibletransitions.jl")
+include("../dev/RateSys1.jl")
+
 
 
 export StochSystem, State
@@ -54,7 +56,7 @@ export originaltruscottbrindley, originaltruscottbrindley!, origtb_rσ
 export rampedoriginaltruscottbrindley, rampedoriginaltruscottbrindley!, rorigtb_vTtrTraσ
 export originaltruscottbrindley1, originaltruscottbrindley1!, origtb1_rσ
 export rampedoriginaltruscottbrindley1, rampedoriginaltruscottbrindley1!, rorigtb1_vTtrTraσ
-export rivals!, rivals, rivals_ϵσ 
+export rivals!, rivals, rivals_ϵσ
 export rooth_smooth, stommel, cessi
 export transition2, transitions2
 export residence_time2, residence_times2
@@ -73,5 +75,6 @@ export jacobian
 export residence_time, residence_times, ResTimes, temporal, runandsavetimes, get_res_times
 export exit_time, exit_times
 export edgetracking, bisect_to_edge, attractor_mapper
+export RateSystem, simulate, fL, stochtorate
 
 end # module CriticalTransitions
