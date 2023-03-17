@@ -90,7 +90,7 @@ function gmam(sys::StochSystem, init::Matrix, arclength=1.0;
 
     println("=== Initializing gMAM action minimizer ===")
     A = inv(sys.Σ)
-    path = init;
+    path = init; x_i = init[:,1]; x_f = init[:,end]; N = length(init[1,:]);
     S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength; cov_inv=A)
     paths = [path]
     action = [S(path)]
