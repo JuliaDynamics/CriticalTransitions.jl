@@ -8,7 +8,6 @@ State = Union{Vector, SVector}
     RateSystem(f, pf, dim, σ, g, pg, Σ, process)
 Defines a stochastic dynamical system with a rate dependent shift in `CriticalTransitions.jl`. See [documentation](https://reykboerner.github.io/CriticalTransitions.jl/dev/man/stochsystem/).
 """
-
 struct RateSystem
     f::Function
     pf::Parameters
