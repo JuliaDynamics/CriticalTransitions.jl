@@ -88,6 +88,18 @@ function modtb_αξσ(α, ξ, σ) # a convenient three-parameter version of the 
     StochSystem(f, vcat([α], pf_wo_αξ, [ξ]), dim, σ, g, pg, Σ, process)
 end;
 
+function modtb_αξσ1(α, ξ, σ) # a convenient three-parameter version of the modifiedtruscottbrindley system 
+    f(u,p,t) = modifiedtruscottbrindley(u,p,t);
+    β = 5/112; γ = 112/(45*0.0525); P₁ = β; Z₁ = 5/6; # standard parameters without α (growth rate) and ξ (time-scale separation)
+    pf_wo_αξ = [β, γ, P₁, Z₁]; # parameters vector without α or ξ
+    dim = 2;
+    g(u,p,t) = multiplicative_idx(u,p,t,[true,false]);
+    pg = nothing; 
+    Σ = [1 0; 0 √ξ];
+    process = "WhiteGauss";
+    StochSystem(f, vcat([α], pf_wo_αξ, [ξ]), dim, σ, g, pg, Σ, process)
+end;
+
 function modtb_αξσ_backward(α, ξ, σ) # a convenient three-parameter version of the modifiedtruscottbrindley system 
     f(u,p,t) = -modifiedtruscottbrindley(u,p,t);
     β = 5/112; γ = 112/(45*0.0525); P₁ = β; Z₁ = 5/6; # standard parameters without α (growth rate) and ξ (time-scale separation)
