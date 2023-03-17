@@ -48,7 +48,7 @@ export fw_integrand, fw_action, om_action, action, geometric_action
 export mam, gmam
 
 export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ, fhn_ϵσ_backward
-export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ, modtb_αξσ1, modtb_αξσ_backward
+export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ, modtb_αξσ_backward
 export rampedmodifiedtruscottbrindley, modifiedtruscottbrindley!, rmodtb_ξvTtrTraσ
 export originaltruscottbrindley, originaltruscottbrindley!, origtb_rσ
 export rampedoriginaltruscottbrindley, rampedoriginaltruscottbrindley!, rorigtb_vTtrTraσ

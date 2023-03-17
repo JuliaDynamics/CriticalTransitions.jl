@@ -5,6 +5,37 @@ Dynamical systems specification file
 # modified Truscott-Brindley system
 
 """
+    modifiedtruscottbrindleywithdimensions!(du, u, p, t)
+In-place definition of the modified Truscott-Brindley system with dimensions. 
+
+See also [`modifiedtruscottbrindleywithdimensions`](@ref).
+"""
+function modifiedtruscottbrindleywithdimensions!(du, u, p, t)
+    P, Z = u
+    r, K, a, h, m, ξ = p[1]
+
+    du[1] = (1/ξ)*(r*P*(1-P/K)-a*P^2*Z/(h^2+P^2))
+    du[2] = a*P^2*Z/(h^2+P^2)-m*Z^2
+end
+
+"""
+    modifiedtruscottbrindleywithdimensions(du, u, p, t)
+In-place definition of the modified Truscott-Brindley system with dimensions. 
+
+See also [`modifiedtruscottbrindleywithdimensions!`](@ref).
+"""
+function modifiedtruscottbrindleywithdimensions(u, p, t)
+    P, Z = u
+    r, K, a, h, m, ξ = p[1]
+
+    dP = (1/ξ)*(r*P*(1-P/K)-a*P^2*Z/(h^2+P^2))
+    dZ = a*P^2*Z/(h^2+P^2)-m*Z^2
+
+    return SVector{2}([dP,dZ])
+end
+
+
+"""
     modifiedtruscottbrindley!(du, u, p, t)
 In-place definition of the modified Truscott-Brindley system. 
 
@@ -69,6 +100,18 @@ function rampedmodifiedtruscottbrindley(u, p, t)
     SVector{3}([dP,dZ,dα])
 
 end
+
+function modtbwd_rσ(r, σ) # a convenient three-parameter version of the modifiedtruscottbrindley system 
+    f(u,p,t) = modifiedtruscottbrindleywithdimensions(u,p,t);
+    K = 1; a = 1/9; h = 5/112; m = 0.0525; ξ = 0.1; # standard parameters without α (growth rate) and ξ (time-scale separation)
+    pf_wo_r = [K, a, h, m, ξ]; # parameters vector without r
+    dim = 2;
+    g(u,p,t) = multiplicative_idx(u,p,t,[true,true]);
+    pg = nothing; 
+    Σ = [1/√ξ 0; 0 1];
+    process = "WhiteGauss";
+    StochSystem(f, vcat([r], pf_wo_r), dim, σ, g, pg, Σ, process)
+end;
 
 """
     modtb_αξσ(α, ξ, σ)
