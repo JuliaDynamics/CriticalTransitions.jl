@@ -72,9 +72,8 @@ function fL(u,p,t,sys::RateSystem)
 
     nonstationary = sys.T_trans..sys.T_trans+sys.T_shift; # the time-interval of the ramping period
     
-    du = t in nonstationary ? hcat(sys.f(state_vars,params,t),sys.L(param_vars,sys.pL,t)) : hcat(sys.f(state_vars,params,t),SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
+    du = t in nonstationary ? hcat(sys.f(state_vars,[params],t),sys.L(param_vars,[sys.pL],t)) : hcat(sys.f(state_vars,[params],t),SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
 
 end;
-
 
 stochtorate(sys::StochSystem,td_inds::Vector{Bool},L::Function,pL::Vector,T_trans::Float64,T_shift::Float64)=RateSystem(sys.f,sys.pf,td_inds,L,pL,T_trans,T_shift,sys.dim,sys.σ,sys.g,sys.pg,sys.Σ,sys.process)
