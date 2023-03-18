@@ -70,7 +70,7 @@ function fL(u,p,t,sys::RateSystem)
 
     params = sys.pf; params[sys.td_inds] = param_vars; # combining the fixed parameters with the current values of the time-dependent parameters
 
-    nonstationary = t_trans..t_trans+t_shift; # the time-interval of the ramping period
+    nonstationary = sys.T_trans..sys.T_trans+sys.T_shift; # the time-interval of the ramping period
     
     du = t in nonstationary ? hcat(sys.f(state_vars,params,t),sys.L(param_vars,sys.pL,t)) : hcat(sys.f(state_vars,param_vars,t),SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
 
