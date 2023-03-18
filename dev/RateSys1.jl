@@ -72,7 +72,7 @@ function fL(u,p,t,sys::RateSystem)
 
     nonstationary = sys.T_trans..sys.T_trans+sys.T_shift; # the time-interval of the ramping period
     
-    du = t in nonstationary ? hcat(sys.f(state_vars,[params],t),sys.L(param_vars,[sys.pL],t)) : hcat(sys.f(state_vars,[params],t),SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
+    du = t in nonstationary ? vcat(sys.f(state_vars,[params],t),sys.L(param_vars,[sys.pL],t)) : vcat(sys.f(state_vars,[params],t),SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
 
 end;
 
