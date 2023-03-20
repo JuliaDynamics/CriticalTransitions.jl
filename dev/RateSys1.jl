@@ -9,6 +9,10 @@ State = Union{Vector, SVector}
 Defines a stochastic dynamical system with a rate dependent shift in `CriticalTransitions.jl`. See [documentation](https://reykboerner.github.io/CriticalTransitions.jl/dev/man/stochsystem/).
 """
 struct RateSystem
+    # i think it would maybe be helpful to define a few more fields:
+    # gL::Function, a function describing the noise functions of the time-dependent functions
+    # dim2::Int64, gives the number of time-dependent functions
+    # Σ₂::CovMatrix, gives the covariance matrix of the time-dependent parameters
     f::Function                 # vector of functions describing the derivatives of each state variable
     pf::Parameters              # parameters for the derivatives of the state variables 
     td_inds::Vector{Bool}       # a boolean vector indicating which parameters are time-dependent
@@ -61,10 +65,42 @@ function simulate(sys::RateSystem, init::State;
 end;
 
 """
+    relax(sys::StochSystem, init::State; kwargs...)
+Simulates the deterministic dynamics of StochSystem `sys` in time, starting at initial condition `init`.
+
+This function integrates `sys.f` forward in time, using the [`ODEProblem`](https://diffeq.sciml.ai/stable/types/ode_types/#SciMLBase.ODEProblem) functionality of `DifferentialEquations.jl`. Thus, `relax` is identical to [`simulate`](@ref) when setting the noise strength `sys.σ = 0`.
+
+## Keyword arguments
+* `dt=0.01`: time step of integration
+* `tmax=1e3`: total time of simulation
+* `solver=Euler()`: numerical solver. Defaults to explicit forward Euler
+* `callback=nothing`: callback condition
+* `kwargs...`: keyword arguments for `solve(ODEProblem)`
+
+For more info, see [`ODEProblem`](https://diffeq.sciml.ai/stable/types/ode_types/#SciMLBase.ODEProblem). 
+For stochastic integration, see [`simulate`](@ref).
+
+> Warning: This function has only been tested for the `Euler()` solver.
+"""
+function relax(sys::RateSystem, init::State;
+    dt=0.01,
+    tmax=1e3,
+    solver=Euler(),
+    callback=nothing,
+    kwargs...)
+    
+    func(u,p,t) = fL(u,p,t,sys)
+
+    prob = ODEProblem(func, init, (0, tmax), p(sys))
+    solve(prob, solver; dt=dt, callback=callback, kwargs...)
+end;
+
+"""
     σg(sys::RateSystem)
 Multiplies the noise strength `σ` of a RateSystem `sys` with its noise function `g`.
 """
 function σg(sys::RateSystem)
+    # the parameter variation is purely deterministic (for now) - can implement noise functions for the time-dependent parameters later and change this function accordingly
     if is_iip(sys.f)
         g_iip(du,u,p,t) = vcat(sys.σ .* sys.g(du[1:sys.dim],u[1:sys.dim],p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
     else
@@ -77,7 +113,7 @@ end;
 Concatenates the deterministic and stochastic parameter vectors `pf`, 'pL', and `pg` of a RateSystem `sys`.
 """
 function p(sys::RateSystem)
-    [vcat(sys.pf, sys.pL), sys.pg]
+    [sys.pf, sys.pL, sys.pg]
 end;
 
 """
@@ -105,11 +141,12 @@ Returns a Wiener process with dimension `sys.dim` and covariance matrix `sys.Σ`
 This function is based on the [`CorrelatedWienerProcess`](https://noise.sciml.ai/stable/noise_processes/#DiffEqNoiseProcess.CorrelatedWienerProcess) of [`DiffEqNoiseProcess.jl`](https://noise.sciml.ai/stable/), a component of `DifferentialEquations.jl`. The initial condition of the process is set to the zero vector at `t=0`.
 """
 function gauss(sys::RateSystem)
+    Σ₂ = zeros(sum(sys.td_inds),sum(sys.td_inds)); # the covariance matrix of the time-dependent parameters, fixed to zero for now
     # Returns a Wiener process for given covariance matrix and dimension of a StochSystem
     if is_iip(sys.f)
-        W = CorrelatedWienerProcess!(sys.Σ, 0.0, zeros(sys.dim+sum(sys.td_inds)))
+        W = CorrelatedWienerProcess!([sys.Σ zeros(sys.dim,sum(sys.td_inds)); zeros(sum(sys.td_inds),sys.dim) Σ₂], 0.0, zeros(sys.dim+sum(sys.td_inds)))
     else
-        W = CorrelatedWienerProcess(sys.Σ, 0.0, zeros(sys.dim+sum(sys.td_inds)))
+        W = CorrelatedWienerProcess([sys.Σ zeros(sys.dim,sum(sys.td_inds)); zeros(sum(sys.td_inds),sys.dim) Σ₂], 0.0, zeros(sys.dim+sum(sys.td_inds)))
     end
     W
 end;
