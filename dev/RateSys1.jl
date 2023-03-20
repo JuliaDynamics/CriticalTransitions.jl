@@ -51,10 +51,13 @@ function simulate(sys::RateSystem, init::State;
     callback=nothing,
     progress=true,
     kwargs...)
+
     func(u,p,t) = fL(u,p,t,sys)
 
     prob = SDEProblem(func, σg(sys), init, (0, tmax), p(sys), noise=stochprocess(sys))
+    
     solve(prob, solver; dt=dt, callback=callback, progress=progress, kwargs...)
+
 end;
 
 """
@@ -74,7 +77,7 @@ end;
 Concatenates the deterministic and stochastic parameter vectors `pf`, 'pL', and `pg` of a RateSystem `sys`.
 """
 function p(sys::RateSystem)
-    [sys.pf, sys.pL, sys.pg]
+    [vcat(sys.pf, sys.pL), sys.pg]
 end;
 
 """
@@ -104,14 +107,17 @@ This function is based on the [`CorrelatedWienerProcess`](https://noise.sciml.ai
 function gauss(sys::RateSystem)
     # Returns a Wiener process for given covariance matrix and dimension of a StochSystem
     if is_iip(sys.f)
-        W = CorrelatedWienerProcess!(sys.Σ, 0.0, zeros(sys.dim))
+        W = CorrelatedWienerProcess!(sys.Σ, 0.0, zeros(sys.dim+sum(sys.td_inds)))
     else
-        W = CorrelatedWienerProcess(sys.Σ, 0.0, zeros(sys.dim))
+        W = CorrelatedWienerProcess(sys.Σ, 0.0, zeros(sys.dim+sum(sys.td_inds)))
     end
     W
 end;
 
 function fL(u,p,t,sys::RateSystem)
+
+    pf = p[1]; # the parameters relating to the derivatives of the state-variables
+    pL = p[2]; # the parameters relating to the derivatives of the time-dependent parameters
 
     #stationary = 0..t_trans ∪ t_trans+t_shift..Inf
     #du = t in stationary ? hcat(sys.f(u,p,t),zeros(length(sys.pf)) : hcat(sys.f(u,p,t),sys.L(u,p,t))
@@ -120,11 +126,11 @@ function fL(u,p,t,sys::RateSystem)
     state_vars = u[1:sys.dim]; # the state-variables
     param_vars = u[sys.dim+1:end]; # the (time-dependent) parameters
 
-    params = sys.pf; params[sys.td_inds] = param_vars; # combining the fixed parameters with the current values of the time-dependent parameters
+    pf[sys.td_inds] = param_vars; # modifying the vector of fixed parameters to account for the current values of the time-dependent parameters
 
     nonstationary = sys.T_trans..sys.T_trans+sys.T_shift; # the time-interval of the ramping period
     
-    du = t in nonstationary ? vcat(sys.f(state_vars,[params],t),sys.L(param_vars,[sys.pL],t)) : vcat(sys.f(state_vars,[params],t),SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
+    du = t in nonstationary ? vcat(sys.f(state_vars,[pf],t),sys.L(param_vars,[pL],t)) : vcat(sys.f(state_vars,[pf],t),SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
 
 end;
 
