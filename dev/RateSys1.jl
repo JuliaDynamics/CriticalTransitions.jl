@@ -57,6 +57,60 @@ function simulate(sys::RateSystem, init::State;
     solve(prob, solver; dt=dt, callback=callback, progress=progress, kwargs...)
 end;
 
+"""
+    σg(sys::RateSystem)
+Multiplies the noise strength `σ` of a RateSystem `sys` with its noise function `g`.
+"""
+function σg(sys::RateSystem)
+    if is_iip(sys.f)
+        g_iip(du,u,p,t) = vcat(sys.σ .* sys.g(du,u,p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
+    else
+        g_oop(u,p,t) = vcat(sys.σ .* sys.g(u,p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
+    end
+end;
+
+"""
+    p(sys::RateSystem)
+Concatenates the deterministic and stochastic parameter vectors `pf`, 'pL', and `pg` of a RateSystem `sys`.
+"""
+function p(sys::RateSystem)
+    [sys.pf, sys.pL, sys.pg]
+end;
+
+"""
+    stochprocess(sys::RateSystem)
+
+Translates the stochastic process specified in `sys` into the language required by the
+`SDEProblem` of `DynamicalSystems.jl`.
+"""
+function stochprocess(sys::RateSystem)
+    if sys.process == "WhiteGauss"
+        if sys.Σ == I(sys.dim)
+            return nothing
+        else
+            return gauss(sys)
+        end
+    else
+        ArgumentError("Noise process not yet implemented.")
+    end
+end
+
+"""
+    gauss(sys::RateSystem)
+Returns a Wiener process with dimension `sys.dim` and covariance matrix `sys.Σ`.
+
+This function is based on the [`CorrelatedWienerProcess`](https://noise.sciml.ai/stable/noise_processes/#DiffEqNoiseProcess.CorrelatedWienerProcess) of [`DiffEqNoiseProcess.jl`](https://noise.sciml.ai/stable/), a component of `DifferentialEquations.jl`. The initial condition of the process is set to the zero vector at `t=0`.
+"""
+function gauss(sys::RateSystem)
+    # Returns a Wiener process for given covariance matrix and dimension of a StochSystem
+    if is_iip(sys.f)
+        W = CorrelatedWienerProcess!(sys.Σ, 0.0, zeros(sys.dim))
+    else
+        W = CorrelatedWienerProcess(sys.Σ, 0.0, zeros(sys.dim))
+    end
+    W
+end;
+
 function fL(u,p,t,sys::RateSystem)
 
     #stationary = 0..t_trans ∪ t_trans+t_shift..Inf
