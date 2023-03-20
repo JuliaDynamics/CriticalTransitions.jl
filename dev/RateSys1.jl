@@ -113,7 +113,7 @@ end;
 Concatenates the deterministic and stochastic parameter vectors `pf`, 'pL', and `pg` of a RateSystem `sys`.
 """
 function p(sys::RateSystem)
-    [sys.pf, sys.pL, sys.pg]
+    [vcat(sys.pf,sys.pL), sys.pg]
 end;
 
 """
@@ -153,8 +153,8 @@ end;
 
 function fL(u,p,t,sys::RateSystem)
 
-    pf = p[1]; # the parameters relating to the derivatives of the state-variables
-    pL = p[2]; # the parameters relating to the derivatives of the time-dependent parameters
+    pf = p[1][1:length(sys.pf)];
+    pL = p[1][length(sys.pf)+1:end]; 
 
     #stationary = 0..t_trans ∪ t_trans+t_shift..Inf
     #du = t in stationary ? hcat(sys.f(u,p,t),zeros(length(sys.pf)) : hcat(sys.f(u,p,t),sys.L(u,p,t))
