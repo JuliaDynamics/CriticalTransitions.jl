@@ -63,9 +63,9 @@ Multiplies the noise strength `σ` of a RateSystem `sys` with its noise function
 """
 function σg(sys::RateSystem)
     if is_iip(sys.f)
-        g_iip(du,u,p,t) = vcat(sys.σ .* sys.g(du,u,p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
+        g_iip(du,u,p,t) = vcat(sys.σ .* sys.g(du[1:sys.dim],u[1:sys.dim],p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
     else
-        g_oop(u,p,t) = vcat(sys.σ .* sys.g(u,p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
+        g_oop(u,p,t) = vcat(sys.σ .* sys.g(u[1:sys.dim],p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
     end
 end;
 
