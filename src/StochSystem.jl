@@ -41,6 +41,18 @@ function σg(sys::StochSystem)
     else
         g_oop(u,p,t) = sys.σ .* sys.g(u,p,t)
     end
+end
+
+"""
+    σg(sys::RateSystem)
+Multiplies the noise strength `σ` of a RateSystem `sys` with its noise function `g`.
+"""
+function σg(sys::RateSystem)
+    if is_iip(sys.f)
+        g_iip(du,u,p,t) = vcat(sys.σ .* sys.g(du,u,p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
+    else
+        g_oop(u,p,t) = vcat(sys.σ .* sys.g(u,p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
+    end
 end;
 
 """
@@ -49,6 +61,14 @@ Concatenates the deterministic and stochastic parameter vectors `pf` and `pg` of
 """
 function p(sys::StochSystem)
     [sys.pf, sys.pg]
+end;
+
+"""
+    p(sys::RateSystem)
+Concatenates the deterministic and stochastic parameter vectors `pf`, 'pL', and `pg` of a RateSystem `sys`.
+"""
+function p(sys::RateSystem)
+    [sys.pf, sys.pL, sys.pg]
 end;
 
 """
