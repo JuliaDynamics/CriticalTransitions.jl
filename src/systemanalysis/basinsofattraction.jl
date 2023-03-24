@@ -36,6 +36,15 @@ end
 """
     basins(sys::StochSystem, A, B, C, H; kwargs...)
 Computes the basins of attraction of StochSystem `sys` on a plane spanned by the points `A`, `B`, `C` and limited by the box `H`.
+
+To be further documented.
+
+`H` is a hyperrectangle in R^d
+
+## Keyword arguments
+* `bstep = [0.01, 0.01]`: incremental steps you will take across your basin of attraction defined on some plane
+* `pstep = [0.1, 0.1]`: vector of steps (increments) for mechanism behind finding a plane from a box
+* `fp=nothing`, `method="defaultCT"`, `AVPparams=[]`
 """
 function basins(sys::StochSystem, A, B, C, H; fp = nothing, bstep::Vector = [0.01, 0.01], pstep::Vector = [0.1, 0.1], method::String = "defaultCT", AVPparams = [])
 

@@ -20,7 +20,7 @@ ls = lyapunovspectrum(to_cds(sys), 10000)
 
 ```@docs
 to_cds(sys::StochSystem; state=zeros(sys.dim))
-tocds
+attractor_mapper(sys::StochSystem, attractors, eps=0.01; kwargs...)
 ```
 
 ## `StochSystem` utility functions

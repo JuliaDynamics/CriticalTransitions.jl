@@ -23,11 +23,11 @@ include("largedeviations/mam.jl")
 include("largedeviations/gmam.jl")
 
 include("../systems/fitzhughnagumo.jl")
-include("../systems/modifiedtruscottbrindley.jl")
-include("../systems/originaltruscottbrindley.jl")
-include("../systems/originaltruscottbrindley1.jl")
-include("../systems/thc_box/rooth.jl")
-include("../systems/thc_box/stommel.jl")
+include("../systems/truscottbrindley_mod.jl")
+include("../systems/truscottbrindley_orig.jl")
+include("../systems/truscottbrindley_orig1.jl")
+include("../systems/rooth.jl")
+include("../systems/stommel.jl")
 include("../systems/rivals.jl")
 
 include("../dev/fhn_pathspace_sampling.jl")
@@ -37,18 +37,24 @@ include("../dev/edgetrack_ct.jl")
 include("../dev/flexibletransitions.jl")
 include("../dev/RateSys1.jl")
 
-
-
+# Core types
 export StochSystem, State
+
+# Methods
 export equilib, fixedpoints, basins, basinboundary
-export saddles_idx, repellers_idx, attractors_idx
-export simulate, relax, transition, transitions
-export tocds, to_cds, drift
-export make_jld2, make_h5, sys_string, sys_info, intervals_to_box
-export is_iip
+export simulate, relax
+export transition, transitions
+export langevinmcmc
 export fw_integrand, fw_action, om_action, action, geometric_action
 export mam, gmam
+export edgetracking, bisect_to_edge, attractor_mapper
+export idfunc, idfunc!
+export gauss
+export drift, tocds, to_cds, is_iip
+export make_jld2, make_h5, sys_string, sys_info, intervals_to_box
+export anorm, subnorm
 
+# Systems
 export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ, fhn_ϵσ_backward
 export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ, modtb_αξσ1, modtb_αξσ_backward
 export rampedmodifiedtruscottbrindley, modifiedtruscottbrindley!, rmodtb_ξvTtrTraσ
@@ -58,23 +64,21 @@ export originaltruscottbrindley1, originaltruscottbrindley1!, origtb1_rσ
 export rampedoriginaltruscottbrindley1, rampedoriginaltruscottbrindley1!, rorigtb1_vTtrTraσ
 export rivals!, rivals, rivals_ϵσ
 export rooth_smooth, stommel, cessi
+
+# Development
 export transition2, transitions2
 export residence_time2, residence_times2
-
-export idfunc, idfunc!
+export saddles_idx, repellers_idx, attractors_idx
 export additive_idx, additive_idx!
 export multiplicative_idx, multiplicative_idx!
-export anorm, subnorm
-export gauss
-
-export EM, I # functions inherited from dependencies
-
 export FitzHughNagumoSPDE, fhn_pathspace_sampling
-export langevinmcmc_spde, symbolise_spde, langevinmcmc
+export langevinmcmc_spde, symbolise_spde
 export jacobian
 export residence_time, residence_times, ResTimes, temporal, runandsavetimes, get_res_times
 export exit_time, exit_times
-export edgetracking, bisect_to_edge, attractor_mapper
-export RateSystem, simulate, fL, stochtorate
+export RateSystem, fL, stochtorate
+
+# Re-export functions inherited from dependencies
+export EM, I
 
 end # module CriticalTransitions

@@ -4,7 +4,9 @@ end
 
 """
     basinboundary(X, Y, h; kwargs...)
-Computes the basin boundary for given basins of attraction.
+Computes the basin boundary for given output `X, Y, h` of the [`basins`](@ref) function.
+
+To be further documented.
 """
 function basinboundary(X, Y, h; coords::String = "plane", A::Vector = [], B::Vector = [], C::Vector = [])
 
@@ -39,6 +41,10 @@ function basinboundary(X, Y, h; coords::String = "plane", A::Vector = [], B::Vec
     
 end
 
-# Additional method for convenience:
-# Takes the output of basins directly as input
+"""
+    basinboundary(boa)
+Computes the basin boundary for given output `boa` of the [`basins`](@ref) function.
+
+To be further documented.        
+"""
 basinboundary(boa) = basinboundary(boa[1], boa[2], boa[3])

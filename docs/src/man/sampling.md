@@ -9,4 +9,6 @@ transitions(sys::StochSystem, x_i::State, x_f::State, N=1; kwargs...)
 ```
 
 ## ... in pathspace
-In development: Pathspace Langevin MCMC sampling
+```@docs
+langevinmcmc(sys::StochSystem, init; kwargs...)
+```

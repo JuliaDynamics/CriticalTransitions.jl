@@ -88,7 +88,25 @@ function jacobian(sys::StochSystem, x::Vector)
 end
     
 
+"""
+    langevinmcmc(sys::StochSystem, init; kwargs...)
+Runs Langevin MCMC bridge sampling for a given system `sys` and initial path `init`, using
+Symbolics.jl to compute the functional derivative.
 
+Returns a three-dimensional array of size `(M, sys.dim, N)`, where `M` is the number of
+virtual time steps, `N` the number of physical time steps, and `sys.dim` the number of system
+dimensions.
+
+To be further documented in following versions.
+
+## Keyword arguments
+* `T = 15`: physical path time
+* `tmax = 250`: virtual time duration
+* `Δt = 1e-3`: virtual time step
+* `noise = sys.σ`: noise strength of additive spatio-temporal noise term
+* `annealing = false`: whether to enable simulated annealing
+* `showprogress = true`: whether to print a progress bar
+"""
 function langevinmcmc(sys::StochSystem, init;    
     T = 15,         # physical end time
     tmax = 250.0,   # virtual end time
