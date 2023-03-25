@@ -8,7 +8,7 @@ This algorithm uses the minimizers of the
 Freidlin-Wentzell action functional (see [`fw_action`](@ref)) for the given StochSystem
 `sys`. The path is initialized as a straight line between `x_i` and `x_f`, parameterized in
 time via `N` equidistant points and total time `T`. Thus, the time step between discretized
-path points is ``\\Δt = T/N``.
+path points is ``\\Delta t = T/N``.
 To set an initial path different from a straight line, see the multiple dispatch method
 
 * `mam(sys::StochSystem, init::Matrix, T::Real; kwargs...)`.

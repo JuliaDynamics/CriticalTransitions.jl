@@ -33,9 +33,3 @@ The following deterministic ODE systems have been implemented so far:
 ```@index
 Pages = ["man/systems.md"]
 ```
-
-## Table of contents
-
-```@contents
-Depth = 3
-```
