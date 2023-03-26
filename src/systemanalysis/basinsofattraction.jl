@@ -37,6 +37,7 @@ end
 
 """
     basins(sys::StochSystem, A, B, C, H; kwargs...)
+Computes the basins of attraction of StochSystem `sys` on a plane spanned by the points `A`, `B`, `C` and limited by the box `H`. Uses the AttractorsViaProximity function from DynamicalSystems.jl to compute the basins of attraction.
 """ 
 function basins(sys::StochSystem, A, B, C, H; bstep::Vector = [0.01, 0.01], pstep::Vector = [0.1, 0.1], AVPparams = [0.00005, 1000, 0.001, 1e3, 100000, (alg = Vern9(), abstol = 1e-16, reltol = 1e-16)])
 
