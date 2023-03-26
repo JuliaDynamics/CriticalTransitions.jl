@@ -41,7 +41,12 @@ Computes the basins of attraction of StochSystem `sys` on a plane spanned by the
 
 `A`, `B`, `C` are elements of ``\\mathbb{R}^d`` (where ``d`` is the dimension of the  `sys`) and `H` is a hyperrectangle in ``\\mathbb{R}^d``.
 
-The plane is given by ``P_{U,V}\\coloneqq\\{A+u(B-A)+v(C-A): u \\in U,\\, v\\in V\\}`` for some closed and bounded real intervals ``U`` and ``V`` which are selected such that both i) ``P_{U,\\,V} \\subseteq H`` and ii) ``U\\times V\\subseteq\\mathbb{R}^2`` has maximal area, i.e. ``P_{U,\\,V}`` is the "largest" possible plane contained within H. This plane is determined behind the scenes.    
+The plane is given by ``P_{U,V} := \\{A+u(B-A)+v(C-A): u \\in U,\\, v\\in V\\}`` for some closed and bounded real intervals ``U`` and ``V`` which are selected such that both 
+* ``P_{U,\\,V} \\subseteq H``, and 
+* ``U\\times V\\subseteq\\mathbb{R}^2`` has maximal area, 
+i.e. ``P_{U,\\,V}`` is the "largest" possible plane contained within H. This plane is determined behind the scenes.    
+
+This function returns a four-dimensional vector. The first two entries are discretised versions of the interval ``U`` and ``V`` (as defined above, of lengths ``\\ell_U,\\,\\ell_V`` respectively); the third entry is a dictionary of the attractors (stable equilibria) of the system within `H`, and the final entry is an ``\\ell_U\\times\\ell_V`` matrix of integers that group the initial conditions (written in terms of ``A+u(B-A)+v(C-A)`` where ``u\\in U`` and ``v\\in V``) by which attractor they will in time converge to. 
 """ 
 function basins(sys::StochSystem, A, B, C, H; bstep::Vector = [0.01, 0.01], pstep::Vector = [0.1, 0.1], AVPparams = [0.00005, 1000, 0.001, 1e3, 100000, (alg = Vern9(), abstol = 1e-16, reltol = 1e-16)])
 
