@@ -39,7 +39,7 @@ Computes the basins of attraction of StochSystem `sys` on a plane spanned by the
 
 To be further documented.
 
-`H` is a hyperrectangle in R^d
+`H` is a hyperrectangle in ``\mathbb{R}^d``
 
 ## Keyword arguments
 * `bstep = [0.01, 0.01]`: incremental steps you will take across your basin of attraction defined on some plane
