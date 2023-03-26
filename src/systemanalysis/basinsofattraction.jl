@@ -38,6 +38,10 @@ end
 """
     basins(sys::StochSystem, A, B, C, H; kwargs...)
 Computes the basins of attraction of StochSystem `sys` on a plane spanned by the points `A`, `B`, `C` and limited by the box `H`. Uses the AttractorsViaProximity function from DynamicalSystems.jl to compute the basins of attraction.
+
+`A`, `B`, `C` are elements of ``\\mathbb{R}^d`` (where ``d`` is the dimension of the  `sys`) and `H` is a hyperrectangle in ``\\mathbb{R}^d``.
+
+The plane is given by ``P_{U,V}\\coloneqq\\{A+u(B-A)+v(C-A): u \\in U,\\, v\\in V\\}`` for some closed and bounded real intervals ``U`` and ``V`` which are selected such that both i) ``P_{U,\\,V} \\subseteq H`` and ii) ``U\\times V\\subseteq\\mathbb{R}^2`` has maximal area, i.e. ``P_{U,\\,V}`` is the "largest" possible plane contained within H. This plane is determined behind the scenes.    
 """ 
 function basins(sys::StochSystem, A, B, C, H; bstep::Vector = [0.01, 0.01], pstep::Vector = [0.1, 0.1], AVPparams = [0.00005, 1000, 0.001, 1e3, 100000, (alg = Vern9(), abstol = 1e-16, reltol = 1e-16)])
 
