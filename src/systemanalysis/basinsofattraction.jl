@@ -4,12 +4,14 @@ function toattractors(V::Dataset)
     Dict(i => Dataset([V[i]]) for i in 1:length(V))
 end
 
-function AVPthreads(X, Y, cds, attractors, method, p)
-    callAVP =  AVPtype(method, p)(cds, attractors);
+function AVPthreads(X, Y, cds, attractors, p)
+    #AVP =  AVPtype(method, p)(cds, attractors);
+    ϵ, Ttr, Δt, horizon_limit, mx_chk_lost, diffeq = p; 
+    AVP = AttractorsViaProximity(cds,attractors,ϵ;Ttr,Δt,horizon_limit,mx_chk_lost,diffeq)
     A = zeros(length(Y), length(X));
-    @showprogress for ii ∈ 1:length(X)
+    @Threads.threads for ii ∈ 1:length(X)
         Z = [[X[ii], y] for y ∈ Y];
-        A[:,ii] = callAVP.(Z)
+        A[:,ii] = AVP.(Z)
     end
     A
 end
@@ -35,23 +37,27 @@ end
 
 """
     basins(sys::StochSystem, A, B, C, H; kwargs...)
-Computes the basins of attraction of StochSystem `sys` on a plane spanned by the points `A`, `B`, `C` and limited by the box `H`.
+Computes the basins of attraction of StochSystem `sys` on a plane spanned by the points `A`, `B`, `C` and limited by the box `H`. Uses the AttractorsViaProximity function from DynamicalSystems.jl to compute the basins of attraction.
 
 To be further documented.
 
+`A`, `B`, `C` are elements of ``\mathbb{R}^d`` (where ``d`` is the dimension of the  `sys`) 
 `H` is a hyperrectangle in ``\mathbb{R}^d``
 
-## Keyword arguments
-* `bstep = [0.01, 0.01]`: incremental steps you will take across your basin of attraction defined on some plane
-* `pstep = [0.1, 0.1]`: vector of steps (increments) for mechanism behind finding a plane from a box
-* `fp=nothing`, `method="defaultCT"`, `AVPparams=[]`
-"""
-function basins(sys::StochSystem, A, B, C, H; fp = nothing, bstep::Vector = [0.01, 0.01], pstep::Vector = [0.1, 0.1], method::String = "defaultCT", AVPparams = [])
+The plane is given by ``P_{U,V}\coloneqq\{A+u(B-A)+v(C-A): u \in U,\, v\in V\}`` for some closed and bounded real intervals ``U`` and ``V`` which are selected such that both i) ``P_{U,\,V} \subseteq H`` and ii) ``U\times V\subseteq\mathbb{R}^2`` has maximal area, i.e. ``P_{U,\,V}`` is the "largest" possible plane contained within H. This plane is determined behind the scenes.    
+
+This function returns a four-dimensional vector. The first two entries are discretised versions of the interval ``U`` and ``V`` (as defined above, of lengths ``\ell_U,\,\ell_V`` respectively); the third entry is a dictionary of the attractors (stable equilibria) of the system within `H`, and the final entry is an ``\ell_U\times\ell_V`` matrix of integers that group the initial conditions (written in terms of ``A+u(B-A)+v(C-A)`` where ``u\in U`` and ``v\in V``) by which attractor they will in time converge to. 
+
+## Keyword arguments 
+* `bstep = [0.01, 0.01]`: a vector of length two whose elements respectively specify the length of the incremental steps taken across each dimension in the discretisation of your plane
+* `pstep = [0.1, 0.1]`: a vector of length two whose elements give the increments of the mesh that the maximisation process of finding a plane from a box is taken over (for more information see the source code of the function `plane` in the src/systemanalysis/planeofbox.jl file)
+* `AVPparams=[0.00005, 1000, 0.001, 1e3, 100000, (alg = Vern9(), abstol = 1e-16, reltol = 1e-16)]: a vector of length six specifying parameters for the DynamicalSystems.AttractorsViaProximity (namely, `ϵ, Ttr, Δt, horizon_limit, mx_chk_lost, maxitstop, diffeq`)
+""" 
+function basins(sys::StochSystem, A, B, C, H; bstep::Vector = [0.01, 0.01], pstep::Vector = [0.1, 0.1], AVPparams = [0.00005, 1000, 0.001, 1e3, 100000, (alg = Vern9(), abstol = 1e-16, reltol = 1e-16)])
 
     # here H is a hyperrectangle contained in R^d
     # bstep is the incremental steps you will take across your basin of attraction defined on some plane
     # pstep is a vector of steps (increments) for mechanism behind finding a plane from a box
-
 
     projs = plane(A, B, C, H; step = pstep);
 
@@ -66,11 +72,10 @@ function basins(sys::StochSystem, A, B, C, H; fp = nothing, bstep::Vector = [0.0
     # the dictionary of attractors
 
     fps = CriticalTransitions.fixedpoints(sys, H);
-    sfps = fps[1][fps[3]];
-    attractors = toattractors(sfps);
+    attractors = toattractors(fps[1][fps[3]]);
 
-    h = AVPthreads(X, Y, tocds(sys), attractors, method, AVPparams);
+    h = AVPthreads(X, Y, tocds(sys), attractors, AVPparams);
 
-    [X, Y, h]
+    [X, Y, attractors, h]
 
 end

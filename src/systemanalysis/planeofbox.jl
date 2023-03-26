@@ -61,10 +61,10 @@ function plane(A, B, C, box; step::Vector = [0.1, 0.1])
                     vals = ((box[ii].lo-A[ii])/(B[ii]-A[ii]), (box[ii].hi-A[ii])/(B[ii]-A[ii]));
                     low = minimum(vals);
                     high = maximum(vals);
-                    ϕₜ = push!(ϕₜ, low..high); # store the range of permitted t values for A + t (B-A) in the ith component 
+                    ϕₜ = push!(ϕₜ, low..high); # store the range of permitted t values for A + t (B-A) in the iith component 
                 end
             end
-        else # i.e. A = B 
+        else # i.e. A = B, this is a separate interpretation!!! for when you are considering A+t*B but B=A
             @Threads.threads for ii ∈ 1:d
                 if A[ii] ≠ 0
                     vals = (box[ii].lo/A[ii], box[ii].hi/A[ii]) 
@@ -75,7 +75,7 @@ function plane(A, B, C, box; step::Vector = [0.1, 0.1])
             end
         end
         φₜ = intmultints(ϕₜ)
-        ## next we deal with the (C-A) direction
+        ## next we deal with the (C-A) direction (actually irrelevant for the current way the code is written)
         ϕₛ = [] # here i should define an empty vector in a better way! i'm later going to fill it with Interval{Float64}s
         if A ≠ C
             @Threads.threads for ii ∈ 1:d
@@ -83,7 +83,7 @@ function plane(A, B, C, box; step::Vector = [0.1, 0.1])
                     vals = ((box[ii].lo-A[ii])/(C[ii]-A[ii]), (box[ii].hi-A[ii])/(C[ii]-A[ii]));
                     low = minimum(vals);
                     high = maximum(vals);
-                    ϕₛ = push!(ϕₛ, low..high); # store the range of permitted t values for A + t (B-A) in the ith component 
+                    ϕₛ = push!(ϕₛ, low..high); # store the range of permitted t values for A + s (C-A) in the ith component 
                 end
             end
         else # i.e. A = C 
@@ -117,7 +117,7 @@ function plane(A, B, C, box; step::Vector = [0.1, 0.1])
         V = [[] for i ∈ 1:length(U₁), j ∈ 1:length(U₂)]
 
         @Threads.threads for ii ∈ 1:length(U₁)
-            us = [[U₁[ii], u] for u ∈ U₂];
+            us = [[U₁[ii], u] for u ∈ U₂]; # the candidate for umin and umax
             vs = vthreshold.(us, Ref(A), Ref(B), Ref(C), Ref(box));
             V[ii,:] = [[[(U₁[ii], U₂[jj]), (vs[jj][1], vs[jj][2])], (vs[jj][2] - vs[jj][1])*(U₂[jj] - U₁[ii])] for jj ∈ 1:length(U₂)]
         end
