@@ -1,38 +1,40 @@
 #include("../src/StochSystem.jl")
 
-#sys = fhn_ϵσ(0.1,0.1)
-
 function langevinmcmc_spde(u, p, t)
     
+    # here u should be a vector of length N × dim where N is the number of (physical) time points in the discretisation of [0,Tphys]
+
     ## in the parameters vector we need:
     # the dimension of the system, dim
     # the noise strength of the system, σ
-    # the (invertible) transport matrix, Q
+    # the (invertible) covariance matrix, Σ
     # the physical time step, Δz
     # the state variables in symbolic form, x_{i=1}^dim, state_vars
     # the jacobian of the drift, jacobian
     # the penultimate term as a callable function, grad_dot_term
     # the final term as a function, grad_div_term
 
-    dim, σ, Q, Δz, state_vars, jacobian, grad_dot_term, grad_div_term = p[1]
+    # t represents the virtual time
+
+    dim, σ, Σ, Δz, state_vars, jacobian, grad_dot_term, grad_div_term = p[1]
     
     N = Int(length(u)/dim); # the number of components across the path
     du = zeros(length(u)); # a dummy storage for the derivatives
 
     for ii ∈ 2:N-1
         
-        dzxii = [central(u[(jj-1)*N+1:jj*N], ii, Δz) for jj ∈ 1:dim]; # the derivative ∂x/∂z at physical time z = (ii-1)*Δz 
+        dzxii = [central(u[(jj-1)*N+1:jj*N], ii, Δz) for jj ∈ 1:dim]; # the derivative ∂x/∂z at physical time z = ii*Δz 
         dzzxii = [central2(u[(jj-1)*N+1:jj*N], ii, Δz) for jj ∈ 1:dim]; # the derivative ∂^2x/∂z^2 at physical time z = ii*Δz
-        xii = [u[(jj-1)*N+ii] for jj ∈ 1:dim]; # the state variable state_vars at z = (ii-1)*Δz
+        xii = [u[(jj-1)*N+ii] for jj ∈ 1:dim]; # the state variable state_vars at z = ii*Δz
 
         J = substitute.(jacobian, (Dict(zip(state_vars,xii)),)); # the jacobian evaluated at xii 
         Jxii = Symbolics.value.(J); # making this usable
-        f = substitute.(grad_dot_term, (Dict(zip(state_vars,xii)),));
-        fxii = Symbolics.value.(f);
-        g = substitute.(grad_div_term, (Dict(zip(state_vars,xii)),));
-        gxii = Symbolics.value.(g);
+        f = substitute.(grad_dot_term, (Dict(zip(state_vars,xii)),)); # the ∇⟨b, inv(Σ)*b⟩ term evaluated at xii
+        fxii = Symbolics.value.(f); # making this usable
+        g = substitute.(grad_div_term, (Dict(zip(state_vars,xii)),)); # the ∇(∇⋅b) term evaluated at xii
+        gxii = Symbolics.value.(g); # making this usable
 
-        du[[(jj-1)*N+ii for jj ∈ 1:dim]] = inv(Q)*dzzxii - (inv(Q)*Jxii - Jxii'*inv(Q))*dzxii - (1/2)*fxii - (σ^2/2)*gxii;
+        du[[(jj-1)*N+ii for jj ∈ 1:dim]] = inv(Σ)*dzzxii - (inv(Σ)*Jxii - Jxii'*inv(Σ))*dzxii - (1/2)*fxii - (σ^2/2)*gxii; # the deterministic portion of the SPDE function evaluated at xii
 
     end
 
@@ -162,5 +164,26 @@ function langevinmcmc(sys::StochSystem, init;
     end
 
     paths
+
+end
+
+function stochtolangevinmcmcstoch(sys::StochSystem, Tphys::Float64, Δz::Float64) 
+
+    N = 1+ceil(Int64,Tphys/Δz); # number of path points
+
+    f(u,p,t) = langevinmcmc_spde(u,p,t); # defining the f-field of StochSystem
+    p = vcat([sys.dim, sys.σ, sys.Σ, Δz],[symbolise_spde(sys)[i] for i ∈ 1:length(symbolise_spde(sys))]); # defining the p-field of StochSystem
+    dim = sys.dim*N; # the dim-field of StochSystem
+    σ = √(2/Δz)*sys.σ; # defining the σ-field of StochSystem
+
+    z = ones(dim); 
+    z[reduce(vcat,[[(ii-1)*N+1, ii*N] for ii ∈ 1:sys.dim])] .= zeros(2*sys.dim); # this is a modified version of idfunc with zeros at the beginning and end of each sys.dim portion
+    g(u,p,t) = SVector{dim}(z); # defining the g-field of StochSystem
+
+    pg = [];
+    Σ = I(dim);
+    process = "WhiteGauss";
+
+    StochSystem(f, p, dim, σ, g, pg, Σ, process)
 
 end
