@@ -29,7 +29,8 @@ function equilib(sys::StochSystem, state::State;
 end;
 
 function fixedpoints(sys::StochSystem, box)
-    DynamicalSystems.fixedpoints(tocds(sys), box)
+    jac(u,p,t) = ForwardDiff.jacobian((x) -> sys.f(x,p,t), u)
+    DynamicalSystems.fixedpoints(CoupledODEs(sys), box, jac)
 end;
 
 """
@@ -56,7 +57,8 @@ Returns fixed points, their eigenvalues and stability of the system `sys` within
 """
 function fixedpoints(sys::StochSystem, bmin::Vector, bmax::Vector)
     box = intervals_to_box(bmin, bmax)
-    DynamicalSystems.fixedpoints(tocds(sys), box)
+    jac(u,p,t) = ForwardDiff.jacobian((x) -> sys.f(x,p,t), u)
+    DynamicalSystems.fixedpoints(CoupledODEs(sys), box, jac)
 end;
 
 function saddles_idx(fps::Tuple)

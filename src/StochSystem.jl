@@ -11,18 +11,18 @@ Defines a stochastic dynamical system in `CriticalTransitions.jl`. See [document
 struct StochSystem
     f::Function
     pf::Parameters
-    dim::Int64
+    u::State
     σ::Float64
     g::Function
     pg::Parameters
     Σ::CovMatrix
-    process::Any    
+    process::Any
 end;
 
 # Methods of StochSystem
-StochSystem(f, pf, dim) = StochSystem(f, pf, dim, 1.0, idfunc, nothing, I(dim), "WhiteGauss")
-StochSystem(f, pf, dim, σ) = StochSystem(f, pf, dim, σ, idfunc, nothing, I(dim), "WhiteGauss")
-StochSystem(f, pf, dim, σ, Σ) = StochSystem(f, pf, dim, σ, idfunc, nothing, Σ, "WhiteGauss")
+StochSystem(f, pf, u) = StochSystem(f, pf, u, 0.0, idfunc, nothing, I(length(u)), "WhiteGauss")
+StochSystem(f, pf, u, σ) = StochSystem(f, pf, u, σ, idfunc, nothing, I(length(u)), "WhiteGauss")
+StochSystem(f, pf, u, σ, Σ) = StochSystem(f, pf, u, σ, idfunc, nothing, Σ, "WhiteGauss")
 
 # Core functions acting on StochSystem
 """
@@ -52,15 +52,19 @@ function p(sys::StochSystem)
 end;
 
 """
-    to_cds(sys::StochSystem; state=zeros(sys.dim))
-Converts a `StochSystem` into a [`ContinuousDynamicalSystem`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/ds/general/) of [`DynamicalSystems.jl`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/).
+    CoupledODEs(sys::StochSystem; diffeq, t0=0.0)
+Converts a [`StochSystem`](@ref) into [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/tutorial/#DynamicalSystemsBase.CoupledODEs)
+from DynamicalSystems.jl.
 """
-function to_cds(sys::StochSystem; state=zeros(sys.dim))
-    ContinuousDynamicalSystem(sys.f, state, [sys.pf])
-end;
+CoupledODEs(sys::StochSystem; diffeq=DynamicalSystemsBase.DEFAULT_DIFFEQ, t0=0.0) =
+DynamicalSystems.CoupledODEs(sys.f, SVector{2}(sys.u), [sys.pf]; diffeq=diffeq, t0=t0)
+
+to_cds(sys::StochSystem) = CoupledODEs(sys)
 
 """
-    tocds(sys::StochSystem; state=zeros(sys.dim))
-Alias for [`to_cds`](@ref). Only kept for backwards compatibility purposes.
+    StochSystem(ds::CoupledODEs, σ, g, pg, Σ, process)
+Converts a [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/tutorial/#DynamicalSystemsBase.CoupledODEs)
+system into a [`StochSystem`](@ref).
 """
-tocds = to_cds
+StochSystem(ds::DynamicalSystemsBase.CoupledODEs, σ=0.0, g=idfunc, pg=nothing, Σ=I(length(get_state(ds))), process="WhiteGauss") =
+StochSystem(dynamic_rule(ds), [ds.p0], get_state(ds), σ, g, pg, Σ, process)

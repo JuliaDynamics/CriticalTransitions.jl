@@ -2,7 +2,7 @@
     transition(sys::StochSystem, x_i::State, x_f::State; kwargs...)
 Generates a sample transition from point `x_i` to point `x_f`.
 
-This function simulates `sys` in time, starting from initial condition `x_i`, until entering a `sys.dim`-dimensional ball of radius `rad_f` around `x_f`.
+This function simulates `sys` in time, starting from initial condition `x_i`, until entering a `length(sys.u)`-dimensional ball of radius `rad_f` around `x_f`.
 
 ## Keyword arguments
 * `rad_i=0.1`: radius of ball around `x_i`
@@ -10,7 +10,7 @@ This function simulates `sys` in time, starting from initial condition `x_i`, un
 * `cut_start=true`: if `false`, returns the whole trajectory up to the transition
 * `dt=0.01`: time step of integration
 * `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
-* `rad_dims=1:sys.dim`: the directions in phase space to consider when calculating the radii
+* `rad_dims=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
   `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
   insert a vector of indices of the dimensions to be included.
 * `solver=EM()`: numerical solver. Defaults to Euler-Mayurama.
@@ -33,7 +33,7 @@ function transition(sys::StochSystem, x_i::State, x_f::State;
     solver=EM(),
     progress=true,
     cut_start=true,
-    rad_dims=1:sys.dim,
+    rad_dims=1:length(sys.u),
     kwargs...)
 
     condition(u,t,integrator) = subnorm(u - x_f; directions=rad_dims) < rad_f
@@ -76,7 +76,7 @@ This function repeatedly calls the [`transition`](@ref) function to efficiently 
 * `Nmax`: number of attempts before the algorithm stops even if less than `N` transitions occurred.
 * `dt=0.01`: time step of integration
 * `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
-* `rad_dims=1:sys.dim`: the directions in phase space to consider when calculating the radii
+* `rad_dims=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
   `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
   insert a vector of indices of the dimensions to be included.
 * `solver=EM()`: numerical solver. Defaults to Euler-Mayurama
@@ -108,7 +108,7 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     Nmax=1000,
     solver=EM(),
     cut_start=true,
-    rad_dims=1:sys.dim,
+    rad_dims=1:length(sys.u),
     savefile=nothing,
     showprogress::Bool=true)
     """

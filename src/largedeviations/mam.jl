@@ -52,7 +52,7 @@ Runs the Minimum Action Method (MAM) to find the minimum action path (instanton)
 initial condition `init`, given a system `sys` and total path time `T`.
 
 The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dimension
-`sys.dim` of the system and `N` is the number of path points. The physical time of the path
+`length(sys.u)` of the system and `N` is the number of path points. The physical time of the path
 is specified by `T`, such that the time step between consecutive path points is
 ``\\Deltat = T/N``.
 

@@ -68,7 +68,7 @@ function basins(sys::StochSystem, A, B, C, H; bstep::Vector = [0.01, 0.01], pste
     # running the AttractorsViaProximity function using parallel computing
     @Threads.threads for ii ∈ tqdm(1:length(X))
         Z = [A+X[ii]*(B-A)+y*(C-A) for y ∈ Y]; # a row of initial conditions
-        h[:,ii] = AttractorsViaProximity(tocds(sys),attractors,ϵ;Ttr,Δt,horizon_limit,mx_chk_lost,diffeq).(Z)
+        h[:,ii] = AttractorsViaProximity(CoupledODEs(sys),attractors,ϵ;Ttr,Δt,horizon_limit,mx_chk_lost,diffeq).(Z)
     end
 
     [X, Y, attractors, h]

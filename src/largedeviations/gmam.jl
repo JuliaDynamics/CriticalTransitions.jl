@@ -77,7 +77,7 @@ Runs the geometric Minimum Action Method (gMAM) to find the minimum action path 
 initial condition `init`, given a system `sys` and total arc length `arclength`.
 
 The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dimension
-`sys.dim` of the system and `N` is the number of path points.
+`length(sys.u)` of the system and `N` is the number of path points.
 
 For more information see the main method,
 [`gmam(sys::StochSystem, x_i::State, x_f::State, arclength::Float64; kwargs...)`](@ref).

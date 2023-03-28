@@ -10,7 +10,7 @@ function exit_time(sys::StochSystem, x_i::State, x_f::State;
     tmax=1e3,
     solver=EM(),
     progress=true,
-    rad_dims=1:sys.dim, 
+    rad_dims=1:length(sys.u), 
     kwargs...)
 
     trans = transition(sys, x_i, x_f; rad_i, rad_f, dt, tmax, solver, progress, rad_dims)[2:3]; # run the transition function with cut_start=true
@@ -34,7 +34,7 @@ function exit_times(sys::StochSystem, x_i::State, x_f::State, N=1;
     tmax=1e3,
     solver=EM(),
     progress=true,
-    rad_dims=1:sys.dim,
+    rad_dims=1:length(sys.u),
     Nmax = 1000,
     savefile = nothing,
     showprogress::Bool = true,
@@ -107,7 +107,7 @@ function residence_time(sys::StochSystem, x_i::State, x_f::State;
     tmax=1e3,
     solver=EM(),
     progress=true,
-    rad_dims=1:sys.dim, 
+    rad_dims=1:length(sys.u), 
     kwargs...)
 
     condition(u,t,integrator) = subnorm(u - x_f; directions=rad_dims) < rad_f
@@ -132,7 +132,7 @@ function residence_times(sys::StochSystem, x_i::State, x_f::State, N=1;
     tmax=1e3,
     solver=EM(),
     progress=true,
-    rad_dims=1:sys.dim,
+    rad_dims=1:length(sys.u),
     Nmax = 1000,
     savefile = nothing,
     showprogress::Bool = true,
@@ -204,7 +204,7 @@ function residence_time2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State;
     tmax=1e3,
     solver=EM(),
     progress=true,
-    rad_dims=1:sys.dim, 
+    rad_dims=1:length(sys.u), 
     kwargs...)
 
     condition(u,t,integrator) = subnorm(u - x_f1; directions=rad_dims) < rad_f || subnorm(u - x_f2; directions=rad_dims) < rad_f
@@ -240,7 +240,7 @@ function residence_times2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State
     tmax=1e3,
     solver=EM(),
     progress=true,
-    rad_dims=1:sys.dim,
+    rad_dims=1:length(sys.u),
     Nmax = 1000,
     savefile = nothing,
     showprogress::Bool = true,

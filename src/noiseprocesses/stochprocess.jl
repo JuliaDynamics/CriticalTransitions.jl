@@ -10,7 +10,7 @@ Translates the stochastic process specified in `sys` into the language required 
 """
 function stochprocess(sys::StochSystem)
     if sys.process == "WhiteGauss"
-        if sys.Σ == I(sys.dim)
+        if sys.Σ == I(length(sys.u))
             return nothing
         else
             return gauss(sys)

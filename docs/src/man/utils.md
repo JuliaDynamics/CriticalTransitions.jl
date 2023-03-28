@@ -3,9 +3,10 @@
 ## Interface to `DynamicalSystems.jl`
 
 !!! tip "Using the functionality of DynamicalSystems.jl"
-    A [`StochSystem`](@ref) can easily be turned into a
-    [`ContinuousDynamicalSystem`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/ds/general/#Dynamical-System-Definition)
-    of `DynamicalSystems.jl` using the function [`to_cds`](@ref).
+    A [`StochSystem`](@ref) can easily be turned into a 
+    [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/ds/general/#Dynamical-System-Definition)
+    instance of `DynamicalSystems.jl` using the function [`CoupledODEs`](@ref). Vice vera,
+    a `CoupledODEs` system can be converted into a `StochSystem` via `StochSystem(ds::CoupledODEs)`.
 
 This way, many of the methods in `DynamicalSystems.jl` can be used directly, even if we have
 not written an analogue method that takes `StochSystem` as input. For example, the
@@ -14,12 +15,13 @@ computed by typing:
 
 ```julia
 using CriticalTransitions, DynamicalSystems: lyapunovspectrum
-sys = StochSystem(FitzHughNagumo, [1.,3.,1.,1.,1.,0.], 2)
-ls = lyapunovspectrum(to_cds(sys), 10000)
+sys = StochSystem(FitzHughNagumo, [1.,3.,1.,1.,1.,0.], zeros(2))
+ls = lyapunovspectrum(CoupledODEs(sys), 10000)
 ```
 
 ```@docs
-to_cds(sys::StochSystem; state=zeros(sys.dim))
+CoupledODEs(sys::StochSystem; diffeq, t0=0.0)
+StochSystem(ds::CoupledODEs, σ, g, pg, Σ, process)
 attractor_mapper(sys::StochSystem, attractors, eps=0.01; kwargs...)
 ```
 
@@ -57,7 +59,7 @@ anorm(vec, A; square=false)
 subnorm(vec; directions=[1,...,N])
 ```
 
-### `sys.dim`-dimensional box
+### `length(sys.u)`-dimensional box
 
 ```@docs
 intervals_to_box(bmin::Vector, bmax::Vector)

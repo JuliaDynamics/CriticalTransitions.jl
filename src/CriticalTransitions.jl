@@ -1,7 +1,9 @@
 module CriticalTransitions
 
+using Reexport
+@reexport using DynamicalSystems
 using Formatting, Dates, JLD2, HDF5, ProgressBars, ProgressMeter, DocStringExtensions
-using DynamicalSystems, IntervalRootFinding
+using IntervalRootFinding
 using OrdinaryDiffEq, StochasticDiffEq, DiffEqNoiseProcess
 using LinearAlgebra, StaticArrays, ForwardDiff
 using Symbolics
@@ -41,6 +43,7 @@ include("../dev/RateSys1.jl")
 export StochSystem, State
 
 # Methods
+export CoupledODEs, to_cds
 export equilib, fixedpoints, basins, basinboundary
 export simulate, relax
 export transition, transitions
@@ -50,7 +53,7 @@ export mam, gmam
 export edgetracking, bisect_to_edge, attractor_mapper
 export idfunc, idfunc!
 export gauss
-export drift, tocds, to_cds, is_iip
+export drift, is_iip
 export make_jld2, make_h5, sys_string, sys_info, intervals_to_box
 export anorm, subnorm
 
