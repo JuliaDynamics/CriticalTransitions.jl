@@ -52,15 +52,15 @@ function p(sys::StochSystem)
 end;
 
 """
-    to_cds(sys::StochSystem; state=zeros(sys.dim))
+    to_cds(sys::StochSystem; state=zeros(length(sys.u)))
 Converts a `StochSystem` into a [`ContinuousDynamicalSystem`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/ds/general/) of [`DynamicalSystems.jl`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/).
 """
-function to_cds(sys::StochSystem; state=zeros(sys.dim))
+function to_cds(sys::StochSystem; state=zeros(length(sys.u)))
     ContinuousDynamicalSystem(sys.f, state, [sys.pf])
 end;
 
 """
-    tocds(sys::StochSystem; state=zeros(sys.dim))
+    tocds(sys::StochSystem; state=zeros(length(sys.u)))
 Alias for [`to_cds`](@ref). Only kept for backwards compatibility purposes.
 """
 tocds = to_cds

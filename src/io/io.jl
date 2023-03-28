@@ -36,7 +36,7 @@ printfmt("{:}-dimensional stochastic dynamical system
  - pg (parameters of g):        {:}
  - σ (noise intensity):         {:.3e}
  - Σ (covariance matrix):       {:}
- - process (noise process):     {:}", sys.dim, sys.f, sys.pf, sys.g, sys.pg, sys.σ, sys.Σ,
+ - process (noise process):     {:}", length(sys.u), sys.f, sys.pf, sys.g, sys.pg, sys.σ, sys.Σ,
  sys.process)
 end;
 

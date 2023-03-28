@@ -19,7 +19,7 @@ ls = lyapunovspectrum(to_cds(sys), 10000)
 ```
 
 ```@docs
-to_cds(sys::StochSystem; state=zeros(sys.dim))
+to_cds(sys::StochSystem; state=zeros(length(sys.u)))
 attractor_mapper(sys::StochSystem, attractors, eps=0.01; kwargs...)
 ```
 
@@ -57,7 +57,7 @@ anorm(vec, A; square=false)
 subnorm(vec; directions=[1,...,N])
 ```
 
-### `sys.dim`-dimensional box
+### `length(sys.u)`-dimensional box
 
 ```@docs
 intervals_to_box(bmin::Vector, bmax::Vector)

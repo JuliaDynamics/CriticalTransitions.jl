@@ -45,7 +45,7 @@ end
 function symbolise_spde(sys::StochSystem)
 
     # creating symbolic state variables
-    state_vars = @eval @variables $([Symbol("x$i") for i=1:sys.dim]...);
+    state_vars = @eval @variables $([Symbol("x$i") for i=1:length(sys.u)]...);
 
     # next, the deterministic drift of the system in symbolic form
     drift = sys.f(state_vars,[sys.pf],@variables t)
@@ -65,7 +65,7 @@ end
 
 function jacobian(sys::StochSystem)
     # creating symbolic state variables
-    state_vars = @eval @variables $([Symbol("x$i") for i=1:sys.dim]...);
+    state_vars = @eval @variables $([Symbol("x$i") for i=1:length(sys.u)]...);
 
     # next, the deterministic drift of the system in symbolic form        
     drift = sys.f(state_vars,[sys.pf],@variables t);
@@ -81,7 +81,7 @@ function jacobian(sys::StochSystem, x::Vector)
     jacobian1 = jacobian(sys);
 
     # calling the Jacobian at the state value x
-    state_vars = @eval @variables $([Symbol("x$i") for i=1:sys.dim]...);
+    state_vars = @eval @variables $([Symbol("x$i") for i=1:length(sys.u)]...);
     J = substitute.(jacobian1, (Dict(zip(state_vars,x)),)); # the jacobian evaluated at x
     Jx = Symbolics.value.(J);
 
@@ -95,8 +95,8 @@ end
 Runs Langevin MCMC bridge sampling for a given system `sys` and initial path `init`, using
 Symbolics.jl to compute the functional derivative.
 
-Returns a three-dimensional array of size `(M, sys.dim, N)`, where `M` is the number of
-virtual time steps, `N` the number of physical time steps, and `sys.dim` the number of system
+Returns a three-dimensional array of size `(M, length(sys.u), N)`, where `M` is the number of
+virtual time steps, `N` the number of physical time steps, and `length(sys.u)` the number of system
 dimensions.
 
 To be further documented in following versions.
@@ -123,7 +123,7 @@ function langevinmcmc(sys::StochSystem, init;
 
     Nstep = round(Int64, tmax/Δt); # the number of mcmc iterations
 
-    paths = zeros(Nstep+1, sys.dim, N); # three-dimensional array to store the paths
+    paths = zeros(Nstep+1, length(sys.u), N); # three-dimensional array to store the paths
     paths[1,:,:] = init; # storing the initial condition
     t = 0; # the current virtual time value 
 
@@ -131,7 +131,7 @@ function langevinmcmc(sys::StochSystem, init;
     println("... Symbolizing SPDE")
     state_vars, jacobian, grad_dot_term, grad_div_term = symbolise_spde(sys);
 
-    p = [sys.dim, sys.σ, sys.Σ, Δz, state_vars, jacobian, grad_dot_term, grad_div_term]; # langevinmcmcSPDE parameters 
+    p = [length(sys.u), sys.σ, sys.Σ, Δz, state_vars, jacobian, grad_dot_term, grad_div_term]; # langevinmcmcSPDE parameters 
 
     println("... Initializing sampling")
 
@@ -147,15 +147,15 @@ function langevinmcmc(sys::StochSystem, init;
         update = langevinmcmc_spde(vec(paths[it,:,:]'), [p], t); # this gives the virtual-time derivatives for all components on the current path
 
         # we need to split update (dim*N × 1) into a dim × N matrix
-        update_mod = zeros(sys.dim, N)
-        for jj ∈ 1:sys.dim
+        update_mod = zeros(length(sys.u), N)
+        for jj ∈ 1:length(sys.u)
             update_mod[jj,:] = update[(jj-1)*N+1:jj*N];
         end 
 
-        paths[it+1,:,:] = paths[it,:,:] .+ (Δt * update_mod .+ _noise * sqrt(2*Δt/Δz)*randn(sys.dim,N)); # the Euler-Maruyama step 
+        paths[it+1,:,:] = paths[it,:,:] .+ (Δt * update_mod .+ _noise * sqrt(2*Δt/Δz)*randn(length(sys.u),N)); # the Euler-Maruyama step 
         
         # reseting the fixed end points
-        for jj ∈ 1:sys.dim
+        for jj ∈ 1:length(sys.u)
             paths[it+1,jj,[1,end]] = paths[it,jj,[1,end]]
         end
 
@@ -172,12 +172,12 @@ function stochtolangevinmcmcstoch(sys::StochSystem, Tphys::Float64, Δz::Float64
     N = 1+ceil(Int64,Tphys/Δz); # number of path points
 
     f(u,p,t) = langevinmcmc_spde(u,p,t); # defining the f-field of StochSystem
-    p = vcat([sys.dim, sys.σ, sys.Σ, Δz],[symbolise_spde(sys)[i] for i ∈ 1:length(symbolise_spde(sys))]); # defining the p-field of StochSystem
-    dim = sys.dim*N; # the dim-field of StochSystem
+    p = vcat([length(sys.u), sys.σ, sys.Σ, Δz],[symbolise_spde(sys)[i] for i ∈ 1:length(symbolise_spde(sys))]); # defining the p-field of StochSystem
+    dim = length(sys.u)*N; # the dim-field of StochSystem
     σ = √(2/Δz)*sys.σ; # defining the σ-field of StochSystem
 
     z = ones(dim); 
-    z[reduce(vcat,[[(ii-1)*N+1, ii*N] for ii ∈ 1:sys.dim])] .= zeros(2*sys.dim); # this is a modified version of idfunc with zeros at the beginning and end of each sys.dim portion
+    z[reduce(vcat,[[(ii-1)*N+1, ii*N] for ii ∈ 1:length(sys.u)])] .= zeros(2*length(sys.u)); # this is a modified version of idfunc with zeros at the beginning and end of each length(sys.u) portion
     g(u,p,t) = SVector{dim}(z); # defining the g-field of StochSystem
 
     pg = [];

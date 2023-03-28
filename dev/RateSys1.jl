@@ -102,9 +102,9 @@ Multiplies the noise strength `σ` of a RateSystem `sys` with its noise function
 function σg(sys::RateSystem)
     # the parameter variation is purely deterministic (for now) - can implement noise functions for the time-dependent parameters later and change this function accordingly
     if is_iip(sys.f)
-        g_iip(du,u,p,t) = vcat(sys.σ .* sys.g(du[1:sys.dim],u[1:sys.dim],p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
+        g_iip(du,u,p,t) = vcat(sys.σ .* sys.g(du[1:length(sys.u)],u[1:length(sys.u)],p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
     else
-        g_oop(u,p,t) = vcat(sys.σ .* sys.g(u[1:sys.dim],p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
+        g_oop(u,p,t) = vcat(sys.σ .* sys.g(u[1:length(sys.u)],p,t), SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
     end
 end;
 
@@ -124,7 +124,7 @@ Translates the stochastic process specified in `sys` into the language required 
 """
 function stochprocess(sys::RateSystem)
     if sys.process == "WhiteGauss"
-        if sys.Σ == I(sys.dim)
+        if sys.Σ == I(length(sys.u))
             return nothing
         else
             return gauss(sys)
@@ -136,7 +136,7 @@ end
 
 """
     gauss(sys::RateSystem)
-Returns a Wiener process with dimension `sys.dim` and covariance matrix `sys.Σ`.
+Returns a Wiener process with dimension `length(sys.u)` and covariance matrix `sys.Σ`.
 
 This function is based on the [`CorrelatedWienerProcess`](https://noise.sciml.ai/stable/noise_processes/#DiffEqNoiseProcess.CorrelatedWienerProcess) of [`DiffEqNoiseProcess.jl`](https://noise.sciml.ai/stable/), a component of `DifferentialEquations.jl`. The initial condition of the process is set to the zero vector at `t=0`.
 """
@@ -144,9 +144,9 @@ function gauss(sys::RateSystem)
     Σ₂ = zeros(sum(sys.td_inds),sum(sys.td_inds)); # the covariance matrix of the time-dependent parameters, fixed to zero for now
     # Returns a Wiener process for given covariance matrix and dimension of a StochSystem
     if is_iip(sys.f)
-        W = CorrelatedWienerProcess!([sys.Σ zeros(sys.dim,sum(sys.td_inds)); zeros(sum(sys.td_inds),sys.dim) Σ₂], 0.0, zeros(sys.dim+sum(sys.td_inds)))
+        W = CorrelatedWienerProcess!([sys.Σ zeros(length(sys.u),sum(sys.td_inds)); zeros(sum(sys.td_inds),length(sys.u)) Σ₂], 0.0, zeros(length(sys.u)+sum(sys.td_inds)))
     else
-        W = CorrelatedWienerProcess([sys.Σ zeros(sys.dim,sum(sys.td_inds)); zeros(sum(sys.td_inds),sys.dim) Σ₂], 0.0, zeros(sys.dim+sum(sys.td_inds)))
+        W = CorrelatedWienerProcess([sys.Σ zeros(length(sys.u),sum(sys.td_inds)); zeros(sum(sys.td_inds),length(sys.u)) Σ₂], 0.0, zeros(length(sys.u)+sum(sys.td_inds)))
     end
     W
 end;
@@ -160,8 +160,8 @@ function fL(u,p,t,sys::RateSystem)
     #du = t in stationary ? hcat(sys.f(u,p,t),zeros(length(sys.pf)) : hcat(sys.f(u,p,t),sys.L(u,p,t))
 
     # u is the vector made up of the state variables and time-dependent parameters
-    state_vars = u[1:sys.dim]; # the state-variables
-    param_vars = u[sys.dim+1:end]; # the (time-dependent) parameters
+    state_vars = u[1:length(sys.u)]; # the state-variables
+    param_vars = u[length(sys.u)+1:end]; # the (time-dependent) parameters
 
     pf[sys.td_inds] = param_vars; # modifying the vector of fixed parameters to account for the current values of the time-dependent parameters
 
@@ -171,4 +171,4 @@ function fL(u,p,t,sys::RateSystem)
 
 end;
 
-stochtorate(sys::StochSystem,td_inds::Vector{Bool},L::Function,pL::Vector,T_trans::Float64,T_shift::Float64)=RateSystem(sys.f,sys.pf,td_inds,L,pL,T_trans,T_shift,sys.dim,sys.σ,sys.g,sys.pg,sys.Σ,sys.process)
+stochtorate(sys::StochSystem,td_inds::Vector{Bool},L::Function,pL::Vector,T_trans::Float64,T_shift::Float64)=RateSystem(sys.f,sys.pf,td_inds,L,pL,T_trans,T_shift,length(sys.u),sys.σ,sys.g,sys.pg,sys.Σ,sys.process)

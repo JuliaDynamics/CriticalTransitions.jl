@@ -6,7 +6,7 @@ function transition2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State;
     solver=EM(),
     progress=true,
     cut_start=true,
-    rad_dims=1:sys.dim,
+    rad_dims=1:length(sys.u),
     kwargs...)
 
     condition(u,t,integrator) = subnorm(u - x_f1; directions=rad_dims) < rad_f || subnorm(u - x_f2; directions=rad_dims) < rad_f
@@ -43,7 +43,7 @@ function transitions2(sys::StochSystem, x_i::State, x_f1::State, x_f2::State, N=
     Nmax=1000,
     solver=EM(),
     cut_start=true,
-    rad_dims=1:sys.dim,
+    rad_dims=1:length(sys.u),
     savefile=nothing,
     showprogress::Bool=true)
     """
