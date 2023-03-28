@@ -47,4 +47,4 @@ Computes the basin boundary for given output `boa` of the [`basins`](@ref) funct
 
 To be further documented.        
 """
-basinboundary(boa) = basinboundary(boa[1], boa[2], boa[3])
+basinboundary(boa) = basinboundary(boa[1], boa[2], boa[4])
