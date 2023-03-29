@@ -19,5 +19,9 @@ symbolise_spde(sys::StochSystem)
 ```
 
 ```@docs
+stochtolangevinmcmcstoch(sys::StochSystem, Tphys::Float64, Δz::Float64)
+```
+
+```@docs
 langevinmcmc(sys::StochSystem, init; kwargs...)
 ```

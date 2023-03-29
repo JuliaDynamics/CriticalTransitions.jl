@@ -59,7 +59,7 @@ end
 
 """
     symbolise_spde(sys::StochSystem)
-Given a StochSystem `sys`, this function uses [`Symbolics.jl`](https://symbolics.juliasymbolics.org/stable/) to compute symbolic versions of multiple terms that show up in the Langevin MCMC SPDE (see ...).
+Given a StochSystem `sys`, this function uses [`Symbolics.jl`](https://symbolics.juliasymbolics.org/stable/) to compute symbolic versions of multiple terms that show up in the Langevin MCMC SPDE (see [`langevinmcmc_spde(u, p, t)`](@ref)).
 
 In  a vector of length four it returns the state variables of `sys`, the Jacobian of the drift field ``\\nabla\\boldsymbol{b}``, the term ``\\nabla\\langle\\boldsymbol{b}, \\Sigma^{-1}\\boldsymbol{b}\\rangle`` which we refer to as `grad_dot_term`, and ``\\nabla(\\nabla\\cdot \\boldsymbol{b})`` which we refer to as `grad_div_term`. 
 """
@@ -83,7 +83,7 @@ function symbolise_spde(sys::StochSystem)
     return state_vars, jacobian, grad_dot_term, grad_div_term
 
 end
-#[`langevinmcmc_spde(u, p, t)`](@ref)
+
 function jacobian(sys::StochSystem)
     # creating symbolic state variables
     state_vars = @eval @variables $([Symbol("x$i") for i=1:length(sys.u)]...);
@@ -188,17 +188,17 @@ function langevinmcmc(sys::StochSystem, init;
 
 end
 
-# """
-#     stochtolangevinmcmcstoch(sys::StochSystem, Tphys::Float64, Δz::Float64)
-# Given a `StochSystem sys`, this function returns another higher-dimensional `StochSystem` that enables out-of-the-box Langevin-MCMC-type analysis. The idea is that one can transform the Langevin MCMC SPDE problem into a SDE problem of dimension ``M :=(N+1)d`` that the [`StochSystem`](@ref) struct can nicely describe. Here ``d`` is the dimension of `sys` and ``N+1`` is the number of the discrete path points on your transition path (in the context of the Langevin MCMC problem). 
+"""
+    stochtolangevinmcmcstoch(sys::StochSystem, Tphys::Float64, Δz::Float64)
+Given a `StochSystem sys`, this function returns another higher-dimensional `StochSystem` that enables out-of-the-box Langevin-MCMC-type analysis. The idea is that one can transform the Langevin MCMC SPDE problem into a SDE problem of dimension ``M :=(N+1)d`` that the [`StochSystem`](@ref) struct can nicely describe. Here ``d`` is the dimension of `sys` and ``N+1`` is the number of the discrete path points on your transition path (in the context of the Langevin MCMC problem). 
 
-# ## Function arguments
-# * `sys::StochSystem`: the `StochSystem` you are carrying out your explorations on.
-# * `Tphys::Float64`: the total physical time you want to assign to your transition paths. 
-# * `Δz::Float64`: the physical time-step you wish to have across your transitions.  
+## Function arguments
+* `sys::StochSystem`: the `StochSystem` you are carrying out your explorations on.
+* `Tphys::Float64`: the total physical time you want to assign to your transition paths. 
+* `Δz::Float64`: the physical time-step you wish to have across your transitions.  
 
-# The `f`-field of the returned `StochSystem` is namely the [`langevinmcmc_spde`](@ref) function, and all other fields are chosen appropriately for the conversion between the SPDE boundary-value problem and the SDE initial-value problem. As of right now, the `σ`-field of the returned `StochSystem` equals `√(2/Δz)sys.σ`, which is slightly different to how it is written in the original SDE (see ...); this modification is for numerical purposes, in order to account for the spatial-temporal white-noise in the original SPDE problem.    
-# """
+The `f`-field of the returned `StochSystem` is namely the [`langevinmcmc_spde`](@ref) function, and all other fields are chosen appropriately for the conversion between the SPDE boundary-value problem and the SDE initial-value problem. As of right now, the `σ`-field of the returned `StochSystem` equals `√(2/Δz)sys.σ`, which is slightly different to how it is written in the original SPDE (see [`langevinmcmc_spde(u, p, t)`](@ref)); this modification is for numerical purposes, in order to account for the spatial-temporal white-noise in the original SPDE problem.    
+"""
 function stochtolangevinmcmcstoch(sys::StochSystem, Tphys::Float64, Δz::Float64) 
 
     N = 1+ceil(Int64,Tphys/Δz); # number of path points
