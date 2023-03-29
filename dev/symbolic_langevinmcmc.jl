@@ -2,8 +2,10 @@
 
 """
     langevinmcmc_spde(u, p, t)
-For a StochSystem `sys`, given a discretised version of a transition path ``\\boldsymbol{x}(t,z) := \\{\\varphi(z): z ∈ [0, T_{\\text{phys}}]\\}`` that travels between two points in state-space in finite-time ``T_{\\text{phys}}``, this function uses symbolic differentiation to compute the value of the LangevinMCMC SPDE 
-``\\frac{\\partial \\boldsymbol{x}}{\\partial t} = \\Sigma^{-1}\\frac{\\partial^2\\boldsymbol{x}}{\\partial z^2} - \\big(\\Sigma^{-1}\\nabla \\boldsymbol{b} - \\nabla\\boldsymbol{b}^\\dagger\\Sigma^{-1}\\big)\\frac{\\partial \\boldsymbol{x}}{\\partial z} - \\frac{1}{2}\\nabla\\langle\\boldsymbol{b},\\,\\Sigma^{-1}\\boldsymbol{b}\\rangle-\\frac{\\sigma^2}{2}\\nabla\\big(\\nabla\\cdot\\boldsymbol{b}\\big)+\\sqrt{2}\\sigma\,\\boldsymbol{\\eta}(z,\\,t)``
+For a StochSystem `sys`, given a discretised version of a transition path ``\\boldsymbol{x}(t,z) := \\{\\varphi(z): z \\in [0, T_{\\text{phys}}]\\}`` that travels between two points in state-space in finite-time ``T_{\\text{phys}}``, this function uses symbolic differentiation to compute the value of the LangevinMCMC SPDE 
+
+``\\frac{\\partial \\boldsymbol{x}}{\\partial t} = \\Sigma^{-1}\\frac{\\partial^2\\boldsymbol{x}}{\\partial z^2} - \\big(\\Sigma^{-1}\\nabla \\boldsymbol{b} - \\nabla\\boldsymbol{b}^\\dagger\\Sigma^{-1}\\big)\\frac{\\partial \\boldsymbol{x}}{\\partial z} - \\frac{1}{2}\\nabla\\langle\\boldsymbol{b},\\Sigma^{-1}\\boldsymbol{b}\\rangle\\frac{\\sigma^2}{2}\\nabla\\big(\\nabla\\cdot\\boldsymbol{b}\\big)+\\sqrt{2}\\sigma\\boldsymbol{\\eta}(z,\\,t)``
+
 across the range of physical time points z in the discretisation, say  ``z \\in [k(\\Delta z): k \\in \\{0, 1, 2, ..., N\\}]``. In line with the boundary conditions of the Langevin MCMC SPDE problem, this partial derivative has value zero at the physical start and end times ``z\\in \\{0,T_{\\text{phys}}\\}``. Here ``\\boldsymbol{b}``and ``\\Sigma`` are the drift field and covariance matrix of `sys`, respecively.  
 
 ## Function arguments: 
@@ -57,7 +59,9 @@ end
 
 """
     symbolise_spde(sys::StochSystem)
-Given a StochSystem `sys`, this function uses [`Symbolics.jl`](https://symbolics.juliasymbolics.org/stable/) to compute symbolic versions of multiple terms that show up in the Langevin MCMC SPDE (see ...): namely, the state variables of `sys`; the Jacobian of the drift field ``\\nabla\\boldsymbol{b}``; the term ``\\nabla\\langle\\boldsymbol{b}, \\Sigma^{-1}\\boldsymbol{b}\\rangle`` which we refer to as `grad_dot_term`, and finally ``\\nabla(\\nabla\\cdot \\boldsymbol{b})`` which we refer to as `grad_div_term`. 
+Given a StochSystem `sys`, this function uses [`Symbolics.jl`](https://symbolics.juliasymbolics.org/stable/) to compute symbolic versions of multiple terms that show up in the Langevin MCMC SPDE (see ...).
+
+In  a vector of length four it returns the state variables of `sys`, the Jacobian of the drift field ``\\nabla\\boldsymbol{b}``, the term ``\\nabla\\langle\\boldsymbol{b}, \\Sigma^{-1}\\boldsymbol{b}\\rangle`` which we refer to as `grad_dot_term`, and ``\\nabla(\\nabla\\cdot \\boldsymbol{b})`` which we refer to as `grad_div_term`. 
 """
 function symbolise_spde(sys::StochSystem)
 
