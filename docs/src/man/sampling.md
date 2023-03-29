@@ -11,6 +11,10 @@ transitions(sys::StochSystem, x_i::State, x_f::State, N=1; kwargs...)
 ## ... in pathspace
 
 ```@docs
+langevinmcmc_spde(u, p, t)
+```
+
+```@docs
 symbolise_spde(sys::StochSystem)
 ```
 

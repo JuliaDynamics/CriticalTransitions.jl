@@ -1,18 +1,18 @@
 #include("../src/StochSystem.jl")
 
-# """
-#     langevinmcmc_spde(u, p, t)
-# For a StochSystem `sys``, given a discretised version of a transition path ``\\boldsymbol{x}(t,z) := \\{\\varphi(z): z ∈ [0, T_{\\text{phys}}]\\}`` that travels between two points in state-space in finite-time ``T_{\\text{phys}}``, this function uses symbolic differentiation to compute the value of the LangevinMCMC SPDE 
-# ``\\frac{\\partial \\boldsymbol{x}}{\\partial t} = \\Sigma^{-1}\\frac{\\partial^2\\boldsymbol{x}}{\\partial z^2} - \\big(\\Sigma^{-1}\\nabla \\boldsymbol{b} - \\nabla\\boldsymbol{b}^\\dagger\\Sigma^{-1}\\big)\\frac{\\partial \\boldsymbol{x}}{\\partial z} - \\frac{1}{2}\\nabla\\langle\\boldsymbol{b},\\,\\Sigma^{-1}\\boldsymbol{b}\\rangle-\\frac{\\sigma^2}{2}\\nabla\\big(\\nabla\\cdot\\boldsymbol{b}\\big)+\\sqrt{2}\\sigma\,\\boldsymbol{\\eta}(z,\\,t)``
-# across the range of physical time points z in the discretisation, say  ``z \\in [k(\\Delta z): k \\in \\{0, 1, 2, ..., N\\}]``. In line with the boundary conditions of the Langevin MCMC SPDE problem, this partial derivative has value zero at the physical start and end times ``z\\in \\{0,\\,T_{\\text{phys}}\\}``. Here ``\\boldsymbol{b}``and ``\\Sigma`` are the drift field and covariance matrix of the `StochSystem`, respecively.  
+"""
+    langevinmcmc_spde(u, p, t)
+For a StochSystem `sys`, given a discretised version of a transition path ``\\boldsymbol{x}(t,z) := \\{\\varphi(z): z ∈ [0, T_{\\text{phys}}]\\}`` that travels between two points in state-space in finite-time ``T_{\\text{phys}}``, this function uses symbolic differentiation to compute the value of the LangevinMCMC SPDE 
+``\\frac{\\partial \\boldsymbol{x}}{\\partial t} = \\Sigma^{-1}\\frac{\\partial^2\\boldsymbol{x}}{\\partial z^2} - \\big(\\Sigma^{-1}\\nabla \\boldsymbol{b} - \\nabla\\boldsymbol{b}^\\dagger\\Sigma^{-1}\\big)\\frac{\\partial \\boldsymbol{x}}{\\partial z} - \\frac{1}{2}\\nabla\\langle\\boldsymbol{b},\\,\\Sigma^{-1}\\boldsymbol{b}\\rangle-\\frac{\\sigma^2}{2}\\nabla\\big(\\nabla\\cdot\\boldsymbol{b}\\big)+\\sqrt{2}\\sigma\,\\boldsymbol{\\eta}(z,\\,t)``
+across the range of physical time points z in the discretisation, say  ``z \\in [k(\\Delta z): k \\in \\{0, 1, 2, ..., N\\}]``. In line with the boundary conditions of the Langevin MCMC SPDE problem, this partial derivative has value zero at the physical start and end times ``z\\in \\{0,T_{\\text{phys}}\\}``. Here ``\\boldsymbol{b}``and ``\\Sigma`` are the drift field and covariance matrix of `sys`, respecively.  
 
-# ## Function arguments: 
-# * `u`: the transition path at virtual time t. Given that the number of discrete points in path space is ``N+1``, and `sys` is ``d``-dimensional, one should enter a concatenated vector of length ``M:=(N+1)d`` of the form ``[x_1(t,0), x_1(t,\\Delta z), ..., x_1(t, N\\Delta z), x_2(t,0), x_2(t,\\Delta z), ..., x_2(t, N\\Delta z), ....., x_d(t,0), x_d(t,\\Delta z), ..., x_d(t, N\\Delta z)]``.
-# * `p`: the parameters required for the computation of Langevin MCMC SPDE. One should enter `[sys.dim, sys.σ, sys.Σ, Δz, state_vars, jacobian, grad_dot_term, grad_div_term]` where `Δz` is the physical time-step, and ``state_vars, jacobian, grad_dot_term, grad_div_term`` are precisely the outputs of the function [`symbolise_spde(sys::StochSystem)`](@ref).
-# * `t`: the current fixed value of virtual time that the transition path corresponds to. One should enter a `Float64`.
+## Function arguments: 
+* `u`: the transition path at virtual time t. Given that the number of discrete points in path space is ``N+1``, and `sys` is ``d``-dimensional, one should enter a concatenated vector of length ``M:=(N+1)d`` of the form ``[x_1(t,0), x_1(t,\\Delta z), ..., x_1(t, N\\Delta z), x_2(t,0), x_2(t,\\Delta z), ..., x_2(t, N\\Delta z), ....., x_d(t,0), x_d(t,\\Delta z), ..., x_d(t, N\\Delta z)]``.
+* `p`: the parameters required for the computation of Langevin MCMC SPDE. One should enter `[sys.dim, sys.σ, sys.Σ, Δz, state_vars, jacobian, grad_dot_term, grad_div_term]` where `Δz` is the physical time-step, and `state_vars, jacobian, grad_dot_term, grad_div_term` are precisely the outputs of the function [`symbolise_spde(sys::StochSystem)`](@ref).
+* `t`: the current fixed value of virtual time that the transition path corresponds to. One should enter a `Float64`.
 
-# The function returns an ``M``-dimensional vector of partial-deriviates ``\\bigg[\\frac{\\partial x_1}{\\partial t}(t,0), \\frac{\\partial x_1}{\\partial t}(t,\\Delta z), ..., \\frac{\\partial x_1}{\\partial t}(t,N\\Delta z), \\frac{\\partial x_2}{\\partial t}(t,0), \\frac{\\partial x_2}{\\partial t}(t,\\Delta z), ..., \\frac{\\partial x_2}{\\partial t}(t,N\\Delta z), ....., \\frac{\\partial x_d}{\\partial t}(t,0), \\frac{\\partial x_d}{\\partial t}(t,\\Delta z), ..., \\frac{\\partial x_d}{\\partial t}(t,N\\Delta z)\\bigg]``. 
-# """
+The function returns an ``M``-dimensional vector of partial-deriviates ``\\bigg[\\frac{\\partial x_1}{\\partial t}(t,0), \\frac{\\partial x_1}{\\partial t}(t,\\Delta z), ..., \\frac{\\partial x_1}{\\partial t}(t,N\\Delta z), \\frac{\\partial x_2}{\\partial t}(t,0), \\frac{\\partial x_2}{\\partial t}(t,\\Delta z), ..., \\frac{\\partial x_2}{\\partial t}(t,N\\Delta z), ....., \\frac{\\partial x_d}{\\partial t}(t,0), \\frac{\\partial x_d}{\\partial t}(t,\\Delta z), ..., \\frac{\\partial x_d}{\\partial t}(t,N\\Delta z)\\bigg]``. 
+"""
 function langevinmcmc_spde(u, p, t)
     
     # here u should be a vector of length N × dim where N is the number of (physical) time points in the discretisation of [0,Tphys]
@@ -57,7 +57,7 @@ end
 
 """
     symbolise_spde(sys::StochSystem)
-Given a StochSystem `sys`, this function uses [`Symbolics.jl`](https://symbolics.juliasymbolics.org/stable/) to compute symbolic versions of multiple terms that show up in the Langevin MCMC SPDE (see ...): namely, the state variables of `sys`; the Jacobian of the drift field ``\\nabla\\boldsymbol{b}``; the term ``\\nabla\\rangle\\boldsymbol{b}, \\Sigma^{-1}\\boldsymbol{b}\\langle`` which we refer to as `grad_dot_term`, and finally ``\\nabla(\\nabla\\cdot \\boldsymbol{b})`` which we refer to as `grad_div_term`. 
+Given a StochSystem `sys`, this function uses [`Symbolics.jl`](https://symbolics.juliasymbolics.org/stable/) to compute symbolic versions of multiple terms that show up in the Langevin MCMC SPDE (see ...): namely, the state variables of `sys`; the Jacobian of the drift field ``\\nabla\\boldsymbol{b}``; the term ``\\nabla\\langle\\boldsymbol{b}, \\Sigma^{-1}\\boldsymbol{b}\\rangle`` which we refer to as `grad_dot_term`, and finally ``\\nabla(\\nabla\\cdot \\boldsymbol{b})`` which we refer to as `grad_div_term`. 
 """
 function symbolise_spde(sys::StochSystem)
 
@@ -188,7 +188,12 @@ end
 #     stochtolangevinmcmcstoch(sys::StochSystem, Tphys::Float64, Δz::Float64)
 # Given a `StochSystem sys`, this function returns another higher-dimensional `StochSystem` that enables out-of-the-box Langevin-MCMC-type analysis. The idea is that one can transform the Langevin MCMC SPDE problem into a SDE problem of dimension ``M :=(N+1)d`` that the [`StochSystem`](@ref) struct can nicely describe. Here ``d`` is the dimension of `sys` and ``N+1`` is the number of the discrete path points on your transition path (in the context of the Langevin MCMC problem). 
 
-# The `f`-field of the returned `StochSystem` is namely the [`langevinmcmc_spde`](@ref) function where 
+# ## Function arguments
+# * `sys::StochSystem`: the `StochSystem` you are carrying out your explorations on.
+# * `Tphys::Float64`: the total physical time you want to assign to your transition paths. 
+# * `Δz::Float64`: the physical time-step you wish to have across your transitions.  
+
+# The `f`-field of the returned `StochSystem` is namely the [`langevinmcmc_spde`](@ref) function, and all other fields are chosen appropriately for the conversion between the SPDE boundary-value problem and the SDE initial-value problem. As of right now, the `σ`-field of the returned `StochSystem` equals `√(2/Δz)sys.σ`, which is slightly different to how it is written in the original SDE (see ...); this modification is for numerical purposes, in order to account for the spatial-temporal white-noise in the original SPDE problem.    
 # """
 function stochtolangevinmcmcstoch(sys::StochSystem, Tphys::Float64, Δz::Float64) 
 
