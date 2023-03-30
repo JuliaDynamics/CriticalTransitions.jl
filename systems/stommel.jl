@@ -44,7 +44,7 @@ function stommel(u, p, t; smooth=1e6, flow_law="abs")
     dx = 1 - x - mu*x*q - diffu*delta*x
     dy = delta*(R - y) - mu*y*q
 
-    SVector{2}([dx, dy])
+    SA[dx, dy]
 end
 
 """

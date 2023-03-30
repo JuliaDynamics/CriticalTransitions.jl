@@ -31,7 +31,7 @@ function FitzHughNagumo(u,p,t)
     dx = (-α*x^3 + γ*x - κ*y + I)/ϵ
     dy = -β*y + x
 
-    SVector{2}([dx, dy])
+    SA[dx, dy]
 end
 
 

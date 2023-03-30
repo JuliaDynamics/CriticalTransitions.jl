@@ -26,8 +26,7 @@ function rivals(u, p, t)
     dx = x*(x-α₁)*(1-x)-β₁*x*y
     dy = ϵ*(y*(y-α₂)*(1-y)-β₂*x*y)
 
-    SVector{2}(dx, dy)
-
+    SA[dx, dy]
 end
 
 """

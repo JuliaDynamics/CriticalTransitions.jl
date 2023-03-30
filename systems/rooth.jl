@@ -41,5 +41,5 @@ function rooth_smooth(u, p, t;
     dS1 = q/2*(c_pos*(S2-S1) + c_neg*(S1-S3)) + lambd_S*(sigma[1] - S1) - F1
     dS3 = q/2*(c_pos*(S1-S3) + c_neg*(S3-S2)) + lambd_S*(sigma[3] - S3) - F3
 
-    SVector{5}([dT1, dT2, dT3, dS1, dS3])
+    SA[dT1, dT2, dT3, dS1, dS3]
 end

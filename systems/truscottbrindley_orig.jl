@@ -31,7 +31,7 @@ function originaltruscottbrindley(u,p,t)
     dP = r*P*(1-P/K)-Rₘ*Z*P^2/(α^2+P^2);
     dZ = γ*Rₘ*Z*P^2/(α^2+P^2)-μ*Z;
 
-    SVector{2}([dP, dZ])
+    SA[dP, dZ]
 end
 
 """
@@ -66,8 +66,7 @@ function rampedoriginaltruscottbrindley(u, p, t)
     dZ = γ*Rₘ*Z*P^2/(α^2+P^2)-μ*Z;
     dr = t ∈ Ttrans..(Ttrans+Tramp) ? v : 0;
 
-    SVector{3}([dP,dZ,dr])
-
+    SA[dP,dZ,dr]
 end
 
 """

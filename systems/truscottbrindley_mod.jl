@@ -31,7 +31,7 @@ function modifiedtruscottbrindleywithdimensions(u, p, t)
     dP = (1/ξ)*(r*P*(1-P/K)-a*P^2*Z/(h^2+P^2))
     dZ = a*P^2*Z/(h^2+P^2)-m*Z^2
 
-    return SVector{2}([dP,dZ])
+    SA[dP,dZ]
 end
 
 
@@ -97,8 +97,7 @@ function rampedmodifiedtruscottbrindley(u, p, t)
     dZ = ξ*Z₁* ((Z/Z₁)*(P/P₁)^2/(1+(P/P₁)^2)-(Z/Z₁)^2);
     dα = t ∈ Ttrans..(Ttrans+Tramp) ? v : 0;
 
-    SVector{3}([dP,dZ,dα])
-
+    SA[dP,dZ,dα]
 end
 
 function modtbwd_rσ(r, σ) # a convenient three-parameter version of the modifiedtruscottbrindley system 
