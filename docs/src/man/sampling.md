@@ -11,17 +11,8 @@ transitions(sys::StochSystem, x_i::State, x_f::State, N=1; kwargs...)
 ## ... in pathspace
 
 ```@docs
-langevinmcmc_spde(u, p, t)
-```
-
-```@docs
-symbolise_spde(sys::StochSystem)
-```
-
-```@docs
-stochastic_bridge(sys::StochSystem, Tphys::Float64, Δz::Float64)
-```
-
-```@docs
 langevinmcmc(sys::StochSystem, init; kwargs...)
+stochastic_bridge(sys::StochSystem, Tphys::Float64, Δz::Float64)
+symbolise_spde(sys::StochSystem)
+langevinmcmc_spde(u, p, t)
 ```

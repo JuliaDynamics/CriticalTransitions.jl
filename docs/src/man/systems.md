@@ -1,6 +1,7 @@
 # Predefined dynamical systems
 
-## FitzHugh-Nagumo system
+## Life sciences
+### FitzHugh-Nagumo system
 
 A 2D system given by
 
@@ -19,7 +20,8 @@ FitzHughNagumo!(du, u, p, t)
 fhn_ϵσ(ϵ, σ)   
 ```
 
-## Modified Truscott-Brindley system
+## Population dynamics
+### Modified Truscott-Brindley system
 
 A two-dimensional predator-prey system given by 
 
@@ -63,7 +65,8 @@ modifiedtruscottbrindley!(du, u, p, t)
 modtb_αξσ(α, ξ, σ)
 ```
 
-## Thermohaline Circulation box models
+## Earth & Climate
+### Thermohaline Circulation box models
 
 ```@docs
 stommel(u, p, t; kwargs...)

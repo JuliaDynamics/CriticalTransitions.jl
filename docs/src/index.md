@@ -1,8 +1,13 @@
 # CriticalTransitions.jl
 
-*A Julia package for the numerical investigation of stochastic dynamical systems.*
+*A Julia package for the numerical investigation of noise- and rate-induced transitions in dynamical systems.*
 
-Building on [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/) and [`DynamicalSystems.jl`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/), this package aims to provide a toolbox for stochastic dynamical systems, with a focus on tipping phenomena and metastability.
+Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystems.jl/stable/) and [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/), this package aims to provide a toolbox for dynamical systems under time-dependent forcing, with a focus on tipping phenomena and metastability.
+
+!!! compat "Compatibility"
+    This version (`v0.2`) is now compatible with `DynamicalSystems v3`.
+
+![Attractors.jl flowchart](https://github.com/reykboerner/CriticalTransitions.jl/blob/master/docs/src/figs/CTjl_structure.png?raw=true)
 
 !!! info "Current features"
     * **Stability analysis**: Fixed points, linear stability, basins of attraction, edge tracking
@@ -19,6 +24,6 @@ Building on [`DifferentialEquations.jl`](https://diffeq.sciml.ai/stable/) and [`
 
 Developers: Reyk Börner, Ryan Deeley and Raphael Römer
 
-Further contributors: Jeroen Wouters, Oliver Mehling
+Thanks to Jeroen Wouters, Calvin Nesbitt, Tobias Grafke, George Datseris and Oliver Mehling
 
 This work is part of the [CriticalEarth](https://criticalearth.eu) project.

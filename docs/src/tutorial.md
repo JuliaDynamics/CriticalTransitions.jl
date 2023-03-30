@@ -17,26 +17,28 @@ Let's investigate this system under stochastic forcing.
 ### System definition
 First, we need to translate the system equations above into Julia code.
 
-This works by defining a function `f(u,p,t)` which takes as input a vector `u` of state variables (``u``,``v``), a vector `p` of parameters, and time `t`. The function must return a StaticArray `du` of flow increments (``du``, ``dv``).
+This works by defining a function `f(u,p,t)` which takes as input a vector `u` of state variables (``u``,``v``), a vector `p` of parameters, and time `t`. The function must return a StaticArray `SA[du, dv]` of flow increments (``du``, ``dv``).
 
 ```julia
-function FitzHughNagumo(u,p,t)
+function fitzhugh_nagumo(u,p,t)
     u, v = u
     ϵ, β, α, γ, κ, I = p[1]
 
     du = (-α*u^3 + γ*u - κ*v + I)/ϵ
     dv = -β*v + u
 
-    SVector{2}([du, dv])
+    SA[du, dv]
 end
 ```
 
+Returning a StaticArray instead of simply a Vector `[du, dv]` ensures that the above function definition is compatible with DynamicalSystems.jl and improves performance when integrating.
+
 !!! tip "In-place vs. out-of-place"
-    The function `FitzHughNagumo(u,p,t)` is defined *in-place*. It is also possible to define the system *out-of-place* as `FitzHughNagumo!(du,u,p,t)`. For more info, see [here](https://diffeq.sciml.ai/stable/types/ode_types/).
+    The function `fitzhugh_nagumo(u,p,t)` is defined *in-place*. It is also possible to define the system *out-of-place* as `fitzhugh_nagumo!(du,u,p,t)`. For more info, see [here](https://diffeq.sciml.ai/stable/types/ode_types/).
 
 ### StochSystem
 
-Next, we turn the `FitzHughNagumo` system into a stochastic dynamical system. Suppose we would like to force both state variables ``u`` and ``v`` with additive, uncorrelated Gaussian noise of intensity ``\sigma``. This is the default case. We simply write
+Next, we turn the `fitzhugh_nagumo` system into a stochastic dynamical system. Suppose we would like to force both state variables ``u`` and ``v`` with additive, uncorrelated Gaussian noise of intensity ``\sigma``. This is the default case. We simply write
 
 ```julia
 # Parameters (ϵ, β, α, γ, κ, I)
@@ -44,9 +46,9 @@ p = [1., 3., 1., 1., 1., 0.]
 σ = 0.2
 
 # StochSystem
-sys = StochSystem(FitzHughNagumo, p, 2, σ)
+sys = StochSystem(fitzhugh_nagumo, p, zeros(2), σ)
 ```
-The `2` in the last line indicates that the system has two dimensions.
+Here we have chosen `zeros(2)` as the initial state of the system. The length of this vector must correspond to the system's dimensionality, but for now the state is just a placeholder that aligns our syntax with that of DifferentialEquations.jl and DynamicalSystems.jl.
 
 !!! note "Multiplicative and/or correlated noise"
     Of course, it is also possible to define more complicated noise processes than simple additive white noise. This is done by specifying a custom *noise function* and *covariance matrix* in the `StochSystem` definition. For more info, see [Defining a StochSystem](@ref).
@@ -73,7 +75,7 @@ sim = simulate(sys, fp1, dt=0.01, tmax=1e3)
 
 In the keyword arguments, we have specified the time step `dt` and total duration `tmax` of the numerical time integration.
 
-The simulated trajectory is stored in `sim` as a matrix with 2 rowscorresponding to the state variables ``u``, ``v``, and 10,000 columns corresponding to the time steps.
+The simulated trajectory is stored in `sim` as a matrix with 2 rows corresponding to the state variables ``u``, ``v``, and 10,000 columns corresponding to the time steps.
 
 Let's plot the result. Did the trajectory tip to the other basin of attraction?
 
@@ -82,3 +84,5 @@ using PyPlot
 scatter([fp1[0], fp2[0]], [fp1[1], fp2[1]], c=["r"])
 plot(sim[0,:], sim[1,:])
 ```
+
+Hopefully, this helped you to get started. For more info, check out the Manual section of these docs.

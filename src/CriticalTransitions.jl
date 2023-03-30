@@ -2,10 +2,13 @@ module CriticalTransitions
 
 using Reexport
 @reexport using DynamicalSystems
+@reexport using OrdinaryDiffEq
+@reexport using StochasticDiffEq
+@reexport using DiffEqNoiseProcess
+@reexport using LinearAlgebra
 using Formatting, Dates, JLD2, HDF5, ProgressBars, ProgressMeter, DocStringExtensions
 using IntervalRootFinding
-using OrdinaryDiffEq, StochasticDiffEq, DiffEqNoiseProcess
-using LinearAlgebra, StaticArrays, ForwardDiff
+using StaticArrays, ForwardDiff
 using Symbolics
 using Optim, Dierckx
 using Printf, DrWatson, Dates, Statistics
@@ -80,8 +83,5 @@ export jacobian
 export residence_time, residence_times, ResTimes, temporal, runandsavetimes, get_res_times
 export exit_time, exit_times
 export RateSystem, fL, stochtorate
-
-# Re-export functions inherited from dependencies
-export EM, I
 
 end # module CriticalTransitions

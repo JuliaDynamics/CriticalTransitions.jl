@@ -17,6 +17,9 @@ The general workflow of `CriticalTransitions` essentially follows two steps:
 1. Define your system (see [Defining a StochSystem](@ref))
 2. Investigate the system by calling methods (see [Methods](@ref))
 
+!!! info "Extension to RateSystem and TippingSystem"
+    We are currently working on extending the types of dynamical systems that can be studied with CriticalTransitions.jl. Particularly, we are planning to introduce the overarching structure `TippingSystem`, which has two subtypes: `StochSystem` (as it already exists) and `RateSystem`, a new dynamical system type in which the system parameters may evolve in time.
+
 ## Methods
 
 Currently the following functions are implemented to analyze a [`StochSystem`](@ref) and 
