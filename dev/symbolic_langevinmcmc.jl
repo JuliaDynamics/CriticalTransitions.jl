@@ -189,7 +189,7 @@ function langevinmcmc(sys::StochSystem, init;
 end
 
 """
-    stochtolangevinmcmcstoch(sys::StochSystem, Tphys::Float64, Δz::Float64)
+    stochastic_bridge(sys::StochSystem, Tphys::Float64, Δz::Float64)
 Given a `StochSystem sys`, this function returns another higher-dimensional `StochSystem` that enables out-of-the-box Langevin-MCMC-type analysis. The idea is that one can transform the Langevin MCMC SPDE problem into a SDE problem of dimension ``M :=(N+1)d`` that the [`StochSystem`](@ref) struct can nicely describe. Here ``d`` is the dimension of `sys` and ``N+1`` is the number of the discrete path points on your transition path (in the context of the Langevin MCMC problem). 
 
 ## Function arguments
@@ -199,7 +199,7 @@ Given a `StochSystem sys`, this function returns another higher-dimensional `Sto
 
 The `f`-field of the returned `StochSystem` is namely the [`langevinmcmc_spde`](@ref) function, and all other fields are chosen appropriately for the conversion between the SPDE boundary-value problem and the SDE initial-value problem. As of right now, the `σ`-field of the returned `StochSystem` equals `sys.σ√(2/Δz)`, which is slightly different to how it is written in the original SPDE (see [`langevinmcmc_spde(u, p, t)`](@ref)); this modification is for numerical purposes, in order to account for the spatial-temporal white-noise in the original SPDE problem.    
 """
-function stochtolangevinmcmcstoch(sys::StochSystem, Tphys::Float64, Δz::Float64) 
+function stochastic_bridge(sys::StochSystem, Tphys::Float64, Δz::Float64) 
 
     N = 1+ceil(Int64,Tphys/Δz); # number of path points
 

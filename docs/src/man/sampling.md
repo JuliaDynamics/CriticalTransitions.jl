@@ -19,7 +19,7 @@ symbolise_spde(sys::StochSystem)
 ```
 
 ```@docs
-stochtolangevinmcmcstoch(sys::StochSystem, Tphys::Float64, Δz::Float64)
+stochastic_bridge(sys::StochSystem, Tphys::Float64, Δz::Float64)
 ```
 
 ```@docs
