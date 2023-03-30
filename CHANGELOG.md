@@ -1,5 +1,25 @@
 # Changelog for `CriticalTransitions.jl`
 
+## v0.2.0
+Compatibility upgrade to `DynamicalSystems v3`
+
+#### BREAKING changes
+* changed `StochSystem.dim` to `StochSystem.u`
+* changed keyword arguments in `basins` and `bisect_to_edge` functions
+* removed `tocds` function (replaced by `CoupledODEs`)
+* renamed functions:
+    * `mam` -> `min_action_method`
+    * `gmam` -> `geometric_min_action_method`
+    * `FitzHughNagumo` -> `fitzhugh_nagumo`
+    * `FitzHughNagumo!` -> `fitzhugh_nagumo!`
+
+#### New functions
+* `stochastic_bridge`
+* `CoupledODEs(sys::StochSystem, ...)`
+* `StochSystem(ode::CoupledODEs, ...)`
+
+First prototype of a `RateSystem`.
+
 ## v0.1.1
 Feature freeze before v0.2.0
 

@@ -7,7 +7,7 @@ Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSyste
 !!! compat "Compatibility"
     This version (`v0.2`) is now compatible with `DynamicalSystems v3`.
 
-![CT.jl infographic](https://github.com/reykboerner/CriticalTransitions.jl/blob/main/docs/src/figs/CTjl_structure.png)
+![CT.jl infographic](./figs/CTjl_structure.png)
 
 !!! info "Current features"
     * **Stability analysis**: Fixed points, linear stability, basins of attraction, edge tracking
