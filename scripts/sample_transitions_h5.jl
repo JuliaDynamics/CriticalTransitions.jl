@@ -1,5 +1,5 @@
 """
-Script to generate an ensemble of noise-induced transitions in the FitzHughNagumo system
+Script to generate an ensemble of noise-induced transitions in the fitzhugh_nagumo system
 Author: Reyk Börner (reyk.boerner@reading.ac.uk)
 Date: 3 Oct 2022
 
@@ -18,7 +18,7 @@ using CriticalTransitions, Printf, HDF5, Dates
 # SETTINGS ################################################
 ###########################################################
 
-# FitzHughNagumo parameters
+# fitzhugh_nagumo parameters
 σ = 0.22               # noise intensity
 ϵ = 0.1                 # time scale parameter
 
@@ -55,7 +55,7 @@ filetext = "fhn_trans$(direction)_eps$(@sprintf "%.2e" ϵ)_noise$(@sprintf "%.2e
 save_path = "../data/"
 
 # Instantiate system
-sys = StochSystem(FitzHughNagumo, pf, 2, σ, idfunc, nothing, Σ, process)
+sys = StochSystem(fitzhugh_nagumo, pf, 2, σ, idfunc, nothing, Σ, process)
 
 # Fixed points
 A, B = [-sqrt(2/3), -sqrt(2/27)], [sqrt(2/3), sqrt(2/27)]

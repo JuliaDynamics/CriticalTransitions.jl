@@ -1,5 +1,5 @@
 """
-Script to generate an ensemble of noise-induced transitions in the FitzHughNagumo system
+Script to generate an ensemble of noise-induced transitions in the fitzhugh_nagumo system
 Author: Reyk Börner (reyk.boerner@reading.ac.uk)
 Date: 3 Oct 2022
 
@@ -19,7 +19,7 @@ using .CriticalTransitions, Printf
 # SETTINGS ################################################
 ###########################################################
 
-# FitzHughNagumo parameters
+# fitzhugh_nagumo parameters
 σ = 0.15                # noise intensity
 ϵ = 1.0                 # time scale parameter
 
@@ -50,7 +50,7 @@ save_path = "../data/"
 ###########################################################
 
 # Instantiate system
-sys = StochSystem(FitzHughNagumo, pf, 2, σ, idfunc, nothing, Σ, process)
+sys = StochSystem(fitzhugh_nagumo, pf, 2, σ, idfunc, nothing, Σ, process)
 
 # Get fixed points
 pts, eigs, stab = fixedpoints(sys, [-10,-10], [10,10])

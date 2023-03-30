@@ -1,5 +1,5 @@
 """
-Script to compute and save the basin boundary of the FitzHughNagumo system
+Script to compute and save the basin boundary of the fitzhugh_nagumo system
 for different values of time scale separation
 """
 
@@ -11,7 +11,7 @@ using .CriticalTransitions, HDF5
 eps = [0.01, 0.1, 1., 10.];
 systems = Dict();
 for i in eps
-    systems[i] = StochSystem(FitzHughNagumo, [i, 3, 1, 1, 1, 0], 2, 0.1)
+    systems[i] = StochSystem(fitzhugh_nagumo, [i, 3, 1, 1, 1, 0], 2, 0.1)
 end;
 
 # Set up domain
@@ -36,7 +36,7 @@ for i in eps
 end;
 
 file = h5open("fhn_basinboundaries_res$(step).h5", "cw");
-attributes(file)["info"] = "Basins boundary of FitzHughNagumo system for different time scale parameter values epsilon";
+attributes(file)["info"] = "Basins boundary of fitzhugh_nagumo system for different time scale parameter values epsilon";
 attributes(file)["data_dimensions"] = "(dim × N), where dim = system dimension and N = number of points of curve. System coordinates = [u (row 1), v (row 2)]"
 for i in eps
     write(file, "boundary_eps=$(i)", bnds[i])

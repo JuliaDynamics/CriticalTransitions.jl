@@ -38,7 +38,7 @@ end
 
 """
     FitzHughNagumoSPDE(u, p, t)
-System definition for the pathspace SPDE corresponding to the `FitzHughNagumo` system.
+System definition for the pathspace SPDE corresponding to the `fitzhugh_nagumo` system.
 
 The parameter vector must contain the following (in this order):
 * ϵ (float): time scale parameter

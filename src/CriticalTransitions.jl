@@ -24,8 +24,8 @@ include("systemanalysis/basinboundary.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 include("largedeviations/action.jl")
-include("largedeviations/mam.jl")
-include("largedeviations/gmam.jl")
+include("largedeviations/min_action_method.jl")
+include("largedeviations/geometric_min_action_method.jl")
 
 include("../systems/fitzhughnagumo.jl")
 include("../systems/truscottbrindley_mod.jl")
@@ -52,7 +52,7 @@ export simulate, relax
 export transition, transitions
 export langevinmcmc
 export fw_integrand, fw_action, om_action, action, geometric_action
-export mam, gmam
+export min_action_method, geometric_min_action_method
 export edgetracking, bisect_to_edge, attractor_mapper
 export idfunc, idfunc!
 export gauss
@@ -61,7 +61,7 @@ export make_jld2, make_h5, sys_string, sys_info, intervals_to_box
 export anorm, subnorm
 
 # Systems
-export FitzHughNagumo, FitzHughNagumo!, fhn_ϵσ, fhn_ϵσ_backward
+export fitzhugh_nagumo, fitzhugh_nagumo!, fhn_ϵσ, fhn_ϵσ_backward
 export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ, modtb_αξσ1, modtb_αξσ_backward
 export rampedmodifiedtruscottbrindley, modifiedtruscottbrindley!, rmodtb_ξvTtrTraσ
 export originaltruscottbrindley, originaltruscottbrindley!, origtb_rσ

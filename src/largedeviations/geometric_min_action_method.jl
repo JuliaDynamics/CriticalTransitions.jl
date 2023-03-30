@@ -2,13 +2,13 @@
 #include("action.jl")
 
 """
-    gmam(sys::StochSystem, x_i::State, x_f::State, arclength=1; kwargs...)
+    geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, arclength=1; kwargs...)
 Computes the minimizer of the Freidlin-Wentzell action using the geometric minimum
 action method (gMAM). Beta version, to be further documented.
 
 To set an initial path different from a straight line, see the multiple dispatch method
 
-* `gmam(sys::StochSystem, init::Matrix, arclength::Float64; kwargs...)`.
+* `geometric_min_action_method(sys::StochSystem, init::Matrix, arclength::Float64; kwargs...)`.
 
 ## Keyword arguments
 * `N = 100`: number of discretized path points
@@ -25,7 +25,7 @@ algorithm[^1].
 
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
-function gmam(sys::StochSystem, x_i::State, x_f::State, arclength=1.0;
+function geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, arclength=1.0;
     N = 100,
     maxiter = 100,
     converge = 1e-5,
@@ -72,7 +72,7 @@ function gmam(sys::StochSystem, x_i::State, x_f::State, arclength=1.0;
 end
 
 """
-    gmam(sys::StochSystem, init::Matrix, arclength::Float64; kwargs...)
+    geometric_min_action_method(sys::StochSystem, init::Matrix, arclength::Float64; kwargs...)
 Runs the geometric Minimum Action Method (gMAM) to find the minimum action path (instanton) from an
 initial condition `init`, given a system `sys` and total arc length `arclength`.
 
@@ -80,9 +80,9 @@ The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dime
 `length(sys.u)` of the system and `N` is the number of path points.
 
 For more information see the main method,
-[`gmam(sys::StochSystem, x_i::State, x_f::State, arclength::Float64; kwargs...)`](@ref).
+[`geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, arclength::Float64; kwargs...)`](@ref).
 """
-function gmam(sys::StochSystem, init::Matrix, arclength=1.0;
+function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1.0;
     maxiter = 100,
     converge = 1e-5,
     method = LBFGS(),

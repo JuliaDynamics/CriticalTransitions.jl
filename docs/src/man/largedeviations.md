@@ -31,7 +31,7 @@ between two states of a `StochSystem`.
 Minimization of the Freidlin-Wentzell action using the L-BFGS algorithm of `Optim.jl`.
 
 ```@docs
-mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Float64; kwargs...)
+min_action_method(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Float64; kwargs...)
 ```
 
 ### Geometric minimum action method (gMAM)
@@ -39,5 +39,5 @@ Minimization of the geometric action following
 [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601).
 
 ```@docs
-gmam(sys::StochSystem, x_i::State, x_f::State, arclength=1; kwargs...)
+geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, arclength=1; kwargs...)
 ```

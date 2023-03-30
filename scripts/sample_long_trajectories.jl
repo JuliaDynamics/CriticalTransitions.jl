@@ -10,13 +10,13 @@ saveat = 0.01
 
 println("Running $(length(eps)) trajectory simulations for $(tmax) time units at dt=$(dt) ...")
 
-sys(ϵ, σ) = StochSystem(FitzHughNagumo, [ϵ,3.,1.,1.,1.,0.], 2, σ);
+sys(ϵ, σ) = StochSystem(fitzhugh_nagumo, [ϵ,3.,1.,1.,1.,0.], 2, σ);
 
 fp, eigs, stab = fixedpoints(sys(1.,0.), [-2,-2], [2,2]);
 R, L = fp[stab];
 
 file = make_h5("bruteforce_all-eps_sigma=$(sigma[1])", "../data/")
-attributes(file)["info"] = "5 long stochastic simulations of FitzHughNagumo system for time scale parameter $(eps) at noise amplitude $(sigma)"
+attributes(file)["info"] = "5 long stochastic simulations of fitzhugh_nagumo system for time scale parameter $(eps) at noise amplitude $(sigma)"
 
 sim, traj, runtimes = Dict(), Dict(), Dict()
 Threads.@threads for i in 1:length(eps)

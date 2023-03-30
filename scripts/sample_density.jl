@@ -10,7 +10,7 @@ saveat = 0.002;
 
 println("Running $(length(eps)) trajectory simulations for $(tmax) time units at dt=$(dt) (saving every $(saveat/dt) steps) ...")
 
-sys(ϵ, σ) = StochSystem(FitzHughNagumo, [ϵ,3.,1.,1.,1.,0.], 2, σ);
+sys(ϵ, σ) = StochSystem(fitzhugh_nagumo, [ϵ,3.,1.,1.,1.,0.], 2, σ);
 
 fp, eigs, stab = fixedpoints(sys(1.,0.), [-2,-2], [2,2]);
 R, L = fp[stab];
@@ -25,7 +25,7 @@ function run_sim(eps, sigma; dt=dt, tmax=tmax, saveat=saveat, init=L, save=true)
     if save
         filename = "fhn_simulation_eps=$(eps)_sigma=$(sigma)_tmax=$(tmax)"
         file = make_h5(filename, "../data/")
-        attributes(file)["info"] = "$(tmax) time units simulation of FitzHughNagumo system for time scale parameter $(eps) at noise amplitude $(sigma)"
+        attributes(file)["info"] = "$(tmax) time units simulation of fitzhugh_nagumo system for time scale parameter $(eps) at noise amplitude $(sigma)"
         write(file, "trajectory", traj)
         write(file, "initial_condition", Vector(L))
         attributes(file)["sys_info"] = sys_string(sys(eps, sigma))
@@ -49,7 +49,7 @@ function get_density(eps, sigma; dt=dt, tmax=tmax, saveat=saveat, init=L, bins=1
         filename = @sprintf("fhn_density_eps%.2e_sigma%.2e_N%.1e", eps, sigma, total_counts)
         println(filename)
         file = make_h5(filename)#, "../data/")
-        attributes(file)["info"] = "Density rho(u,v) obtained from $(tmax) time units simulation of FitzHughNagumo system for time scale parameter $(eps) at noise amplitude $(sigma)"
+        attributes(file)["info"] = "Density rho(u,v) obtained from $(tmax) time units simulation of fitzhugh_nagumo system for time scale parameter $(eps) at noise amplitude $(sigma)"
         write(file, "density", density)
         write(file, "binedges_u", Vector(hist.edges[1]))
         write(file, "binedges_v", Vector(hist.edges[2]))

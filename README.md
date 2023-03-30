@@ -17,7 +17,7 @@ p = [1., 3., 1., 1., 1., 0.]
 noise_strength = 0.02
 
 # Define stochastic system
-sys = StochSystem(FitzHughNagumo, p, zeros(2), noise_strength)
+sys = StochSystem(fitzhugh_nagumo, p, zeros(2), noise_strength)
 
 # Get stable fixed points
 fps, eigs, stab = fixedpoints(sys, [-2,-2], [2,2])

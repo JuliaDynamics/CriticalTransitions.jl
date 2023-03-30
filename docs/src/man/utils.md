@@ -15,7 +15,7 @@ computed by typing:
 
 ```julia
 using CriticalTransitions, DynamicalSystems: lyapunovspectrum
-sys = StochSystem(FitzHughNagumo, [1.,3.,1.,1.,1.,0.], zeros(2))
+sys = StochSystem(fitzhugh_nagumo, [1.,3.,1.,1.,1.,0.], zeros(2))
 ls = lyapunovspectrum(CoupledODEs(sys), 10000)
 ```
 

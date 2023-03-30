@@ -1,5 +1,5 @@
 """
-    mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real; kwargs...)
+    min_action_method(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real; kwargs...)
 Runs the Minimum Action Method (MAM) to find the minimum action path (instanton) between an
 initial state `x_i` and final state `x_f`.
 
@@ -11,7 +11,7 @@ time via `N` equidistant points and total time `T`. Thus, the time step between 
 path points is ``\\Delta t = T/N``.
 To set an initial path different from a straight line, see the multiple dispatch method
 
-* `mam(sys::StochSystem, init::Matrix, T::Real; kwargs...)`.
+* `min_action_method(sys::StochSystem, init::Matrix, T::Real; kwargs...)`.
 
 The minimization can be performed in blocks to save intermediate results.
 
@@ -30,7 +30,7 @@ The minimization can be performed in blocks to save intermediate results.
 If `save_info`, returns `Optim.OptimizationResults`. Else, returns only the optimizer (path).
 If `blocks > 1`, a vector of results/optimizers is returned.
 """
-function mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real;
+function min_action_method(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real;
     functional="FW",
     maxiter = 100,
     blocks = 1,
@@ -41,13 +41,13 @@ function mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real;
     kwargs...)
     
     init = reduce(hcat, range(x_i, x_f, length=N))
-    mam(sys::StochSystem, init, T;
+    min_action_method(sys::StochSystem, init, T;
         functional=functional, maxiter=maxiter, blocks=blocks, method=method,
         save_info=save_info, showprogress=showprogress, verbose=verbose, kwargs...)
 end;
 
 """
-    mam(sys::StochSystem, init::Matrix, T::Real; kwargs...)
+    min_action_method(sys::StochSystem, init::Matrix, T::Real; kwargs...)
 Runs the Minimum Action Method (MAM) to find the minimum action path (instanton) from an
 initial condition `init`, given a system `sys` and total path time `T`.
 
@@ -57,9 +57,9 @@ is specified by `T`, such that the time step between consecutive path points is
 ``\\Deltat = T/N``.
 
 For more information see the main method,
-[`mam(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real; kwargs...)`](@ref).
+[`min_action_method(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real; kwargs...)`](@ref).
 """
-function mam(sys::StochSystem, init::Matrix, T::Real;
+function min_action_method(sys::StochSystem, init::Matrix, T::Real;
     functional="FW",
     maxiter = 100,
     blocks = 1,

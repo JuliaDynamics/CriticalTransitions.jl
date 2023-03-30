@@ -2,15 +2,15 @@
 Dynamical systems specification file
 """
 
-# FitzHughNagumo model
+# fitzhugh_nagumo model
 
 """
-    FitzHughNagumo!(du, u, p, t)
+    fitzhugh_nagumo!(du, u, p, t)
 In-place definition of the FitzHugh-Nagumo system.
 
-See also [`FitzHughNagumo`](@ref).
+See also [`fitzhugh_nagumo`](@ref).
 """
-function FitzHughNagumo!(du, u, p, t)
+function fitzhugh_nagumo!(du, u, p, t)
     x, y = u
     ϵ, β, α, γ, κ, I = p[1]
 
@@ -19,12 +19,12 @@ function FitzHughNagumo!(du, u, p, t)
 end
 
 """
-    FitzHughNagumo(u, p, t)
+    fitzhugh_nagumo(u, p, t)
 Out-of-place definition of the FitzHugh-Nagumo system.
 
-See also [`FitzHughNagumo!`](@ref).
+See also [`fitzhugh_nagumo!`](@ref).
 """
-function FitzHughNagumo(u,p,t)
+function fitzhugh_nagumo(u,p,t)
     x, y = u
     ϵ, β, α, γ, κ, I = p[1]
 
@@ -33,6 +33,10 @@ function FitzHughNagumo(u,p,t)
 
     SA[dx, dy]
 end
+
+# For backwards compatibility
+FitzHughNagumo(u,p,t) = fitzhugh_nagumo(u,p,t)
+FitzHughNagumo!(u,p,t) = fitzhugh_nagumo!(u,p,t)
 
 
 """
@@ -43,7 +47,7 @@ This setup fixes the parameters β = 3, α =  γ = κ = 1, I = 0 and leaves the 
 """
 function fhn_ϵσ(ϵ, σ) # a convenient two-parameter version of the FitzHugh Nagumo system 
     # defining the StochSystem
-    f(u,p,t) = FitzHughNagumo(u,p,t);
+    f(u,p,t) = fitzhugh_nagumo(u,p,t);
     β = 3; α = γ = κ = 1; I = 0; # standard parameters without ϵ (time-scale separation parameter)
     pf_wo_ϵ = [β, α, γ, κ, I]; # parameter vector without ϵ
     dim = 2;
@@ -56,7 +60,7 @@ end;
 
 function fhn_ϵσ_backward(ϵ, σ) # a convenient two-parameter version of the FitzHugh Nagumo system 
     # defining the StochSystem
-    f(u,p,t) = -FitzHughNagumo(u,p,t);
+    f(u,p,t) = -fitzhugh_nagumo(u,p,t);
     β = 3; α = γ = κ = 1; I = 0; # standard parameters without ϵ (time-scale separation parameter)
     pf_wo_ϵ = [β, α, γ, κ, I]; # parameter vector without ϵ
     dim = 2;

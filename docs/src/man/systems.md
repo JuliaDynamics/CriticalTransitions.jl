@@ -15,8 +15,8 @@ A 2D system given by
 where ``\epsilon`` is the parameter of time scale separation between the state variables ``u`` and ``v``. The parameters ``\alpha >0``, ``\beta >1``, ``\gamma>0``, and ``\kappa>0`` are real constants, and ``I`` denotes a driving term.
 
 ```@docs
-FitzHughNagumo(u, p, t)
-FitzHughNagumo!(du, u, p, t)
+fitzhugh_nagumo(u, p, t)
+fitzhugh_nagumo!(du, u, p, t)
 fhn_ϵσ(ϵ, σ)   
 ```
 
