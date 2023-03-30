@@ -55,5 +55,28 @@ function sys_string(sys::StochSystem; verbose=true)
     end
 end;
 
-# Pretty printing
-Base.show(io::IO, sys::StochSystem) = sys_info(sys)
+# Pretty printing (based on https://github.com/JuliaDynamics/DynamicalSystemsBase.jl/blob/main/src/core/pretty_printing.jl)
+Base.summary(sys::StochSystem) = "$(length(sys.u))-dimensional stochastic dynamical system"
+function Base.show(io::IO, sys::StochSystem)
+    print(io, summary(sys))
+end
+
+additional_details(::StochSystem) = []
+
+function Base.show(io::IO, ::MIME"text/plain", sys::StochSystem)
+    descriptors = [
+        "f (deterministic function)" => sys.f,
+        "pf (parameters of f)" => sys.pf,
+        "g (noise function)" => sys.g,
+        "pg (parameters of g)" => sys.pg,
+        "σ (noise intensity)" => sys.σ,
+        "Σ (covariance matrix)" => sys.Σ,
+        "process (noise process)" => sys.process,
+    ]
+    padlen = maximum(length(d[1]) for d in descriptors) + 3
+
+    println(io, summary(sys))
+    for (desc, val) in descriptors
+        println(io, rpad(" $(desc): ", padlen), val)
+    end
+end
