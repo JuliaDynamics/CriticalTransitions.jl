@@ -46,7 +46,7 @@ function geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, a
             update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
                 tau=tau, cov_inv=A)
         else
-            update = optimize(S, path, method, Optim.Options(iterations=1))
+            update = Optim.optimize(S, path, method, Optim.Options(iterations=1))
             update_path = Optim.minimizer(update)
         end
 
@@ -102,7 +102,7 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1
             update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
                 tau=tau, cov_inv=A)
         else
-            update = optimize(S, path, method, Optim.Options(iterations=1))
+            update = Optim.optimize(S, path, method, Optim.Options(iterations=1))
             update_path = Optim.minimizer(update)
         end
 
