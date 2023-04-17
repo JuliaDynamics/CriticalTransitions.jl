@@ -110,6 +110,7 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     cut_start=true,
     rad_dims=1:length(sys.u),
     savefile=nothing,
+    output_level=1,
     showprogress::Bool=true)
     """
     Generates N transition samples of sys from x_i to x_f.
@@ -133,7 +134,7 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
         if success 
             
             if showprogress
-                print("\rStatus: $(length(idx))/$(N) transitions complete.")
+                print("\rStatus: $(length(idx)+1)/$(N) transitions complete.")
             end
 
             if savefile == nothing
@@ -156,5 +157,31 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
         end
     end
 
-    samples, times, idx, length(r_idx)
+    (output_level == 1) ? (return samples, times, idx, length(r_idx)) : nothing
+
+    if output_level == 2
+        success_rate = length(idx)/(length(r_idx)+length(idx))
+        mean_res_time = sum([times[i][1] for i in 1:length(times)]) + tmax*length(r_idx)
+        mean_trans_time = mean([(times[i][end]-times[i][1]) for i in 1:length(times)])
+
+        return TransitionPathEnsemble(samples, times, success_rate, mean_res_time, mean_trans_time)
+    end
 end;
+
+struct TransitionPathEnsemble
+    paths::Vector
+    times::Vector
+    success_rate::Real
+    t_res::Real
+    t_trans::Real
+end;
+
+function prettyprint(tpe::TransitionPathEnsemble)
+    "Transition path ensemble of $(length(tpe.times)) samples
+    - sampling success rate:      $(round(tpe.success_rate, digits=3))
+    - mean residence time:        $(round(tpe.t_res, digits=3))
+    - mean transition time:       $(round(tpe.t_trans, digits=3))
+    - normalized transition rate: $(round(tpe.t_res/tpe.t_trans, digits=1))"
+end
+
+Base.show(io::IO, tpe::TransitionPathEnsemble) = print(io, prettyprint(tpe))
