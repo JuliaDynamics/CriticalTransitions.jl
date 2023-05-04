@@ -84,7 +84,7 @@ function fhn_pathspace_sampling(ϵ, σ, T, dz, init=nothing;
     burnin=10)
 
     # number of points to discretize path
-    N = Int(T/dz) + 1
+    N = round(Int, T/dz) + 1
     
     # no noise on boundary conditions
     cov = Matrix(1I(2N))
@@ -105,7 +105,7 @@ function fhn_pathspace_sampling(ϵ, σ, T, dz, init=nothing;
 
     # Setup SPDE problem
     spde(eps, sigma) = StochSystem(FitzHughNagumoSPDE, [eps, β, α, γ, κ, Ι, a, Int(divterm)*sigma, dz],
-    2N, sqrt(2/dz)*sigma, idfunc, nothing, cov, "WhiteGauss")
+    zeros(2N), sqrt(2/dz)*sigma, idfunc, nothing, cov, "WhiteGauss")
 
     sim = simulate(spde(ϵ,σ), init, dt=dt, tmax=tmax)
     println("$(N) path points, $(round(Int, tmax/dt)) virtual time points, simulation status: $(sim.retcode)")
