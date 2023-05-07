@@ -73,13 +73,15 @@ The first matrix contains the u coordinates, the second matrix the v coordinates
 function fhn_pathspace_sampling(ϵ, σ, T, dz, init=nothing;
     dt=0.001,
     tmax=10.0,
+    noise=0,
     a=1.0,
     β=3.0,
     α=1.0,
     γ=1.0,
     κ=1.0,
     Ι=0.0,
-    save_every=100,
+    saveat=dt,
+    save_every=1,
     divterm=true,
     burnin=10)
 
@@ -105,9 +107,9 @@ function fhn_pathspace_sampling(ϵ, σ, T, dz, init=nothing;
 
     # Setup SPDE problem
     spde(eps, sigma) = StochSystem(FitzHughNagumoSPDE, [eps, β, α, γ, κ, Ι, a, Int(divterm)*sigma, dz],
-    zeros(2N), sqrt(2/dz)*sigma, idfunc, nothing, cov, "WhiteGauss")
+    zeros(2N), sqrt(2/dz)*noise, idfunc, nothing, cov, "WhiteGauss")
 
-    sim = simulate(spde(ϵ,σ), init, dt=dt, tmax=tmax)
+    sim = simulate(spde(ϵ,σ), init, dt=dt, tmax=tmax, saveat=saveat)
     println("$(N) path points, $(round(Int, tmax/dt)) virtual time points, simulation status: $(sim.retcode)")
 
     sim[1:N,1:save_every:end], sim[N+1:2N,1:save_every:end]
