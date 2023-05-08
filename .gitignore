@@ -3,6 +3,7 @@
 **/devtest.jl
 *.mem
 *.ipynb
+*.DS_Store
 /**/test.h5
 docs/build/
 /ryan/  

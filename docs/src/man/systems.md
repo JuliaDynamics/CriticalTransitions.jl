@@ -68,8 +68,24 @@ modtb_αξσ(α, ξ, σ)
 ## Earth & Climate
 ### Thermohaline Circulation box models
 
+#### Stommel's hemispheric 2-box model
+The famous 2-box model introduced by Stommel (1961) and later studied by Cessi (1994) can be generalized in the following form,
+
+```math
+\begin{aligned}
+\frac{dx}{d \tau} = 1 - x - \mu x f(x-y) - A\delta x \\
+\frac{dy}{d \tau} = \delta (R-y) - \mu y f(x-y) \,,
+\end{aligned}
+```
+
+where ``x`` and ``y`` denote non-dimensional gradients of temperature and salinity, respectively, between the equatorial and the polar box.
+
 ```@docs
 stommel(u, p, t; kwargs...)
 cessi(u, p, t)
+```
+
+#### Interhemispheric 3-box model
+```@docs
 rooth_smooth(u, p, t; kwargs...)
 ```
