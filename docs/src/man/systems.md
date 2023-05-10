@@ -73,12 +73,16 @@ The famous 2-box model introduced by Stommel (1961) and later studied by Cessi (
 
 ```math
 \begin{aligned}
-\frac{dx}{d \tau} = 1 - x - \mu x f(x-y) - A\delta x \\
-\frac{dy}{d \tau} = \delta (R-y) - \mu y f(x-y) \,,
+\frac{dx}{d \tau} &= 1 - x - \nu x f(x-y) - A\delta x \\
+\frac{dy}{d \tau} &= \delta (R-y) - \nu y f(x-y) \,,
 \end{aligned}
 ```
 
 where ``x`` and ``y`` denote non-dimensional gradients of temperature and salinity, respectively, between the equatorial and the polar box.
+
+The original Stommel 1961 model (see [`stommel`](@ref)), defined in terms of the parameters ``\\delta``, ``\\lambda``, and ``R``, is obtained by setting ``\\tau = ct``, ``\\nu = 1/\\lambda``, ``f(x-y) = |x-y|``, and ``A=0``.
+
+Cessi's 1994 version of the model ([`cessi`](@ref)), written in terms of the parameters ``\\alpha``, ``\\mu^2``, and ``p``, follows from the above equations by setting ``\\tau = t/t_r``, ``\\delta = 2/\\alpha``, ``\\nu=\\mu^2``, ``f(x-y) = (x-y)^2/k``, ``R=pH/(2S_0)``, and ``A=1``.
 
 ```@docs
 stommel(u, p, t; kwargs...)
