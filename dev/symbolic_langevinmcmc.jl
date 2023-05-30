@@ -188,6 +188,64 @@ function langevinmcmc(sys::StochSystem, init;
 
 end
 
+function langevinmcmc_not_every_step(sys::StochSystem, init;    
+    T = 15,         # physical end time
+    tmax = 250.0,   # virtual end time
+    Δt = 1e-3,      # virtual time step
+    savestep=10    # number of steps after which another path is saved
+    )
+
+    N = size(init, 2); # the number of columns in the initial condition gives the number of components of the path 
+    Δz = T/(N-1); # the physical time step
+    t = range(0, T; length = N); # the physical time range
+
+    Nstep = round(Int64, tmax/Δt); # the number of mcmc iterations
+
+    paths = zeros(convert(Int64,(trunc(Nstep/savestep)+1)), length(sys.u), N); # three-dimensional array to store the paths
+    paths[1,:,:] = init; # storing the initial condition
+    t = 0; # the current virtual time value 
+    pathstemp = init; # storing the initial condition
+
+    # defining the number of functions used in langevin mcmc 
+
+    state_vars, jacobian, grad_dot_term, grad_div_term = symbolise_spde(sys);
+
+    p = [length(sys.u), sys.σ, sys.Σ, Δz, state_vars, jacobian, grad_dot_term, grad_div_term]; # langevinmcmcSPDE parameters 
+
+    savecounter = 2
+    for it ∈ 1:Nstep
+
+        update = langevinmcmc_spde(vec(pathstemp[:,:]'), [p], t); # this gives the virtual-time derivatives for all components on the current path
+
+        # we need to split update (dim*N × 1) into a dim × N matrix
+        update_mod = zeros(length(sys.u), N)
+        for jj ∈ 1:length(sys.u)
+            update_mod[jj,:] = update[(jj-1)*N+1:jj*N];
+        end 
+
+        pathstemp[:,:] = pathstemp[:,:] .+ (Δt * update_mod .+ sys.σ * √(2*Δt/Δz)*randn(length(sys.u),N)); # the Euler-Maruyama step 
+        
+        # reseting the fixed end points
+        for jj ∈ 1:length(sys.u)
+            pathstemp[jj,[1,end]] = init[jj,[1,end]]
+        end
+
+        if 0==mod(it,savestep)
+        
+            paths[savecounter,1,:] .= pathstemp[1,:]
+            paths[savecounter,2,:] .= pathstemp[2,:]
+            savecounter += 1
+
+        end
+
+        t += Δt;
+
+    end
+
+    return paths[1:savecounter-1,:,:]
+
+end
+
 """
     stochastic_bridge(sys::StochSystem, Tphys::Float64, Δz::Float64)
 Given a `StochSystem sys`, this function returns another higher-dimensional `StochSystem` that enables out-of-the-box Langevin-MCMC-type analysis. The idea is that one can transform the Langevin MCMC SPDE problem into a SDE problem of dimension ``M :=(N+1)d`` that the [`StochSystem`](@ref) struct can nicely describe. Here ``d`` is the dimension of `sys` and ``N+1`` is the number of the discrete path points on your transition path (in the context of the Langevin MCMC problem). 
