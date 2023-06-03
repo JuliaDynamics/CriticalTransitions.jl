@@ -51,6 +51,7 @@ export equilib, fixedpoints, basins, basinboundary
 export simulate, relax
 export transition, transitions
 export langevinmcmc
+export langevinmcmc_not_every_step
 export fw_integrand, fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
 export edgetracking, bisect_to_edge, attractor_mapper

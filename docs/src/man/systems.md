@@ -33,14 +33,14 @@ A two-dimensional predator-prey system given by
 ```
 The variables ``P`` and ``Z`` represent the concentration of phytoplankton (prey) and zooplankton (predator) species respectively. The system parameters can be interpreted as follows: 
 
-* ``r``: the phytoplankton growth rate
-* ``K``: the carrying capacity of the phytoplankton
-* ``a``: the maximal predation rate
-* ``h``: the half-saturation constant
-* ``\xi``: the time-scale separation between the evolution of phytoplankton and zooplankton 
-* ``m``: the zooplankton mortality rate 
+* ``r = 1``: the phytoplankton growth rate
+* ``K = 1``: the carrying capacity of the phytoplankton
+* ``a = 1/9``: the maximal predation rate
+* ``h = 5/112``: the half-saturation constant
+* ``\xi = 1/10``: the time-scale separation between the evolution of phytoplankton and zooplankton 
+* ``m = 0.0525``: the zooplankton mortality rate 
 
-The model (as discussed [here](http://dx.doi.org/10.1016/j.ecocom.2014.10.003)) is a modified version of the original 1994 Truscott-Brindley system (see [here](https://doi.org/10.1007/BF02458277)), with a quadratic mortality term to enable bistability. Following a non-dimensionalisation of the system, the dynamical equations convert to:
+The model (as discussed [here](http://dx.doi.org/10.1016/j.ecocom.2014.10.003)) is a modified version of the original 1994 Truscott-Brindley system (see [here](https://doi.org/10.1007/BF02458277)), with a quadratic mortality term to enable bistability. The variable ``t`` has units of days. Following a non-dimensionalisation of the system, the dynamical equations convert to:
 
 ```math
 \begin{aligned}
@@ -55,7 +55,7 @@ Specifically, here we introduce the dimensionless variables ``\tilde{P}, \tilde{
 \frac{\tilde{P}}{P_1} = \frac{P}{P_0}, && \frac{\tilde{Z}}{Z_1} = \frac{Z}{Z_0}, && \tau = \frac{t}{t_0}
 \end{aligned}
 ```  
-where ``P_1, P_0, Z_1, Z_0`` and ``t_0`` are constants to be determined in the non-dimensionalisation process. We take ``P_0 = h, Z_0 = a/m, t_0 = 1/a`` and subsequently introduce the following dimensionless parameters ``\alpha := r/a, \beta := h/k, \gamma := a/(mh)``. The values of the (dimensionless) constants ``P_1`` and ``Z_1`` are tuned according to the user's preference; they can be chosen in  a way such that the fixed points of the system are all contained within the ``[0,1]\times [0,1]`` subspace, for instance.  
+where ``P_1, P_0, Z_1, Z_0`` and ``t_0`` are constants to be determined in the non-dimensionalisation process. We take ``P_0 = h, Z_0 = a/m, t_0 = 1/a`` and subsequently introduce the following dimensionless parameters ``\alpha := r/a, \beta := h/K, \gamma := a/(mh)``. The values of the (dimensionless) constants ``P_1`` and ``Z_1`` are tuned according to the user's preference; they can be chosen in  a way such that the fixed points of the system are all contained within the ``[0,1]\times [0,1]`` subspace, for instance (for which the values ``P_1 = \beta`` and ``Z_0 = 5/6`` are appropriate in this set up).  
 
 Below, the functions [`modifiedtruscottbrindley`](@ref) and [`modifiedtruscottbrindley!`](@ref) implement the non-dimensional form of the system. 
 
