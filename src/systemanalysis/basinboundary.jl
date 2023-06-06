@@ -42,6 +42,40 @@ function basinboundary(X, Y, h; coords::String = "plane", A::Vector = [], B::Vec
 end
 
 """
+    basboundary(sys::StochSystem, xrange::Vector, yrange::Vector, xspacing::Float64, attractors::Vector; kwargs...)
+
+This function computes the basin boundary.
+"""
+
+function basboundary(sys::StochSystem, xrange::Vector, yrange::Vector, xspacing::Float64, attractors::Vector;
+    eps1=1e-4,
+    ϵ_mapper=0.1,
+    dt_mapper=1.0e-3,
+    solver=Vern9(),
+    maxit=1e+5)
+
+    #N = convert(Int64,(xrange[2]-xrange[1])/xspacing)
+    N = round(Int64,(xrange[2]-xrange[1])/xspacing)
+    bby = zeros(N+1)
+    xx = range(xrange[1], xrange[2], length=N+1)
+
+    Threads.@threads for i ∈ 1:N+1   
+        #println(i)
+        u1,u2 = bisect_to_edge2(sys, [xx[i],yrange[1]], [xx[i],yrange[2]], attractors,
+        eps1=eps1,
+        ϵ_mapper=ϵ_mapper,
+        dt_mapper=dt_mapper,
+        solver=solver,
+        maxit=maxit)
+
+        bby[i] = ((u1 + u2)/2)[2]
+    end
+
+    xx,bby
+
+end
+
+"""
     basinboundary(boa)
 Computes the basin boundary for given output `boa` of the [`basins`](@ref) function.
 
