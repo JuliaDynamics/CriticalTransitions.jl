@@ -85,6 +85,25 @@ function bisect_to_edge(sys::StochSystem, u1::State, u2::State, attractors::Vect
     bisect_to_edge(pds, mapper, abstol=eps1)
 end
 
+function bisect_to_edge2(sys::StochSystem, u1::State, u2::State, attractors::Vector;
+    eps1=1e-5,
+    ϵ_mapper=0.1,
+    dt_mapper=1.0e-3,
+    solver=Vern9(),
+    maxit=1e+5,
+    absto=1e-16,
+    relto=1e-16,
+    kwargs...)
+
+    diffeq = (;alg = solver,abstol=absto,reltol=relto)
+    odes = CriticalTransitions.CoupledODEs(sys; diffeq)
+    attrs = Dict(i => StateSpaceSet([attractors[i]]) for i in 1:length(attractors))
+    pds = ParallelDynamicalSystem(odes, [u1, u2])
+    mapper = AttractorsViaProximity(odes, attrs, ϵ_mapper; Δt=dt_mapper, mx_chk_lost = maxit, kwargs...)
+
+    bisect_to_edge(pds, mapper, abstol=eps1)
+end
+
 """
     track_edge(pds, mapper::AttractorMapper; kwargs...)
 Internal function for the edge tracking algorithm. See [`edgetracking`](@ref) for details.
