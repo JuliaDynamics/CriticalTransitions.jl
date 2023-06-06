@@ -10,6 +10,7 @@ fixedpoints
 ```@docs
 basins(sys::StochSystem, A, B, C, H; kwargs)
 basinboundary(X, Y, h; kwargs...)
+basboundary(sys::StochSystem, xrange::Vector, yrange::Vector, xspacing::Float64, attractors::Vector; kwargs...)
 ```
 
 ## Edge tracking

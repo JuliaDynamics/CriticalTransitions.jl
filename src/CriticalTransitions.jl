@@ -47,14 +47,14 @@ export StochSystem, State
 
 # Methods
 export CoupledODEs, to_cds
-export equilib, fixedpoints, basins, basinboundary
+export equilib, fixedpoints, basins, basinboundary, basboundary
 export simulate, relax
 export transition, transitions
 export langevinmcmc
 export langevinmcmc_not_every_step
 export fw_integrand, fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
-export edgetracking, bisect_to_edge, attractor_mapper
+export edgetracking, bisect_to_edge, attractor_mapper, bisect_to_edge2
 export idfunc, idfunc!
 export gauss
 export drift, is_iip
