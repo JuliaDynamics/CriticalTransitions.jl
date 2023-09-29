@@ -1,5 +1,13 @@
 # Tutorial
 
+To give you an idea of how our package works, this tutorial provides some example code with explanations.
+
+You can just copy and paste the code blocks below, after loading the required packages:
+
+```julia
+using CriticalTransitions, StaticArrays
+```
+
 ## Example: FitzHugh-Nagumo model
 Consider the FitzHugh-Nagumo model,
 
@@ -17,7 +25,7 @@ Let's investigate this system under stochastic forcing.
 ### System definition
 First, we need to translate the system equations above into Julia code.
 
-This works by defining a function `f(u,p,t)` which takes as input a vector `u` of state variables (``u``,``v``), a vector `p` of parameters, and time `t`. The function must return a StaticArray `SA[du, dv]` of flow increments (``du``, ``dv``).
+This works by defining a function `f(u,p,t)` which takes as input a vector `u` of state variables (``u``,``v``), a vector `p` of parameters, and time `t`. The function must return an array of flow increments (``du``, ``dv``). For performance reasons, it is advisable to return a StaticArray `SA[du, dv]` rather than just a Vector `[du, dv]`. This is why we needed the `StaticArrays` package above.
 
 ```julia
 function fitzhugh_nagumo(u,p,t)
@@ -31,10 +39,10 @@ function fitzhugh_nagumo(u,p,t)
 end
 ```
 
-Returning a StaticArray instead of simply a Vector `[du, dv]` ensures that the above function definition is compatible with DynamicalSystems.jl and improves performance when integrating.
+Note that the system parameters `ϵ, β, α, γ, κ, I = p[1]` are unpacked as the first component of `p`. This is necessary because in CriticalTransitions.jl one can also define a separate set of parameters for the stochastic component of the system, which would then make up the second component `p[2]` ( see [Defining a StochSystem](@ref)).
 
 !!! tip "In-place vs. out-of-place"
-    The function `fitzhugh_nagumo(u,p,t)` is defined *in-place*. It is also possible to define the system *out-of-place* as `fitzhugh_nagumo!(du,u,p,t)`. For more info, see [here](https://diffeq.sciml.ai/stable/types/ode_types/).
+    The function `fitzhugh_nagumo(u,p,t)` is defined *out-of-place*. It is also possible to define the system *in-place* as `fitzhugh_nagumo!(du,u,p,t)`. For more info, see [here](https://diffeq.sciml.ai/stable/types/ode_types/).
 
 ### StochSystem
 
@@ -56,7 +64,7 @@ Here we have chosen `zeros(2)` as the initial state of the system. The length of
 That's it! Now we can throw the toolbox of `CriticalTransitions` at our stochastic FitzHugh-Nagumo system `sys`.
 
 ### Find stable equilibria
-For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let's compute the stable fixed points by calling the [`fixedpoints`](@ref) function.
+For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let's compute the fixed points by calling the [`fixedpoints`](@ref) function.
 
 ```julia
 # Calculate fixed points
@@ -77,7 +85,7 @@ In the keyword arguments, we have specified the time step `dt` and total duratio
 
 The simulated trajectory is stored in `sim` as a matrix with 2 rows corresponding to the state variables ``u``, ``v``, and 10,000 columns corresponding to the time steps.
 
-Let's plot the result. Did the trajectory tip to the other basin of attraction?
+Let's plot the result. Did the trajectory transition to the other attractor?
 
 ```julia
 using PyPlot

@@ -216,5 +216,5 @@ and a parameter `eps` to control the mapping algorithm. For more info, see the
 [`docs`](https://juliadynamics.github.io/Attractors.jl/dev/attractors/#Attractors.AttractorsViaProximity).
 """
 function attractor_mapper(sys::StochSystem, attractors, eps=0.01; kwargs...)
-    AttractorsViaProximity(CoupledODEs(sys), attrs, eps; kwargs...)
+    Attractors.AttractorsViaProximity(CoupledODEs(sys), attrs, eps; kwargs...)
 end

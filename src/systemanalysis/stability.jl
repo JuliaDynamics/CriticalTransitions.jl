@@ -37,7 +37,7 @@ end;
     fixedpoints(sys::StochSystem, bmin::Vector, bmax::Vector)
 Returns fixed points, their eigenvalues and stability of the system `sys` within the state space volume defined by `bmin` and `bmax`.
 
-> This is a wrapper around the [`fixedpoints`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/chaos/periodicity/#ChaosTools.fixedpoints) function of `DynamicalSystems.jl`.
+> This is a wrapper around the [`fixedpoints`](https://juliadynamics.github.io/ChaosTools.jl/stable/periodicity/#ChaosTools.fixedpoints) function of `DynamicalSystems.jl`.
 
 ## Input
 * `bmin` (Vector): lower limits of the state space box to be considered, as a vector of coordinates

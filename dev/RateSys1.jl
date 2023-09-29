@@ -120,7 +120,7 @@ end;
     stochprocess(sys::RateSystem)
 
 Translates the stochastic process specified in `sys` into the language required by the
-`SDEProblem` of `DynamicalSystems.jl`.
+`SDEProblem` of `DifferentialEquations.jl`.
 """
 function stochprocess(sys::RateSystem)
     if sys.process == "WhiteGauss"

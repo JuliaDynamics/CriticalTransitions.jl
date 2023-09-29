@@ -4,7 +4,7 @@
 
 !!! tip "Using the functionality of DynamicalSystems.jl"
     A [`StochSystem`](@ref) can easily be turned into a 
-    [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/ds/general/#Dynamical-System-Definition)
+    [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/dev/tutorial/#DynamicalSystemsBase.CoupledODEs)
     instance of `DynamicalSystems.jl` using the function [`CoupledODEs`](@ref). Vice vera,
     a `CoupledODEs` system can be converted into a `StochSystem` via `StochSystem(ds::CoupledODEs)`.
 
