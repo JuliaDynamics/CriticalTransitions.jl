@@ -9,10 +9,10 @@ This function uses the [`SDEProblem`](https://diffeq.sciml.ai/stable/types/sde_t
 ## Keyword arguments
 * `dt=0.01`: time step of integration
 * `tmax=1e3`: total time of simulation
-* `solver=EM()`: numerical solver. Defaults to Euler-Mayurama
+* `solver=EM()`: [SDE solver](https://docs.sciml.ai/DiffEqDocs/stable/solvers/sde_solve/#sde_solve). Defaults to Euler-Mayurama
 * `callback=nothing`: callback condition
 * `progress=true`: shows a progress bar during simulation
-* `kwargs...`: keyword arguments for `solve(SDEProblem)`
+* `kwargs...`: keyword arguments for [`solve(ODEProblem)`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#solver_options)
 
 For more info, see [`SDEProblem`](https://diffeq.sciml.ai/stable/types/sde_types/#SciMLBase.SDEProblem).
 
@@ -39,9 +39,9 @@ This function integrates `sys.f` forward in time, using the [`ODEProblem`](https
 ## Keyword arguments
 * `dt=0.01`: time step of integration
 * `tmax=1e3`: total time of simulation
-* `solver=Euler()`: numerical solver. Defaults to explicit forward Euler
+* `solver=Euler()`: [ODE solver](https://docs.sciml.ai/DiffEqDocs/stable/solvers/ode_solve/#ode_solve). Defaults to explicit forward Euler
 * `callback=nothing`: callback condition
-* `kwargs...`: keyword arguments for `solve(ODEProblem)`
+* `kwargs...`: keyword arguments for [`solve(ODEProblem)`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#solver_options)
 
 For more info, see [`ODEProblem`](https://diffeq.sciml.ai/stable/types/ode_types/#SciMLBase.ODEProblem). 
 For stochastic integration, see [`simulate`](@ref).
