@@ -1,5 +1,7 @@
 # CriticalTransitions.jl
+
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliadynamics.github.io/CriticalTransitions.jl/dev/) [![](https://img.shields.io/badge/docs-stable-green.svg)](https://juliadynamics.github.io/CriticalTransitions.jl/stable/)
+
 A Julia package for the numerical investigation of **noise- and rate-induced transitions in dynamical systems**.
 
 Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystems.jl/stable/) and [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/), this package aims to provide a toolbox for dynamical systems under time-dependent forcing, with a focus on tipping phenomena and metastability.
