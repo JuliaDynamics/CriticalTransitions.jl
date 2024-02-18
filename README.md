@@ -1,5 +1,4 @@
 # CriticalTransitions.jl
-https://juliadynamics.github.io/CriticalTransitions.jl/stable/
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliadynamics.github.io/CriticalTransitions.jl/dev/) [![](https://img.shields.io/badge/docs-stable-green.svg)](https://juliadynamics.github.io/CriticalTransitions.jl/stable/)
 A Julia package for the numerical investigation of **noise- and rate-induced transitions in dynamical systems**.
 
