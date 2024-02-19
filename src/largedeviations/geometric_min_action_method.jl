@@ -31,9 +31,9 @@ function geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, a
     converge = 1e-5,
     method = LBFGS(),
     tau = 0.1,
-    showprogress=true)
+    verbose=true)
 
-    showprogress && println("=== Initializing gMAM action minimizer ===")
+    verbose && println("=== Initializing gMAM action minimizer ===")
     A = inv(sys.Σ)
     path = reduce(hcat, range(x_i, x_f, length=N))
     S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength; cov_inv=A)
@@ -41,7 +41,7 @@ function geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, a
     action = [S(path)]
 
     for i in 1:maxiter
-        showprogress && println("\r... Iteration $(i)")
+        verbose && println("\r... Iteration $(i)")
 
         if method == "HeymannVandenEijnden"
             update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
@@ -63,12 +63,12 @@ function geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, a
         push!(action, S(path))
 
         if abs(action[end]-action[end-1]) < converge
-            showprogress && println("Converged after $(i) iterations.")
+            verbose && println("Converged after $(i) iterations.")
             return paths, action
             break
         end
     end
-    showprogress && @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
+    verbose && @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
     paths, action
 end
 
@@ -88,9 +88,9 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1
     converge = 1e-5,
     method = LBFGS(),
     tau = 0.1,
-    showprogress=true)
+    verbose=true)
 
-    showprogress && println("=== Initializing gMAM action minimizer ===")
+    verbose && println("=== Initializing gMAM action minimizer ===")
     A = inv(sys.Σ)
     path = init; x_i = init[:,1]; x_f = init[:,end]; N = length(init[1,:]);
     S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength; cov_inv=A)
@@ -98,7 +98,7 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1
     action = [S(path)]
 
     for i in 1:maxiter
-        showprogress && println("\r... Iteration $(i)")
+        verbose && println("\r... Iteration $(i)")
 
         if method == "HeymannVandenEijnden"
             update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
@@ -120,12 +120,12 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1
         push!(action, S(path))
 
         if abs(action[end]-action[end-1]) < converge
-            showprogress && println("Converged after $(i) iterations.")
+            verbose && println("Converged after $(i) iterations.")
             return paths, action
             break
         end
     end
-    showprogress && @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
+    verbose && @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
     paths, action
 end
 
