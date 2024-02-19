@@ -30,9 +30,10 @@ function geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, a
     maxiter = 100,
     converge = 1e-5,
     method = LBFGS(),
-    tau = 0.1)
+    tau = 0.1,
+    showprogress=true)
 
-    println("=== Initializing gMAM action minimizer ===")
+    showprogress && println("=== Initializing gMAM action minimizer ===")
     A = inv(sys.Σ)
     path = reduce(hcat, range(x_i, x_f, length=N))
     S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength; cov_inv=A)
@@ -40,7 +41,7 @@ function geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, a
     action = [S(path)]
 
     for i in 1:maxiter
-        println("\r... Iteration $(i)")
+        showprogress && println("\r... Iteration $(i)")
 
         if method == "HeymannVandenEijnden"
             update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
@@ -62,12 +63,12 @@ function geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, a
         push!(action, S(path))
 
         if abs(action[end]-action[end-1]) < converge
-            println("Converged after $(i) iterations.")
+            showprogress && println("Converged after $(i) iterations.")
             return paths, action
             break
         end
     end
-    @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
+    showprogress && @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
     paths, action
 end
 
@@ -86,9 +87,10 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1
     maxiter = 100,
     converge = 1e-5,
     method = LBFGS(),
-    tau = 0.1)
+    tau = 0.1,
+    showprogress=true)
 
-    println("=== Initializing gMAM action minimizer ===")
+    showprogress && println("=== Initializing gMAM action minimizer ===")
     A = inv(sys.Σ)
     path = init; x_i = init[:,1]; x_f = init[:,end]; N = length(init[1,:]);
     S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength; cov_inv=A)
@@ -96,7 +98,7 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1
     action = [S(path)]
 
     for i in 1:maxiter
-        println("\r... Iteration $(i)")
+        showprogress && println("\r... Iteration $(i)")
 
         if method == "HeymannVandenEijnden"
             update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
@@ -118,12 +120,12 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1
         push!(action, S(path))
 
         if abs(action[end]-action[end-1]) < converge
-            println("Converged after $(i) iterations.")
+            showprogress && println("Converged after $(i) iterations.")
             return paths, action
             break
         end
     end
-    @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
+    showprogress && @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
     paths, action
 end
 
@@ -142,7 +144,7 @@ function heymann_vandeneijnden_step(sys::StochSystem, path, N, L;
     tau = 0.1,
     diff_order = 4,
     cov_inv = nothing)
-    
+
     (cov_inv == nothing) ? A = inv(sys.Σ) : A = cov_inv
 
     dx = L/(N-1)
@@ -161,7 +163,7 @@ function heymann_vandeneijnden_step(sys::StochSystem, path, N, L;
     J = [ForwardDiff.jacobian(b, path[:,i]) for i in 2:N-1]
     prod1 = [(J[i-1] - J[i-1]')*x_prime[:,i] for i in 2:N-1]
     prod2 = [(J[i-1]')*b(path[:,i]) for i in 2:N-1]
-    
+
     # Solve linear system M*x = v for each system dimension
     #! might be made faster using LinearSolve.jl special solvers
     Threads.@threads for j in 1:size(path, 1)
