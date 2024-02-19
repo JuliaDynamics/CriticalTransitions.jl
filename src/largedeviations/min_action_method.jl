@@ -16,7 +16,7 @@ To set an initial path different from a straight line, see the multiple dispatch
 The minimization can be performed in blocks to save intermediate results.
 
 ## Keyword arguments
-* `functional = "FW"`: type of action functional to minimize.  
+* `functional = "FW"`: type of action functional to minimize.
    Defaults to [`fw_action`](@ref), alternative: [`om_action`](@ref).
 * `maxiter = 100`: maximum number of iterations before the algorithm stops.
 * `blocks = 1`: number of iterative optimization blocks
@@ -39,7 +39,7 @@ function min_action_method(sys::StochSystem, x_i::State, x_f::State, N::Int, T::
     showprogress = false,
     verbose = true,
     kwargs...)
-    
+
     init = reduce(hcat, range(x_i, x_f, length=N))
     min_action_method(sys::StochSystem, init, T;
         functional=functional, maxiter=maxiter, blocks=blocks, method=method,
@@ -68,23 +68,23 @@ function min_action_method(sys::StochSystem, init::Matrix, T::Real;
     showprogress = false,
     verbose = true,
     kwargs...)
-    
+
     println("=== Initializing MAM action minimizer ===")
 
     A = inv(sys.Σ)
     f(x) = action(sys, fix_ends(x, init[:,1], init[:,end]),
         range(0.0, T, length=size(init, 2)), functional; cov_inv=A)
-    
+
     result = Vector{Optim.OptimizationResults}(undef, blocks)
     result[1] = Optim.optimize(f, init, method,
         Optim.Options(iterations=Int(ceil(maxiter/blocks)), kwargs...))
     verbose ? println(result[1]) : nothing
-    
+
     if blocks > 1
         iterator = showprogress ? tqdm(2:blocks) : 2:blocks
         for m in iterator
             result[m] = Optim.optimize(f, result[m-1].minimizer, method,
-                Optim.Options(Int(ceil(maxiter/blocks)), kwargs...))
+                Optim.Options(iterations=Int(ceil(maxiter/blocks)), kwargs...))
             verbose ? println(result[m]) : nothing
         end
         save_info ? (return result) : return [Optim.minimizer(result[i]) for i=1:blocks]
