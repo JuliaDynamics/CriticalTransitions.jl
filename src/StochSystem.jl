@@ -1,3 +1,5 @@
+import DynamicalSystems: CoupledODEs
+
 # Define custom types
 Parameters = Union{Vector{Any}, Nothing};
 CovMatrix = Union{Matrix, UniformScaling{Bool}, Diagonal{Bool, Vector{Bool}}};
