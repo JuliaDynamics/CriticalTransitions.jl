@@ -14,5 +14,9 @@ xx = range(-1.0,1.0, length=30)
 yy = 0.3 .* (- xx .^ 2 .+ 1)
 init = Matrix([xx yy]')
 
-gm = geometric_min_action_method(sys, init, maxiter=1000, showprogress=false)
+gm = geometric_min_action_method(sys, init, maxiter=100, verbose=false)
+path = gm[1][end]
+action = gm[2][end]
+
 @test all(isapprox.(path[2,:][end-5:end], 0, atol=1e-3))
+@test all(isapprox.(action, 0.3375, atol=1e-3))
