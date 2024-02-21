@@ -10,3 +10,4 @@ docs/build/
 .vscode/
 /Manifest.toml
 dev/levy.jl
+.JuliaFormatter.toml
