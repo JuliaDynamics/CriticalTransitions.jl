@@ -1,7 +1,8 @@
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+CriticalTransitions = "251e6cd3-3112-48a5-99dd-66efcfd18334"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterCitations = "daee34ce-89f3-4625-b898-19384cb65244"
 
 [compat]
-Documenter = "0.27"
+Documenter = "1"

@@ -1,6 +1,6 @@
-using CriticalTransitions
 using Documenter
 using DocumenterCitations
+using CriticalTransitions
 
 bib = CitationBibliography(
     joinpath(@__DIR__, "src", "refs.bib");
@@ -12,7 +12,7 @@ makedocs(;
     doctest=false,
     format = Documenter.HTML(prettyurls = get(ENV, "CI", nothing) == "true",
         mathengine = Documenter.MathJax2()),
-    
+    warnonly = [:doctest, :missing_docs],
     pages=Any[
         "Home" => "index.md",
         "Quickstart" => "quickstart.md",
@@ -29,7 +29,7 @@ makedocs(;
         "Predefined systems" => "man/systems.md",
         "Development stage" => "man/dev.md"
     ],
-    plugins=[bib]
+    plugins=[bib],
 )
 
 deploydocs(
