@@ -1,6 +1,13 @@
-using Documenter, CriticalTransitions
+using CriticalTransitions
+using Documenter
+using DocumenterCitations
 
-makedocs(
+bib = CitationBibliography(
+    joinpath(@__DIR__, "src", "refs.bib");
+    style=:numeric
+)
+
+makedocs(;
     sitename="CriticalTransitions.jl",
     doctest=false,
     format = Documenter.HTML(prettyurls = get(ENV, "CI", nothing) == "true",
@@ -21,7 +28,8 @@ makedocs(
         ],
         "Predefined systems" => "man/systems.md",
         "Development stage" => "man/dev.md"
-    ]
+    ],
+    plugins=[bib]
 )
 
 deploydocs(
