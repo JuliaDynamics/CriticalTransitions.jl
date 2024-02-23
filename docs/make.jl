@@ -33,5 +33,5 @@ makedocs(;
 )
 
 deploydocs(
-    repo = "github.com/reykboerner/CriticalTransitions.jl.git",
+    repo = "github.com/juliadynamics/CriticalTransitions.jl.git",
 )
