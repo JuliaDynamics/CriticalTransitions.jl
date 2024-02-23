@@ -76,13 +76,7 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength =
         end
 
         # re-interpolate
-        s = zeros(N)
-        for j in 2:N
-            s[j] = s[j - 1] + anorm(update_path[:, j] - update_path[:, j - 1], sys.Σ) #! anorm or norm?
-        end
-        s_length = s / s[end] * arclength
-        interp = ParametricSpline(s_length, update_path, k = 3)
-        path = reduce(hcat, [interp(x) for x in range(0, arclength, length = N)])
+        path = interpolate_path(update_path, sys, N, arclength)
         push!(paths, path)
         push!(action, S(path))
 
@@ -95,6 +89,17 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength =
     @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
     paths, action
 end
+
+function interpolate_path(path, sys, N, arclength)
+    s = zeros(N)
+    for j in 2:N
+        s[j] = s[j - 1] + anorm(path[:, j] - path[:, j - 1], sys.Σ) #! anorm or norm?
+    end
+    s_length = s / s[end] * arclength
+    interp = ParametricSpline(s_length, path, k = 3)
+    return reduce(hcat, [interp(x) for x in range(0, arclength, length = N)])
+end
+
 
 """
     heymann_vandeneijnden_step(sys::StochSystem, path, N, L; kwargs...)
