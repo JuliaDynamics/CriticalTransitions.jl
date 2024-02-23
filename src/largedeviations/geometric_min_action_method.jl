@@ -68,8 +68,9 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength =
         println("\r... Iteration $(i)")
 
         if method == "HeymannVandenEijnden"
-            update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
-                tau = tau, cov_inv = A)
+            error("The HeymannVandenEijnden method is broken")
+            # update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
+                # tau = tau, cov_inv = A)
         else
             update = Optim.optimize(S, path, method, Optim.Options(iterations = 1))
             update_path = Optim.minimizer(update)
