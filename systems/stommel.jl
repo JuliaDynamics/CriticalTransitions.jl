@@ -19,7 +19,7 @@ as described in [^Stommel 1961]. The original values in the bistable regime are 
   * `"diffu_abs"`: Absolute flow law Q2 in eq. (2.4) of [^Cessi1994]
   * `"diffu_sqr"`: Absolute flow law Q3 in eq. (2.4) of [^Cessi1994]
 
-See also [`cessi`](@Ref).
+See also [`cessi`](@ref).
 
 [^Stommel1961]:
     [Stommel (1961). Thermohaline Convection with two stable regimes of flow]

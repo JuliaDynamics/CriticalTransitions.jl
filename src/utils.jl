@@ -112,7 +112,7 @@ function anorm(vec, A; square=false)
 end;
 
 """
-    subnorm(vec; directions=[1,...,N])
+    subnorm(vec; kwargs...)
 Returns the Euclidean norm of the vector `vec`; however, if `directions` are specified, the
 norm is only computed along the specified components of the vector, i.e. in a subspace of
 dimension `length(directions)`.
