@@ -23,11 +23,11 @@ function simulate(sys::StochSystem, init::State;
     tmax=1e3,
     solver=EM(),
     callback=nothing,
-    progress=true,
+    showprogress=false,
     kwargs...)
 
     prob = SDEProblem(sys.f, σg(sys), init, (0, tmax), p(sys), noise=stochprocess(sys))
-    solve(prob, solver; dt=dt, callback=callback, progress=progress, kwargs...)
+    solve(prob, solver; dt=dt, callback=callback, progress=showprogress, kwargs...)
 end;
 
 """
@@ -43,7 +43,7 @@ This function integrates `sys.f` forward in time, using the [`ODEProblem`](https
 * `callback=nothing`: callback condition
 * `kwargs...`: keyword arguments for [`solve(ODEProblem)`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#solver_options)
 
-For more info, see [`ODEProblem`](https://diffeq.sciml.ai/stable/types/ode_types/#SciMLBase.ODEProblem). 
+For more info, see [`ODEProblem`](https://diffeq.sciml.ai/stable/types/ode_types/#SciMLBase.ODEProblem).
 For stochastic integration, see [`simulate`](@ref).
 
 > Warning: This function has only been tested for the `Euler()` solver.
@@ -54,7 +54,7 @@ function relax(sys::StochSystem, init::State;
     solver=Euler(),
     callback=nothing,
     kwargs...)
-    
+
     prob = ODEProblem(sys.f, init, (0, tmax), p(sys))
     solve(prob, solver; dt=dt, callback=callback, kwargs...)
 end;
