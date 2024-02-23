@@ -69,7 +69,7 @@ function min_action_method(sys::StochSystem, init::Matrix, T::Real;
     verbose = true,
     kwargs...)
 
-    println("=== Initializing MAM action minimizer ===")
+    verbose && println("=== Initializing MAM action minimizer ===")
 
     A = inv(sys.Σ)
     f(x) = action(sys, fix_ends(x, init[:,1], init[:,end]),
