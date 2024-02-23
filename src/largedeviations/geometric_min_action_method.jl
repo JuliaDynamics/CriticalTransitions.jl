@@ -3,21 +3,24 @@
 
 """
     geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, arclength=1; kwargs...)
+
 Computes the minimizer of the Freidlin-Wentzell action using the geometric minimum
 action method (gMAM). Beta version, to be further documented.
 
 To set an initial path different from a straight line, see the multiple dispatch method
 
-* `geometric_min_action_method(sys::StochSystem, init::Matrix, arclength::Float64; kwargs...)`.
+  - `geometric_min_action_method(sys::StochSystem, init::Matrix, arclength::Float64; kwargs...)`.
 
 ## Keyword arguments
-* `N = 100`: number of discretized path points
-* `maxiter = 100`: maximum number of iterations before the algorithm stops
-* `converge = 1e-5`: convergence threshold for absolute change in action
-* `method = LBFGS()`: choice of optimization algorithm (see below)
-* `tau = 0.1`: step size (used only if `method = "HeymannVandenEijnden"`)
+
+  - `N = 100`: number of discretized path points
+  - `maxiter = 100`: maximum number of iterations before the algorithm stops
+  - `converge = 1e-5`: convergence threshold for absolute change in action
+  - `method = LBFGS()`: choice of optimization algorithm (see below)
+  - `tau = 0.1`: step size (used only if `method = "HeymannVandenEijnden"`)
 
 ## Optimization algorithms
+
 The `method` keyword argument takes solver methods of the
 [`Optim.jl`](https://julianlsolvers.github.io/Optim.jl/stable/#) package; alternatively,
 the option `solver = "HeymannVandenEijnden"` uses the original gMAM
@@ -40,6 +43,7 @@ end
 
 """
     geometric_min_action_method(sys::StochSystem, init::Matrix, arclength::Float64; kwargs...)
+
 Runs the geometric Minimum Action Method (gMAM) to find the minimum action path (instanton) from an
 initial condition `init`, given a system `sys` and total arc length `arclength`.
 
@@ -55,11 +59,13 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength =
         method = LBFGS(),
         tau = 0.1)
     println("=== Initializing gMAM action minimizer ===")
+
     A = inv(sys.Σ)
     path = init
     x_i = init[:, 1]
     x_f = init[:, end]
     N = length(init[1, :])
+
     S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength; cov_inv = A)
     paths = [path]
     action = [S(path)]
@@ -70,7 +76,7 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength =
         if method == "HeymannVandenEijnden"
             error("The HeymannVandenEijnden method is broken")
             # update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
-                # tau = tau, cov_inv = A)
+            # tau = tau, cov_inv = A)
         else
             update = Optim.optimize(S, path, method, Optim.Options(iterations = 1))
             update_path = Optim.minimizer(update)
@@ -101,15 +107,16 @@ function interpolate_path(path, sys, N, arclength)
     return reduce(hcat, [interp(x) for x in range(0, arclength, length = N)])
 end
 
-
 """
     heymann_vandeneijnden_step(sys::StochSystem, path, N, L; kwargs...)
+
 Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `L`.
 
 ## Keyword arguments
-* `tau = 0.1`: step size
-* `diff_order = 4`: order of the finite differencing along the path. Either `2` or `4`.
-* `cov_inv` = nothing: inverse of the covariance matrix `sys.Σ`. If `nothing`, it is computed.
+
+  - `tau = 0.1`: step size
+  - `diff_order = 4`: order of the finite differencing along the path. Either `2` or `4`.
+  - `cov_inv` = nothing: inverse of the covariance matrix `sys.Σ`. If `nothing`, it is computed.
 
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """

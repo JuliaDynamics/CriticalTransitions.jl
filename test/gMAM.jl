@@ -14,11 +14,8 @@ xx = range(-1.0, 1.0, length = 30)
 yy = 0.3 .* (-xx .^ 2 .+ 1)
 init = Matrix([xx yy]')
 
-method = CriticalTransitions.LBFGS()
-gm = geometric_min_action_method(sys, init, maxiter = 100, method=method)
-
-gm = geometric_min_action_method(sys, init, maxiter = 100, method=method)
-
+x_i = init[:,1]
+x_f = init[:,end]
 
 @testset "LBFGS" begin
     gm = geometric_min_action_method(sys, x_i, x_f, maxiter = 10) # runtest
@@ -29,6 +26,7 @@ gm = geometric_min_action_method(sys, init, maxiter = 100, method=method)
     @test all(isapprox.(path[2, :][(end - 5):end], 0, atol = 1e-3))
     @test all(isapprox.(action_val, 0.3375, atol = 1e-3))
 end
+
 
 @testset "HeymannVandenEijnden" begin # broken
     # method = "HeymannVandenEijnden"
