@@ -21,7 +21,6 @@ ls = lyapunovspectrum(CoupledODEs(sys), 10000)
 
 ```@docs
 CoupledODEs(sys::StochSystem; diffeq, t0=0.0)
-StochSystem(ds::CoupledODEs, σ, g, pg, Σ, process)
 attractor_mapper(sys::StochSystem, attractors, eps=0.01; kwargs...)
 ```
 
@@ -56,7 +55,7 @@ is_iip(f::Function)
 ### Generalized vector norms
 ```@docs
 anorm(vec, A; square=false)
-subnorm(vec; directions=[1,...,N])
+subnorm(vec; kwargs...)
 ```
 
 ### `length(sys.u)`-dimensional box
