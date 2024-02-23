@@ -62,7 +62,7 @@ DynamicalSystems.CoupledODEs(sys.f, SVector{length(sys.u)}(sys.u), [sys.pf]; dif
 to_cds(sys::StochSystem) = CoupledODEs(sys)
 
 """
-    StochSystem(ds::CoupledODEs, σ, g, pg, Σ, process)
+    StochSystem(ds::CoupledODEs; σ, g, pg, Σ, process)
 Converts a [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/tutorial/#DynamicalSystemsBase.CoupledODEs)
 system into a [`StochSystem`](@ref).
 """
