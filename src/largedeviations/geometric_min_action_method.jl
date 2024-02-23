@@ -31,7 +31,8 @@ function geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, a
     converge = 1e-5,
     method = LBFGS(),
     tau = 0.1,
-    verbose=true)
+    verbose=true,
+    showprogress=false)
 
     verbose && println("=== Initializing gMAM action minimizer ===")
     A = inv(sys.Σ)
@@ -40,8 +41,8 @@ function geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, a
     paths = [path]
     action = [S(path)]
 
-    for i in 1:maxiter
-        verbose && println("\r... Iteration $(i)")
+    iterator = showprogress ? tqdm(1:maxiter) : 1:maxiter
+    for i in iterator
 
         if method == "HeymannVandenEijnden"
             update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
@@ -88,7 +89,8 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1
     converge = 1e-5,
     method = LBFGS(),
     tau = 0.1,
-    verbose=true)
+    verbose=true,
+    showprogress=false)
 
     verbose && println("=== Initializing gMAM action minimizer ===")
     A = inv(sys.Σ)
@@ -97,8 +99,8 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1
     paths = [path]
     action = [S(path)]
 
-    for i in 1:maxiter
-        verbose && println("\r... Iteration $(i)")
+    iterator = showprogress ? tqdm(1:maxiter) : 1:maxiter
+    for i in iterator
 
         if method == "HeymannVandenEijnden"
             update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
