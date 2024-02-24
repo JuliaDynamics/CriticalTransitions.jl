@@ -5,9 +5,9 @@ As this module is not published yet, there are two ways to access it:
 
 * **Option 1 (recommended): Install from GitHub**
     1. Enter the Julia package manager by typing `]` in the REPL: `julia> ]`
-    2. type `add https://github.com/reykboerner/CriticalTransitions.jl.git`
+    2. type `add https://github.com/juliadynamics/CriticalTransitions.jl.git`
 * **Option 2: Load module locally**
-    1. Clone the repo: `git clone https://github.com/reykboerner/CriticalTransitions.jl.git`
+    1. Clone the repo: `git clone https://github.com/juliadynamics/CriticalTransitions.jl.git`
     2. In Julia, include the module file: `include("PATH/src/CriticalTransitions.jl")`, where `PATH` is the relative path to the repo you just cloned
     3. Load the module: `using .CriticalTransitions`
 
