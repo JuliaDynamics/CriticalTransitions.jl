@@ -1,6 +1,6 @@
 name = "CriticalTransitions"
 uuid = "251e6cd3-3112-48a5-99dd-66efcfd18334"
-repo = "https://github.com/reykboerner/CriticalTransitions.jl.git"
+repo = "https://github.com/juliadynamics/CriticalTransitions.jl.git"
 version = "0.2.0"
 
 [deps]
