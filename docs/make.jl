@@ -1,11 +1,18 @@
-using Documenter, CriticalTransitions
+using Documenter
+using DocumenterCitations
+using CriticalTransitions
 
-makedocs(
+bib = CitationBibliography(
+    joinpath(@__DIR__, "src", "refs.bib");
+    style=:numeric
+)
+
+makedocs(;
     sitename="CriticalTransitions.jl",
     doctest=false,
     format = Documenter.HTML(prettyurls = get(ENV, "CI", nothing) == "true",
         mathengine = Documenter.MathJax2()),
-    
+    warnonly = [:doctest, :missing_docs],
     pages=Any[
         "Home" => "index.md",
         "Quickstart" => "quickstart.md",
@@ -21,9 +28,10 @@ makedocs(
         ],
         "Predefined systems" => "man/systems.md",
         "Development stage" => "man/dev.md"
-    ]
+    ],
+    plugins=[bib],
 )
 
 deploydocs(
-    repo = "github.com/reykboerner/CriticalTransitions.jl.git",
+    repo = "github.com/juliadynamics/CriticalTransitions.jl.git",
 )
