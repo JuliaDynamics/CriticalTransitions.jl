@@ -11,3 +11,4 @@ docs/build/
 /Manifest.toml
 dev/levy.jl
 .JuliaFormatter.toml
+reyk_local/

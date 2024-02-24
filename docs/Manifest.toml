@@ -413,7 +413,7 @@ version = "4.1.1"
 
 [[deps.CriticalTransitions]]
 deps = ["Dates", "Dierckx", "DiffEqNoiseProcess", "DocStringExtensions", "DrWatson", "DynamicalSystems", "Formatting", "ForwardDiff", "HDF5", "IntervalRootFinding", "JLD2", "LinearAlgebra", "Optim", "OrdinaryDiffEq", "Printf", "ProgressBars", "ProgressMeter", "Reexport", "StaticArrays", "Statistics", "StochasticDiffEq", "Symbolics"]
-git-tree-sha1 = "2c8510214ef8be7a4bca1a6487a3f4605d31f67f"
+git-tree-sha1 = "c2362a40d040bb0f4a512d0ab286d5a68d3c2ca8"
 repo-rev = "main"
 repo-url = "https://github.com/juliadynamics/criticaltransitions.jl.git"
 uuid = "251e6cd3-3112-48a5-99dd-66efcfd18334"
@@ -1625,9 +1625,9 @@ version = "1.2.0"
 
 [[deps.NonlinearSolve]]
 deps = ["ADTypes", "ArrayInterface", "ConcreteStructs", "DiffEqBase", "FastBroadcast", "FastClosures", "FiniteDiff", "ForwardDiff", "LazyArrays", "LineSearches", "LinearAlgebra", "LinearSolve", "MaybeInplace", "PrecompileTools", "Preferences", "Printf", "RecursiveArrayTools", "Reexport", "SciMLBase", "SimpleNonlinearSolve", "SparseArrays", "SparseDiffTools", "StaticArraysCore", "TimerOutputs"]
-git-tree-sha1 = "756f958eb6736dab0d786426c00acc6cb25d2377"
+git-tree-sha1 = "ad5e45cecfcae84a086f0d8ff98ab98fa237a253"
 uuid = "8913a72c-1f9b-4ce2-8d82-65094dcecaec"
-version = "3.7.1"
+version = "3.7.2"
 
     [deps.NonlinearSolve.extensions]
     NonlinearSolveBandedMatricesExt = "BandedMatrices"
