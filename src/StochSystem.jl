@@ -1,4 +1,4 @@
-import DynamicalSystems: CoupledODEs
+import DynamicalSystemsBase: CoupledODEs
 
 # Define custom types
 Parameters = Union{Vector{Any}, Nothing};
