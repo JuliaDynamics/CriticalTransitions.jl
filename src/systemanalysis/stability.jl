@@ -1,3 +1,5 @@
+import ChaosTools: fixedpoints
+
 """
     equilib(sys::StochSystem, state::State; kwargs...)
 Returns the equilibrium solution of the system `sys` for given initial condition `state`.
@@ -30,7 +32,7 @@ end;
 
 function fixedpoints(sys::StochSystem, box)
     jac(u,p,t) = ForwardDiff.jacobian((x) -> sys.f(x,p,t), u)
-    DynamicalSystems.fixedpoints(CoupledODEs(sys), box, jac)
+    ChaosTools.fixedpoints(CoupledODEs(sys), box, jac)
 end;
 
 """
@@ -58,7 +60,7 @@ Returns fixed points, their eigenvalues and stability of the system `sys` within
 function fixedpoints(sys::StochSystem, bmin::Vector, bmax::Vector)
     box = intervals_to_box(bmin, bmax)
     jac(u,p,t) = ForwardDiff.jacobian((x) -> sys.f(x,p,t), u)
-    DynamicalSystems.fixedpoints(CoupledODEs(sys), box, jac)
+    ChaosTools.fixedpoints(CoupledODEs(sys), box, jac)
 end;
 
 function saddles_idx(fps::Tuple)
