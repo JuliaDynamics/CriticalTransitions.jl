@@ -1,3 +1,5 @@
+import DynamicalSystemsBase: CoupledODEs
+
 # Define custom types
 Parameters = Union{Vector{Any}, Nothing};
 CovMatrix = Union{Matrix, UniformScaling{Bool}, Diagonal{Bool, Vector{Bool}}};
@@ -57,7 +59,7 @@ Converts a [`StochSystem`](@ref) into [`CoupledODEs`](https://juliadynamics.gith
 from DynamicalSystems.jl.
 """
 CoupledODEs(sys::StochSystem; diffeq=DynamicalSystemsBase.DEFAULT_DIFFEQ, t0=0.0) =
-DynamicalSystems.CoupledODEs(sys.f, SVector{length(sys.u)}(sys.u), [sys.pf]; diffeq=diffeq, t0=t0)
+DynamicalSystemsBase.CoupledODEs(sys.f, SVector{length(sys.u)}(sys.u), [sys.pf]; diffeq=diffeq, t0=t0)
 
 to_cds(sys::StochSystem) = CoupledODEs(sys)
 

@@ -1,14 +1,17 @@
 module CriticalTransitions
 
 using Reexport
-@reexport using DynamicalSystems
+@reexport using DynamicalSystemsBase
+@reexport using StaticArrays
 @reexport using OrdinaryDiffEq
 @reexport using StochasticDiffEq
 @reexport using DiffEqNoiseProcess
 @reexport using LinearAlgebra
 using Formatting, Dates, JLD2, HDF5, ProgressBars, ProgressMeter, DocStringExtensions
+using Attractors
+using ChaosTools: fixedpoints
 using IntervalRootFinding
-using StaticArrays, ForwardDiff
+using ForwardDiff
 using Symbolics
 using Optim, Dierckx
 using Printf, DrWatson, Dates, Statistics
