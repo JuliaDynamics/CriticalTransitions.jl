@@ -31,7 +31,7 @@ path, times, success = transition(sys, fp1, fp2)
 
 ---
 
-Developers: Reyk Börner, Ryan Deeley and Raphael Römer
+Developers: Reyk Börner, Ryan Deeley, Raphael Römer and Orjan Ameye
 
 Thanks to Jeroen Wouters, Calvin Nesbitt, Tobias Grafke, George Datseris and Oliver Mehling
 

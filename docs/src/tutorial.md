@@ -22,7 +22,7 @@ First, we need to translate the system equations above into Julia code.
 This works by defining a function `f(u,p,t)` which takes as input a vector `u` of state variables (``u``,``v``), a vector `p` of parameters, and time `t`. The function must return an array of flow increments (``du``, ``dv``). For performance reasons, it is advisable to return a StaticArray `SA[du, dv]` rather than just a Vector `[du, dv]`. This is why we need the `StaticArrays` package.
 
 ```@example MAIN
-using CriticalTransitions, StaticArrays
+using CriticalTransitions
 
 function fitzhugh_nagumo(u,p,t)
     u, v = u
@@ -59,11 +59,13 @@ Here we have chosen `zeros(2)` as the initial state of the system. The length of
 That's it! Now we can throw the toolbox of `CriticalTransitions` at our stochastic FitzHugh-Nagumo system `sys`.
 
 ### Find stable equilibria
-For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let's compute the fixed points by calling the [`fixedpoints`](@ref) function.
+For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let's compute the fixed points using the [`ChaosTools.fixedpoints`](@ref) function. As this function is from the `DynamicalSystems` ecosystem, it takes a system of type `CoupledODEs` as input. We can simply convert the `StochSystem` `sys` via the [`CoupledODEs`](@ref) function:
 
 ```@example MAIN
 # Calculate fixed points
-eqs, eigs, stab = fixedpoints(sys, [-2,-2], [2,2])
+ds = CoupledODEs(sys)
+box = intervals_to_box([-2,-2], [2,2])
+eqs, eigs, stab = fixedpoints(ds, box)
 
 # Store the two stable fixed points
 fp1, fp2 = eqs[stab]

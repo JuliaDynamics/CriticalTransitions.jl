@@ -22,7 +22,7 @@ Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSyste
     * ...?
 
 
-Developers: Reyk Börner, Ryan Deeley and Raphael Römer
+Developers: Reyk Börner, Ryan Deeley, Raphael Römer and Orjan Ameye
 
 Thanks to Jeroen Wouters, Calvin Nesbitt, Tobias Grafke, George Datseris and Oliver Mehling
 

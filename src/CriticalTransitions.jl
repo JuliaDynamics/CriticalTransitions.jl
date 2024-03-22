@@ -9,7 +9,7 @@ using Reexport
 @reexport using LinearAlgebra
 using Formatting, Dates, JLD2, HDF5, ProgressBars, ProgressMeter, DocStringExtensions
 using Attractors
-using ChaosTools: fixedpoints
+using ChaosTools
 using IntervalRootFinding
 using ForwardDiff
 using Symbolics
