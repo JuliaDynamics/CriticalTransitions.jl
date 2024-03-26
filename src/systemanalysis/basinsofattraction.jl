@@ -42,7 +42,7 @@ function basins(sys::StochSystem, A, B, C, H;
     iterator = showprogress ? tqdm(1:length(X)) : 1:length(X)
     @Threads.threads for ii ∈ iterator
         Z = [A+X[ii]*(B-A)+y*(C-A) for y ∈ Y]; # a row of initial conditions
-        h[:,ii] = AttractorsViaProximity(CoupledODEs(sys), attractors, ϵ_mapper; kwargs...).(Z)
+        h[:,ii] = Attractors.AttractorsViaProximity(CoupledODEs(sys), attractors, ϵ_mapper; kwargs...).(Z)
     end
 
     [X, Y, attractors, h]

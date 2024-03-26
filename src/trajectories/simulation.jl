@@ -24,9 +24,10 @@ function simulate(sys::StochSystem, init::State;
     solver=EM(),
     callback=nothing,
     showprogress=false,
+    iip=is_iip(sys.f),
     kwargs...)
 
-    prob = SDEProblem(sys.f, σg(sys), init, (0, tmax), p(sys), noise=stochprocess(sys))
+    prob = SDEProblem{iip}(sys.f, σg(sys), init, (0, tmax), p(sys), noise=stochprocess(sys))
     solve(prob, solver; dt=dt, callback=callback, progress=showprogress, kwargs...)
 end;
 
@@ -53,8 +54,9 @@ function relax(sys::StochSystem, init::State;
     tmax=1e3,
     solver=Euler(),
     callback=nothing,
+    iip=is_iip(sys.f),
     kwargs...)
 
-    prob = ODEProblem(sys.f, init, (0, tmax), p(sys))
+    prob = ODEProblem{iip}(sys.f, init, (0, tmax), p(sys))
     solve(prob, solver; dt=dt, callback=callback, kwargs...)
 end;
