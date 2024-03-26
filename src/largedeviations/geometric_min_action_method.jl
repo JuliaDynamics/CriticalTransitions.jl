@@ -53,12 +53,16 @@ The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dime
 For more information see the main method,
 [`geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, arclength::Float64; kwargs...)`](@ref).
 """
-function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength = 1.0;
-        maxiter = 100,
-        converge = 1e-5,
-        method = LBFGS(),
-        tau = 0.1)
-    println("=== Initializing gMAM action minimizer ===")
+
+function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1.0;
+    maxiter = 100,
+    converge = 1e-5,
+    method = LBFGS(),
+    tau = 0.1,
+    verbose=true,
+    showprogress=false)
+
+    verbose && println("=== Initializing gMAM action minimizer ===")
 
     A = inv(sys.Σ)
     path = init
@@ -70,8 +74,8 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength =
     paths = [path]
     action = [S(path)]
 
-    for i in 1:maxiter
-        println("\r... Iteration $(i)")
+    iterator = showprogress ? tqdm(1:maxiter) : 1:maxiter
+    for i in iterator
 
         if method == "HeymannVandenEijnden"
             error("The HeymannVandenEijnden method is broken")
@@ -87,13 +91,13 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength =
         push!(paths, path)
         push!(action, S(path))
 
-        if abs(action[end] - action[end - 1]) < converge
-            println("Converged after $(i) iterations.")
+        if abs(action[end]-action[end-1]) < converge
+            verbose && println("Converged after $(i) iterations.")
             return paths, action
             break
         end
     end
-    @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
+    verbose && @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
     paths, action
 end
 
@@ -121,9 +125,10 @@ Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
 function heymann_vandeneijnden_step(sys::StochSystem, path, N, L;
-        tau = 0.1,
-        diff_order = 4,
-        cov_inv = nothing)
+    tau = 0.1,
+    diff_order = 4,
+    cov_inv = nothing)
+
     (cov_inv == nothing) ? A = inv(sys.Σ) : A = cov_inv
 
     dx = L / (N - 1)
@@ -139,6 +144,7 @@ function heymann_vandeneijnden_step(sys::StochSystem, path, N, L;
     end
 
     b(x) = drift(sys, x)
+
     J = [ForwardDiff.jacobian(b, path[:, i]) for i in 2:(N - 1)]
     prod1 = [(J[i - 1] - J[i - 1]') * x_prime[:, i] for i in 2:(N - 1)]
     prod2 = [(J[i - 1]') * b(path[:, i]) for i in 2:(N - 1)]

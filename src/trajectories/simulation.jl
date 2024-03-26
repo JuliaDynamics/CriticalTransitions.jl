@@ -23,12 +23,12 @@ function simulate(sys::StochSystem, init::State;
     tmax=1e3,
     solver=EM(),
     callback=nothing,
-    progress=true,
+    showprogress=false,
     iip=is_iip(sys.f),
     kwargs...)
 
     prob = SDEProblem{iip}(sys.f, σg(sys), init, (0, tmax), p(sys), noise=stochprocess(sys))
-    solve(prob, solver; dt=dt, callback=callback, progress=progress, kwargs...)
+    solve(prob, solver; dt=dt, callback=callback, progress=showprogress, kwargs...)
 end;
 
 """
