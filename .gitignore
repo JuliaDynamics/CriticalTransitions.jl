@@ -9,6 +9,7 @@ docs/build/
 /ryan/  
 .vscode/
 /Manifest.toml
+docs/Manifest.toml
 dev/levy.jl
 .JuliaFormatter.toml
 reyk_local/
