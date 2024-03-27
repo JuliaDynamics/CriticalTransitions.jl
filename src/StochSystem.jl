@@ -61,7 +61,10 @@ from DynamicalSystems.jl.
 CoupledODEs(sys::StochSystem; diffeq=DynamicalSystemsBase.DEFAULT_DIFFEQ, t0=0.0) =
 DynamicalSystemsBase.CoupledODEs(sys.f, SVector{length(sys.u)}(sys.u), [sys.pf]; diffeq=diffeq, t0=t0)
 
-to_cds(sys::StochSystem) = CoupledODEs(sys)
+function to_cds(sys::StochSystem)
+    Base.depwarn("`to_cds` is deprecated, use `CoupledODEs(sys::StochSystem)` instead.", :to_cds, force=true)
+    return CoupledODEs(sys)
+end
 
 """
     StochSystem(ds::CoupledODEs; σ, g, pg, Σ, process)
