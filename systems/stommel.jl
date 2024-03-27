@@ -4,7 +4,7 @@ Stommel's hemispheric 2-box model of the Thermohaline Circulation[^Stommel1961].
 
 The state vector `u = [x, y]` describes the non-dimensional temperature (`x`) and salinity (`y`) gradients
 between the equatiorial and the polar box (details in the
-[online docs](https://reykboerner.github.io/CriticalTransitions.jl/stable/man/systems/#Thermohaline-Circulation-box-models)).
+[online docs](https://juliadynamics.github.io/CriticalTransitions.jl/stable/man/systems/#Thermohaline-Circulation-box-models)).
 
 The parameter vector `p = [[delta, mu, R]]` comprises the ratio ``\\delta`` of the saline and thermal
 relaxation coefficients, the advective coefficient ``\\mu = 1/\\lambda``, and the constant ``R``
@@ -23,10 +23,10 @@ See also [`cessi`](@ref).
 
 [^Stommel1961]:
     [Stommel (1961). Thermohaline Convection with two stable regimes of flow]
-    (https://onlinelibrary.wiley.com/doi/abs/10.1111/j.2153-3490.1961.tb00079.x)
+    (https://doi.org/10.1111/j.2153-3490.1961.tb00079.x)
 [^Cessi1994]:
     [Cessi (1994). A simple box model of stochastically forced thermohaline flow]
-    (https://journals.ametsoc.org/view/journals/phoc/24/9/1520-0485_1994_024_1911_asbmos_2_0_co_2.xml)
+    (https://doi.org/10.1175/1520-0485(1994)024%3C1911:ASBMOS%3E2.0.CO;2)
 """
 function stommel(u, p, t; smooth=1e-6, flow_law="abs")
     x, y = u
@@ -47,7 +47,7 @@ function stommel(u, p, t; smooth=1e-6, flow_law="abs")
     else
         @error("Invalid value of 'flow_law' kwarg. Options: 'abs', 'diffu_abs', 'diffu_sqr'.")
     end
-    
+
     dx = 1 - x - mu*x*q - diffu*delta*x
     dy = delta*(R - y) - mu*y*q
 
@@ -57,9 +57,9 @@ end
 """
     cessi(u, p, t)
 Cessi's hemispheric 2-box model of the Thermohaline Circulation
-([Cessi (1994)](https://journals.ametsoc.org/view/journals/phoc/24/9/1520-0485_1994_024_1911_asbmos_2_0_co_2.xml)).
+([Cessi (1994)](https://doi.org/10.1175/1520-0485(1994)024%3C1911:ASBMOS%3E2.0.CO;2 )).
 
-## Parameters 
+## Parameters
 `p = [[alpha, mu2, pflux]]`
 
 See also [`stommel`](@ref).
@@ -67,7 +67,7 @@ See also [`stommel`](@ref).
 function cessi(u, p, t)
     # Non-dimensional model parameters [Cessi 1994]
     alpha, mu2, pflux = p[1]
-    
+
     # Convert to Stommel parameters
     delta = 2/alpha
     mu = 2/alpha*mu2

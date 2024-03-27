@@ -31,7 +31,7 @@ function transition(sys::StochSystem, x_i::State, x_f::State;
     dt=0.01,
     tmax=1e3,
     solver=EM(),
-    progress=true,
+    showprogress=true,
     cut_start=true,
     rad_dims=1:length(sys.u),
     kwargs...)
@@ -40,13 +40,16 @@ function transition(sys::StochSystem, x_i::State, x_f::State;
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
 
-    sim = simulate(sys, x_i, dt=dt, tmax=tmax, solver=solver, callback=cb_ball, progress=progress, kwargs...)
+    sim = simulate(sys, x_i;
+        dt=dt, tmax=tmax, solver=solver,
+        callback=cb_ball, progress=showprogress,
+        kwargs...)
 
     success = true
     if sim.t[end] == tmax
         success = false
     end
-    
+
     simt = sim.t
     if cut_start
         idx = size(sim)[2]
@@ -111,7 +114,8 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     rad_dims=1:length(sys.u),
     savefile=nothing,
     output_level=1,
-    showprogress::Bool=true)
+    showprogress::Bool=false,
+    kwargs...)
     """
     Generates N transition samples of sys from x_i to x_f.
     Supports multi-threading.
@@ -126,13 +130,13 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
     iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
     Threads.@threads for j ∈ iterator
-        
+
         sim, simt, success = transition(sys, x_i, x_f;
                     rad_i=rad_i, rad_f=rad_f, rad_dims=rad_dims, dt=dt, tmax=tmax,
-                    solver=solver, progress=false, cut_start=cut_start)
-        
-        if success 
-            
+                    solver=solver, progress=false, cut_start=cut_start, kwargs...)
+
+        if success
+
             if showprogress
                 print("\rStatus: $(length(idx)+1)/$(N) transitions complete.")
             end
@@ -144,7 +148,7 @@ function transitions(sys::StochSystem, x_i::State, x_f::State, N=1;
                 write(savefile, "paths/path "*string(j), sim)
                 write(savefile, "times/times "*string(j), simt)
             end
-        
+
             push!(idx, j)
 
             if length(idx) > max(1, N - Threads.nthreads())

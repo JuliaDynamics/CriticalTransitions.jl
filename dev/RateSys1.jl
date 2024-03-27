@@ -6,7 +6,7 @@ State = Union{Vector, SVector}
 # Define RateSystem
 """
     RateSystem(f, pf, dim, σ, g, pg, Σ, process)
-Defines a stochastic dynamical system with a rate dependent shift in `CriticalTransitions.jl`. See [documentation](https://reykboerner.github.io/CriticalTransitions.jl/dev/man/stochsystem/).
+Defines a stochastic dynamical system with a rate dependent shift in `CriticalTransitions.jl`. See [documentation](https://juliadynamics.github.io/CriticalTransitions.jl/dev/man/stochsystem/).
 """
 struct RateSystem
     # i think it would maybe be helpful to define a few more fields:
@@ -14,13 +14,13 @@ struct RateSystem
     # dim2::Int64, gives the number of time-dependent functions
     # Σ₂::CovMatrix, gives the covariance matrix of the time-dependent parameters
     f::Function                 # vector of functions describing the derivatives of each state variable
-    pf::Parameters              # parameters for the derivatives of the state variables 
+    pf::Parameters              # parameters for the derivatives of the state variables
     td_inds::Vector{Bool}       # a boolean vector indicating which parameters are time-dependent
     L::Function                 # vector of functions describing the derivatives of each time-dependent parameter
     pL::Parameters              # parameters for the derivatives of the parameter variables
     T_trans::Float64            # the length of time before ramping begins
     T_shift::Float64            # the length of time where the specified parameters evolve
-    dim::Int64                  
+    dim::Int64
     σ::Float64
     g::Function
     pg::Parameters
@@ -59,7 +59,7 @@ function simulate(sys::RateSystem, init::State;
     func(u,p,t) = fL(u,p,t,sys)
 
     prob = SDEProblem(func, σg(sys), init, (0, tmax), p(sys), noise=stochprocess(sys))
-    
+
     solve(prob, solver; dt=dt, callback=callback, progress=progress, kwargs...)
 
 end;
@@ -77,7 +77,7 @@ This function integrates `sys.f` forward in time, using the [`ODEProblem`](https
 * `callback=nothing`: callback condition
 * `kwargs...`: keyword arguments for `solve(ODEProblem)`
 
-For more info, see [`ODEProblem`](https://diffeq.sciml.ai/stable/types/ode_types/#SciMLBase.ODEProblem). 
+For more info, see [`ODEProblem`](https://diffeq.sciml.ai/stable/types/ode_types/#SciMLBase.ODEProblem).
 For stochastic integration, see [`simulate`](@ref).
 
 > Warning: This function has only been tested for the `Euler()` solver.
@@ -88,7 +88,7 @@ function relax(sys::RateSystem, init::State;
     solver=Euler(),
     callback=nothing,
     kwargs...)
-    
+
     func(u,p,t) = fL(u,p,t,sys)
 
     prob = ODEProblem(func, init, (0, tmax), p(sys))
@@ -138,7 +138,7 @@ end
     gauss(sys::RateSystem)
 Returns a Wiener process with dimension `length(sys.u)` and covariance matrix `sys.Σ`.
 
-This function is based on the [`CorrelatedWienerProcess`](https://noise.sciml.ai/stable/noise_processes/#DiffEqNoiseProcess.CorrelatedWienerProcess) of [`DiffEqNoiseProcess.jl`](https://noise.sciml.ai/stable/), a component of `DifferentialEquations.jl`. The initial condition of the process is set to the zero vector at `t=0`.
+This function is based on the [`CorrelatedWienerProcess`](https://docs.sciml.ai/DiffEqNoiseProcess/stable/noise_processes/#DiffEqNoiseProcess.CorrelatedWienerProcess) of [`DiffEqNoiseProcess.jl`](https://docs.sciml.ai/DiffEqNoiseProcess/stable/), a component of `DifferentialEquations.jl`. The initial condition of the process is set to the zero vector at `t=0`.
 """
 function gauss(sys::RateSystem)
     Σ₂ = zeros(sum(sys.td_inds),sum(sys.td_inds)); # the covariance matrix of the time-dependent parameters, fixed to zero for now
@@ -154,7 +154,7 @@ end;
 function fL(u,p,t,sys::RateSystem)
 
     pf = p[1][1:length(sys.pf)];
-    pL = p[1][length(sys.pf)+1:end]; 
+    pL = p[1][length(sys.pf)+1:end];
 
     #stationary = 0..t_trans ∪ t_trans+t_shift..Inf
     #du = t in stationary ? hcat(sys.f(u,p,t),zeros(length(sys.pf)) : hcat(sys.f(u,p,t),sys.L(u,p,t))
@@ -166,7 +166,7 @@ function fL(u,p,t,sys::RateSystem)
     pf[sys.td_inds] = param_vars; # modifying the vector of fixed parameters to account for the current values of the time-dependent parameters
 
     nonstationary = sys.T_trans..sys.T_trans+sys.T_shift; # the time-interval of the ramping period
-    
+
     du = t in nonstationary ? vcat(sys.f(state_vars,[pf],t),sys.L(param_vars,[pL],t)) : vcat(sys.f(state_vars,[pf],t),SVector{sum(sys.td_inds)}(zeros(sum(sys.td_inds))))
 
 end;

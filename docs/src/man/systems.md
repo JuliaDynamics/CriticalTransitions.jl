@@ -40,7 +40,7 @@ The variables ``P`` and ``Z`` represent the concentration of phytoplankton (prey
 * ``\xi = 1/10``: the time-scale separation between the evolution of phytoplankton and zooplankton 
 * ``m = 0.0525``: the zooplankton mortality rate 
 
-The model (as discussed [here](http://dx.doi.org/10.1016/j.ecocom.2014.10.003)) is a modified version of the original 1994 Truscott-Brindley system (see [here](https://doi.org/10.1007/BF02458277)), with a quadratic mortality term to enable bistability. The variable ``t`` has units of days. Following a non-dimensionalisation of the system, the dynamical equations convert to:
+The model (as discussed [here](https://dx.doi.org/10.1016/j.ecocom.2014.10.003)) is a modified version of the original 1994 Truscott-Brindley system (see [here](https://doi.org/10.1007/BF02458277)), with a quadratic mortality term to enable bistability. The variable ``t`` has units of days. Following a non-dimensionalisation of the system, the dynamical equations convert to:
 
 ```math
 \begin{aligned}

@@ -59,7 +59,7 @@ Here we have chosen `zeros(2)` as the initial state of the system. The length of
 That's it! Now we can throw the toolbox of `CriticalTransitions` at our stochastic FitzHugh-Nagumo system `sys`.
 
 ### Find stable equilibria
-For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let's compute the fixed points using the [`ChaosTools.fixedpoints`](@ref) function. As this function is from the `DynamicalSystems` ecosystem, it takes a system of type `CoupledODEs` as input. We can simply convert the `StochSystem` `sys` via the [`CoupledODEs`](@ref) function:
+For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let's compute the fixed points using the [`fixedpoints`](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/chaostools/stable/periodicity/#ChaosTools.fixedpoints) function from ChaosTools.jl. As this function is from the `DynamicalSystems` ecosystem, it takes a system of type `CoupledODEs` as input. We can simply convert the `StochSystem` `sys` via the [`CoupledODEs`](@ref) function:
 
 ```@example MAIN
 # Calculate fixed points
