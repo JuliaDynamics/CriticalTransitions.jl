@@ -138,7 +138,7 @@ end
     gauss(sys::RateSystem)
 Returns a Wiener process with dimension `length(sys.u)` and covariance matrix `sys.Σ`.
 
-This function is based on the [`CorrelatedWienerProcess`](https://noise.sciml.ai/stable/noise_processes/#DiffEqNoiseProcess.CorrelatedWienerProcess) of [`DiffEqNoiseProcess.jl`](https://noise.sciml.ai/stable/), a component of `DifferentialEquations.jl`. The initial condition of the process is set to the zero vector at `t=0`.
+This function is based on the [`CorrelatedWienerProcess`](https://docs.sciml.ai/DiffEqNoiseProcess/stable/noise_processes/#DiffEqNoiseProcess.CorrelatedWienerProcess) of [`DiffEqNoiseProcess.jl`](https://docs.sciml.ai/DiffEqNoiseProcess/stable/), a component of `DifferentialEquations.jl`. The initial condition of the process is set to the zero vector at `t=0`.
 """
 function gauss(sys::RateSystem)
     Σ₂ = zeros(sum(sys.td_inds),sum(sys.td_inds)); # the covariance matrix of the time-dependent parameters, fixed to zero for now
