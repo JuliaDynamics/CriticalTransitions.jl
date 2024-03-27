@@ -15,6 +15,14 @@ end
     include("largedeviations/gMAM.jl")
 end
 
-@testset "Examples" begin
-    include("examples/tutorial.jl")
+@testset "utilities" begin
+    include("utils.jl")
+end
+
+@testset "Baisin" begin
+    include("baisin/baisin_boundary.jl")
+end
+
+@testset "Trajactories" begin
+    include("trajactories/simulate.jl")
 end

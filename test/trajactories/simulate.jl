@@ -1,14 +1,4 @@
-@testset "Tutorial" begin
-    function fitzhugh_nagumo(u, p, t)
-        u, v = u
-        ϵ, β, α, γ, κ, I = p[1]
-
-        du = (-α * u^3 + γ * u - κ * v + I) / ϵ
-        dv = -β * v + u
-
-        SA[du, dv]
-    end
-
+@testset "fitzhugh_nagumo" begin
     p = [1.0, 3.0, 1.0, 1.0, 1.0, 0.0] # Parameters (ϵ, β, α, γ, κ, I)
     σ = 0.18 # noise strength
 
@@ -22,6 +12,8 @@
 
     # Store the two stable fixed points
     fp1, fp2 = eqs[stab]
+    @test fp1 == - fp2
 
+    # can it run test
     sim = simulate(sys, fp1, dt = 0.01, tmax = 1e3)
 end # @testset "Tutorial"

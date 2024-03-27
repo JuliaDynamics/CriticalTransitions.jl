@@ -17,8 +17,8 @@
     x_f = init[:, end]
 
     @testset "LBFGS" begin
-        gm = geometric_min_action_method(sys, x_i, x_f, maxiter = 10) # runtest
-        gm = geometric_min_action_method(sys, init, maxiter = 100)
+        gm = geometric_min_action_method(sys, x_i, x_f, maxiter = 10, verbose = false)# runtest
+        gm = geometric_min_action_method(sys, init, maxiter = 100, verbose=false)
 
         path = gm[1][end]
         action_val = gm[2][end]
