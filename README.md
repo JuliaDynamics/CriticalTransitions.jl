@@ -35,4 +35,4 @@ Developers: Reyk Börner, Ryan Deeley, Raphael Römer and Orjan Ameye
 
 Thanks to Jeroen Wouters, Calvin Nesbitt, Tobias Grafke, George Datseris and Oliver Mehling
 
-This work is part of the [CriticalEarth](https://criticalearth.eu) project.
+This work is part of the [CriticalEarth](https://www.criticalearth.eu) project.

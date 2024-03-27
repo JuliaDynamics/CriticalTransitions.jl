@@ -10,14 +10,14 @@ bib = CitationBibliography(
 makedocs(;
     sitename="CriticalTransitions.jl",
     repo = Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
-    # remote = Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
     modules=[CriticalTransitions],
     doctest=false,
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
         mathengine = Documenter.MathJax2()
         ),
-    warnonly = [:doctest, :missing_docs,:cross_references],
+    linkcheck = true,
+    warnonly = [:doctest, :missing_docs, :cross_references, :linkcheck],
     pages=Any[
         "Home" => "index.md",
         "Quickstart" => "quickstart.md",
