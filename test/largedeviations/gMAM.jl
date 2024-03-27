@@ -1,5 +1,3 @@
-using CriticalTransitions, Test
-
 @testset "gMAM Meier Stein" begin
     function meier_stein(u, p, t) # out-of-place
         x, y = u
