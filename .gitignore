@@ -3,6 +3,7 @@
 **/devtest.jl
 *.mem
 *.ipynb
+!gMam_Maierstein.ipynb
 *.DS_Store
 /**/test.h5
 docs/build/
