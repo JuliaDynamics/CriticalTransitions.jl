@@ -21,7 +21,7 @@ makedocs(;
     pages=Any[
         "Home" => "index.md",
         "Quickstart" => "quickstart.md",
-        "Tutorial" => "tutorial.md",
+        "Tutorial" => "examples/tutorial.md",
         "Manual" => Any[
             "Defining a StochSystem" => "man/stochsystem.md",
             "Stability analysis" => "man/systemanalysis.md",
@@ -30,6 +30,9 @@ makedocs(;
             "Large deviation theory" => "man/largedeviations.md",
             "Noise processes" => "man/noise.md",
             "Utilities" => "man/utils.md"
+        ],
+        "Examples" => Any[
+            "Instanton for the Maier-Stein system" => "examples/gMAM_Maierstein.md"
         ],
         "Predefined systems" => "man/systems.md",
         "Development stage" => "man/dev.md"
