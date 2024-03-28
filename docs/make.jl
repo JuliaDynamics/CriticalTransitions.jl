@@ -21,7 +21,7 @@ makedocs(;
     pages=Any[
         "Home" => "index.md",
         "Quickstart" => "quickstart.md",
-        "Tutorial" => "tutorial.md",
+        "Tutorial" => "examples/tutorial.md",
         "Manual" => Any[
             "Defining a StochSystem" => "man/stochsystem.md",
             "Stability analysis" => "man/systemanalysis.md",
