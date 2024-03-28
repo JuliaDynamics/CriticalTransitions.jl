@@ -31,6 +31,14 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
 Attractors = "1"
+Symbolics = "5"
+DocStringExtensions = "0.9"
+Statistics = "1"
+ProgressBars = "1"
+StochasticDiffEq = "6"
+ProgressMeter = "1"
+ChaosTools = "3"
+OrdinaryDiffEq = "6"
 julia = "1.4"
 
 [extras]
