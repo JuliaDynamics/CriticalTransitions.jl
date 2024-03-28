@@ -30,6 +30,7 @@ StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
+Optim = "1"
 Reexport = "1"
 ForwardDiff = "0.10"
 JLD2 = "0.4"
