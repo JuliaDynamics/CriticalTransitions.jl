@@ -34,11 +34,13 @@ function geometric_min_action_method(
         maxiter = 100,
         converge = 1e-5,
         method = LBFGS(),
-        tau = 0.1)
+        tau = 0.1,
+        verbose=true,
+        showprogress=false)
     path = reduce(hcat, range(x_i, x_f, length = N))
     geometric_min_action_method(sys::StochSystem, path, arclength;
         maxiter = maxiter, converge = converge,
-        method = method, tau = tau)
+        method = method, tau = tau, verbose = verbose, showprogress = showprogress)
 end
 
 """
