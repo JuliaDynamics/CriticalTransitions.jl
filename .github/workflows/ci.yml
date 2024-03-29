@@ -5,13 +5,9 @@ on:
       - '*'
     branches:
       - 'main'
-      paths-ignore:
-    - 'docs/**'
   pull_request:
     branches:
       - 'main'
-    paths-ignore:
-      - 'docs/**'
 concurrency:
   # Skip intermediate builds: always.
   # Cancel intermediate builds: only if it is a pull request build.
