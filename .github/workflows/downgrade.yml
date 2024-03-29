@@ -35,7 +35,7 @@ jobs:
           show-versioninfo: true
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: julia-actions/julia-downgrade-compat-action@v1
+      - uses: julia-actions/julia-downgrade-compat@v1
         with:
           skip: Pkg,TOML
       - uses: julia-actions/julia-buildpkg@v1
