@@ -50,7 +50,7 @@ StochasticDiffEq = "6.65.1"
 ProgressMeter = "1.10.0"
 ChaosTools = "3.1.2"
 OrdinaryDiffEq = "6.74.1"
-julia = "1.10"
+julia = "1.9"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
