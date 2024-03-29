@@ -2,10 +2,19 @@ name: Documenter
 
 on:
   push:
-    branches: main
-    tags: [v*]
+    tags:
+      - '*'
+    branches:
+      - 'main'
   pull_request:
+    branches:
+      - 'main'
 
+concurrency:
+  # Skip intermediate builds: always.
+  # Cancel intermediate builds: only if it is a pull request build.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 jobs:
   Documenter:
     permissions:
