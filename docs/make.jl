@@ -13,6 +13,7 @@ makedocs(;
     modules=[CriticalTransitions],
     doctest=false,
     format = Documenter.HTML(
+        canonical="https://juliadynamics.github.io/CriticalTransitions.jl/",
         prettyurls = get(ENV, "CI", nothing) == "true",
         mathengine = Documenter.MathJax2()
         ),
