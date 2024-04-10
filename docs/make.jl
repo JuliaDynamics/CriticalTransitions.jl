@@ -35,9 +35,10 @@ makedocs(;
         "Predefined systems" => "man/systems.md",
         "Development stage" => "man/dev.md"
     ],
-    plugins=[bib],
+    plugins=[bib]
 )
 
 deploydocs(
     repo = "github.com/juliadynamics/CriticalTransitions.jl.git",
+    push_preview = false
 )
