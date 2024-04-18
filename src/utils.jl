@@ -16,7 +16,8 @@ end;
 Identity function for noise function `StochSystem.g` (in-place).
 """
 function idfunc!(du, u, p, t)
-    du = ones(length(u))
+    du .= ones(length(u))
+    nothing
 end;
 
 """
@@ -35,7 +36,7 @@ Generates a box from specifying the interval limits in each dimension.
 * `bmin` (Vector): lower limit of the box in each dimension
 * `bmax` (Vector): upper limit
 
-## Example 
+## Example
 `intervals_to_box([-2,-1,0], [2,1,1])` returns a 3D box of dimensions `[-2,2] × [-1,1] × [0,1]`.
 """
 function intervals_to_box(bmin::Vector, bmax::Vector)
@@ -53,17 +54,18 @@ function intervals_to_box(bmin::Vector, bmax::Vector)
 end;
 
 function additive_idx!(du, u, p, t, idx)
-    du[indx] .= 1.
+    du[idx] = 1.
+    nothing
 end;
 
 function additive_idx(u,p,t,idx)
     du = zeros(length(u))
-    du[idx] .= 1.
+    du[idx] = 1.
     SVector{length(u)}(du)
 end;
 
 function multiplicative_idx!(du, u, p, t, idx)
-    du[indx] .= u[idx]
+    du[idx] = u[idx]
 end;
 
 function multiplicative_idx(u, p, t, idx)
@@ -78,7 +80,7 @@ function multiplicative_first!(du, u, p, t)
 end;
 
 function multiplicative_first(u, p, t)
-    
+
     du = zeros(length(u));
     du[1] = u[1];
 
@@ -90,7 +92,7 @@ function additive_first!(du, u, p, t)
 end;
 
 function additive_first(u, p, t)
-    
+
     du = zeros(length(u));
     du[1] = 1;
 
@@ -99,8 +101,8 @@ end;
 
 """
     anorm(vec, A; square=false)
-Calculates the generalized ``A``-norm of the vector `vec`, 
-``||v||_A := \\sqrt(v^\\top \\cdot A \\cdot v)``, 
+Calculates the generalized ``A``-norm of the vector `vec`,
+``||v||_A := \\sqrt(v^\\top \\cdot A \\cdot v)``,
 where `A` is a square matrix of dimension `(lenth(vec) x length(vec))`.
 
 # Keyword arguments

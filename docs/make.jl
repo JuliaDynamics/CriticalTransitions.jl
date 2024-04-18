@@ -13,7 +13,8 @@ makedocs(;
     modules=[CriticalTransitions],
     doctest=false,
     format = Documenter.HTML(
-        prettyurls = get(ENV, "CI", nothing) == "true",
+        canonical="https://juliadynamics.github.io/CriticalTransitions.jl/",
+        prettyurls = true,
         mathengine = Documenter.MathJax2()
         ),
     linkcheck = true,
@@ -37,9 +38,10 @@ makedocs(;
         "Predefined systems" => "man/systems.md",
         "Development stage" => "man/dev.md"
     ],
-    plugins=[bib],
+    plugins=[bib]
 )
 
 deploydocs(
-    repo = "github.com/juliadynamics/CriticalTransitions.jl.git",
+    repo = "github.com/JuliaDynamics/CriticalTransitions.jl.git",
+    push_preview = false
 )
