@@ -53,5 +53,10 @@ end
     parammap = [α => 1.5, β => 1.0]
 
     prob = SDEProblem(de, u0map, (0.0, 1.0), parammap)
+    integrator = init(prob, LambaEulerHeun())
     solve(prob, LambaEulerHeun(), seed = 1)
+
+    @show prob.p
+
+    prob.f.f.f_iip([1.0], [1.0], prob.p.tunable[1], 0.0)
 end
