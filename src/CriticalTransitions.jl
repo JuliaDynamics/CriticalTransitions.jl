@@ -76,16 +76,16 @@ export rivals!, rivals, rivals_ϵσ
 export rooth_smooth, stommel, cessi
 
 # Development
-export transition2, transitions2
-export residence_time2, residence_times2
-export saddles_idx, repellers_idx, attractors_idx
-export additive_idx, additive_idx!
-export multiplicative_idx, multiplicative_idx!
-export FitzHughNagumoSPDE, fhn_pathspace_sampling
-export langevinmcmc_spde, symbolise_spde, stochastic_bridge
-export jacobian
-export residence_time, residence_times, ResTimes, temporal, runandsavetimes, get_res_times
-export exit_time, exit_times
-export RateSystem, fL, stochtorate
+# export transition2, transitions2
+# export residence_time2, residence_times2
+# export saddles_idx, repellers_idx, attractors_idx
+# export additive_idx, additive_idx!
+# export multiplicative_idx, multiplicative_idx!
+# export FitzHughNagumoSPDE, fhn_pathspace_sampling
+# export langevinmcmc_spde, symbolise_spde, stochastic_bridge
+# export jacobian
+# export residence_time, residence_times, ResTimes, temporal, runandsavetimes, get_res_times
+# export exit_time, exit_times
+# export RateSystem, fL, stochtorate
 
 end # module CriticalTransitions
