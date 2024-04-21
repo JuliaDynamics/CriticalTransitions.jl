@@ -54,6 +54,7 @@ end
 
     prob = SDEProblem(de, u0map, (0.0, 1.0), parammap)
     integrator = init(prob, LambaEulerHeun())
+    @show integrator |> typeof |> fieldnames
     solve(prob, LambaEulerHeun(), seed = 1)
 
     @show prob.p
