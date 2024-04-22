@@ -30,7 +30,7 @@ See also [`cessi`](@ref).
 """
 function stommel(u, p, t; smooth=1e-6, flow_law="abs")
     x, y = u
-    delta, mu, R = p[1]
+    delta, mu, R = p
 
     if flow_law == "abs"
         # Original Stommel model
@@ -66,7 +66,7 @@ See also [`stommel`](@ref).
 """
 function cessi(u, p, t)
     # Non-dimensional model parameters [Cessi 1994]
-    alpha, mu2, pflux = p[1]
+    alpha, mu2, pflux = p
 
     # Convert to Stommel parameters
     delta = 2/alpha

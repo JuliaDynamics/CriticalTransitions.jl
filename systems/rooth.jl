@@ -8,7 +8,7 @@ the absolute value of the flow strength `q` with a smooth hyperbolic tangent app
 ## State vector
 `u = [T1, T2, T3, S1, S3]`
 
-## Parameters 
+## Parameters
 `p = [F1, F3, lambd_T, lambd_S, tau1, tau2, tau3, sig1, sig2, sig3, smooth]`
 
 ## Keyword arguments
@@ -25,7 +25,7 @@ function rooth_smooth(u, p, t;
     S_tot = 140)
 
     T1, T2, T3, S1, S3 = u
-    F1, F3, lambd_T, lambd_S, tau1, tau2, tau3, sig1, sig2, sig3, smooth = p[1]
+    F1, F3, lambd_T, lambd_S, tau1, tau2, tau3, sig1, sig2, sig3, smooth = p
     tau = [tau1, tau2, tau3]
     sigma = [sig1, sig2, sig3]
 
