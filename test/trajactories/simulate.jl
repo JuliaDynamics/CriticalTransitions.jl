@@ -3,7 +3,7 @@
     σ = 0.18 # noise strength
 
     # StochSystem
-    sys = StochSystem(fitzhugh_nagumo, p, zeros(2), σ)
+    sys = CoupledSDEs(fitzhugh_nagumo, diag_noise_funtion(σ), zeros(2), p)
 
     # Calculate fixed points
     ds = CoupledODEs(sys)
@@ -15,5 +15,6 @@
     @test fp1 == - fp2
 
     # can it run test
-    sim = simulate(sys, fp1, dt = 0.01, tmax = 1e3)
+    trajectory(sys, 10)
+    # sim = simulate(sys, fp1, dt = 0.01, tmax = 1e3)
 end # @testset "Tutorial"

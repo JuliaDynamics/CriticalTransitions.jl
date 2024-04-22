@@ -31,6 +31,6 @@ end
 #     include("baisin/baisin_boundary.jl")
 # end
 
-# @testset "Trajactories" begin
-#     include("trajactories/simulate.jl")
-# end
+@testset "Trajactories" begin
+    include("trajactories/simulate.jl")
+end

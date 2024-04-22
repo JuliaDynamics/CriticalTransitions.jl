@@ -1,11 +1,12 @@
-using DynamicalSystemsBase: CoupledODEs, isinplace, __init, SciMLBase, correct_state, current_state, _set_parameter!
+using DynamicalSystemsBase: CoupledODEs, isinplace, __init, SciMLBase, correct_state
+import DynamicalSystemsBase: successful_step, _set_parameter!, current_state
 using StochasticDiffEq: SDEProblem, SDEIntegrator
 using StochasticDiffEq: EM, SDEProblem
 
 ###########################################################################################
 # DiffEq options
 ###########################################################################################
-const DEFAULT_SOLVER = SOSRI()
+const DEFAULT_SOLVER = SOSRA()
 const DEFAULT_DIFFEQ_KWARGS = (abstol = 1e-6, reltol = 1e-6)
 const DEFAULT_DIFFEQ = (alg = DEFAULT_SOLVER, DEFAULT_DIFFEQ_KWARGS...)
 
@@ -99,7 +100,7 @@ from DynamicalSystems.jl.
 function CoupledODEs(
         sys::CoupledSDEs; diffeq = DynamicalSystemsBase.DEFAULT_DIFFEQ, t0 = 0.0)
     DynamicalSystemsBase.CoupledODEs(
-        sys.f, SVector{length(sys.u)}(sys.u), sys.p; diffeq = diffeq, t0 = t0)
+        sys.integ.f, SVector{length(sys.integ.u)}(sys.integ.u), sys.p0; diffeq = diffeq, t0 = t0)
 end
 
 # Pretty print
@@ -136,3 +137,15 @@ SciMLBase.step!(ds::CoupledSDEs, args...) = (step!(ds.integ, args...); ds)
 Returns the drift field ``b(x)`` of the CoupledSDEs `sys` at the state vector `x`.
 """
 drift(sys::CoupledSDEs{IIP}, x) where {IIP} = IIP ? sys.f(x, sys.p0, 0) : sys.f(x, sys.p0, 0)
+
+# For checking successful step, the `SciMLBase.step!` function checks
+# `integ.sol.retcode in (ReturnCode.Default, ReturnCode.Success) || break`.
+# But the actual API call would be `successful_retcode(check_error(integ))`.
+# The latter however is already used in `step!(integ)` so there is no reason to re-do it.
+# Besides, within DynamicalSystems.jl the integration is never expected to terminate.
+# Nevertheless here we extend explicitly only for ODE stuff because it may be that for
+# other type of DEIntegrators a different step interruption is possible.
+function successful_step(integ::SciMLBase.AbstractSDEIntegrator)
+    rcode = integ.sol.retcode
+    return rcode == SciMLBase.ReturnCode.Default || rcode == SciMLBase.ReturnCode.Success
+end
