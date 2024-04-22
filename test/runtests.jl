@@ -6,23 +6,31 @@ using Random
 const SEED = 0xd8e5d8df
 Random.seed!(SEED)
 
-@testset "StochSystem" begin
-    include("stochsystem.jl")
+@testset "CoupledSDEs" begin
+    include("CoupledSDEs.jl")
 end
 
-@testset "Large Deviations" begin
-    include("largedeviations/MAM.jl")
-    include("largedeviations/gMAM.jl")
+@testset "ModelingToolkit" begin
+    include("ModelingToolkit.jl")
 end
 
-@testset "utilities" begin
-    include("utils.jl")
-end
+# @testset "StochSystem" begin
+#     include("stochsystem.jl")
+# end
 
-@testset "Baisin" begin
-    include("baisin/baisin_boundary.jl")
-end
+# @testset "Large Deviations" begin
+#     include("largedeviations/MAM.jl")
+#     include("largedeviations/gMAM.jl")
+# end
 
-@testset "Trajactories" begin
-    include("trajactories/simulate.jl")
-end
+# @testset "utilities" begin
+#     include("utils.jl")
+# end
+
+# @testset "Baisin" begin
+#     include("baisin/baisin_boundary.jl")
+# end
+
+# @testset "Trajactories" begin
+#     include("trajactories/simulate.jl")
+# end

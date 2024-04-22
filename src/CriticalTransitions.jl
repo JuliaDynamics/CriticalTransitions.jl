@@ -17,9 +17,8 @@ using Optim, Dierckx
 using Printf, DrWatson, Dates, Statistics
 
 include("utils.jl")
-include("StochSystem.jl")
-export CoupledSDEs
-
+include("CoupledSDEs.jl")
+export CoupledSDEs, diag_noise_funtion
 # include("io/io.jl")
 # include("noiseprocesses/gaussian.jl")
 # include("systemanalysis/stability.jl")

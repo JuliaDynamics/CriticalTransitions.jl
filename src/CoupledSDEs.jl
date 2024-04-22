@@ -2,7 +2,7 @@ using DynamicalSystemsBase: CoupledODEs, isinplace, __init, SciMLBase, correct_s
 using StochasticDiffEq: SDEProblem, SDEIntegrator
 using StochasticDiffEq: EM, SDEProblem
 
-const DEFAULT_SOLVER = SRIW1()
+const DEFAULT_SOLVER = SOSRI()
 const DEFAULT_DIFFEQ_KWARGS = (abstol = 1e-6, reltol = 1e-6)
 const DEFAULT_DIFFEQ = (alg = DEFAULT_SOLVER, DEFAULT_DIFFEQ_KWARGS...)
 
@@ -37,18 +37,19 @@ struct CoupledSDEs{IIP, D, I, P} # <: ContinuousTimeDynamicalSystem
 end
 
 function CoupledSDEs(f, g, u0, p = SciMLBase.NullParameters();
-        t0 = 0, diffeq = DEFAULT_DIFFEQ)
-
+        t0 = 0, diffeq = DEFAULT_DIFFEQ, noise_rate_prototype = nothing,
+        noise = nothing, seed = UInt64(0))
     IIP = isinplace(f, 4) # from SciMLBase
     IIP == isinplace(g, 4) ||
         throw(ArgumentError("f and g must both be in-place or out-of-place"))
 
     s = correct_state(Val{IIP}(), u0)
     T = eltype(s)
-    prob = SDEProblem{IIP}(f, g, s, (T(t0), T(Inf)), p)
+    prob = SDEProblem{IIP}(f, g, s, (T(t0), T(Inf)), p,
+        noise_rate_prototype = noise_rate_prototype, noise = noise, seed = seed)
     return CoupledSDEs(prob, diffeq)
 end
-# function CoupledSDEs(f, u0, p=SciMLBase.NullParameters(); t0=0, diffeq=DEFAULT_DIFFEQ)
+# function CoupledSDEs(f, u0, p=SciMLBase.NullParameters(); σ, t0=0, diffeq=DEFAULT_DIFFEQ)
 #     IIP = isinplace(f, 4) # from SciMLBase
 #     CoupledSDEs(f, IIP ? idfunc! : idfunc, u0, p; t0=t0, diffeq=diffeq)
 # end
@@ -56,8 +57,7 @@ end
 CoupledSDEs(ds::CoupledSDEs, diffeq) = CoupledSDEs(SDEProblem(ds), merge(ds.diffeq, diffeq))
 
 function CoupledSDEs(prob::SDEProblem, diffeq = DEFAULT_DIFFEQ)
-
-    IIP = isinplace(prob)
+    IIP = isinplace(prob) # from SciMLBase
     D = length(prob.u0)
     P = typeof(prob.p)
     if prob.tspan === (nothing, nothing)
@@ -71,7 +71,7 @@ function CoupledSDEs(prob::SDEProblem, diffeq = DEFAULT_DIFFEQ)
         save_start = false, save_end = false, save_everystep = false,
         # DynamicalSystems.jl operates on integrators and `step!` exclusively,
         # so there is no reason to limit the maximum time evolution
-        maxiters = Inf,
+        maxiters = Inf
     )
     return CoupledSDEs{IIP, D, typeof(integ), P}(integ, deepcopy(prob.p), diffeq)
 end
@@ -107,13 +107,20 @@ Returns the drift field ``b(x)`` of the StochSystem `sys` at the state vector `x
 
 Multiplies the noise strength `σ` of a StochSystem `sys` with its noise function `g`.
 """
-# function σg(sys::StochSystem)
-#     if is_iip(sys.f)
-#         g_iip(du, u, p, t) = sys.σ .* sys.g(du, u, p, t)
-#     else
-#         g_oop(u, p, t) = sys.σ .* sys.g(u, p, t)
-#     end
-# end
+function diag_noise_funtion(σ; in_place = false)
+    if in_place
+        return (du, u, p, t) -> σ .* idfunc!(du, u, p, t)
+    else
+        return (u, p, t) -> σ .* idfunc(u, p, t)
+    end
+end
+function diag_noise_funtion(σ, g)
+    if SciMLBase.isinplace(g, 4)
+        return (du, u, p, t) -> σ .* g(du, u, p, t)
+    else
+        return (u, p, t) -> σ .* g(u, p, t)
+    end
+end
 
 """
     p(sys::StochSystem)
