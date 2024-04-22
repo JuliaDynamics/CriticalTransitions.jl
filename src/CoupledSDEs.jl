@@ -1,7 +1,10 @@
-using DynamicalSystemsBase: CoupledODEs, isinplace, __init, SciMLBase, correct_state
+using DynamicalSystemsBase: CoupledODEs, isinplace, __init, SciMLBase, correct_state, current_state, _set_parameter!
 using StochasticDiffEq: SDEProblem, SDEIntegrator
 using StochasticDiffEq: EM, SDEProblem
 
+###########################################################################################
+# DiffEq options
+###########################################################################################
 const DEFAULT_SOLVER = SOSRI()
 const DEFAULT_DIFFEQ_KWARGS = (abstol = 1e-6, reltol = 1e-6)
 const DEFAULT_DIFFEQ = (alg = DEFAULT_SOLVER, DEFAULT_DIFFEQ_KWARGS...)
@@ -17,18 +20,16 @@ function _decompose_into_solver_and_remaining(diffeq)
     end
 end
 
-# Define custom types
-# Parameters = Union{Vector{Any}, Nothing};
-# CovMatrix = Union{Matrix, UniformScaling{Bool}, Diagonal{Bool, Vector{Bool}}};
-# State = Union{Vector, SVector}
 
-# Define StochSystem
-"""
-    StochSystem(f, pf, dim, σ, g, pg, Σ, process)
+###########################################################################################
+# Type
+###########################################################################################
 
-Defines a stochastic dynamical system in `CriticalTransitions.jl`. See [documentation](https://juliadynamics.github.io/CriticalTransitions.jl/dev/man/stochsystem/).
+# Define CoupledSDEs
 """
-struct CoupledSDEs{IIP, D, I, P} # <: ContinuousTimeDynamicalSystem
+
+"""
+struct CoupledSDEs{IIP, D, I, P} <: ContinuousTimeDynamicalSystem
     integ::I
     # things we can't recover from `integ`
     p0::P
@@ -76,85 +77,62 @@ function CoupledSDEs(prob::SDEProblem, diffeq = DEFAULT_DIFFEQ)
     return CoupledSDEs{IIP, D, typeof(integ), P}(integ, deepcopy(prob.p), diffeq)
 end
 
-# struct StochSystem
-#     f::Function
-#     g::Function
-#     u::State
-#     p::Parameters
-#     σ::Float64
-#     Σ::CovMatrix
-#     process::Any
-
-#     # Methods of StochSystem
-#     function StochSystem(f, u, p, σ = 0.0, Σ = I(length(u)), process = "WhiteGauss")
-#         new(f, idfunc, u, p, σ, Σ, process)
-#     end
-#     function StochSystem(f, g, u, p, σ = 0.0, Σ = I(length(u)), process = "WhiteGauss")
-#         new(f, g, u, p, σ, Σ, process)
-#     end
-# end;
-
-# Core functions acting on StochSystem
 """
-    drift(sys::StochSystem, x::State)
+    CoupledSDEs(ds::CoupledODEs; g, diffeq, noise_rate_prototype, noise, seed)
 
-Returns the drift field ``b(x)`` of the StochSystem `sys` at the state vector `x`.
+Converts a [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/tutorial/#DynamicalSystemsBase.CoupledODEs)
+system into a [`CoupledSDEs`](@ref).
 """
-# drift(sys::StochSystem, x::State) = sys.f(x, sys.p, 0)
-
-"""
-    σg(sys::StochSystem)
-
-Multiplies the noise strength `σ` of a StochSystem `sys` with its noise function `g`.
-"""
-function diag_noise_funtion(σ; in_place = false)
-    if in_place
-        return (du, u, p, t) -> σ .* idfunc!(du, u, p, t)
-    else
-        return (u, p, t) -> σ .* idfunc(u, p, t)
-    end
+function CoupledSDEs(ds::DynamicalSystemsBase.CoupledODEs; g,
+        diffeq = DEFAULT_DIFFEQ, noise_rate_prototype = nothing,
+        noise = nothing, seed = UInt64(0))
+    CoupledSDEs(dynamic_rule(ds), g, current_state(ds), ds.p0; diffeq = diffeq,
+        noise_rate_prototype = noise_rate_prototype, noise = noise, seed = seed)
 end
-function diag_noise_funtion(σ, g)
-    if SciMLBase.isinplace(g, 4)
-        return (du, u, p, t) -> σ .* g(du, u, p, t)
-    else
-        return (u, p, t) -> σ .* g(u, p, t)
-    end
-end
-
-"""
-    p(sys::StochSystem)
-Concatenates the deterministic and stochastic parameter vectors `pf` and `pg` of a StochSystem `sys`.
-"""
-# function p(sys::StochSystem)
-#     [sys.pf, sys.pg]
-# end;
 
 """
     CoupledODEs(sys::StochSystem; diffeq, t0=0.0)
 
-Converts a [`StochSystem`](@ref) into [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/tutorial/#DynamicalSystemsBase.CoupledODEs)
+Converts a [`CoupledSDEs`](@ref) into [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/tutorial/#DynamicalSystemsBase.CoupledODEs)
 from DynamicalSystems.jl.
 """
-# function CoupledODEs(
-#         sys::StochSystem; diffeq = DynamicalSystemsBase.DEFAULT_DIFFEQ, t0 = 0.0)
-#     DynamicalSystemsBase.CoupledODEs(
-#         sys.f, SVector{length(sys.u)}(sys.u), sys.p; diffeq = diffeq, t0 = t0)
-# end
+function CoupledODEs(
+        sys::CoupledSDEs; diffeq = DynamicalSystemsBase.DEFAULT_DIFFEQ, t0 = 0.0)
+    DynamicalSystemsBase.CoupledODEs(
+        sys.f, SVector{length(sys.u)}(sys.u), sys.p; diffeq = diffeq, t0 = t0)
+end
 
-# function to_cds(sys::StochSystem)
-#     Base.depwarn("`to_cds` is deprecated, use `CoupledODEs(sys::StochSystem)` instead.",
-#         :to_cds, force = true)
-#     return CoupledODEs(sys)
-# end
+# Pretty print
+function additional_details(ds::CoupledSDEs)
+    solver, remaining = _decompose_into_solver_and_remaining(ds.diffeq)
+    return ["ODE solver" => string(nameof(typeof(solver))),
+        "ODE kwargs" => remaining,
+    ]
+end
+
+###########################################################################################
+# API - obtaining information from the system
+###########################################################################################
+
+SciMLBase.isinplace(::CoupledSDEs{IIP}) where {IIP} = IIP
+StateSpaceSets.dimension(::CoupledSDEs{IIP, D}) where {IIP, D} = D
+DynamicalSystemsBase.current_state(ds::CoupledSDEs) = current_state(ds.integ)
+
+function set_parameter!(ds::CoupledSDEs, args...)
+    _set_parameter!(ds, args...)
+    u_modified!(ds.integ, true)
+    return
+end
+
+referrenced_sciml_prob(ds::CoupledSDEs) = ds.integ.sol.prob
+
+# so that `ds` is printed
+set_state!(ds::CoupledSDEs, u::AbstractArray) = (set_state!(ds.integ, u); ds)
+SciMLBase.step!(ds::CoupledSDEs, args...) = (step!(ds.integ, args...); ds)
 
 """
-    StochSystem(ds::CoupledODEs; g, σ, Σ, process)
+    drift(sys::CoupledSDEs, x::State)
 
-Converts a [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/tutorial/#DynamicalSystemsBase.CoupledODEs)
-system into a [`StochSystem`](@ref).
+Returns the drift field ``b(x)`` of the CoupledSDEs `sys` at the state vector `x`.
 """
-# function StochSystem(ds::DynamicalSystemsBase.CoupledODEs; g = idfunc, σ = 0.0,
-#         Σ = I(length(get_state(ds))), process = "WhiteGauss")
-#     StochSystem(dynamic_rule(ds), g, current_state(ds), ds.p0, σ, Σ, process)
-# end
+drift(sys::CoupledSDEs{IIP}, x) where {IIP} = IIP ? sys.f(x, sys.p0, 0) : sys.f(x, sys.p0, 0)

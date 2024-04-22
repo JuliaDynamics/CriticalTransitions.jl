@@ -21,16 +21,6 @@ function idfunc!(du, u, p, t)
 end;
 
 """
-    is_iip(f::Function)
-Asserts if f is in-place (true) or out-of-place (false).
-
-> Warning: This function simply checks if there is a `!` in the function name. Thus, if you do not add a `!` to in-place function names (as recommended by the Julia style guide), this test will not work.
-"""
-function is_iip(f::Function)
-    occursin("!", String(Symbol(f)))
-end;
-
-"""
     intervals_to_box(bmin::Vector, bmax::Vector)
 Generates a box from specifying the interval limits in each dimension.
 * `bmin` (Vector): lower limit of the box in each dimension
@@ -155,3 +145,20 @@ accuracy of the approximation. The exact absolute value function is obtained in 
 function smoothabs(x, xi=1000)
     x*tanh(x*xi)
 end;
+
+"""
+"""
+function diag_noise_funtion(σ; in_place = false)
+    if in_place
+        return (du, u, p, t) -> σ .* idfunc!(du, u, p, t)
+    else
+        return (u, p, t) -> σ .* idfunc(u, p, t)
+    end
+end
+function diag_noise_funtion(σ, g)
+    if SciMLBase.isinplace(g, 4)
+        return (du, u, p, t) -> σ .* g(du, u, p, t)
+    else
+        return (u, p, t) -> σ .* g(u, p, t)
+    end
+end
