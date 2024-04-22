@@ -18,9 +18,7 @@ using Printf, DrWatson, Dates, Statistics
 
 include("utils.jl")
 include("CoupledSDEs.jl")
-export CoupledSDEs, diag_noise_funtion
-# include("io/io.jl")
-# include("noiseprocesses/gaussian.jl")
+include("io.jl")
 # include("systemanalysis/stability.jl")
 # include("systemanalysis/basinsofattraction.jl")
 # include("systemanalysis/basinboundary.jl")
@@ -46,21 +44,17 @@ include("../systems/rivals.jl")
 # include("../dev/RateSys1.jl")
 
 # Core types
-export StochSystem, State
+export CoupledSDEs, diag_noise_funtion
 
 # Methods
-export CoupledODEs, to_cds
 export equilib, fixedpoints, basins, basinboundary, basboundary
-export simulate, relax
+# export simulate, relax
 export transition, transitions
-export langevinmcmc
-export langevinmcmc_not_every_step
+# export langevinmcmc
+# export langevinmcmc_not_every_step
 export fw_integrand, fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
 export edgetracking, bisect_to_edge, attractor_mapper, bisect_to_edge2
-export idfunc, idfunc!
-export gauss
-export drift, is_iip
 export make_jld2, make_h5, sys_string, sys_info, intervals_to_box
 export anorm, subnorm
 
