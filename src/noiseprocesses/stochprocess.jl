@@ -17,3 +17,13 @@ function stochprocess(sys::CoupledSDEs)
         return sys.integ.noise
     end
 end
+
+function covariance_matrix(sys::CoupledSDEs)
+    prototype = referrenced_sciml_prob(sys).noise_rate_prototype
+    if isnothing(prototype) || prototype isa Vector
+        return Diagonal(ones(dimension(sys)))
+    else
+        ArgumentError("Correlated Wiener process not yet implemented.")
+        # return CorrelatedWienerProcess(prototype, 0.0, zeros(dimension(sys)))
+    end
+end

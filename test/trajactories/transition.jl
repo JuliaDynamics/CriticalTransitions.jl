@@ -1,6 +1,7 @@
 
 @testset "fitzhugh_nagumo" begin
     using Random
+    # const SEED = 0xd8e5d8df
     Random.seed!(SEED)
 
     p = [1.0, 3.0, 1.0, 1.0, 1.0, 0.0] # Parameters (ϵ, β, α, γ, κ, I)
@@ -18,7 +19,7 @@
     fp1, fp2 = eqs[stab]
     @test fp1 ≈ -fp2
 
-    trajectory, time, succes = transition(sys, fp1, fp2)
+    trajectory, time, succes = CT.transition(sys, fp1, fp2)
     @test succes
     @test time[end] < 1e3
     @test norm(trajectory[:, 1] - fp1) < 0.1

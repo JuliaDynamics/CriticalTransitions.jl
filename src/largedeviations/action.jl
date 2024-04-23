@@ -1,9 +1,6 @@
-#include("../StochSystem.jl")
-#include("../utils.jl")
-
 """
-    fw_action(sys::StochSystem, path, time; kwargs...)
-Calculates the Freidlin-Wentzell action of a given `path` with time points `time` in a 
+    fw_action(sys::CoupledSDEs, path, time; kwargs...)
+Calculates the Freidlin-Wentzell action of a given `path` with time points `time` in a
 drift field specified by the deterministic dynamics of `sys`.
 
 The path must be a `(D x N)` matrix, where `D` is the dimensionality of the system `sys` and
@@ -22,12 +19,14 @@ generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see [`anorm`](@
 * `cov_inv = nothing`: Inverse of the covariance matrix ``\\Sigma``.
   If `nothing`, ``\\Sigma^{-1}`` is computed automatically.
 """
-function fw_action(sys::StochSystem, path, time; cov_inv=nothing)
+function fw_action(sys::CoupledSDEs, path, time; cov_inv=nothing)
+    all(diff(time) .≈ diff(time[1:2])) && error("Fw_action is only defined for equispaced time")
     # Inverse of covariance matrix
-    (cov_inv == nothing) ? A = inv(sys.Σ) : A = cov_inv
-    
+    A = isnothing(cov_inv) ? inv(covariance_matrix(sys)) : cov_inv
+
     # Compute action integral
     integrand = fw_integrand(sys, path, time, A)
+
     S = 0
     for i in 1:(size(path, 2) - 1)
         S += (integrand[i+1] + integrand[i])/2 * (time[i+1]-time[i])
@@ -36,7 +35,7 @@ function fw_action(sys::StochSystem, path, time; cov_inv=nothing)
 end;
 
 """
-    om_action(sys::StochSystem, path, time; kwargs...)
+    om_action(sys::CoupledSDEs, path, time; kwargs...)
 Calculates the Onsager-Machlup action of a given `path` with time points `time` for the
 drift field `sys.f` at noise strength `sys.σ`.
 
@@ -57,28 +56,29 @@ generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see [`anorm`](@
 * `cov_inv = nothing`: Inverse of the covariance matrix ``\\Sigma``.
   If `nothing`, ``\\Sigma^{-1}`` is computed automatically.
 """
-function om_action(sys::StochSystem, path, time; cov_inv=nothing)
-    # Inverse of covariance matrix
-    (cov_inv == nothing) ? A = inv(sys.Σ) : A = cov_inv
-    
-    # Compute action integral
-    S = 0
-    for i in 1:(size(path, 2) - 1)
-        S += sys.σ^2/2 * ((div_b(sys, path[:,i+1]) + div_b(sys, path[:,i]))/2 *
-            (time[i+1]-time[i]))
-    end
-    fw_action(sys, path, time, cov_inv=A) + S/2
-end;
+# function om_action(sys::CoupledSDEs, path, time; cov_inv=nothing)
+#     # Inverse of covariance matrix
+#     (cov_inv == nothing) ? A = inv(sys.Σ) : A = cov_inv
+
+#     # Compute action integral
+#     S = 0
+#     for i in 1:(size(path, 2) - 1)
+#         S += sys.σ^2/2 * ((div_b(sys, path[:,i+1]) + div_b(sys, path[:,i]))/2 *
+#             (time[i+1]-time[i]))
+#     end
+#     fw_action(sys, path, time, cov_inv=A) + S/2
+# end;
 
 """
-    action(sys::StochSystem, path::Matrix, time, functional; kwargs...)
-Computes the action functional specified by `functional` for a given StochSystem `sys` and
+    action(sys::CoupledSDEs, path::Matrix, time, functional; kwargs...)
+Computes the action functional specified by `functional` for a given CoupledSDEs `sys` and
 `path` parameterized by `time`.
 
 * `functional = "FW"`: Returns the Freidlin-Wentzell action ([`fw_action`](@ref))
 * `functional = "OM"`: Returns the Onsager-Machlup action ([`om_action`](@ref))
 """
-function action(sys::StochSystem, path::Matrix, time, functional; kwargs...)
+function action(sys::CoupledSDEs, path::Matrix, time, functional; kwargs...)
+    all(diff(time) .≈ diff(time[1:2])) && error("action is only defined for equispaced time")
     if functional == "FW"
         return fw_action(sys, path, time; kwargs...)
     elseif functional == "OM"
@@ -87,7 +87,7 @@ function action(sys::StochSystem, path::Matrix, time, functional; kwargs...)
 end;
 
 """
-    geometric_action(sys::StochSystem, path, arclength=1; kwargs...)
+    geometric_action(sys::CoupledSDEs, path, arclength=1; kwargs...)
 Calculates the geometric action of a given `path` with specified `arclength` for the drift
 field `sys.f`.
 
@@ -105,18 +105,20 @@ subscript ``Q`` refers to the generalized dot product ``\\langle a, b \\rangle_Q
 
 ## Keyword arguments
 * `cov_inv = nothing`: Inverse of the covariance matrix ``\\Sigma``.
-  If `nothing`, ``\\Sigma^{-1}`` is computed automatically. 
+  If `nothing`, ``\\Sigma^{-1}`` is computed automatically.
 
 Returns the value of the geometric action ``\\bar S``.
 """
-function geometric_action(sys::StochSystem, path, arclength=1.0; cov_inv=nothing)
+function geometric_action(sys::CoupledSDEs, path, arclength=1.0; cov_inv=nothing)
     N = size(path, 2)
     v = path_velocity(path, range(0, arclength, length=N), order=4)
-    (cov_inv == nothing) ? A = inv(sys.Σ) : A = cov_inv
+    A = isnothing(cov_inv) ? inv(covariance_matrix(sys)) : cov_inv
+
+    b(x) = drift(sys, x)
 
     integrand = zeros(N)
     for i in 1:N
-        drift = sys.f(path[:,i], p(sys), 0)
+        drift = b(path[:,i])
         integrand[i] = anorm(v[:,i], A)*anorm(drift, A) - dot(v[:,i], A, drift)
     end
 
@@ -128,26 +130,28 @@ function geometric_action(sys::StochSystem, path, arclength=1.0; cov_inv=nothing
 end
 
 """
-    fw_integrand(sys::StochSystem, path, time, A)
+    fw_integrand(sys::CoupledSDEs, path, time, A)
 Computes the squared ``A``-norm ``|| \\dot \\phi_t - b ||^2_A`` (see `fw_action` for
 details). Returns a vector of length `N` containing the values of the above squared norm for
 each time point in the vector `time`.
 """
-function fw_integrand(sys::StochSystem, path, time, A)
+function fw_integrand(sys::CoupledSDEs, path, time, A)
     v = path_velocity(path, time, order=4)
     sqnorm = zeros(size(path, 2))
+    b(x) = drift(sys, x)
     for i in 1:size(path, 2)
-        drift = sys.f(path[:,i], p(sys), time[i])
+        # assumes the drift is time independent
+        drift = b(path[:,i])
         sqnorm[i] = anorm(v[:,i] - drift, A, square=true)
     end
     sqnorm
 end;
 
 """
-    div_b(sys::StochSystem, x)
+    div_b(sys::CoupledSDEs, x)
 Computes the divergence of the drift field `sys.f` at the given point `x`.
 """
-function div_b(sys::StochSystem, x)
+function div_b(sys::CoupledSDEs, x)
     b(x) = drift(sys, x)
     tr(ForwardDiff.jacobian(b, x))
 end;

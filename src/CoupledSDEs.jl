@@ -21,15 +21,14 @@ function _decompose_into_solver_and_remaining(diffeq)
     end
 end
 
-
 ###########################################################################################
 # Type
 ###########################################################################################
 
 # Define CoupledSDEs
 """
-
 """
+
 struct CoupledSDEs{IIP, D, I, P} <: ContinuousTimeDynamicalSystem
     integ::I
     # things we can't recover from `integ`
@@ -107,7 +106,7 @@ end
 function additional_details(ds::CoupledSDEs)
     solver, remaining = _decompose_into_solver_and_remaining(ds.diffeq)
     return ["ODE solver" => string(nameof(typeof(solver))),
-        "ODE kwargs" => remaining,
+        "ODE kwargs" => remaining
     ]
 end
 
@@ -136,7 +135,17 @@ SciMLBase.step!(ds::CoupledSDEs, args...) = (step!(ds.integ, args...); ds)
 
 Returns the drift field ``b(x)`` of the CoupledSDEs `sys` at the state vector `x`.
 """
-drift(sys::CoupledSDEs{IIP}, x) where {IIP} = IIP ? sys.f(x, sys.p0, 0) : sys.f(x, sys.p0, 0)
+# assumes the drift is time independent
+function drift(sys::CoupledSDEs{IIP}, x) where {IIP}
+    f = dynamic_rule(sys)
+    if IIP
+        dx = similar(x)
+        f(dx, x, sys.p0, 0)
+        return dx
+    else
+        return f(x, sys.p0, 0)
+    end
+end
 
 # For checking successful step, the `SciMLBase.step!` function checks
 # `integ.sol.retcode in (ReturnCode.Default, ReturnCode.Success) || break`.
