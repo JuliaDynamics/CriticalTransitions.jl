@@ -12,9 +12,9 @@
 
     # Store the two stable fixed points
     fp1, fp2 = eqs[stab]
-    @test fp1 == - fp2
+    @test fp1 == -fp2
 
     # can it run test
-    trajectory(sys, 10)
-    # sim = simulate(sys, fp1, dt = 0.01, tmax = 1e3)
-end # @testset "Tutorial"
+    traj = trajectory(sys, 10)
+    sim = simulate(sys, 10)
+end

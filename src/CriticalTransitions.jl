@@ -22,7 +22,7 @@ include("io.jl")
 # include("systemanalysis/stability.jl")
 # include("systemanalysis/basinsofattraction.jl")
 # include("systemanalysis/basinboundary.jl")
-# include("trajectories/simulation.jl")
+include("trajectories/simulation.jl")
 # include("trajectories/transition.jl")
 # include("largedeviations/action.jl")
 # include("largedeviations/min_action_method.jl")
@@ -48,7 +48,7 @@ export CoupledSDEs, diag_noise_funtion
 
 # Methods
 export equilib, fixedpoints, basins, basinboundary, basboundary
-# export simulate, relax
+export simulate, relax
 export transition, transitions
 # export langevinmcmc
 # export langevinmcmc_not_every_step

@@ -1,5 +1,3 @@
-# include("../noiseprocesses/stochprocess.jl")
-
 # """
 #     simulate(sys::CoupledSDES, init::State; kwargs...)
 # Simulates the StochSystem `sys` forward in time, starting at initial condition `init`.
@@ -16,20 +14,12 @@
 
 # For more info, see [`SDEProblem`](https://diffeq.sciml.ai/stable/types/sde_types/#SciMLBase.SDEProblem).
 
-# > Warning: This function has only been tested for the `EM()` solver and out-of-place `SDEFunction`s.
 # """
-# function simulate(sys::StochSystem, init::State;
-#     dt=0.01,
-#     tmax=1e3,
-#     solver=EM(),
-#     callback=nothing,
-#     showprogress=false,
-#     iip=is_iip(sys.f),
-#     kwargs...)
-
-#     prob = SDEProblem{iip}(sys.f, σg(sys), init, (0, tmax), p(sys), noise=stochprocess(sys))
-#     solve(prob, solver; dt=dt, callback=callback, progress=showprogress, kwargs...)
-# end;
+function simulate(sys::CoupledSDEs, T, init = current_state(sys);
+        alg = sys.integ.alg, kwargs...)
+    prob = remake(referrenced_sciml_prob(sys), u0 = init, tspan = (0, T))
+    solve(prob, alg; kwargs...)
+end;
 
 # """
 #     relax(sys::StochSystem, init::State; kwargs...)
@@ -47,16 +37,9 @@
 # For more info, see [`ODEProblem`](https://diffeq.sciml.ai/stable/types/ode_types/#SciMLBase.ODEProblem).
 # For stochastic integration, see [`simulate`](@ref).
 
-# > Warning: This function has only been tested for the `Euler()` solver.
 # """
-# function relax(sys::StochSystem, init::State;
-#     dt=0.01,
-#     tmax=1e3,
-#     solver=Euler(),
-#     callback=nothing,
-#     iip=is_iip(sys.f),
-#     kwargs...)
-
-#     prob = ODEProblem{iip}(sys.f, init, (0, tmax), p(sys))
-#     solve(prob, solver; dt=dt, callback=callback, kwargs...)
-# end;
+function relax(sys::CoupledSDEs, T, init = current_state(sys); alg = Tsit5(), kwargs...)
+    sde_prob = referrenced_sciml_prob(sys)
+    prob = ODEProblem{isinplace(sde_prob)}(dynamic_rule(sys), init, (0, T), sys.p0)
+    solve(prob, alg; kwargs...)
+end;
