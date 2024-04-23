@@ -33,4 +33,5 @@ end
 
 @testset "Trajactories" begin
     include("trajactories/simulate.jl")
+    include("trajactories/transition.jl")
 end

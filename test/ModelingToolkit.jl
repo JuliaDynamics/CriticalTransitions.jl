@@ -1,6 +1,4 @@
 using ModelingToolkit
-using StochasticDiffEq
-using Test
 
 @testset begin
     @variables t
@@ -36,6 +34,7 @@ using Test
 end
 
 @testset begin
+    using ModelingToolkit
     @variables t
     ps = @parameters α β
     sts = @variables x(t)
@@ -54,10 +53,10 @@ end
 
     prob = SDEProblem(de, u0map, (0.0, 1.0), parammap)
     integrator = init(prob, LambaEulerHeun())
-    @show integrator |> typeof |> fieldnames
+    # @show integrator |> typeof |> fieldnames
     solve(prob, LambaEulerHeun(), seed = 1)
 
-    @show prob.p
+    # @show prob.p
 
     # prob.f.f.f_iip([1.0], [1.0], prob.p.tunable[1], 0.0)
 end
