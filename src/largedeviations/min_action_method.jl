@@ -1,17 +1,17 @@
 """
-    min_action_method(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real; kwargs...)
+    min_action_method(sys::CoupledSDEs, x_i::SVector, x_f::SVector, N::Int, T::Real; kwargs...)
 Runs the Minimum Action Method (MAM) to find the minimum action path (instanton) between an
 initial state `x_i` and final state `x_f`.
 
 This algorithm uses the minimizers of the
 [`Optim`](https://julianlsolvers.github.io/Optim.jl/stable/#) package to minimize the
-Freidlin-Wentzell action functional (see [`fw_action`](@ref)) for the given StochSystem
+Freidlin-Wentzell action functional (see [`fw_action`](@ref)) for the given CoupledSDEs
 `sys`. The path is initialized as a straight line between `x_i` and `x_f`, parameterized in
 time via `N` equidistant points and total time `T`. Thus, the time step between discretized
 path points is ``\\Delta t = T/N``.
 To set an initial path different from a straight line, see the multiple dispatch method
 
-* `min_action_method(sys::StochSystem, init::Matrix, T::Real; kwargs...)`.
+* `min_action_method(sys::CoupledSDEs, init::Matrix, T::Real; kwargs...)`.
 
 The minimization can be performed in blocks to save intermediate results.
 
@@ -30,7 +30,7 @@ The minimization can be performed in blocks to save intermediate results.
 If `save_info`, returns `Optim.OptimizationResults`. Else, returns only the optimizer (path).
 If `blocks > 1`, a vector of results/optimizers is returned.
 """
-function min_action_method(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real;
+function min_action_method(sys::CoupledSDEs, x_i::SVector, x_f::SVector, N::Int, T::Real;
     functional="FW",
     maxiter = 100,
     blocks = 1,
@@ -41,25 +41,25 @@ function min_action_method(sys::StochSystem, x_i::State, x_f::State, N::Int, T::
     kwargs...)
 
     init = reduce(hcat, range(x_i, x_f, length=N))
-    min_action_method(sys::StochSystem, init, T;
+    min_action_method(sys::CoupledSDEs, init, T;
         functional=functional, maxiter=maxiter, blocks=blocks, method=method,
         save_info=save_info, showprogress=showprogress, verbose=verbose, kwargs...)
 end;
 
 """
-    min_action_method(sys::StochSystem, init::Matrix, T::Real; kwargs...)
+    min_action_method(sys::CoupledSDEs, init::Matrix, T::Real; kwargs...)
 Runs the Minimum Action Method (MAM) to find the minimum action path (instanton) from an
 initial condition `init`, given a system `sys` and total path time `T`.
 
-The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dimension
-`length(sys.u)` of the system and `N` is the number of path points. The physical time of the path
+The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dimension 
+of the system and `N` is the number of path points. The physical time of the path
 is specified by `T`, such that the time step between consecutive path points is
 ``\\Deltat = T/N``.
 
 For more information see the main method,
-[`min_action_method(sys::StochSystem, x_i::State, x_f::State, N::Int, T::Real; kwargs...)`](@ref).
+[`min_action_method(sys::CoupledSDEs, x_i::SVector, x_f::SVector, N::Int, T::Real; kwargs...)`](@ref).
 """
-function min_action_method(sys::StochSystem, init::Matrix, T::Real;
+function min_action_method(sys::CoupledSDEs, init::Matrix, T::Real;
     functional="FW",
     maxiter = 100,
     blocks = 1,
@@ -71,7 +71,7 @@ function min_action_method(sys::StochSystem, init::Matrix, T::Real;
 
     verbose && println("=== Initializing MAM action minimizer ===")
 
-    A = inv(sys.Σ)
+    A = inv(covariance_matrix(sys))
     f(x) = action(sys, fix_ends(x, init[:,1], init[:,end]),
         range(0.0, T, length=size(init, 2)), functional; cov_inv=A)
 
@@ -94,11 +94,11 @@ function min_action_method(sys::StochSystem, init::Matrix, T::Real;
 end;
 
 """
-    fix_ends(x::Matrix, x_i::State, x_f::State)
+    fix_ends(x::Matrix, x_i::SVector, x_f::SVector)
 Changes the first and last row of the matrix `x` to the vectors `x_i` and `x_f`,
 respectively.
 """
-function fix_ends(x::Matrix, x_i::State, x_f::State)
+function fix_ends(x::Matrix, x_i::Vector, x_f::Vector)
     m = x
     m[:,1] = x_i; m[:,end] = x_f
     m

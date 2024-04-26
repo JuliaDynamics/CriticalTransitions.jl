@@ -83,7 +83,7 @@ end
 Converts a [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/tutorial/#DynamicalSystemsBase.CoupledODEs)
 system into a [`CoupledSDEs`](@ref).
 """
-function CoupledSDEs(ds::DynamicalSystemsBase.CoupledODEs; g,
+function CoupledSDEs(ds::DynamicalSystemsBase.CoupledODEs, g;
         diffeq = DEFAULT_DIFFEQ, noise_rate_prototype = nothing,
         noise = nothing, seed = UInt64(0))
     CoupledSDEs(dynamic_rule(ds), g, current_state(ds), ds.p0; diffeq = diffeq,
@@ -157,4 +157,8 @@ end
 function successful_step(integ::SciMLBase.AbstractSDEIntegrator)
     rcode = integ.sol.retcode
     return rcode == SciMLBase.ReturnCode.Default || rcode == SciMLBase.ReturnCode.Success
+end
+
+function noise_strength(sys::CoupledSDEs)
+    error("Not yet implemented")
 end

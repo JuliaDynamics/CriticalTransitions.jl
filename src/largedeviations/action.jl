@@ -20,7 +20,9 @@ generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see [`anorm`](@
   If `nothing`, ``\\Sigma^{-1}`` is computed automatically.
 """
 function fw_action(sys::CoupledSDEs, path, time; cov_inv=nothing)
-    all(diff(time) .≈ diff(time[1:2])) && error("Fw_action is only defined for equispaced time")
+    if ~all(diff(time) .≈ diff(time[1:2]))
+        error("Fw_action is only defined for equispaced time")
+    end
     # Inverse of covariance matrix
     A = isnothing(cov_inv) ? inv(covariance_matrix(sys)) : cov_inv
 
@@ -56,18 +58,20 @@ generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see [`anorm`](@
 * `cov_inv = nothing`: Inverse of the covariance matrix ``\\Sigma``.
   If `nothing`, ``\\Sigma^{-1}`` is computed automatically.
 """
-# function om_action(sys::CoupledSDEs, path, time; cov_inv=nothing)
-#     # Inverse of covariance matrix
-#     (cov_inv == nothing) ? A = inv(sys.Σ) : A = cov_inv
-
-#     # Compute action integral
-#     S = 0
-#     for i in 1:(size(path, 2) - 1)
-#         S += sys.σ^2/2 * ((div_b(sys, path[:,i+1]) + div_b(sys, path[:,i]))/2 *
-#             (time[i+1]-time[i]))
-#     end
-#     fw_action(sys, path, time, cov_inv=A) + S/2
-# end;
+function om_action(sys::CoupledSDEs, path, time; cov_inv=nothing)
+    if ~all(diff(time) .≈ diff(time[1:2]))
+        error("Fw_action is only defined for equispaced time")
+    end
+    # Inverse of covariance matrix
+    (cov_inv == nothing) ? A = inv(covariance_matrix(sys)) : A = cov_inv
+    # Compute action integral
+    S = 0
+    for i in 1:(size(path, 2) - 1)
+        S += noise_strength(sys)^2/2 * ((div_b(sys, path[:,i+1]) + div_b(sys, path[:,i]))/2 *
+            (time[i+1]-time[i]))
+    end
+    fw_action(sys, path, time, cov_inv=A) + S/2
+ end;
 
 """
     action(sys::CoupledSDEs, path::Matrix, time, functional; kwargs...)
@@ -78,7 +82,6 @@ Computes the action functional specified by `functional` for a given CoupledSDEs
 * `functional = "OM"`: Returns the Onsager-Machlup action ([`om_action`](@ref))
 """
 function action(sys::CoupledSDEs, path::Matrix, time, functional; kwargs...)
-    all(diff(time) .≈ diff(time[1:2])) && error("action is only defined for equispaced time")
     if functional == "FW"
         return fw_action(sys, path, time; kwargs...)
     elseif functional == "OM"
