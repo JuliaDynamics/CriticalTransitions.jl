@@ -14,7 +14,7 @@ makedocs(;
     doctest=false,
     format = Documenter.HTML(
         canonical="https://juliadynamics.github.io/CriticalTransitions.jl/",
-        prettyurls = get(ENV, "CI", nothing) == "true",
+        prettyurls = true,
         mathengine = Documenter.MathJax2()
         ),
     linkcheck = true,
@@ -39,6 +39,6 @@ makedocs(;
 )
 
 deploydocs(
-    repo = "github.com/juliadynamics/CriticalTransitions.jl.git",
+    repo = "github.com/JuliaDynamics/CriticalTransitions.jl.git",
     push_preview = false
 )
