@@ -2,14 +2,14 @@
 #include("action.jl")
 
 """
-    geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, arclength=1; kwargs...)
+    geometric_min_action_method(sys::CoupledSDEs, x_i::SVector, x_f::SVector, arclength=1; kwargs...)
 
 Computes the minimizer of the Freidlin-Wentzell action using the geometric minimum
 action method (gMAM). Beta version, to be further documented.
 
 To set an initial path different from a straight line, see the multiple dispatch method
 
-  - `geometric_min_action_method(sys::StochSystem, init::Matrix, arclength::Float64; kwargs...)`.
+  - `geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength::Float64; kwargs...)`.
 
 ## Keyword arguments
 
@@ -29,7 +29,7 @@ algorithm[^1].
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
 function geometric_min_action_method(
-        sys::StochSystem, x_i::State, x_f::State, arclength = 1.0;
+        sys::CoupledSDEs, x_i::SVector, x_f::SVector, arclength = 1.0;
         N = 100,
         maxiter = 100,
         converge = 1e-5,
@@ -38,25 +38,25 @@ function geometric_min_action_method(
         verbose=true,
         showprogress=false)
     path = reduce(hcat, range(x_i, x_f, length = N))
-    geometric_min_action_method(sys::StochSystem, path, arclength;
+    geometric_min_action_method(sys::CoupledSDEs, path, arclength;
         maxiter = maxiter, converge = converge,
         method = method, tau = tau, verbose = verbose, showprogress = showprogress)
 end
 
 """
-    geometric_min_action_method(sys::StochSystem, init::Matrix, arclength::Float64; kwargs...)
+    geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength::Float64; kwargs...)
 
 Runs the geometric Minimum Action Method (gMAM) to find the minimum action path (instanton) from an
 initial condition `init`, given a system `sys` and total arc length `arclength`.
 
-The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dimension
-`length(sys.u)` of the system and `N` is the number of path points.
+The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dimension of the
+system and `N` is the number of path points.
 
 For more information see the main method,
-[`geometric_min_action_method(sys::StochSystem, x_i::State, x_f::State, arclength::Float64; kwargs...)`](@ref).
+[`geometric_min_action_method(sys::CoupledSDEs, x_i::SVector, x_f::SVector, arclength::Float64; kwargs...)`](@ref).
 """
 
-function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1.0;
+function geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength=1.0;
     maxiter = 100,
     converge = 1e-5,
     method = LBFGS(),
@@ -66,7 +66,7 @@ function geometric_min_action_method(sys::StochSystem, init::Matrix, arclength=1
 
     verbose && println("=== Initializing gMAM action minimizer ===")
 
-    A = inv(sys.Σ)
+    A = inv(covariance_matrix(sys))
     path = init
     x_i = init[:, 1]
     x_f = init[:, end]
@@ -106,7 +106,8 @@ end
 function interpolate_path(path, sys, N, arclength)
     s = zeros(N)
     for j in 2:N
-        s[j] = s[j - 1] + anorm(path[:, j] - path[:, j - 1], sys.Σ) #! anorm or norm?
+        s[j] = s[j - 1] + anorm(path[:, j] - path[:, j - 1], covariance_matrix(sys))
+        #! anorm or norm?
     end
     s_length = s / s[end] * arclength
     interp = ParametricSpline(s_length, path, k = 3)
@@ -114,7 +115,7 @@ function interpolate_path(path, sys, N, arclength)
 end
 
 """
-    heymann_vandeneijnden_step(sys::StochSystem, path, N, L; kwargs...)
+    heymann_vandeneijnden_step(sys::CoupledSDEs, path, N, L; kwargs...)
 
 Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `L`.
 
@@ -126,12 +127,12 @@ Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `
 
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
-function heymann_vandeneijnden_step(sys::StochSystem, path, N, L;
+function heymann_vandeneijnden_step(sys::CoupledSDEs, path, N, L;
     tau = 0.1,
     diff_order = 4,
     cov_inv = nothing)
 
-    (cov_inv == nothing) ? A = inv(sys.Σ) : A = cov_inv
+    (cov_inv == nothing) ? A = inv(covariance_matrix(sys)) : A = cov_inv
 
     dx = L / (N - 1)
     update = zeros(size(path))

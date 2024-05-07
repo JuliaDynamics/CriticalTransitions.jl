@@ -24,7 +24,7 @@ include("trajectories/transition.jl")
 include("noiseprocesses/stochprocess.jl")
 include("largedeviations/action.jl")
 include("largedeviations/min_action_method.jl")
-# include("largedeviations/geometric_min_action_method.jl")
+include("largedeviations/geometric_min_action_method.jl")
 
 include("../systems/fitzhughnagumo.jl")
 include("../systems/truscottbrindley_mod.jl")
@@ -50,6 +50,7 @@ export equilib, fixedpoints, basins, basinboundary, basboundary
 export simulate, relax
 export transition, transitions
 export fw_integrand, fw_action, om_action, action, geometric_action
+export div_drift
 export min_action_method, geometric_min_action_method
 export edgetracking, bisect_to_edge, attractor_mapper, bisect_to_edge2
 export make_jld2, make_h5, sys_string, sys_info, intervals_to_box

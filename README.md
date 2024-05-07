@@ -2,7 +2,6 @@
 
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliadynamics.github.io/CriticalTransitions.jl/dev/)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/CriticalTransitions.jl/stable/)
-
 [![Tests](https://github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/ci.yml/badge.svg)](github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/ci.yml)
 
 A Julia package for the numerical investigation of **noise- and rate-induced transitions in dynamical systems**.

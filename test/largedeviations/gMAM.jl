@@ -1,3 +1,16 @@
+@testset "gMAM FitzHugh-Nagumo" begin
+    p = [0.1,3,1,1,1,0]
+    fhn = CoupledSDEs(fitzhugh_nagumo, diag_noise_funtion(0.1), zeros(2), p)
+    x_i = SA[sqrt(2/3), sqrt(2/27)]
+    x_f = SA[0.001, 0.0]
+    N = 100
+    res = geometric_min_action_method(fhn, x_i, x_f; N=75, maxiter=200)
+    S = geometric_action(fhn, res[1][end])
+    @test isapprox(S, 0.18, atol=0.01)
+end
+
+
+"""
 @testset "gMAM Meier Stein" begin
     function meier_stein(u, p, t) # out-of-place
         x, y = u
@@ -36,3 +49,4 @@
         # @test all(isapprox.(action_val, 0.3375, atol = 1e-3))
     end # HeymannVandenEijnden
 end # gMAM Meier Stein
+"""

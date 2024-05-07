@@ -37,9 +37,9 @@ function fw_action(sys::CoupledSDEs, path, time; cov_inv=nothing)
 end;
 
 """
-    om_action(sys::CoupledSDEs, path, time; kwargs...)
+    om_action(sys::CoupledSDEs, path, time, noise_strength; kwargs...)
 Calculates the Onsager-Machlup action of a given `path` with time points `time` for the
-drift field `sys.f` at noise strength `sys.σ`.
+drift field `sys.f` at given `noise_strength`.
 
 The path must be a `(D x N)` matrix, where `D` is the dimensionality of the system `sys` and
 `N` is the number of path points. The `time` array must have length `N`.
@@ -52,13 +52,13 @@ Returns a single number, which is the value of the action functional
 where ``\\phi_t`` denotes the path in state space, ``b`` the drift field, ``T`` the total
 time of the path, and ``\\sigma`` the noise strength. The subscript ``Q`` refers to the
 generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see [`anorm`](@ref)). Here
-``Q`` is the noise covariance matrix `sys.Σ`.
+``Q`` is the noise covariance matrix.
 
 ## Keyword arguments
 * `cov_inv = nothing`: Inverse of the covariance matrix ``\\Sigma``.
   If `nothing`, ``\\Sigma^{-1}`` is computed automatically.
 """
-function om_action(sys::CoupledSDEs, path, time; cov_inv=nothing)
+function om_action(sys::CoupledSDEs, path, time, noise_strength; cov_inv=nothing)
     if ~all(diff(time) .≈ diff(time[1:2]))
         error("Fw_action is only defined for equispaced time")
     end
@@ -67,8 +67,8 @@ function om_action(sys::CoupledSDEs, path, time; cov_inv=nothing)
     # Compute action integral
     S = 0
     for i in 1:(size(path, 2) - 1)
-        S += noise_strength(sys)^2/2 * ((div_b(sys, path[:,i+1]) + div_b(sys, path[:,i]))/2 *
-            (time[i+1]-time[i]))
+        S += noise_strength^2/2 * ((div_drift(sys, path[:,i+1])
+            + div_drift(sys, path[:,i]))/2 * (time[i+1]-time[i]))
     end
     fw_action(sys, path, time, cov_inv=A) + S/2
  end;
@@ -85,7 +85,8 @@ function action(sys::CoupledSDEs, path::Matrix, time, functional; kwargs...)
     if functional == "FW"
         return fw_action(sys, path, time; kwargs...)
     elseif functional == "OM"
-        return om_action(sys, path, time; kwargs...)
+        error("Not yet implemented since it depends on noise strength.")
+        #return om_action(sys, path, time; kwargs...)
     end
 end;
 
@@ -151,10 +152,10 @@ function fw_integrand(sys::CoupledSDEs, path, time, A)
 end;
 
 """
-    div_b(sys::CoupledSDEs, x)
+    div_drift(sys::CoupledSDEs, x)
 Computes the divergence of the drift field `sys.f` at the given point `x`.
 """
-function div_b(sys::CoupledSDEs, x)
+function div_drift(sys::CoupledSDEs, x)
     b(x) = drift(sys, x)
     tr(ForwardDiff.jacobian(b, x))
 end;

@@ -18,10 +18,11 @@ end
 #     include("stochsystem.jl")
 # end
 
-# @testset "Large Deviations" begin
-#     include("largedeviations/MAM.jl")
-#     include("largedeviations/gMAM.jl")
-# end
+@testset "Large Deviations" begin
+    include("largedeviations/action_fhn.jl")
+    include("largedeviations/MAM.jl")
+    include("largedeviations/gMAM.jl")
+end
 
 # @testset "utilities" begin
 #     include("utils.jl")
