@@ -3,6 +3,10 @@ module StabilityExt
 using CriticalTransitions
 import ChaosTools: fixedpoints
 
+include("basin/planeofbox.jl")
+include("basin/basinboundary.jl")
+include("basin/basinsofattraction.jl")
+
 # """
 #     equilib(sys::CoupledSDEs, state::State; kwargs...)
 # Returns the equilibrium solution of the system `sys` for given initial condition `state`.

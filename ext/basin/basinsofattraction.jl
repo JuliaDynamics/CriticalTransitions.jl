@@ -1,11 +1,9 @@
-include("planeofbox.jl")
-
 toattractors(V::Dataset) = Dict(i => StateSpaceSet([V[i]]) for i in 1:length(V))
 
 """
 $(TYPEDSIGNATURES)
 
-Computes the basins of attraction of StochSystem `sys` on a plane spanned by the distinct points `A`, `B`, `C` and limited by the box `H`. Uses the [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity) function from [`DynamicalSystems.jl`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/) to compute the basins of attraction.
+Computes the basins of attraction of CoupledSDEs `sys` on a plane spanned by the distinct points `A`, `B`, `C` and limited by the box `H`. Uses the [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity) function from [`DynamicalSystems.jl`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/) to compute the basins of attraction.
 
 `A`, `B`, `C` are elements of ``\\mathbb{R}^d`` (where ``d`` is the dimension of the  `sys`) and `H` is a hyperrectangle in ``\\mathbb{R}^d``.
 
@@ -22,7 +20,7 @@ This function returns a four-dimensional vector. The first two entries are discr
 * `ϵ_mapper = 0.01`: `ϵ` parameter of [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity)
 * `kwargs...`: keyword arguments passed to the [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity) function (namely, `Ttr, Δt, horizon_limit, mx_chk_lost`)
 """
-function basins(sys::StochSystem, A, B, C, H;
+function basins(sys::CoupledSDEs, A, B, C, H;
     bstep::Vector = [0.01, 0.01],
     pstep::Vector = [0.1, 0.1],
     ϵ_mapper=0.01,

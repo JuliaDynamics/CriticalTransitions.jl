@@ -47,7 +47,7 @@ $(TYPEDSIGNATURES)
 
 This function computes the basin boundary.
 """
-function basboundary(sys::StochSystem, xrange::Vector, yrange::Vector, xspacing::Float64, attractors::Vector;
+function basboundary(sys::CoupledSDEs, xrange::Vector, yrange::Vector, xspacing::Float64, attractors::Vector;
     eps1=1e-4,
     ϵ_mapper=0.1,
     dt_mapper=1.0e-3,
