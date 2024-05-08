@@ -50,11 +50,9 @@ export equilib, fixedpoints, basins, basinboundary, basboundary
 export simulate, relax
 export transition, transitions
 export fw_integrand, fw_action, om_action, action, geometric_action
-export div_drift
 export min_action_method, geometric_min_action_method
-export edgetracking, bisect_to_edge, attractor_mapper, bisect_to_edge2
-export make_jld2, make_h5, sys_string, sys_info, intervals_to_box
-export anorm, subnorm
+# export edgetracking, bisect_to_edge, attractor_mapper, bisect_to_edge2
+export make_jld2, make_h5, intervals_to_box
 
 # Systems
 export fitzhugh_nagumo, fitzhugh_nagumo!, fhn_ϵσ, fhn_ϵσ_backward
@@ -66,18 +64,5 @@ export originaltruscottbrindley1, originaltruscottbrindley1!, origtb1_rσ
 export rampedoriginaltruscottbrindley1, rampedoriginaltruscottbrindley1!, rorigtb1_vTtrTraσ
 export rivals!, rivals, rivals_ϵσ
 export rooth_smooth, stommel, cessi
-
-# Development
-# export transition2, transitions2
-# export residence_time2, residence_times2
-# export saddles_idx, repellers_idx, attractors_idx
-# export additive_idx, additive_idx!
-# export multiplicative_idx, multiplicative_idx!
-# export FitzHughNagumoSPDE, fhn_pathspace_sampling
-# export langevinmcmc_spde, symbolise_spde, stochastic_bridge
-# export jacobian
-# export residence_time, residence_times, ResTimes, temporal, runandsavetimes, get_res_times
-# export exit_time, exit_times
-# export RateSystem, fL, stochtorate
 
 end # module CriticalTransitions

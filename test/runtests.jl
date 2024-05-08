@@ -14,10 +14,6 @@ end
     include("ModelingToolkit.jl")
 end
 
-# @testset "StochSystem" begin
-#     include("stochsystem.jl")
-# end
-
 @testset "Large Deviations" begin
     include("largedeviations/action_fhn.jl")
     include("largedeviations/MAM.jl")
