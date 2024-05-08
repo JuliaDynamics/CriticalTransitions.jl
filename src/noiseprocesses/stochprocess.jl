@@ -1,5 +1,5 @@
 """
-    stochprocess(sys::CoupledSDEs)
+$(TYPEDSIGNATURES)
 
 Translates the stochastic process specified in `sys` into the language required by the
 `SDEProblem` of `DynamicalSystems.jl`.
@@ -18,6 +18,11 @@ function stochprocess(sys::CoupledSDEs)
     end
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Gives the covariance matrix specified in `sys`.
+"""
 function covariance_matrix(sys::CoupledSDEs)
     prototype = referrenced_sciml_prob(sys).noise_rate_prototype
     if isnothing(prototype) || prototype isa Vector

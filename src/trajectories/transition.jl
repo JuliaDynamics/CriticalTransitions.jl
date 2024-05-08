@@ -16,33 +16,34 @@ end
 
 Base.show(io::IO, tpe::TransitionPathEnsemble) = print(io, prettyprint(tpe))
 
-# """
-#     transition(sys::StochSystem, x_i::State, x_f::State; kwargs...)
-# Generates a sample transition from point `x_i` to point `x_f`.
+"""
+$(TYPEDSIGNATURES)
 
-# This function simulates `sys` in time, starting from initial condition `x_i`, until entering a `length(sys.u)`-dimensional ball of radius `rad_f` around `x_f`.
+Generates a sample transition from point `x_i` to point `x_f`.
 
-# ## Keyword arguments
-# * `rad_i=0.1`: radius of ball around `x_i`
-# * `rad_f=0.1`: radius of ball around `x_f`
-# * `cut_start=true`: if `false`, returns the whole trajectory up to the transition
-# * `dt=0.01`: time step of integration
-# * `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
-# * `rad_dims=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
-#   `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
-#   insert a vector of indices of the dimensions to be included.
-# * `solver=EM()`: numerical solver. Defaults to Euler-Mayurama.
-# * `progress`: shows a progress bar with respect to `tmax`
+This function simulates `sys` in time, starting from initial condition `x_i`, until entering a `length(sys.u)`-dimensional ball of radius `rad_f` around `x_f`.
 
-# ## Output
-# `[path, times, success]`
-# * `path` (Matrix): transition path (size [dim × N], where N is the number of time points)
-# * `times` (Vector): time values (since start of simulation) of the path points (size N)
-# * `success` (bool): if `true`, a transition occured (i.e. the ball around `x_f` has been reached), else `false`
-# * `kwargs...`: keyword arguments passed to [`simulate`](@ref)
+## Keyword arguments
+* `rad_i=0.1`: radius of ball around `x_i`
+* `rad_f=0.1`: radius of ball around `x_f`
+* `cut_start=true`: if `false`, returns the whole trajectory up to the transition
+* `dt=0.01`: time step of integration
+* `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
+* `rad_dims=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
+  `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
+  insert a vector of indices of the dimensions to be included.
+* `solver=EM()`: numerical solver. Defaults to Euler-Mayurama.
+* `progress`: shows a progress bar with respect to `tmax`
 
-# See also [`transitions`](@ref), [`simulate`](@ref).
-# """
+## Output
+`[path, times, success]`
+* `path` (Matrix): transition path (size [dim × N], where N is the number of time points)
+* `times` (Vector): time values (since start of simulation) of the path points (size N)
+* `success` (bool): if `true`, a transition occured (i.e. the ball around `x_f` has been reached), else `false`
+* `kwargs...`: keyword arguments passed to [`simulate`](@ref)
+
+See also [`transitions`](@ref), [`simulate`](@ref).
+"""
 function transition(sys::CoupledSDEs, x_i, x_f;
         rad_i = 0.1,
         rad_f = 0.1,
@@ -75,14 +76,13 @@ function transition(sys::CoupledSDEs, x_i, x_f;
 end;
 
 """
-    transitions(sys::StochSystem, x_i::State, x_f::State, N=1; kwargs...)
+$(TYPEDSIGNATURES)
 
 Generates an ensemble of `N` transition samples of `sys` from point `x_i` to point `x_f`.
 
 This function repeatedly calls the [`transition`](@ref) function to efficiently generate an ensemble of transitions, which are saved to a file or returned as an array of paths. Multi-threading is enabled.
 
 ## Keyword arguments
-
   - `rad_i=0.1`: radius of ball around `x_i`
   - `rad_f=0.1`: radius of ball around `x_f`
   - `cut_start=true`: if `false`, returns the whole trajectory up to the transition
@@ -92,7 +92,6 @@ This function repeatedly calls the [`transition`](@ref) function to efficiently 
   - `rad_dims=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
     `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
     insert a vector of indices of the dimensions to be included.
-  - `solver=EM()`: numerical solver. Defaults to Euler-Mayurama
   - `progress`: shows a progress bar with respect to `Nmax`
   - `savefile`: if `nothing`, no data is saved to a file. To save to a file, see below.
 
@@ -169,7 +168,6 @@ function transitions(sys::CoupledSDEs, x_i, x_f, N = 1;
             push!(r_idx, j)
         end
     end
-
 
     success_rate = length(idx) / (length(r_idx) + length(idx))
     mean_res_time = sum([times[i][1] for i in 1:length(times)]) + tmax * length(r_idx)

@@ -2,7 +2,7 @@
 #include("action.jl")
 
 """
-    geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength=1; kwargs...)
+$(TYPEDSIGNATURES)
 
 Computes the minimizer of the Freidlin-Wentzell action using the geometric minimum
 action method (gMAM). Beta version, to be further documented.
@@ -35,8 +35,8 @@ function geometric_min_action_method(
         converge = 1e-5,
         method = LBFGS(),
         tau = 0.1,
-        verbose = true,
-        showprogress = false)
+        verbose::Bool = true,
+        showprogress::Bool = false)
     path = reduce(hcat, range(x_i, x_f, length = N))
     geometric_min_action_method(sys::CoupledSDEs, path, arclength;
         maxiter = maxiter, converge = converge,
@@ -44,7 +44,7 @@ function geometric_min_action_method(
 end
 
 """
-    geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength::Float64; kwargs...)
+$(TYPEDSIGNATURES)
 
 Runs the geometric Minimum Action Method (gMAM) to find the minimum action path (instanton) from an
 initial condition `init`, given a system `sys` and total arc length `arclength`.
@@ -57,12 +57,12 @@ For more information see the main method,
 """
 
 function geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength = 1.0;
-        maxiter = 100,
+        maxiter::Int = 100,
         converge = 1e-5,
         method = LBFGS(),
         tau = 0.1,
-        verbose = true,
-        showprogress = false)
+        verbose::Bool = true,
+        showprogress::Bool = false)
     verbose && println("=== Initializing gMAM action minimizer ===")
 
     A = inv(covariance_matrix(sys))
@@ -113,7 +113,7 @@ function interpolate_path(path, sys, N, arclength)
 end
 
 """
-    heymann_vandeneijnden_step(sys::CoupledSDEs, path, N, L; kwargs...)
+$(TYPEDSIGNATURES)
 
 Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `L`.
 

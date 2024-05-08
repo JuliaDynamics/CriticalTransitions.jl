@@ -1,5 +1,6 @@
 """
-    fw_action(sys::CoupledSDEs, path, time; kwargs...)
+$(TYPEDSIGNATURES)
+
 Calculates the Freidlin-Wentzell action of a given `path` with time points `time` in a
 drift field specified by the deterministic dynamics of `sys`.
 
@@ -37,7 +38,8 @@ function fw_action(sys::CoupledSDEs, path, time; cov_inv=nothing)
 end;
 
 """
-    om_action(sys::CoupledSDEs, path, time, noise_strength; kwargs...)
+$(TYPEDSIGNATURES)
+
 Calculates the Onsager-Machlup action of a given `path` with time points `time` for the
 drift field `sys.f` at given `noise_strength`.
 
@@ -74,7 +76,8 @@ function om_action(sys::CoupledSDEs, path, time, noise_strength; cov_inv=nothing
  end;
 
 """
-    action(sys::CoupledSDEs, path::Matrix, time, functional; kwargs...)
+$(TYPEDSIGNATURES)
+
 Computes the action functional specified by `functional` for a given CoupledSDEs `sys` and
 `path` parameterized by `time`.
 
@@ -91,7 +94,8 @@ function action(sys::CoupledSDEs, path::Matrix, time, functional; kwargs...)
 end;
 
 """
-    geometric_action(sys::CoupledSDEs, path, arclength=1; kwargs...)
+$(TYPEDSIGNATURES)
+
 Calculates the geometric action of a given `path` with specified `arclength` for the drift
 field `sys.f`.
 
@@ -134,7 +138,8 @@ function geometric_action(sys::CoupledSDEs, path, arclength=1.0; cov_inv=nothing
 end
 
 """
-    fw_integrand(sys::CoupledSDEs, path, time, A)
+$(TYPEDSIGNATURES)
+
 Computes the squared ``A``-norm ``|| \\dot \\phi_t - b ||^2_A`` (see `fw_action` for
 details). Returns a vector of length `N` containing the values of the above squared norm for
 each time point in the vector `time`.
@@ -152,7 +157,8 @@ function fw_integrand(sys::CoupledSDEs, path, time, A)
 end;
 
 """
-    div_drift(sys::CoupledSDEs, x)
+$(TYPEDSIGNATURES)
+
 Computes the divergence of the drift field `sys.f` at the given point `x`.
 """
 function div_drift(sys::CoupledSDEs, x)
@@ -161,7 +167,8 @@ function div_drift(sys::CoupledSDEs, x)
 end;
 
 """
-    path_velocity(path, time; order=4)
+$(TYPEDSIGNATURES)
+
 Returns the velocity along a given `path` with time points given by `time`.
 
 ## Keyword arguments

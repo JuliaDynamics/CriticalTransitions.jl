@@ -34,13 +34,6 @@ include("../systems/rooth.jl")
 include("../systems/stommel.jl")
 include("../systems/rivals.jl")
 
-# include("../dev/fhn_pathspace_sampling.jl")
-# include("../dev/symbolic_langevinmcmc.jl")
-# include("../dev/residence_times.jl")
-# include("../dev/edgetrack_ct.jl")
-# include("../dev/flexibletransitions.jl")
-# include("../dev/RateSys1.jl")
-
 # Core types
 export CoupledSDEs, diag_noise_funtion
 export noise_strength

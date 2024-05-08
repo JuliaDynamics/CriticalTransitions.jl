@@ -1,5 +1,5 @@
 """
-    min_action_method(sys::CoupledSDEs, x_i, x_f, N::Int, T::Real; kwargs...)
+$(TYPEDSIGNATURES)
 
 Runs the Minimum Action Method (MAM) to find the minimum action path (instanton) between an
 initial state `x_i` and final state `x_f`.
@@ -49,7 +49,7 @@ function min_action_method(sys::CoupledSDEs, x_i, x_f, N::Int, T::Real;
 end;
 
 """
-    min_action_method(sys::CoupledSDEs, init::Matrix, T::Real; kwargs...)
+$(TYPEDSIGNATURES)
 
 Runs the Minimum Action Method (MAM) to find the minimum action path (instanton) from an
 initial condition `init`, given a system `sys` and total path time `T`.
@@ -98,7 +98,7 @@ function min_action_method(sys::CoupledSDEs, init::Matrix, T::Real;
 end;
 
 """
-    fix_ends(x::Matrix, x_i, x_f:)
+$(TYPEDSIGNATURES)
 
 Changes the first and last row of the matrix `x` to the vectors `x_i` and `x_f`,
 respectively.

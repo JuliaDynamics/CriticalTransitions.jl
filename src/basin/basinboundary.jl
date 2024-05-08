@@ -3,7 +3,8 @@ function planetophase(A::Vector, B::Vector, C::Vector, proj::Vector)
 end
 
 """
-    basinboundary(X, Y, h; kwargs...)
+$(TYPEDSIGNATURES)
+
 Computes the basin boundary for given output `X, Y, h` of the [`basins`](@ref) function.
 
 To be further documented.
@@ -12,7 +13,7 @@ function basinboundary(X, Y, h; coords::String = "plane", A::Vector = [], B::Vec
 
     bb = [];
 
-    for ii ∈ 1:size(h,2)     
+    for ii ∈ 1:size(h,2)
         for jj ∈ 1:size(h,1)-1 # traversing through each column of the basins of attraction
            if h[jj,ii] != h[jj+1,ii] # if two points on top of each other are not in the same boa
                 if !any(v->v==-1, [h[jj,ii], h[jj+1, ii]]) # each of these points go to detected attractor
@@ -35,14 +36,15 @@ function basinboundary(X, Y, h; coords::String = "plane", A::Vector = [], B::Vec
     if coords == "plane"
         planecoords = [bb[jj][ii] for ii ∈ 1:2, jj ∈ 1:length(bb)] # convert into nice matrix form
     elseif coords == "phase"
-        bb_plane = planetophase.(Ref(A), Ref(B), Ref(C), bb); 
-        phasecoords = [bb_plane[jj][ii] for ii ∈ 1:length(A), jj ∈ 1:length(bb)]    
+        bb_plane = planetophase.(Ref(A), Ref(B), Ref(C), bb);
+        phasecoords = [bb_plane[jj][ii] for ii ∈ 1:length(A), jj ∈ 1:length(bb)]
     end
-    
+
 end
 
 """
-    basboundary(sys::StochSystem, xrange::Vector, yrange::Vector, xspacing::Float64, attractors::Vector; kwargs...)
+$(TYPEDSIGNATURES)
+
 This function computes the basin boundary.
 """
 function basboundary(sys::StochSystem, xrange::Vector, yrange::Vector, xspacing::Float64, attractors::Vector;
@@ -57,7 +59,7 @@ function basboundary(sys::StochSystem, xrange::Vector, yrange::Vector, xspacing:
     bby = zeros(N+1)
     xx = range(xrange[1], xrange[2], length=N+1)
 
-    Threads.@threads for i ∈ 1:N+1   
+    Threads.@threads for i ∈ 1:N+1
         #println(i)
         u1,u2 = bisect_to_edge2(sys, [xx[i],yrange[1]], [xx[i],yrange[2]], attractors,
         eps1=eps1,
@@ -74,9 +76,10 @@ function basboundary(sys::StochSystem, xrange::Vector, yrange::Vector, xspacing:
 end
 
 """
-    basinboundary(boa)
+$(TYPEDSIGNATURES)
+
 Computes the basin boundary for given output `boa` of the [`basins`](@ref) function.
 
-To be further documented.        
+To be further documented.
 """
 basinboundary(boa) = basinboundary(boa[1], boa[2], boa[4])

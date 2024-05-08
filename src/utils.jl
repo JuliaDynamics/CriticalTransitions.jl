@@ -4,7 +4,8 @@ Functions in this file are independent of types/functions defined in CriticalTra
 """
 
 """
-    idfunc(u, p, t)
+$(TYPEDSIGNATURES)
+
 Identity function for noise function `StochSystem.g` (out-of-place).
 """
 function idfunc(u, p, t)
@@ -12,7 +13,8 @@ function idfunc(u, p, t)
 end;
 
 """
-    idfunc!(du, u, p, t)
+$(TYPEDSIGNATURES)
+
 Identity function for noise function `StochSystem.g` (in-place).
 """
 function idfunc!(du, u, p, t)
@@ -21,7 +23,8 @@ function idfunc!(du, u, p, t)
 end;
 
 """
-    intervals_to_box(bmin::Vector, bmax::Vector)
+$(TYPEDSIGNATURES)
+
 Generates a box from specifying the interval limits in each dimension.
 * `bmin` (Vector): lower limit of the box in each dimension
 * `bmax` (Vector): upper limit
@@ -90,7 +93,8 @@ function additive_first(u, p, t)
 end;
 
 """
-    anorm(vec, A; square=false)
+$(TYPEDSIGNATURES)
+
 Calculates the generalized ``A``-norm of the vector `vec`,
 ``||v||_A := \\sqrt(v^\\top \\cdot A \\cdot v)``,
 where `A` is a square matrix of dimension `(lenth(vec) x length(vec))`.
@@ -104,7 +108,8 @@ function anorm(vec, A; square=false)
 end;
 
 """
-    subnorm(vec; kwargs...)
+$(TYPEDSIGNATURES)
+
 Returns the Euclidean norm of the vector `vec`; however, if `directions` are specified, the
 norm is only computed along the specified components of the vector, i.e. in a subspace of
 dimension `length(directions)`.
@@ -137,7 +142,7 @@ function central2(f, idx, dz)
 end;
 
 """
-    smoothabs(x, xi=1000)
+$(TYPEDSIGNATURES)
 Smooth approximation of `abs(x)`, ``|x| = x \\tanh(\\xi x)``, where ``xi`` controls the
 accuracy of the approximation. The exact absolute value function is obtained in the limit
 ``\\xi \\to \\infty``.

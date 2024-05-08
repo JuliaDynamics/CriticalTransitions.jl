@@ -3,7 +3,8 @@ include("planeofbox.jl")
 toattractors(V::Dataset) = Dict(i => StateSpaceSet([V[i]]) for i in 1:length(V))
 
 """
-    basins(sys::StochSystem, A, B, C, H; kwargs...)
+$(TYPEDSIGNATURES)
+
 Computes the basins of attraction of StochSystem `sys` on a plane spanned by the distinct points `A`, `B`, `C` and limited by the box `H`. Uses the [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity) function from [`DynamicalSystems.jl`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/) to compute the basins of attraction.
 
 `A`, `B`, `C` are elements of ``\\mathbb{R}^d`` (where ``d`` is the dimension of the  `sys`) and `H` is a hyperrectangle in ``\\mathbb{R}^d``.

@@ -131,7 +131,7 @@ set_state!(ds::CoupledSDEs, u::AbstractArray) = (set_state!(ds.integ, u); ds)
 SciMLBase.step!(ds::CoupledSDEs, args...) = (step!(ds.integ, args...); ds)
 
 """
-    drift(sys::CoupledSDEs, x::State)
+$(TYPEDSIGNATURES)
 
 Returns the drift field ``b(x)`` of the CoupledSDEs `sys` at the state vector `x`.
 """
