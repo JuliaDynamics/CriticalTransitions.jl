@@ -43,6 +43,6 @@ end
 
 # Test div_drift function
 @testset "div_drift" begin
-    @test div_drift(sys, zeros(2)) == -2.0
-    @test div_drift(sys, x_i) == -4.0
+    @test CT.div_drift(sys, zeros(2)) == -2.0
+    @test CT.div_drift(sys, x_i) == -4.0
 end

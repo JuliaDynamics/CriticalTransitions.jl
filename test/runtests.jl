@@ -1,5 +1,5 @@
 using CriticalTransitions, StaticArrays
-CT = CriticalTransitions
+const CT = CriticalTransitions
 using Test
 
 using Random
