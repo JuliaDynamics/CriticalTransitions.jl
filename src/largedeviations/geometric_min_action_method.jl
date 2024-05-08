@@ -2,7 +2,7 @@
 #include("action.jl")
 
 """
-    geometric_min_action_method(sys::CoupledSDEs, x_i::SVector, x_f::SVector, arclength=1; kwargs...)
+    geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength=1; kwargs...)
 
 Computes the minimizer of the Freidlin-Wentzell action using the geometric minimum
 action method (gMAM). Beta version, to be further documented.
@@ -29,14 +29,14 @@ algorithm[^1].
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
 function geometric_min_action_method(
-        sys::CoupledSDEs, x_i::SVector, x_f::SVector, arclength = 1.0;
+        sys::CoupledSDEs, x_i, x_f, arclength = 1.0;
         N = 100,
         maxiter = 100,
         converge = 1e-5,
         method = LBFGS(),
         tau = 0.1,
-        verbose=true,
-        showprogress=false)
+        verbose = true,
+        showprogress = false)
     path = reduce(hcat, range(x_i, x_f, length = N))
     geometric_min_action_method(sys::CoupledSDEs, path, arclength;
         maxiter = maxiter, converge = converge,
@@ -53,17 +53,16 @@ The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dime
 system and `N` is the number of path points.
 
 For more information see the main method,
-[`geometric_min_action_method(sys::CoupledSDEs, x_i::SVector, x_f::SVector, arclength::Float64; kwargs...)`](@ref).
+[`geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength::Float64; kwargs...)`](@ref).
 """
 
-function geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength=1.0;
-    maxiter = 100,
-    converge = 1e-5,
-    method = LBFGS(),
-    tau = 0.1,
-    verbose=true,
-    showprogress=false)
-
+function geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength = 1.0;
+        maxiter = 100,
+        converge = 1e-5,
+        method = LBFGS(),
+        tau = 0.1,
+        verbose = true,
+        showprogress = false)
     verbose && println("=== Initializing gMAM action minimizer ===")
 
     A = inv(covariance_matrix(sys))
@@ -78,7 +77,6 @@ function geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength=1
 
     iterator = showprogress ? tqdm(1:maxiter) : 1:maxiter
     for i in iterator
-
         if method == "HeymannVandenEijnden"
             error("The HeymannVandenEijnden method is broken")
             # update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
@@ -93,7 +91,7 @@ function geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength=1
         push!(paths, path)
         push!(action, S(path))
 
-        if abs(action[end]-action[end-1]) < converge
+        if abs(action[end] - action[end - 1]) < converge
             verbose && println("Converged after $(i) iterations.")
             return paths, action
             break
@@ -128,10 +126,9 @@ Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
 function heymann_vandeneijnden_step(sys::CoupledSDEs, path, N, L;
-    tau = 0.1,
-    diff_order = 4,
-    cov_inv = nothing)
-
+        tau = 0.1,
+        diff_order = 4,
+        cov_inv = nothing)
     (cov_inv == nothing) ? A = inv(covariance_matrix(sys)) : A = cov_inv
 
     dx = L / (N - 1)
