@@ -7,7 +7,7 @@
     p = [1.0, 3.0, 1.0, 1.0, 1.0, 0.0] # Parameters (ϵ, β, α, γ, κ, I)
     σ = 0.215 # noise strength
 
-    # StochSystem
+    # CoupledSDEs
     sys = CoupledSDEs(fitzhugh_nagumo, diag_noise_funtion(σ), zeros(2), p, seed = SEED)
 
     # Calculate fixed points

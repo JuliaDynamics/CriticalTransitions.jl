@@ -24,7 +24,7 @@ makedocs(;
         "Quickstart" => "quickstart.md",
         "Tutorial" => "tutorial.md",
         "Manual" => Any[
-            "Defining a StochSystem" => "man/stochsystem.md",
+            "Define a CoupledSDE" => "man/CoupledSDEs.md",
             "Stability analysis" => "man/systemanalysis.md",
             "Simulating the system" => "man/simulation.md",
             "Sampling transitions" => "man/sampling.md",

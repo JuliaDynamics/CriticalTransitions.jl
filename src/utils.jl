@@ -6,7 +6,7 @@ Functions in this file are independent of types/functions defined in CriticalTra
 """
 $(TYPEDSIGNATURES)
 
-Identity function for noise function `StochSystem.g` (out-of-place).
+Identity function for noise function of `CoupledSDEs` (out-of-place).
 """
 function idfunc(u, p, t)
     ones(length(u))
@@ -15,7 +15,7 @@ end;
 """
 $(TYPEDSIGNATURES)
 
-Identity function for noise function `StochSystem.g` (in-place).
+Identity function for noise function `CoupledSDEs` (in-place).
 """
 function idfunc!(du, u, p, t)
     du .= ones(length(u))
@@ -97,7 +97,7 @@ $(TYPEDSIGNATURES)
 
 Calculates the generalized ``A``-norm of the vector `vec`,
 ``||v||_A := \\sqrt(v^\\top \\cdot A \\cdot v)``,
-where `A` is a square matrix of dimension `(lenth(vec) x length(vec))`.
+where `A` is a square matrix of dimension `(length(vec) x length(vec))`.
 
 # Keyword arguments
 * `square`: if `true`, returns square of norm; else, returns norm.
@@ -119,7 +119,7 @@ dimension `length(directions)`.
 be included. Defaults to `1:length(vec)`, i.e. all components.
 
 # Example
-`subnorm([3,7,4]; directions=[1,3]` calculates the norm of only the 1st and 3rd components
+`subnorm([3,7,4]; directions=[1,3])` calculates the norm of only the 1st and 3rd components
 of the vector [3,7,4]:
 
 ``\\sqrt{3^2+4^2} = 5``.

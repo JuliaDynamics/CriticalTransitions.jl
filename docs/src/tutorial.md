@@ -35,12 +35,12 @@ function fitzhugh_nagumo(u,p,t)
 end
 ```
 
-Note that the system parameters `ϵ, β, α, γ, κ, I = p[1]` are unpacked as the first component of `p`. This is necessary because in CriticalTransitions.jl one can also define a separate set of parameters for the stochastic component of the system, which would then make up the second component `p[2]` ( see [Defining a StochSystem](@ref)).
+Note that the system parameters `ϵ, β, α, γ, κ, I = p[1]` are unpacked as the first component of `p`. This is necessary because in CriticalTransitions.jl one can also define a separate set of parameters for the stochastic component of the system, which would then make up the second component `p[2]` ( see [Define a CoupledSDE](@ref)).
 
 !!! tip "In-place vs. out-of-place"
     The function `fitzhugh_nagumo(u,p,t)` is defined *out-of-place*. It is also possible to define the system *in-place* as `fitzhugh_nagumo!(du,u,p,t)`. For more info, see [here](https://diffeq.sciml.ai/stable/types/ode_types/).
 
-### StochSystem
+### CoupledSDE
 
 Next, we turn the `fitzhugh_nagumo` system into a stochastic dynamical system. Suppose we would like to force both state variables ``u`` and ``v`` with additive, uncorrelated Gaussian noise of intensity ``\sigma``. This is the default case. We simply write
 
@@ -48,18 +48,18 @@ Next, we turn the `fitzhugh_nagumo` system into a stochastic dynamical system. S
 p = [1., 3., 1., 1., 1., 0.] # Parameters (ϵ, β, α, γ, κ, I)
 σ = 0.18 # noise strength
 
-# StochSystem
-sys = StochSystem(fitzhugh_nagumo, p, zeros(2), σ)
+# CoupledSDE
+sys = CoupledSDEs(fitzhugh_nagumo, diag_noise_function(σ), zeros(2), p)
 ```
 Here we have chosen `zeros(2)` as the initial state of the system. The length of this vector must correspond to the system's dimensionality, but for now the state is just a placeholder that aligns our syntax with that of DifferentialEquations.jl and DynamicalSystems.jl.
 
 !!! note "Multiplicative and/or correlated noise"
-    Of course, it is also possible to define more complicated noise processes than simple additive white noise. This is done by specifying a custom *noise function* and *covariance matrix* in the `StochSystem` definition. For more info, see [Defining a StochSystem](@ref).
+    Of course, it is also possible to define more complicated noise processes than simple additive white noise. This is done by specifying a custom *noise function* and *covariance matrix* in the `CoupledSDEs` definition. For more info, see [Define a CoupledSDE](@ref).
 
 That's it! Now we can throw the toolbox of `CriticalTransitions` at our stochastic FitzHugh-Nagumo system `sys`.
 
 ### Find stable equilibria
-For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let's compute the fixed points using the [`fixedpoints`](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/chaostools/stable/periodicity/#ChaosTools.fixedpoints) function from ChaosTools.jl. As this function is from the `DynamicalSystems` ecosystem, it takes a system of type `CoupledODEs` as input. We can simply convert the `StochSystem` `sys` via the [`CoupledODEs`](@ref) function:
+For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let's compute the fixed points using the [`fixedpoints`](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/chaostools/stable/periodicity/#ChaosTools.fixedpoints) function from ChaosTools.jl. As this function is from the `DynamicalSystems` ecosystem, it takes a system of type `CoupledODEs` as input. We can simply convert the CoupledSDEs `sys` via the [`CoupledODEs`](@ref) function:
 
 ```@example MAIN
 # Calculate fixed points

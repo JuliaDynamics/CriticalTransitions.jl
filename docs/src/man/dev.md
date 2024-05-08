@@ -2,7 +2,7 @@
 
 ## Pathspace Langevin MCMC sampling for the FitzHugh-Nagumo system
 
-```@docs
+<!-- ```@docs
 fhn_pathspace_sampling
 FitzHughNagumoSPDE
-```
+``` -->

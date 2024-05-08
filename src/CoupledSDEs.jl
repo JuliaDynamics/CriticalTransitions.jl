@@ -30,11 +30,11 @@ end
 """
 
 struct CoupledSDEs{IIP, D, I, P} <: ContinuousTimeDynamicalSystem
+    # D parametrised by length of u0
     integ::I
     # things we can't recover from `integ`
     p0::P
     diffeq # isn't parameterized because it is only used for display
-    # D parametrised by length of u0
 end
 
 function CoupledSDEs(f, g, u0, p = SciMLBase.NullParameters();
@@ -78,7 +78,7 @@ function CoupledSDEs(prob::SDEProblem, diffeq = DEFAULT_DIFFEQ)
 end
 
 """
-    CoupledSDEs(ds::CoupledODEs; g, diffeq, noise_rate_prototype, noise, seed)
+$(TYPEDSIGNATURES)
 
 Converts a [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/tutorial/#DynamicalSystemsBase.CoupledODEs)
 system into a [`CoupledSDEs`](@ref).
@@ -91,7 +91,7 @@ function CoupledSDEs(ds::DynamicalSystemsBase.CoupledODEs, g;
 end
 
 """
-    CoupledODEs(sys::StochSystem; diffeq, t0=0.0)
+$(TYPEDSIGNATURES)
 
 Converts a [`CoupledSDEs`](@ref) into [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/tutorial/#DynamicalSystemsBase.CoupledODEs)
 from DynamicalSystems.jl.

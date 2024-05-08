@@ -1,6 +1,7 @@
 @testset "fitzhugh_nagumo" begin
     # Define systems
-    system = StochSystem(fitzhugh_nagumo, [0.1, 3.0, 1.0, 1.0, 1.0, 0.0], [2.0, 0.1])
+    g = diag_noise_funtion(0.215)
+    system = CoupledSDEs(fitzhugh_nagumo, g, [2.0, 0.1], [0.1, 3.0, 1.0, 1.0, 1.0, 0.0])
 
     # Set up domain
     A, B, C = [0.0, 0.0], [1.0, 0.0], [0.0, 1.0]

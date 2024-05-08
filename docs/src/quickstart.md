@@ -14,15 +14,15 @@ As this module is not published yet, there are two ways to access it:
 ## Basic usage
 The general workflow of `CriticalTransitions` essentially follows two steps:
 
-1. Define your system (see [Defining a StochSystem](@ref))
+1. Define your system (see [Define a CoupledSDE](@ref))
 2. Investigate the system by calling methods (see [Methods](@ref))
 
 !!! info "Extension to RateSystem and TippingSystem"
-    We are currently working on extending the types of dynamical systems that can be studied with CriticalTransitions.jl. Particularly, we are planning to introduce the overarching structure `TippingSystem`, which has two subtypes: `StochSystem` (as it already exists) and `RateSystem`, a new dynamical system type in which the system parameters may evolve in time.
+    We are currently working on extending the types of dynamical systems that can be studied with CriticalTransitions.jl. Particularly, we are planning to introduce the overarching structure `TippingSystem`, which has two subtypes: `CoupledSDEs` (as it already exists) and `RateSystem`, a new dynamical system type in which the system parameters may evolve in time.
 
 ## Methods
 
-Currently the following functions are implemented to analyze a [`StochSystem`](@ref) and 
+Currently the following functions are implemented to analyze a [`CoupledSDEs`](@ref) and 
 corresponding sample transition paths.
 
 ```@index
