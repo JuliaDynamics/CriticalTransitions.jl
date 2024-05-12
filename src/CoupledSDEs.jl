@@ -27,8 +27,16 @@ end
 
 # Define CoupledSDEs
 """
-"""
+    CoupledSDEs <: ContinuousTimeDynamicalSystem
+    CoupledSDEs(f, g, u0 [, p]; kwargs...)
 
+A stochastic continuous time dynamical system defined by a set of
+coupled ordinary differential equations as follows:
+```math
+d\\vec{u} = \\vec{f}(\\vec{u}, p, t) dt + \\vec{g}(\\vec{u}, p, t) dW_t
+```
+An alias for `CoupledSDEs` is `ContinuousDynamicalSystem`.
+"""
 struct CoupledSDEs{IIP, D, I, P} <: ContinuousTimeDynamicalSystem
     # D parametrised by length of u0
     integ::I
@@ -36,6 +44,14 @@ struct CoupledSDEs{IIP, D, I, P} <: ContinuousTimeDynamicalSystem
     p0::P
     diffeq # isn't parameterized because it is only used for display
 end
+
+"""
+    StochSystem
+
+An alias to [`CoupledSDEs`](@ref).
+This was the name these systems had in CriticalTransitions.jl.
+"""
+const StochSystem = CoupledSDEs
 
 function CoupledSDEs(f, g, u0, p = SciMLBase.NullParameters();
         t0 = 0, diffeq = DEFAULT_DIFFEQ, noise_rate_prototype = nothing,
