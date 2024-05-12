@@ -24,8 +24,8 @@ end
 #     include("utils.jl")
 # end
 
-# @testset "Baisin" begin
-#     include("baisin/baisin_boundary.jl")
+# @testset "basin" begin
+#     include("basin/basin_boundary.jl")
 # end
 
 @testset "Trajactories" begin
