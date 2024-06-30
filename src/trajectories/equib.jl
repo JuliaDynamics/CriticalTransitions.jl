@@ -1,5 +1,5 @@
 """
-    equilib(sys::CoupledSDEs, state::State; kwargs...)
+    equilib(sys::CoupledSDEs, state; kwargs...)
 Returns the equilibrium solution of the system `sys` for given initial condition `state`.
 
 > Warning: This algorithm simply evolves the deterministic system forward in time until a steady-state condition is satisfied.

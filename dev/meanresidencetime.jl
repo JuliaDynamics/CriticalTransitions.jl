@@ -4,8 +4,8 @@
 
 function meanresidencetime(
     sys::StochSystem,
-    x_i::State,
-    x_f::State;
+    x_i,
+    x_f;
     M::Int64=50,
     rad_i=0.1,
     rad_f=0.1,
@@ -97,8 +97,8 @@ end
 
 function meantransitiontime(
     sys::StochSystem,
-    x_i::State,
-    x_f::State,
+    x_i,
+    x_f,
     sample_size::Int64;
     rad_i::Float64 = 0.1,
     rad_f::Float64 = 0.1,
@@ -111,8 +111,8 @@ end
 
 function meanresidencetime(
     sys::StochSystem,
-    x_i::State,
-    x_f::State,
+    x_i,
+    x_f,
     sample_size::Int64;
     rad_i::Float64 = 0.1,
     rad_f::Float64 = 0.1,
@@ -125,7 +125,7 @@ function meanresidencetime(
     return mean(residencetimes)
 end
 
-# ϵ = 0.1; σ = 0.125; fhn = fhn_ϵσ(ϵ, σ); 
+# ϵ = 0.1; σ = 0.125; fhn = fhn_ϵσ(ϵ, σ);
 
 # bmin = [-2, -2]; bmax = [2, 2];
 

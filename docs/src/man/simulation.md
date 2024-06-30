@@ -6,11 +6,11 @@ We provide two main functions to simulate a [`CoupledSDEs`](@ref) forward in tim
 
 ## Deterministic dynamics
 ```@docs
-relax(sys::CoupledSDEs, T, init::State; kwargs...)
+relax(sys::CoupledSDEs, T, init; kwargs...)
 ```
 
 ## Stochastic dynamics
 
 ```@docs
-simulate(sys::CoupledSDEs, T, init::State; kwargs...)
+simulate(sys::CoupledSDEs, T, init; kwargs...)
 ```

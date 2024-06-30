@@ -5,8 +5,8 @@
 
 function exit_time(
     sys::StochSystem,
-    x_i::State,
-    x_f::State;
+    x_i,
+    x_f;
     rad_i=0.1,
     rad_f=0.1,
     dt=0.01,
@@ -32,8 +32,8 @@ end
 
 function exit_times(
     sys::StochSystem,
-    x_i::State,
-    x_f::State,
+    x_i,
+    x_f,
     N=1;
     rad_i=0.1,
     rad_f=0.1,
@@ -53,7 +53,7 @@ function exit_times(
 
     i = Threads.Atomic{Int}(0) # assign a race-free counter for the number of transitions
     j = Threads.Atomic{Int}(0) # assign a race-free counter for the number of non-transitions
-    k = Threads.Atomic{Int}(0) # assign a race-free counter for the number of iterations to go  
+    k = Threads.Atomic{Int}(0) # assign a race-free counter for the number of iterations to go
 
     iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
@@ -107,8 +107,8 @@ end
 
 function residence_time(
     sys::StochSystem,
-    x_i::State,
-    x_f::State;
+    x_i,
+    x_f;
     rad_i=0.1,
     rad_f=0.1,
     dt=0.01,
@@ -134,8 +134,8 @@ end
 
 function residence_times(
     sys::StochSystem,
-    x_i::State,
-    x_f::State,
+    x_i,
+    x_f,
     N=1;
     rad_i=0.1,
     rad_f=0.1,
@@ -155,7 +155,7 @@ function residence_times(
 
     i = Threads.Atomic{Int}(0) # assign a race-free counter for the number of transitions
     j = Threads.Atomic{Int}(0) # assign a race-free counter for the number of non-transitions
-    k = Threads.Atomic{Int}(0) # assign a race-free counter for the number of iterations to go  
+    k = Threads.Atomic{Int}(0) # assign a race-free counter for the number of iterations to go
 
     iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
@@ -209,9 +209,9 @@ end
 
 function residence_time2(
     sys::StochSystem,
-    x_i::State,
-    x_f1::State,
-    x_f2::State;
+    x_i,
+    x_f1,
+    x_f2;
     rad_i=0.1,
     rad_f=0.1,
     dt=0.01,
@@ -250,7 +250,7 @@ function residence_time2(
     if success # i.e. the simulation ended prematurely (and hence transitioned)
         if subnorm(destination - x_f1; directions=rad_dims) < rad_f
             new_state = 1 # means the system transitioned to the new attracting state x_f1
-        else # we must therefore have that subnorm(destination - x_f1; directions=rad_dims) < rad_f 
+        else # we must therefore have that subnorm(destination - x_f1; directions=rad_dims) < rad_f
             new_state = 2
         end
     end
@@ -260,9 +260,9 @@ end
 
 function residence_times2(
     sys::StochSystem,
-    x_i::State,
-    x_f1::State,
-    x_f2::State,
+    x_i,
+    x_f1,
+    x_f2,
     N=1;
     rad_i=0.1,
     rad_f=0.1,
@@ -420,7 +420,7 @@ function runandsavetimes(
     system_info = sys_string(sys; verbose=true)
     data_info = info3
 
-    # call transitions function 
+    # call transitions function
     tstart = now()
     times, idx, reject = residence_times(
         sys, R, L, N; rad_i, rad_f, dt, tmax, solver, Nmax, showprogress, savefile=nothing

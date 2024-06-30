@@ -46,7 +46,7 @@ end
 # functions for RateSystem
 
 """
-    simulate(sys::RateSystem, init::State; kwargs...)
+    simulate(sys::RateSystem, init; kwargs...)
 Simulates the RateSystem `sys` forward in time, starting at initial condition `init`.
 ## Keyword arguments
 * `dt=0.01`: time step of integration
@@ -60,7 +60,7 @@ For more info, see [`SDEProblem`](https://diffeq.sciml.ai/stable/types/sde_types
 """
 function simulate(
     sys::RateSystem,
-    init::State;
+    init;
     dt=0.01,
     tmax=1e3,
     solver=EM(),
@@ -76,7 +76,7 @@ function simulate(
 end;
 
 """
-    relax(sys::StochSystem, init::State; kwargs...)
+    relax(sys::StochSystem, init; kwargs...)
 Simulates the deterministic dynamics of StochSystem `sys` in time, starting at initial condition `init`.
 
 This function integrates `sys.f` forward in time, using the [`ODEProblem`](https://diffeq.sciml.ai/stable/types/ode_types/#SciMLBase.ODEProblem) functionality of `DifferentialEquations.jl`. Thus, `relax` is identical to [`simulate`](@ref) when setting the noise strength `sys.σ = 0`.
@@ -95,7 +95,7 @@ For stochastic integration, see [`simulate`](@ref).
 """
 function relax(
     sys::RateSystem,
-    init::State;
+    init;
     dt=0.01,
     tmax=1e3,
     solver=Euler(),

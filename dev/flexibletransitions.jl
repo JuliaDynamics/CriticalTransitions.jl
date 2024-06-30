@@ -1,8 +1,8 @@
 function transition2(
     sys::StochSystem,
-    x_i::State,
-    x_f1::State,
-    x_f2::State;
+    x_i,
+    x_f1,
+    x_f2;
     rad_i=0.1,
     rad_f=0.1,
     dt=0.01,
@@ -53,9 +53,9 @@ end;
 
 function transitions2(
     sys::StochSystem,
-    x_i::State,
-    x_f1::State,
-    x_f2::State,
+    x_i,
+    x_f1,
+    x_f2,
     N=1;
     rad_i=0.1,
     rad_f=0.1,
