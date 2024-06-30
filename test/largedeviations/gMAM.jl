@@ -1,6 +1,6 @@
 @testset "gMAM FitzHugh-Nagumo" begin
     p = [0.1, 3, 1, 1, 1, 0]
-    fhn = CoupledSDEs(fitzhugh_nagumo, diag_noise_function(0.1), zeros(2), p)
+    fhn = CoupledSDEs(CT.fitzhugh_nagumo, diag_noise_function(0.1), zeros(2), p)
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
     N = 100

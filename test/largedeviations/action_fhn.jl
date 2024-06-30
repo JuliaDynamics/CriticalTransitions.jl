@@ -4,7 +4,7 @@ Random.seed!(SEED)
 # System setup - FitzHugh-Nagumo model
 p = [1.0, 3.0, 1.0, 1.0, 1.0, 0.0] # Parameters (ϵ, β, α, γ, κ, I)
 σ = 0.215 # noise strength
-sys = CoupledSDEs(fitzhugh_nagumo, diag_noise_function(σ), zeros(2), p; seed=SEED)
+sys = CoupledSDEs(CT.fitzhugh_nagumo, diag_noise_function(σ), zeros(2), p; seed=SEED)
 
 A = inv(CT.covariance_matrix(sys))
 T, N = 2.0, 100

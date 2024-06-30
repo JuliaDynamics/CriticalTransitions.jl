@@ -7,7 +7,7 @@
     σ = 0.215 # noise strength
 
     # CoupledSDEs
-    sys = CoupledSDEs(fitzhugh_nagumo, diag_noise_function(σ), zeros(2), p; seed=SEED)
+    sys = CoupledSDEs(CT.fitzhugh_nagumo, diag_noise_function(σ), zeros(2), p; seed=SEED)
 
     fp1 = [0.816, 0.272]
     fp2 = [-0.816, -0.272]
