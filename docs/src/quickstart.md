@@ -14,7 +14,7 @@ As this module is not published yet, there are two ways to access it:
 ## Basic usage
 The general workflow of `CriticalTransitions` essentially follows two steps:
 
-1. Define your system (see [Define a CoupledSDEs system](@ref))
+1. Define your system (see [Define a CoupledSDE](@ref))
 2. Investigate the system by calling methods (see [Methods](@ref))
 
 !!! info "Extension to RateSystem and TippingSystem"

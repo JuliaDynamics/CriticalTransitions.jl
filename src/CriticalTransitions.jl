@@ -17,9 +17,9 @@ using Optim, Dierckx
 using Printf, DrWatson, Dates, Statistics
 
 # Define custom types
-Parameters = Union{Vector{Any}, Nothing};
-CovMatrix = Union{Matrix, UniformScaling{Bool}, Diagonal{Bool, Vector{Bool}}};
-State = Union{Vector, SVector}
+# Parameters = Union{Vector{Any}, Nothing};
+# CovMatrix = Union{Matrix, UniformScaling{Bool}, Diagonal{Bool, Vector{Bool}}};
+# State = Union{Vector, SVector}
 
 include("utils.jl")
 include("CoupledSDEs.jl")

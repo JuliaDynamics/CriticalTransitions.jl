@@ -32,3 +32,8 @@ end
     include("trajactories/simulate.jl")
     include("trajactories/transition.jl")
 end
+
+@testset "Doctests" begin
+    using Documenter
+    Documenter.doctest(CriticalTransitions)
+end
