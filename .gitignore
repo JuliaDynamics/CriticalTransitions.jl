@@ -12,6 +12,4 @@ docs/build/
 /Manifest.toml
 docs/Manifest.toml
 dev/levy.jl
-.JuliaFormatter.toml
 reyk_local/
-.JuliaFormatter.toml
