@@ -9,7 +9,7 @@ Computes the basin boundary for given output `X, Y, h` of the [`basins`](@ref) f
 
 To be further documented.
 """
-function basinboundary(X, Y, h; coords::String = "plane", A::Vector = [], B::Vector = [], C::Vector = [])
+function CriticalTransitions.basinboundary(X, Y, h; coords::String = "plane", A::Vector = [], B::Vector = [], C::Vector = [])
 
     bb = [];
 
@@ -47,7 +47,7 @@ $(TYPEDSIGNATURES)
 
 This function computes the basin boundary.
 """
-function basboundary(sys::CoupledSDEs, xrange::Vector, yrange::Vector, xspacing::Float64, attractors::Vector;
+function CriticalTransitions.basboundary(sys::CoupledSDEs, xrange::Vector, yrange::Vector, xspacing::Float64, attractors::Vector;
     eps1=1e-4,
     ϵ_mapper=0.1,
     dt_mapper=1.0e-3,
@@ -61,7 +61,7 @@ function basboundary(sys::CoupledSDEs, xrange::Vector, yrange::Vector, xspacing:
 
     Threads.@threads for i ∈ 1:N+1
         #println(i)
-        u1,u2 = bisect_to_edge2(sys, [xx[i],yrange[1]], [xx[i],yrange[2]], attractors,
+        u1,u2 = bisect_to_edge(sys, [xx[i],yrange[1]], [xx[i],yrange[2]], attractors,
         eps1=eps1,
         ϵ_mapper=ϵ_mapper,
         dt_mapper=dt_mapper,
@@ -82,4 +82,4 @@ Computes the basin boundary for given output `boa` of the [`basins`](@ref) funct
 
 To be further documented.
 """
-basinboundary(boa) = basinboundary(boa[1], boa[2], boa[4])
+CriticalTransitions.basinboundary(boa) = basinboundary(boa[1], boa[2], boa[4])

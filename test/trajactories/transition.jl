@@ -1,7 +1,6 @@
 
 @testset "fitzhugh_nagumo" begin
     using Random
-    # const SEED = 0xd8e5d8df
     Random.seed!(SEED)
 
     p = [1.0, 3.0, 1.0, 1.0, 1.0, 0.0] # Parameters (ϵ, β, α, γ, κ, I)
@@ -10,15 +9,8 @@
     # CoupledSDEs
     sys = CoupledSDEs(fitzhugh_nagumo, diag_noise_funtion(σ), zeros(2), p, seed = SEED)
 
-    # Calculate fixed points
-    ds = CoupledODEs(sys)
-    box = intervals_to_box([-2, -2], [2, 2])
-    eqs, eigs, stab = fixedpoints(ds, box)
-
-    # Store the two stable fixed points
-    fp1, fp2 = eqs[stab]
-    @test fp1 ≈ -fp2
-
+    fp1 = [0.816, 0.272]
+    fp2 = [-0.816, -0.272]
     trajectory, time, succes = CT.transition(sys, fp1, fp2)
     @test succes
     @test time[end] < 1e3

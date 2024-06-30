@@ -33,6 +33,16 @@ end
     include("trajactories/transition.jl")
 end
 
+@testset "Extentions" begin
+    @testset "ChaosToolsExt" begin
+        include("ext/ChaosToolsExt.jl")
+    end
+
+    @testset "CoupledSDEsBaisin" begin
+        include("ext/CoupledSDEsBaisin.jl")
+    end
+end
+
 @testset "Doctests" begin
     using Documenter
     Documenter.doctest(CriticalTransitions)
