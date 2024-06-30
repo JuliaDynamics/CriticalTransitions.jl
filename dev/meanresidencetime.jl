@@ -3,13 +3,7 @@
 # function for N of sigma
 
 function meanresidencetime(
-    sys::StochSystem,
-    x_i,
-    x_f;
-    M::Int64=50,
-    rad_i=0.1,
-    rad_f=0.1,
-    maxsamplesize=10000,
+    sys::StochSystem, x_i, x_f; M::Int64=50, rad_i=0.1, rad_f=0.1, maxsamplesize=10000
 )
 
     ## the point of this function is to return the mean residence time given a noise strength

@@ -2,7 +2,8 @@ module CoupledSDEsBaisin
 
 using CriticalTransitions
 using ChaosTools
-using Attractors: Attractors, AttractorsViaProximity, AttractorMapper, edgetracking, bisect_to_edge
+using Attractors:
+    Attractors, AttractorsViaProximity, AttractorMapper, edgetracking, bisect_to_edge
 using ProgressMeter
 using ProgressBars
 using DynamicalSystemsBase: ParallelDynamicalSystem

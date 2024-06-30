@@ -94,13 +94,7 @@ For stochastic integration, see [`simulate`](@ref).
 > Warning: This function has only been tested for the `Euler()` solver.
 """
 function relax(
-    sys::RateSystem,
-    init;
-    dt=0.01,
-    tmax=1e3,
-    solver=Euler(),
-    callback=nothing,
-    kwargs...,
+    sys::RateSystem, init; dt=0.01, tmax=1e3, solver=Euler(), callback=nothing, kwargs...
 )
     func(u, p, t) = fL(u, p, t, sys)
 
