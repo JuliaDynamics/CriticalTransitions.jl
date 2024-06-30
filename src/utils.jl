@@ -150,14 +150,14 @@ end;
 
 """
 """
-function diag_noise_funtion(σ; in_place=false)
+function diag_noise_function(σ; in_place=false)
     if in_place
         return (du, u, p, t) -> σ .* idfunc!(du, u, p, t)
     else
         return (u, p, t) -> σ .* idfunc(u, p, t)
     end
 end
-function diag_noise_funtion(σ, g)
+function diag_noise_function(σ, g)
     if SciMLBase.isinplace(g, 4)
         return (du, u, p, t) -> σ .* g(du, u, p, t)
     else

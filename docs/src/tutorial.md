@@ -26,7 +26,7 @@ using CriticalTransitions
 
 function fitzhugh_nagumo(u,p,t)
     u, v = u
-    ϵ, β, α, γ, κ, I = p[1]
+    ϵ, β, α, γ, κ, I = p
 
     du = (-α*u^3 + γ*u - κ*v + I)/ϵ
     dv = -β*v + u
@@ -62,10 +62,10 @@ That's it! Now we can throw the toolbox of `CriticalTransitions` at our stochast
 For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let's compute the fixed points using the [`fixedpoints`](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/chaostools/stable/periodicity/#ChaosTools.fixedpoints) function from ChaosTools.jl. As this function is from the `DynamicalSystems` ecosystem, it takes a system of type `CoupledODEs` as input. We can simply convert the CoupledSDEs `sys` via the [`CoupledODEs`](@ref) function:
 
 ```@example MAIN
+using ChaosTools
 # Calculate fixed points
-ds = CoupledODEs(sys)
 box = intervals_to_box([-2,-2], [2,2])
-eqs, eigs, stab = fixedpoints(ds, box)
+eqs, eigs, stab = fixedpoints(sys, box)
 
 # Store the two stable fixed points
 fp1, fp2 = eqs[stab]
@@ -75,7 +75,7 @@ fp1, fp2 = eqs[stab]
 Using the `simulate` function, we now run a simulation of our system starting out from the fixed point `fp1`:
 
 ```@example MAIN
-sim = simulate(sys, fp1, dt=0.01, tmax=1e3)
+sim = simulate(sys, 1e3, fp1, saveat=0.01)
 ```
 
 In the keyword arguments, we have specified the time step `dt` and total duration `tmax` of the numerical time integration.

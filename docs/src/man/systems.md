@@ -15,9 +15,8 @@ A 2D system given by
 where ``\epsilon`` is the parameter of time scale separation between the state variables ``u`` and ``v``. The parameters ``\alpha >0``, ``\beta >1``, ``\gamma>0``, and ``\kappa>0`` are real constants, and ``I`` denotes a driving term.
 
 ```@docs
-fitzhugh_nagumo(u, p, t)
-fitzhugh_nagumo!(du, u, p, t)
-fhn_ϵσ(ϵ, σ)   
+CriticalTransitions.fitzhugh_nagumo(u, p, t)
+CriticalTransitions.fitzhugh_nagumo!(du, u, p, t)
 ```
 
 ## Population dynamics
@@ -60,9 +59,8 @@ where ``P_1, P_0, Z_1, Z_0`` and ``t_0`` are constants to be determined in the n
 Below, the functions [`modifiedtruscottbrindley`](@ref) and [`modifiedtruscottbrindley!`](@ref) implement the non-dimensional form of the system. 
 
 ```@docs
-modifiedtruscottbrindley(u, p, t)
-modifiedtruscottbrindley!(du, u, p, t)
-modtb_αξσ(α, ξ, σ)
+CriticalTransitions.modifiedtruscottbrindley(u, p, t)
+CriticalTransitions.modifiedtruscottbrindley!(du, u, p, t)
 ```
 
 ## Earth & Climate
@@ -85,11 +83,11 @@ The original Stommel 1961 model (see [`stommel`](@ref)), defined in terms of the
 Cessi's 1994 version of the model ([`cessi`](@ref)), written in terms of the parameters ``\alpha``, ``\mu^2``, and ``p``, follows from the above equations by setting ``\tau = t/t_r``, ``\delta = 2/\\alpha``, ``\nu=\mu^2``, ``f(x-y) = (x-y)^2/k``, ``R=pH/(2S_0)``, and ``A=1``.
 
 ```@docs
-stommel(u, p, t; kwargs...)
-cessi(u, p, t)
+CriticalTransitions.stommel(u, p, t; kwargs...)
+CriticalTransitions.cessi(u, p, t)
 ```
 
 #### Interhemispheric 3-box model
 ```@docs
-rooth_smooth(u, p, t; kwargs...)
+CriticalTransitions.rooth_smooth(u, p, t; kwargs...)
 ```

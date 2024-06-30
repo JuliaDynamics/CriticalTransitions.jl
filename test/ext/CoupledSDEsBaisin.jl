@@ -1,7 +1,7 @@
 @testset "fitzhugh_nagumo" begin
     using Attractors, ChaosTools
     # Define systems
-    g = diag_noise_funtion(0.215)
+    g = diag_noise_function(0.215)
     system = CoupledSDEs(fitzhugh_nagumo, g, [2.0, 0.1], [0.1, 3.0, 1.0, 1.0, 1.0, 0.0])
 
     # Set up domain

@@ -15,7 +15,7 @@ computed by typing:
 
 ```julia
 using CriticalTransitions, DynamicalSystems: lyapunovspectrum
-sys = CoupledSDEs(fitzhugh_nagumo, diag_noise_funtion(σ), zeros(2), [1.,3.,1.,1.,1.,0.])
+sys = CoupledSDEs(fitzhugh_nagumo, diag_noise_function(σ), zeros(2), [1.,3.,1.,1.,1.,0.])
 ls = lyapunovspectrum(CoupledODEs(sys), 10000)
 ```
 
@@ -26,7 +26,7 @@ CoupledODEs(sys::CoupledSDEs; diffeq, t0=0.0)
 ## `CoupledSDEs` utility functions
 
 ```@docs
-drift(sys::CoupledSDEs, x)
+CriticalTransitions.drift
 ```
 
 ## Saving data
@@ -34,12 +34,6 @@ drift(sys::CoupledSDEs, x)
 ```@docs
 make_jld2(text::String, relpath::String="")
 make_h5(text::String, relpath::String="")
-```
-
-### Generalized vector norms
-```@docs
-anorm(vec, A; square=false)
-subnorm(vec; kwargs...)
 ```
 
 ### `length(sys.u)`-dimensional box

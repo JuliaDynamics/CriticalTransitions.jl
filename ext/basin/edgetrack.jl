@@ -32,7 +32,7 @@ tracks along the edge within the basin of attraction of `u1` and `u2`, respectiv
     May behave erroneously when run with `solver = SimpleATsit5()`, which is the default
     solver for `AttractorsViaProximity`. The recommended solver is `Vern9()`.
 """
-function edgetracking(
+function Attractors.edgetracking(
     sys::CoupledSDEs,
     u1,
     u2,
@@ -84,7 +84,7 @@ from each other.
 * `solver=Vern9()`: solver for AttractorMapper
 * `kwargs...`: additional `kwargs` that can be passed to AttractorMapper
 """
-function bisect_to_edge(
+function Attractors.bisect_to_edge(
     sys::CoupledSDEs,
     u1,
     u2,
@@ -128,7 +128,7 @@ function track_edge(
 )
     verbose && println("=== Starting edge tracking algorithm ===")
 
-    u1, u2 = bisect_to_edge(pds, mapper; abstol=eps1)
+    u1, u2, succes = bisect_to_edge(pds, mapper; abstol=eps1)
     edgestate = (u1 + u2) / 2
 
     if output_all
@@ -150,7 +150,7 @@ function track_edge(
             distance = norm(current_state(pds, 1) - current_state(pds, 2))
             T += dt
         end
-        u1, u2 = bisect_to_edge(pds, mapper; abstol=eps1)
+        u1, u2, succes = bisect_to_edge(pds, mapper; abstol=eps1)
         edgestate = (u1 + u2) / 2
         correction = norm(edgestate - state)
         counter += 1
@@ -194,35 +194,35 @@ conditions `u1` and `u2`. A warning is raised if the bisection involves a third 
 # Keyword arguments
 * `abstol = 1e-9`: The maximum (Euclidean) distance between the two returned states.
 """
-function CriticalTransitions.bisect_to_edge(
-    pds::ParallelDynamicalSystem, mapper::AttractorMapper; abstol=1e-9
-)
-    u1, u2 = current_states(pds)
-    idx1, idx2 = mapper(u1), mapper(u2)
+# function Attractors.bisect_to_edge(
+#     pds::ParallelDynamicalSystem, mapper::AttractorMapper; abstol=1e-9
+# )
+#     u1, u2 = current_states(pds)
+#     idx1, idx2 = mapper(u1), mapper(u2)
 
-    if idx1 == idx2
-        error("Both initial conditions belong to the same basin of attraction.")
-    end
+#     if idx1 == idx2
+#         error("Both initial conditions belong to the same basin of attraction.")
+#     end
 
-    distance = norm(u1 - u2)
-    while distance > abstol
-        u_new = (u1 + u2) / 2
-        idx_new = mapper(u_new)
+#     distance = norm(u1 - u2)
+#     while distance > abstol
+#         u_new = (u1 + u2) / 2
+#         idx_new = mapper(u_new)
 
-        (idx_new == -1) ? error("New point lies exactly on the basin boundary.") : nothing
+#         (idx_new == -1) ? error("New point lies exactly on the basin boundary.") : nothing
 
-        if idx_new == idx1
-            u1 = u_new
-        else
-            u2 = u_new
-            if idx_new != idx2
-                @warn "New bisection point belongs to a third basin of attraction."
-            end
-        end
-        distance = norm(u1 - u2)
-    end
-    return [u1, u2]
-end;
+#         if idx_new == idx1
+#             u1 = u_new
+#         else
+#             u2 = u_new
+#             if idx_new != idx2
+#                 @warn "New bisection point belongs to a third basin of attraction."
+#             end
+#         end
+#         distance = norm(u1 - u2)
+#     end
+#     return [u1, u2]
+# end;
 
 """
 $(TYPEDSIGNATURES)

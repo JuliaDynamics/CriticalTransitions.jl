@@ -183,8 +183,8 @@ $(TYPEDSIGNATURES)
 
 Returns the drift field ``b(x)`` of the CoupledSDEs `sys` at the state vector `x`.
 """
-# assumes the drift is time independent
 function drift(sys::CoupledSDEs{IIP}, x) where {IIP}
+    # assumes the drift is time independent
     f = dynamic_rule(sys)
     if IIP
         dx = similar(x)

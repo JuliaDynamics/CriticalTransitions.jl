@@ -32,8 +32,8 @@ Attractors = "f3fd9213-ca85-4dba-9dfd-7fc91308fec7"
 ChaosTools = "608a59af-f2a3-5ad4-90b4-758bdf3122a7"
 
 [extensions]
-CoupledSDEsBaisin = ["ChaosTools", "Attractors"]
 ChaosToolsExt = ["ChaosTools"]
+CoupledSDEsBaisin = ["ChaosTools", "Attractors"]
 
 [compat]
 Attractors = "1.15.0"
@@ -61,11 +61,11 @@ Symbolics = "5.26.0"
 julia = "1.9"
 
 [extras]
+Attractors = "f3fd9213-ca85-4dba-9dfd-7fc91308fec7"
+ChaosTools = "608a59af-f2a3-5ad4-90b4-758bdf3122a7"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 IntervalRootFinding = "d2bf35a9-74e0-55ec-b149-d360ff49b807"
 ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
-Attractors = "f3fd9213-ca85-4dba-9dfd-7fc91308fec7"
-ChaosTools = "608a59af-f2a3-5ad4-90b4-758bdf3122a7"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 

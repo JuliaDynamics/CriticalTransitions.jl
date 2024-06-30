@@ -11,8 +11,8 @@
     @testset "diagonal additive noise" begin
         # diagonal additive noise: σ*N(0,dt)
         # a vector of random numbers dW whose size matches the output of g where the noise is applied element-wise
-        prob = SDEProblem(meier_stein, diag_noise_funtion(σ), zeros(2), (0.0, Inf))
-        sde = CoupledSDEs(meier_stein, diag_noise_funtion(σ), zeros(2))
+        prob = SDEProblem(meier_stein, diag_noise_function(σ), zeros(2), (0.0, Inf))
+        sde = CoupledSDEs(meier_stein, diag_noise_function(σ), zeros(2))
 
         @test sde.integ.sol.prob.f == prob.f
         @test sde.integ.sol.prob.g == prob.g
@@ -30,8 +30,8 @@
         # Scalar noise Wiener
         # a single random variable is applied to all dependent variables
         W = WienerProcess(0.0, 0.0, 0.0)
-        prob = SDEProblem(meier_stein, diag_noise_funtion(σ), zeros(2), (0.0, Inf); noise=W)
-        sde = CoupledSDEs(meier_stein, diag_noise_funtion(σ), zeros(2); noise=W)
+        prob = SDEProblem(meier_stein, diag_noise_function(σ), zeros(2), (0.0, Inf); noise=W)
+        sde = CoupledSDEs(meier_stein, diag_noise_function(σ), zeros(2); noise=W)
 
         @test sde.integ.sol.prob.f == prob.f
         @test sde.integ.sol.prob.g == prob.g

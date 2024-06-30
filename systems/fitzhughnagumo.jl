@@ -14,7 +14,8 @@ function fitzhugh_nagumo!(du, u, p, t)
     ϵ, β, α, γ, κ, I = p
 
     du[1] = (-α * x^3 + γ * x - κ * y + I) / ϵ
-    return du[2] = -β * y + x
+    du[2] = -β * y + x
+    return nothing
 end
 
 """

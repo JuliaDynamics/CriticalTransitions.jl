@@ -40,7 +40,7 @@ include("../systems/stommel.jl")
 include("../systems/rivals.jl")
 
 # Core types
-export CoupledSDEs, diag_noise_funtion
+export CoupledSDEs, diag_noise_function
 export noise_strength
 
 # Methods
@@ -54,15 +54,15 @@ export edgetracking, bisect_to_edge, attractor_mapper
 export make_jld2, make_h5, intervals_to_box
 
 # Systems
-export fitzhugh_nagumo, fitzhugh_nagumo!, fhn_ϵσ, fhn_ϵσ_backward
-export modifiedtruscottbrindley,
-    modifiedtruscottbrindley!, modtb_αξσ, modtb_αξσ1, modtb_αξσ_backward
-export rampedmodifiedtruscottbrindley, modifiedtruscottbrindley!, rmodtb_ξvTtrTraσ
-export originaltruscottbrindley, originaltruscottbrindley!, origtb_rσ
-export rampedoriginaltruscottbrindley, rampedoriginaltruscottbrindley!, rorigtb_vTtrTraσ
-export originaltruscottbrindley1, originaltruscottbrindley1!, origtb1_rσ
-export rampedoriginaltruscottbrindley1, rampedoriginaltruscottbrindley1!, rorigtb1_vTtrTraσ
-export rivals!, rivals, rivals_ϵσ
-export rooth_smooth, stommel, cessi
+# export fitzhugh_nagumo, fitzhugh_nagumo!, fhn_ϵσ, fhn_ϵσ_backward
+# export modifiedtruscottbrindley,
+#     modifiedtruscottbrindley!, modtb_αξσ, modtb_αξσ1, modtb_αξσ_backward
+# export rampedmodifiedtruscottbrindley, modifiedtruscottbrindley!, rmodtb_ξvTtrTraσ
+# export originaltruscottbrindley, originaltruscottbrindley!, origtb_rσ
+# export rampedoriginaltruscottbrindley, rampedoriginaltruscottbrindley!, rorigtb_vTtrTraσ
+# export originaltruscottbrindley1, originaltruscottbrindley1!, origtb1_rσ
+# export rampedoriginaltruscottbrindley1, rampedoriginaltruscottbrindley1!, rorigtb1_vTtrTraσ
+# export rivals!, rivals, rivals_ϵσ
+# export rooth_smooth, stommel, cessi
 
 end # module CriticalTransitions
