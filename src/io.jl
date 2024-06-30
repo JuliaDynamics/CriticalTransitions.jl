@@ -7,8 +7,8 @@ See [`make_h5`](@ref) for generating a `.h5` file.
 """
 function make_jld2(text::String, relpath::String="")
     time = Dates.now()
-    str = relpath*Dates.format(time, "yymmdd")*"_"*text*".jld2"
-    jldopen(str, "a+")
+    str = relpath * Dates.format(time, "yymmdd") * "_" * text * ".jld2"
+    return jldopen(str, "a+")
 end;
 
 """
@@ -20,6 +20,6 @@ See [`make_jld2`](@ref) for generating a `.jld2` file.
 """
 function make_h5(text::String, relpath::String="")
     time = Dates.now()
-    str = relpath*Dates.format(time, "yymmdd")*"_"*text*".h5"
-    h5open(str, "cw")
+    str = relpath * Dates.format(time, "yymmdd") * "_" * text * ".h5"
+    return h5open(str, "cw")
 end;

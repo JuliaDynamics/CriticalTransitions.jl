@@ -4,7 +4,7 @@
         x, y = u
         dx = x - x^3 - 10 * x * y^2
         dy = -(1 + x^2) * y
-        SA[dx, dy]
+        return SA[dx, dy]
     end
     σ = 0.1
 
@@ -30,9 +30,8 @@
         # Scalar noise Wiener
         # a single random variable is applied to all dependent variables
         W = WienerProcess(0.0, 0.0, 0.0)
-        prob = SDEProblem(
-            meier_stein, diag_noise_funtion(σ), zeros(2), (0.0, Inf), noise = W)
-        sde = CoupledSDEs(meier_stein, diag_noise_funtion(σ), zeros(2), noise = W)
+        prob = SDEProblem(meier_stein, diag_noise_funtion(σ), zeros(2), (0.0, Inf); noise=W)
+        sde = CoupledSDEs(meier_stein, diag_noise_funtion(σ), zeros(2); noise=W)
 
         @test sde.integ.sol.prob.f == prob.f
         @test sde.integ.sol.prob.g == prob.g
@@ -57,13 +56,14 @@
             du[2, 1] = 1.2u[2]
             du[2, 2] = 0.2u[2]
             du[2, 3] = 0.3u[2]
-            du[2, 4] = 1.8u[2]
+            return du[2, 4] = 1.8u[2]
         end
         # prob = SDEProblem(f, g, ones(2), (0.0, 1.0), noise_rate_prototype = zeros(2, 4))
         # diffeq =(alg=SRIW1(), noise_rate_prototype = zeros(2, 4))
-        sde = CoupledSDEs(f, g, zeros(2), noise_rate_prototype = zeros(2, 4),
-            diffeq = (alg = RKMilCommute(),))
-        prob = SDEProblem(f, g, zeros(2), (0.0, Inf), noise_rate_prototype = zeros(2, 4))
+        sde = CoupledSDEs(
+            f, g, zeros(2); noise_rate_prototype=zeros(2, 4), diffeq=(alg=RKMilCommute(),)
+        )
+        prob = SDEProblem(f, g, zeros(2), (0.0, Inf); noise_rate_prototype=zeros(2, 4))
 
         @test sde.integ.sol.prob.f == prob.f
         @test sde.integ.sol.prob.g == prob.g

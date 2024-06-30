@@ -34,24 +34,26 @@ function stommel(u, p, t; smooth=1e-6, flow_law="abs")
 
     if flow_law == "abs"
         # Original Stommel model
-        q = (smooth>0) ? smoothabs(x-y, 1/smooth) : abs(x-y)
+        q = (smooth > 0) ? smoothabs(x - y, 1 / smooth) : abs(x - y)
         diffu = 0
     elseif flow_law == "diffu_abs"
         # Absolute flow law Q2 in eq. (2.4) of Cessi 1994
-        q = (smooth>0) ? smoothabs(x-y, 1/smooth) : abs(x-y)
+        q = (smooth > 0) ? smoothabs(x - y, 1 / smooth) : abs(x - y)
         diffu = 1
     elseif flow_law == "diffu_sqr"
         # Quadratic flow law Q3 in eq. (2.4) of Cessi 1994
-        q = (x-y)^2
+        q = (x - y)^2
         diffu = 1
     else
-        @error("Invalid value of 'flow_law' kwarg. Options: 'abs', 'diffu_abs', 'diffu_sqr'.")
+        @error(
+            "Invalid value of 'flow_law' kwarg. Options: 'abs', 'diffu_abs', 'diffu_sqr'."
+        )
     end
 
-    dx = 1 - x - mu*x*q - diffu*delta*x
-    dy = delta*(R - y) - mu*y*q
+    dx = 1 - x - mu * x * q - diffu * delta * x
+    dy = delta * (R - y) - mu * y * q
 
-    SA[dx, dy]
+    return SA[dx, dy]
 end
 
 """
@@ -69,9 +71,9 @@ function cessi(u, p, t)
     alpha, mu2, pflux = p
 
     # Convert to Stommel parameters
-    delta = 2/alpha
-    mu = 2/alpha*mu2
-    R = pflux/2
+    delta = 2 / alpha
+    mu = 2 / alpha * mu2
+    R = pflux / 2
 
-    stommel(u, [[delta, mu, R]], t; smooth=0, flow_law="diffu_sqr")
+    return stommel(u, [[delta, mu, R]], t; smooth=0, flow_law="diffu_sqr")
 end

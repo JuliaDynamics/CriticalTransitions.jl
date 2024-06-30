@@ -32,9 +32,9 @@ function fw_action(sys::CoupledSDEs, path, time; cov_inv=nothing)
 
     S = 0
     for i in 1:(size(path, 2) - 1)
-        S += (integrand[i+1] + integrand[i])/2 * (time[i+1]-time[i])
+        S += (integrand[i + 1] + integrand[i]) / 2 * (time[i + 1] - time[i])
     end
-    S/2
+    return S / 2
 end;
 
 """
@@ -69,11 +69,14 @@ function om_action(sys::CoupledSDEs, path, time, noise_strength; cov_inv=nothing
     # Compute action integral
     S = 0
     for i in 1:(size(path, 2) - 1)
-        S += noise_strength^2/2 * ((div_drift(sys, path[:,i+1])
-            + div_drift(sys, path[:,i]))/2 * (time[i+1]-time[i]))
+        S +=
+            noise_strength^2 / 2 * (
+                (div_drift(sys, path[:, i + 1]) + div_drift(sys, path[:, i])) / 2 *
+                (time[i + 1] - time[i])
+            )
     end
-    fw_action(sys, path, time, cov_inv=A) + S/2
- end;
+    return fw_action(sys, path, time; cov_inv=A) + S / 2
+end;
 
 """
 $(TYPEDSIGNATURES)
@@ -119,22 +122,22 @@ Returns the value of the geometric action ``\\bar S``.
 """
 function geometric_action(sys::CoupledSDEs, path, arclength=1.0; cov_inv=nothing)
     N = size(path, 2)
-    v = path_velocity(path, range(0, arclength, length=N), order=4)
+    v = path_velocity(path, range(0, arclength; length=N); order=4)
     A = isnothing(cov_inv) ? inv(covariance_matrix(sys)) : cov_inv
 
     b(x) = drift(sys, x)
 
     integrand = zeros(N)
     for i in 1:N
-        drift = b(path[:,i])
-        integrand[i] = anorm(v[:,i], A)*anorm(drift, A) - dot(v[:,i], A, drift)
+        drift = b(path[:, i])
+        integrand[i] = anorm(v[:, i], A) * anorm(drift, A) - dot(v[:, i], A, drift)
     end
 
     S = 0
-    for i in 1:N-1
-        S += (integrand[i+1] + integrand[i])/2
+    for i in 1:(N - 1)
+        S += (integrand[i + 1] + integrand[i]) / 2
     end
-    S * arclength/(N-1)
+    return S * arclength / (N - 1)
 end
 
 """
@@ -145,15 +148,15 @@ details). Returns a vector of length `N` containing the values of the above squa
 each time point in the vector `time`.
 """
 function fw_integrand(sys::CoupledSDEs, path, time, A)
-    v = path_velocity(path, time, order=4)
+    v = path_velocity(path, time; order=4)
     sqnorm = zeros(size(path, 2))
     b(x) = drift(sys, x)
     for i in 1:size(path, 2)
         # assumes the drift is time independent
-        drift = b(path[:,i])
-        sqnorm[i] = anorm(v[:,i] - drift, A, square=true)
+        drift = b(path[:, i])
+        sqnorm[i] = anorm(v[:, i] - drift, A; square=true)
     end
-    sqnorm
+    return sqnorm
 end;
 
 """
@@ -163,7 +166,7 @@ Computes the divergence of the drift field `sys.f` at the given point `x`.
 """
 function div_drift(sys::CoupledSDEs, x)
     b(x) = drift(sys, x)
-    tr(ForwardDiff.jacobian(b, x))
+    return tr(ForwardDiff.jacobian(b, x))
 end;
 
 """
@@ -182,25 +185,29 @@ function path_velocity(path, time; order=4)
 
     if order == 2
         # 1st order forward/backward differences for end points
-        v[:,1] .= (path[:,2] .- path[:,1])/(time[2] - time[1])
-        v[:,end] .= (path[:,end] .- path[:,end-1])/(time[end] - time[end-1])
+        v[:, 1] .= (path[:, 2] .- path[:, 1]) / (time[2] - time[1])
+        v[:, end] .= (path[:, end] .- path[:, end - 1]) / (time[end] - time[end - 1])
         # 2nd order central differences for internal points
         for i in 2:(size(path, 2) - 1)
-            v[:,i] .= (path[:,i+1] .- path[:,i-1])/(time[i+1] - time[i-1])
+            v[:, i] .= (path[:, i + 1] .- path[:, i - 1]) / (time[i + 1] - time[i - 1])
         end
 
     elseif order == 4
         # 1st order forward/backward differences for end points
-        v[:,1] .= (path[:,2] .- path[:,1])/(time[2] - time[1])
-        v[:,end] .= (path[:,end] .- path[:,end-1])/(time[end] - time[end-1])
+        v[:, 1] .= (path[:, 2] .- path[:, 1]) / (time[2] - time[1])
+        v[:, end] .= (path[:, end] .- path[:, end - 1]) / (time[end] - time[end - 1])
         # 2nd order central differences for neighbors of end points
-        v[:,2] .= (path[:,3] .- path[:,1])/(time[3] - time[1])
-        v[:,end-1] .= (path[:,end] .- path[:,end-2])/(time[end] - time[end-2])
+        v[:, 2] .= (path[:, 3] .- path[:, 1]) / (time[3] - time[1])
+        v[:, end - 1] .= (path[:, end] .- path[:, end - 2]) / (time[end] - time[end - 2])
         # 4th order central differences for internal points
         for i in 3:(size(path, 2) - 2)
-            v[:,i] .= ((-path[:,i+2] .+ 8*path[:,i+1] .- 8*path[:,i-1] .+ path[:,i-2])/
-                (6*(time[i+1] - time[i-1])))
+            v[:, i] .= (
+                (
+                    -path[:, i + 2] .+ 8 * path[:, i + 1] .- 8 * path[:, i - 1] .+
+                    path[:, i - 2]
+                ) / (6 * (time[i + 1] - time[i - 1]))
+            )
         end
     end
-    v
+    return v
 end;

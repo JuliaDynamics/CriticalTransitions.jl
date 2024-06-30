@@ -32,7 +32,11 @@ tracks along the edge within the basin of attraction of `u1` and `u2`, respectiv
     May behave erroneously when run with `solver = SimpleATsit5()`, which is the default
     solver for `AttractorsViaProximity`. The recommended solver is `Vern9()`.
 """
-function edgetracking(sys::CoupledSDEs, u1, u2, attractors::Vector;
+function edgetracking(
+    sys::CoupledSDEs,
+    u1,
+    u2,
+    attractors::Vector;
     eps1=1e-9,
     eps2=1e-8,
     converge=1e-5,
@@ -44,17 +48,26 @@ function edgetracking(sys::CoupledSDEs, u1, u2, attractors::Vector;
     maxit=100,
     verbose=true,
     output_all=false,
-    kwargs...)
-
-    diffeq = (;alg = solver)
+    kwargs...,
+)
+    diffeq = (; alg=solver)
     odes = CoupledODEs(sys; diffeq)
     attrs = Dict(i => StateSpaceSet([attractors[i]]) for i in 1:length(attractors))
     pds = ParallelDynamicalSystem(odes, [u1, u2])
     mapper = AttractorsViaProximity(odes, attrs, ϵ_mapper; Δt=dt_mapper, kwargs...)
 
-    track_edge(pds, mapper;
-        eps1=eps1, eps2=eps2, converge=converge, dt=dt, tmax=tmax, maxit=maxit,
-        verbose=verbose, output_all=output_all)
+    return track_edge(
+        pds,
+        mapper;
+        eps1=eps1,
+        eps2=eps2,
+        converge=converge,
+        dt=dt,
+        tmax=tmax,
+        maxit=maxit,
+        verbose=verbose,
+        output_all=output_all,
+    )
 end;
 
 """
@@ -71,7 +84,11 @@ from each other.
 * `solver=Vern9()`: solver for AttractorMapper
 * `kwargs...`: additional `kwargs` that can be passed to AttractorMapper
 """
-function bisect_to_edge(sys::CoupledSDEs, u1, u2, attractors::Vector;
+function bisect_to_edge(
+    sys::CoupledSDEs,
+    u1,
+    u2,
+    attractors::Vector;
     eps1=1e-5,
     ϵ_mapper=0.1,
     dt_mapper=1.0e-3,
@@ -79,15 +96,17 @@ function bisect_to_edge(sys::CoupledSDEs, u1, u2, attractors::Vector;
     maxit=1e+5,
     absto=1e-16,
     relto=1e-16,
-    kwargs...)
-
-    diffeq = (;alg = solver,abstol=absto,reltol=relto)
+    kwargs...,
+)
+    diffeq = (; alg=solver, abstol=absto, reltol=relto)
     odes = CriticalTransitions.CoupledODEs(sys; diffeq)
     attrs = Dict(i => StateSpaceSet([attractors[i]]) for i in 1:length(attractors))
     pds = ParallelDynamicalSystem(odes, [u1, u2])
-    mapper = AttractorsViaProximity(odes, attrs, ϵ_mapper; Δt=dt_mapper, mx_chk_lost = maxit, kwargs...)
+    mapper = AttractorsViaProximity(
+        odes, attrs, ϵ_mapper; Δt=dt_mapper, mx_chk_lost=maxit, kwargs...
+    )
 
-    bisect_to_edge(pds, mapper, abstol=eps1)
+    return bisect_to_edge(pds, mapper; abstol=eps1)
 end
 
 """
@@ -95,14 +114,22 @@ $(TYPEDSIGNATURES)
 
 Internal function for the edge tracking algorithm. See [`edgetracking`](@ref) for details.
 """
-function track_edge(pds::ParallelDynamicalSystem, mapper::AttractorMapper;
-    eps1=1e-9, eps2=1e-8, converge=1e-5, dt=0.01, tmax=Inf, maxit=100,
-    verbose=false, output_all=false)
-
+function track_edge(
+    pds::ParallelDynamicalSystem,
+    mapper::AttractorMapper;
+    eps1=1e-9,
+    eps2=1e-8,
+    converge=1e-5,
+    dt=0.01,
+    tmax=Inf,
+    maxit=100,
+    verbose=false,
+    output_all=false,
+)
     verbose && println("=== Starting edge tracking algorithm ===")
 
     u1, u2 = bisect_to_edge(pds, mapper; abstol=eps1)
-    edgestate = (u1 + u2)/2
+    edgestate = (u1 + u2) / 2
 
     if output_all
         track1 = [u1]
@@ -114,17 +141,17 @@ function track_edge(pds::ParallelDynamicalSystem, mapper::AttractorMapper;
     correction = converge + 1
     counter = 1
     while (correction > converge) & (maxit > counter)
-        reinit!(pds, [u1,u2])
+        reinit!(pds, [u1, u2])
         state = edgestate
-        distance = norm(current_state(pds, 1)-current_state(pds, 2))
+        distance = norm(current_state(pds, 1) - current_state(pds, 2))
         T = 0
         while (distance < eps2) && (T < tmax)
             step!(pds, dt)
-            distance = norm(current_state(pds, 1)-current_state(pds, 2))
+            distance = norm(current_state(pds, 1) - current_state(pds, 2))
             T += dt
         end
         u1, u2 = bisect_to_edge(pds, mapper; abstol=eps1)
-        edgestate = (u1 + u2)/2
+        edgestate = (u1 + u2) / 2
         correction = norm(edgestate - state)
         counter += 1
 
@@ -135,7 +162,8 @@ function track_edge(pds::ParallelDynamicalSystem, mapper::AttractorMapper;
         end
 
         verbose && println("... Iteration $(counter): Edge at $(edgestate)")
-        (counter == maxit) && @error("Reached maximum number of $(maxit) iterations; did not converge.")
+        (counter == maxit) &&
+            @error("Reached maximum number of $(maxit) iterations; did not converge.")
     end
 
     (counter < maxit) && println("Edge-tracking converged after $(counter) iterations.")
@@ -166,7 +194,9 @@ conditions `u1` and `u2`. A warning is raised if the bisection involves a third 
 # Keyword arguments
 * `abstol = 1e-9`: The maximum (Euclidean) distance between the two returned states.
 """
-function CriticalTransitions.bisect_to_edge(pds::ParallelDynamicalSystem, mapper::AttractorMapper; abstol=1e-9)
+function CriticalTransitions.bisect_to_edge(
+    pds::ParallelDynamicalSystem, mapper::AttractorMapper; abstol=1e-9
+)
     u1, u2 = current_states(pds)
     idx1, idx2 = mapper(u1), mapper(u2)
 
@@ -174,9 +204,9 @@ function CriticalTransitions.bisect_to_edge(pds::ParallelDynamicalSystem, mapper
         error("Both initial conditions belong to the same basin of attraction.")
     end
 
-    distance = norm(u1-u2)
+    distance = norm(u1 - u2)
     while distance > abstol
-        u_new = (u1 + u2)/2
+        u_new = (u1 + u2) / 2
         idx_new = mapper(u_new)
 
         (idx_new == -1) ? error("New point lies exactly on the basin boundary.") : nothing
@@ -189,9 +219,9 @@ function CriticalTransitions.bisect_to_edge(pds::ParallelDynamicalSystem, mapper
                 @warn "New bisection point belongs to a third basin of attraction."
             end
         end
-        distance = norm(u1-u2)
+        distance = norm(u1 - u2)
     end
-    [u1, u2]
+    return [u1, u2]
 end;
 
 """
@@ -204,5 +234,5 @@ and a parameter `eps` to control the mapping algorithm. For more info, see the
 [`docs`](https://juliadynamics.github.io/Attractors.jl/dev/attractors/#Attractors.AttractorsViaProximity).
 """
 function attractor_mapper(sys::CoupledSDEs, attractors, eps=0.01; kwargs...)
-    Attractors.AttractorsViaProximity(CoupledODEs(sys), attrs, eps; kwargs...)
+    return Attractors.AttractorsViaProximity(CoupledODEs(sys), attrs, eps; kwargs...)
 end

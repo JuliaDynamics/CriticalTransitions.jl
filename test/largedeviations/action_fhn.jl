@@ -4,16 +4,16 @@ Random.seed!(SEED)
 # System setup - FitzHugh-Nagumo model
 p = [1.0, 3.0, 1.0, 1.0, 1.0, 0.0] # Parameters (ϵ, β, α, γ, κ, I)
 σ = 0.215 # noise strength
-sys = CoupledSDEs(fitzhugh_nagumo, diag_noise_funtion(σ), zeros(2), p, seed = SEED)
+sys = CoupledSDEs(fitzhugh_nagumo, diag_noise_funtion(σ), zeros(2), p; seed=SEED)
 
 A = inv(CT.covariance_matrix(sys))
 T, N = 2.0, 100
 
-x_i = SA[sqrt(2/3), sqrt(2/27)]
+x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
 x_f = SA[0.0, 0.0]
 
-path = reduce(hcat, range(x_i, x_f, length=N))
-time = range(0.0, T, length=N)
+path = reduce(hcat, range(x_i, x_f; length=N))
+time = range(0.0, T; length=N)
 
 @testset "fw_action" begin
     S = fw_action(sys, path, time)

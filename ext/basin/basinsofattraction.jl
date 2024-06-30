@@ -20,30 +20,37 @@ This function returns a four-dimensional vector. The first two entries are discr
 * `ϵ_mapper = 0.01`: `ϵ` parameter of [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity)
 * `kwargs...`: keyword arguments passed to the [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity) function (namely, `Ttr, Δt, horizon_limit, mx_chk_lost`)
 """
-function CriticalTransitions.basins(sys::CoupledSDEs, A, B, C, H;
+function CriticalTransitions.basins(
+    sys::CoupledSDEs,
+    A,
+    B,
+    C,
+    H;
     bstep::Vector = [0.01, 0.01],
     pstep::Vector = [0.1, 0.1],
-    ϵ_mapper=0.01,
-    showprogress=false,
-    kwargs...)
+    ϵ_mapper      = 0.01,
+    showprogress  = false,
+    kwargs...,
+)
+    U, V = plane(A, B, C, H; step=pstep) # the intervals for the maximal plane P_{U,V}
 
-    U, V = plane(A, B, C, H; step = pstep); # the intervals for the maximal plane P_{U,V}
-
-    X = range(U[1], U[2]; step = bstep[1]); # the range of projections along the B-A direction
-    Y = range(V[1], V[2]; step = bstep[2]); # the range of projections along the C-A direction
-    h = zeros(length(Y),length(X)); # an array to store the attractors for each initial condition
+    X = range(U[1], U[2]; step=bstep[1]) # the range of projections along the B-A direction
+    Y = range(V[1], V[2]; step=bstep[2]) # the range of projections along the C-A direction
+    h = zeros(length(Y), length(X)) # an array to store the attractors for each initial condition
 
     # defining the parameters required to run the AttractorsViaProximity function
-    fps = fixedpoints(sys, H);
-    attractors = toattractors(fps[1][fps[3]]);
+    fps = fixedpoints(sys, H)
+    attractors = toattractors(fps[1][fps[3]])
 
     # running the AttractorsViaProximity function using parallel computing
     iterator = showprogress ? tqdm(1:length(X)) : 1:length(X)
-    @Threads.threads for ii ∈ iterator
-        Z = [A+X[ii]*(B-A)+y*(C-A) for y ∈ Y]; # a row of initial conditions
-        h[:,ii] = Attractors.AttractorsViaProximity(CoupledODEs(sys), attractors, ϵ_mapper; kwargs...).(Z)
+    Threads.@threads for ii in iterator
+        Z = [A + X[ii] * (B - A) + y * (C - A) for y in Y] # a row of initial conditions
+        h[:, ii] =
+            Attractors.AttractorsViaProximity(
+                CoupledODEs(sys), attractors, ϵ_mapper; kwargs...
+            ).(Z)
     end
 
-    [X, Y, attractors, h]
-
+    return [X, Y, attractors, h]
 end

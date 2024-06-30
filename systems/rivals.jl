@@ -8,9 +8,8 @@ function rivals!(du, u, p, t)
     x, y = u
     ϵ, α₁, α₂, β₁, β₂ = p
 
-    du[1] = x*(x-α₁)*(1-x)-β₁*x*y
-    du[2] = ϵ*(y*(y-α₂)*(1-y)-β₂*x*y)
-
+    du[1] = x * (x - α₁) * (1 - x) - β₁ * x * y
+    return du[2] = ϵ * (y * (y - α₂) * (1 - y) - β₂ * x * y)
 end
 
 """
@@ -23,10 +22,10 @@ function rivals(u, p, t)
     x, y = u
     ϵ, α₁, α₂, β₁, β₂ = p
 
-    dx = x*(x-α₁)*(1-x)-β₁*x*y
-    dy = ϵ*(y*(y-α₂)*(1-y)-β₂*x*y)
+    dx = x * (x - α₁) * (1 - x) - β₁ * x * y
+    dy = ϵ * (y * (y - α₂) * (1 - y) - β₂ * x * y)
 
-    SA[dx, dy]
+    return SA[dx, dy]
 end
 
 # """

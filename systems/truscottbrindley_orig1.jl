@@ -14,8 +14,8 @@ function originaltruscottbrindley1!(du, u, p, t)
     P, Z = u
     r, K, Rₘ, α, γ, μ = p
 
-    du[1] = (1/γ)*(r*P*(1-P/K)-Rₘ*Z*P^2/(α^2+P^2));
-    du[2] = Rₘ*Z*P^2/(α^2+P^2)-μ*Z;
+    du[1] = (1 / γ) * (r * P * (1 - P / K) - Rₘ * Z * P^2 / (α^2 + P^2))
+    return du[2] = Rₘ * Z * P^2 / (α^2 + P^2) - μ * Z
 end
 
 """
@@ -24,14 +24,14 @@ Out-of-place definition of the original Truscott-Brindley system.
 
 See also [`originaltruscottbrindley1!`](@ref).
 """
-function originaltruscottbrindley1(u,p,t)
+function originaltruscottbrindley1(u, p, t)
     P, Z = u
     r, K, Rₘ, α, γ, μ = p
 
-    dP = (1/γ)*(r*P*(1-P/K)-Rₘ*Z*P^2/(α^2+P^2));
-    dZ = Rₘ*Z*P^2/(α^2+P^2)-μ*Z;
+    dP = (1 / γ) * (r * P * (1 - P / K) - Rₘ * Z * P^2 / (α^2 + P^2))
+    dZ = Rₘ * Z * P^2 / (α^2 + P^2) - μ * Z
 
-    SA[dP, dZ]
+    return SA[dP, dZ]
 end
 
 """
@@ -41,14 +41,12 @@ In-place definition of the ramped original Truscott-Brindley system.
 See also [`rampedoriginaltruscottbrindley1`](@ref).
 """
 function rampedoriginaltruscottbrindley1!(du, u, p, t)
-
     P, Z, r = u
     K, Rₘ, α, γ, μ, v, Ttrans, Tramp = p
 
-    du[1] = (1/γ)*(r*P*(1-P/K)-Rₘ*Z*P^2/(α^2+P^2));
-    du[2] = Rₘ*Z*P^2/(α^2+P^2)-μ*Z;
-    du[3] = t ∈ Ttrans..(Ttrans+Tramp) ? v : 0;
-
+    du[1] = (1 / γ) * (r * P * (1 - P / K) - Rₘ * Z * P^2 / (α^2 + P^2))
+    du[2] = Rₘ * Z * P^2 / (α^2 + P^2) - μ * Z
+    return du[3] = t ∈ Ttrans .. (Ttrans + Tramp) ? v : 0
 end
 
 """
@@ -58,15 +56,14 @@ Out-of-place definition of the ramped original Truscott-Brindley system.
 See also [`rampedoriginaltruscottbrindley1!`](@ref).
 """
 function rampedoriginaltruscottbrindley1(u, p, t)
-
     P, Z, r = u
     K, Rₘ, α, γ, μ, v, Ttrans, Tramp = p
 
-    dP = (1/γ)*(r*P*(1-P/K)-Rₘ*Z*P^2/(α^2+P^2));
-    dZ = Rₘ*Z*P^2/(α^2+P^2)-μ*Z;
-    dr = t ∈ Ttrans..(Ttrans+Tramp) ? v : 0;
+    dP = (1 / γ) * (r * P * (1 - P / K) - Rₘ * Z * P^2 / (α^2 + P^2))
+    dZ = Rₘ * Z * P^2 / (α^2 + P^2) - μ * Z
+    dr = t ∈ Ttrans .. (Ttrans + Tramp) ? v : 0
 
-    SA[dP,dZ,dr]
+    return SA[dP, dZ, dr]
 end
 
 # """

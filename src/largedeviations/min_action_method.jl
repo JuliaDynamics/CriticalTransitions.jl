@@ -33,19 +33,35 @@ The minimization can be performed in blocks to save intermediate results.
 If `save_info`, returns `Optim.OptimizationResults`. Else, returns only the optimizer (path).
 If `blocks > 1`, a vector of results/optimizers is returned.
 """
-function min_action_method(sys::CoupledSDEs, x_i, x_f, N::Int, T::Real;
-        functional = "FW",
-        maxiter = 100,
-        blocks = 1,
-        method = LBFGS(),
-        save_info = true,
-        showprogress = false,
-        verbose = true,
-        kwargs...)
-    init = reduce(hcat, range(x_i, x_f, length = N))
-    min_action_method(sys::CoupledSDEs, init, T;
-        functional = functional, maxiter = maxiter, blocks = blocks, method = method,
-        save_info = save_info, showprogress = showprogress, verbose = verbose, kwargs...)
+function min_action_method(
+    sys::CoupledSDEs,
+    x_i,
+    x_f,
+    N::Int,
+    T::Real;
+    functional="FW",
+    maxiter=100,
+    blocks=1,
+    method=LBFGS(),
+    save_info=true,
+    showprogress=false,
+    verbose=true,
+    kwargs...,
+)
+    init = reduce(hcat, range(x_i, x_f; length=N))
+    return min_action_method(
+        sys::CoupledSDEs,
+        init,
+        T;
+        functional=functional,
+        maxiter=maxiter,
+        blocks=blocks,
+        method=method,
+        save_info=save_info,
+        showprogress=showprogress,
+        verbose=verbose,
+        kwargs...,
+    )
 end;
 
 """
@@ -62,33 +78,47 @@ is specified by `T`, such that the time step between consecutive path points is
 For more information see the main method,
 [`min_action_method(sys::CoupledSDEs, x_i, x_f, N::Int, T::Real; kwargs...)`](@ref).
 """
-function min_action_method(sys::CoupledSDEs, init::Matrix, T::Real;
-        functional = "FW",
-        maxiter = 100,
-        blocks = 1,
-        method = LBFGS(),
-        save_info = true,
-        showprogress = false,
-        verbose = true,
-        kwargs...)
+function min_action_method(
+    sys::CoupledSDEs,
+    init::Matrix,
+    T::Real;
+    functional="FW",
+    maxiter=100,
+    blocks=1,
+    method=LBFGS(),
+    save_info=true,
+    showprogress=false,
+    verbose=true,
+    kwargs...,
+)
     verbose && println("=== Initializing MAM action minimizer ===")
 
     A = inv(covariance_matrix(sys))
     function f(x)
-        action(sys, fix_ends(x, init[:, 1], init[:, end]),
-            range(0.0, T, length = size(init, 2)), functional; cov_inv = A)
+        return action(
+            sys,
+            fix_ends(x, init[:, 1], init[:, end]),
+            range(0.0, T; length=size(init, 2)),
+            functional;
+            cov_inv=A,
+        )
     end
 
     result = Vector{Optim.OptimizationResults}(undef, blocks)
-    result[1] = Optim.optimize(f, init, method,
-        Optim.Options(iterations = Int(ceil(maxiter / blocks)), kwargs...))
+    result[1] = Optim.optimize(
+        f, init, method, Optim.Options(; iterations=Int(ceil(maxiter / blocks)), kwargs...)
+    )
     verbose ? println(result[1]) : nothing
 
     if blocks > 1
         iterator = showprogress ? tqdm(2:blocks) : 2:blocks
         for m in iterator
-            result[m] = Optim.optimize(f, result[m - 1].minimizer, method,
-                Optim.Options(iterations = Int(ceil(maxiter / blocks)), kwargs...))
+            result[m] = Optim.optimize(
+                f,
+                result[m - 1].minimizer,
+                method,
+                Optim.Options(; iterations=Int(ceil(maxiter / blocks)), kwargs...),
+            )
             verbose ? println(result[m]) : nothing
         end
         save_info ? (return result) : return [Optim.minimizer(result[i]) for i in 1:blocks]
@@ -107,5 +137,5 @@ function fix_ends(x::Matrix, x_i::Vector, x_f::Vector)
     m = x
     m[:, 1] = x_i
     m[:, end] = x_f
-    m
+    return m
 end;

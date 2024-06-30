@@ -32,13 +32,13 @@ Returns fixed points, their eigenvalues and stability of the system `sys` within
 """
 function ChaosTools.fixedpoints(sys::CoupledSDEs, bmin::Vector, bmax::Vector)
     box = intervals_to_box(bmin, bmax)
-    fixedpoints(sys::CoupledSDEs, box)
-end;
+    return fixedpoints(sys::CoupledSDEs, box)
+end
 
 function ChaosTools.fixedpoints(sys::CoupledSDEs, box)
-    jac(u,p,t) = ForwardDiff.jacobian((x) -> sys.integ.f(x,p,t), u)
-    fixedpoints(CoupledODEs(sys), box, jac)
-end;
+    jac(u, p, t) = ForwardDiff.jacobian((x) -> sys.integ.f(x, p, t), u)
+    return fixedpoints(CoupledODEs(sys), box, jac)
+end
 
 # function saddles_idx(fps::Tuple)
 #     num = size(fps[1],1); # number of fixed points
@@ -84,6 +84,5 @@ end;
 #     end
 #     idx
 # end
-
 
 end

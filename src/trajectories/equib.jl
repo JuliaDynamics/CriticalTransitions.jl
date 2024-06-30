@@ -12,18 +12,13 @@ Returns the equilibrium solution of the system `sys` for given initial condition
 * `dt = 0.01`: time step of the ODE solver.
 * `solver = Euler()`: ODE solver used for evolving the state.
 """
-function equilib(sys::CoupledSDEs, state;
-    dt=0.01,
-    tmax=1e5,
-    abstol=1e-5,
-    solver=Tsit5())
-
-    condition(u, t, integrator) = norm(integrator.uprev-u) < abstol
+function equilib(sys::CoupledSDEs, state; dt=0.01, tmax=1e5, abstol=1e-5, solver=Tsit5())
+    condition(u, t, integrator) = norm(integrator.uprev - u) < abstol
     affect!(integrator) = terminate!(integrator)
     equilib_cond = DiscreteCallback(condition, affect!)
 
     prob = ODEProblem(sys.integ.f, state, (0, tmax), sys.p0)
     sol = solve(prob, solver; dt=dt, callback=equilib_cond, save_on=false, save_start=false)
 
-    sol.u[1]
+    return sol.u[1]
 end;

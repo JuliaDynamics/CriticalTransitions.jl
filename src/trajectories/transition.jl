@@ -7,11 +7,11 @@ struct TransitionPathEnsemble
 end;
 
 function prettyprint(tpe::TransitionPathEnsemble)
-    "Transition path ensemble of $(length(tpe.times)) samples
-    - sampling success rate:      $(round(tpe.success_rate, digits=3))
-    - mean residence time:        $(round(tpe.t_res, digits=3))
-    - mean transition time:       $(round(tpe.t_trans, digits=3))
-    - normalized transition rate: $(round(tpe.t_res/tpe.t_trans, digits=1))"
+    return "Transition path ensemble of $(length(tpe.times)) samples
+           - sampling success rate:      $(round(tpe.success_rate, digits=3))
+           - mean residence time:        $(round(tpe.t_res, digits=3))
+           - mean transition time:       $(round(tpe.t_trans, digits=3))
+           - normalized transition rate: $(round(tpe.t_res/tpe.t_trans, digits=1))"
 end
 
 Base.show(io::IO, tpe::TransitionPathEnsemble) = print(io, prettyprint(tpe))
@@ -44,18 +44,22 @@ This function simulates `sys` in time, starting from initial condition `x_i`, un
 
 See also [`transitions`](@ref), [`simulate`](@ref).
 """
-function transition(sys::CoupledSDEs, x_i, x_f;
-        rad_i = 0.1,
-        rad_f = 0.1,
-        tmax = 1e3,
-        cut_start = true,
-        rad_dims = 1:length(current_state(sys)),
-        kwargs...)
-    condition(u, t, integrator) = subnorm(u - x_f; directions = rad_dims) < rad_f
+function transition(
+    sys::CoupledSDEs,
+    x_i,
+    x_f;
+    rad_i=0.1,
+    rad_f=0.1,
+    tmax=1e3,
+    cut_start=true,
+    rad_dims=1:length(current_state(sys)),
+    kwargs...,
+)
+    condition(u, t, integrator) = subnorm(u - x_f; directions=rad_dims) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
 
-    sim = simulate(sys, tmax, x_i; callback = cb_ball, kwargs...)
+    sim = simulate(sys, tmax, x_i; callback=cb_ball, kwargs...)
     success = sim.retcode == SciMLBase.ReturnCode.Terminated
 
     simt = sim.t
@@ -65,14 +69,15 @@ function transition(sys::CoupledSDEs, x_i, x_f;
         while dist > rad_i
             idx -= 1
             dist = norm(sim[:, idx] - x_i)
-            idx < 1 &&
-                error("Trajactory never left the initial state sphere. Increase tmax or decrease rad_i.")
+            idx < 1 && error(
+                "Trajactory never left the initial state sphere. Increase tmax or decrease rad_i.",
+            )
         end
         sim = sim[:, idx:end]
         simt = simt[idx:end]
     end
 
-    sim, simt, success
+    return sim, simt, success
 end;
 
 """
@@ -116,16 +121,21 @@ The `savefile` keyword argument allows saving the data to a `.jld2` or `.h5` fil
 
 > An example script using `transitions` is available [here](https://github.com/juliadynamics/CriticalTransitions.jl/blob/main/scripts/sample_transitions_h5.jl).
 """
-function transitions(sys::CoupledSDEs, x_i, x_f, N = 1;
-        rad_i = 0.1,
-        rad_f = 0.1,
-        tmax = 1e3,
-        Nmax = 1000,
-        cut_start = true,
-        rad_dims = 1:length(current_state(sys)),
-        savefile = nothing,
-        showprogress::Bool = false,
-        kwargs...)
+function transitions(
+    sys::CoupledSDEs,
+    x_i,
+    x_f,
+    N=1;
+    rad_i=0.1,
+    rad_f=0.1,
+    tmax=1e3,
+    Nmax=1000,
+    cut_start=true,
+    rad_dims=1:length(current_state(sys)),
+    savefile=nothing,
+    showprogress::Bool=false,
+    kwargs...,
+)
     """
     Generates N transition samples of sys from x_i to x_f.
     Supports multi-threading.
@@ -140,9 +150,17 @@ function transitions(sys::CoupledSDEs, x_i, x_f, N = 1;
     # iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
 
     Threads.@threads for j in 1:Nmax
-        sim, simt, success = transition(sys, x_i, x_f;
-            rad_i = rad_i, rad_f = rad_f, rad_dims = rad_dims,
-            tmax = tmax, cut_start = cut_start, kwargs...)
+        sim, simt, success = transition(
+            sys,
+            x_i,
+            x_f;
+            rad_i=rad_i,
+            rad_f=rad_f,
+            rad_dims=rad_dims,
+            tmax=tmax,
+            cut_start=cut_start,
+            kwargs...,
+        )
 
         if success
             if showprogress
@@ -174,5 +192,6 @@ function transitions(sys::CoupledSDEs, x_i, x_f, N = 1;
     mean_trans_time = mean([(times[i][end] - times[i][1]) for i in 1:length(times)])
 
     return TransitionPathEnsemble(
-        samples, times, success_rate, mean_res_time, mean_trans_time)
+        samples, times, success_rate, mean_res_time, mean_trans_time
+    )
 end;

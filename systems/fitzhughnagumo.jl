@@ -13,8 +13,8 @@ function fitzhugh_nagumo!(du, u, p, t)
     x, y = u
     ϵ, β, α, γ, κ, I = p
 
-    du[1] = (-α*x^3 + γ*x - κ*y + I)/ϵ
-    du[2] = -β*y + x
+    du[1] = (-α * x^3 + γ * x - κ * y + I) / ϵ
+    return du[2] = -β * y + x
 end
 
 """
@@ -23,20 +23,19 @@ Out-of-place definition of the FitzHugh-Nagumo system.
 
 See also [`fitzhugh_nagumo!`](@ref).
 """
-function fitzhugh_nagumo(u,p,t)
+function fitzhugh_nagumo(u, p, t)
     x, y = u
     ϵ, β, α, γ, κ, I = p
 
-    dx = (-α*x^3 + γ*x - κ*y + I)/ϵ
-    dy = -β*y + x
+    dx = (-α * x^3 + γ * x - κ * y + I) / ϵ
+    dy = -β * y + x
 
-    SA[dx, dy]
+    return SA[dx, dy]
 end
 
 # For backwards compatibility
-FitzHughNagumo(u,p,t) = fitzhugh_nagumo(u,p,t)
-FitzHughNagumo!(u,p,t) = fitzhugh_nagumo!(u,p,t)
-
+FitzHughNagumo(u, p, t) = fitzhugh_nagumo(u, p, t)
+FitzHughNagumo!(u, p, t) = fitzhugh_nagumo!(u, p, t)
 
 # """
 #     fhn_ϵσ(ϵ,σ)

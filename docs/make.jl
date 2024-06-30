@@ -2,23 +2,20 @@ using Documenter
 using DocumenterCitations
 using CriticalTransitions
 
-bib = CitationBibliography(
-    joinpath(@__DIR__, "src", "refs.bib");
-    style=:numeric
-)
+bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style=:numeric)
 
 makedocs(;
     sitename="CriticalTransitions.jl",
-    repo = Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
+    repo=Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
     modules=[CriticalTransitions],
     doctest=false,
-    format = Documenter.HTML(
-        canonical="https://juliadynamics.github.io/CriticalTransitions.jl/",
+    format=Documenter.HTML(;
+        canonical  = "https://juliadynamics.github.io/CriticalTransitions.jl/",
         prettyurls = true,
-        mathengine = Documenter.MathJax2()
-        ),
-    linkcheck = true,
-    warnonly = [:doctest, :missing_docs, :cross_references, :linkcheck],
+        mathengine = Documenter.MathJax2(),
+    ),
+    linkcheck=true,
+    warnonly=[:doctest, :missing_docs, :cross_references, :linkcheck],
     pages=Any[
         "Home" => "index.md",
         "Quickstart" => "quickstart.md",
@@ -30,15 +27,12 @@ makedocs(;
             "Sampling transitions" => "man/sampling.md",
             "Large deviation theory" => "man/largedeviations.md",
             "Noise processes" => "man/noise.md",
-            "Utilities" => "man/utils.md"
+            "Utilities" => "man/utils.md",
         ],
         "Predefined systems" => "man/systems.md",
-        "Development stage" => "man/dev.md"
+        "Development stage" => "man/dev.md",
     ],
-    plugins=[bib]
+    plugins=[bib],
 )
 
-deploydocs(
-    repo = "github.com/JuliaDynamics/CriticalTransitions.jl.git",
-    push_preview = false
-)
+deploydocs(; repo="github.com/JuliaDynamics/CriticalTransitions.jl.git", push_preview=false)

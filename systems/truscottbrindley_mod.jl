@@ -14,8 +14,8 @@ function modifiedtruscottbrindleywithdimensions!(du, u, p, t)
     P, Z = u
     r, K, a, h, m, ξ = p
 
-    du[1] = (1/ξ)*(r*P*(1-P/K)-a*P^2*Z/(h^2+P^2))
-    du[2] = a*P^2*Z/(h^2+P^2)-m*Z^2
+    du[1] = (1 / ξ) * (r * P * (1 - P / K) - a * P^2 * Z / (h^2 + P^2))
+    return du[2] = a * P^2 * Z / (h^2 + P^2) - m * Z^2
 end
 
 """
@@ -28,12 +28,11 @@ function modifiedtruscottbrindleywithdimensions(u, p, t)
     P, Z = u
     r, K, a, h, m, ξ = p
 
-    dP = (1/ξ)*(r*P*(1-P/K)-a*P^2*Z/(h^2+P^2))
-    dZ = a*P^2*Z/(h^2+P^2)-m*Z^2
+    dP = (1 / ξ) * (r * P * (1 - P / K) - a * P^2 * Z / (h^2 + P^2))
+    dZ = a * P^2 * Z / (h^2 + P^2) - m * Z^2
 
-    SA[dP,dZ]
+    return SA[dP, dZ]
 end
-
 
 """
     modifiedtruscottbrindley!(du, u, p, t)
@@ -45,8 +44,10 @@ function modifiedtruscottbrindley!(du, u, p, t)
     P, Z = u
     α, β, γ, P₁, Z₁, ξ = p
 
-    du[1] = P₁*(α*(P/P₁)*(1-β*(P/P₁))-γ*(Z/Z₁)*(P/P₁)^2/(1+(P/P₁)^2));
-    du[2] = ξ*Z₁* ((Z/Z₁)*(P/P₁)^2/(1+(P/P₁)^2)-(Z/Z₁)^2);
+    du[1] =
+        P₁ *
+        (α * (P / P₁) * (1 - β * (P / P₁)) - γ * (Z / Z₁) * (P / P₁)^2 / (1 + (P / P₁)^2))
+    return du[2] = ξ * Z₁ * ((Z / Z₁) * (P / P₁)^2 / (1 + (P / P₁)^2) - (Z / Z₁)^2)
 end
 
 """
@@ -55,14 +56,16 @@ Out-of-place definition of the modified Truscott-Brindley system.
 
 See also [`modifiedtruscottbrindley!`](@ref).
 """
-function modifiedtruscottbrindley(u,p,t)
+function modifiedtruscottbrindley(u, p, t)
     P, Z = u
     α, β, γ, P₁, Z₁, ξ = p
 
-    dP = P₁*(α*(P/P₁)*(1-β*(P/P₁))-γ*(Z/Z₁)*(P/P₁)^2/(1+(P/P₁)^2));
-    dZ = ξ*Z₁* ((Z/Z₁)*(P/P₁)^2/(1+(P/P₁)^2)-(Z/Z₁)^2);
+    dP =
+        P₁ *
+        (α * (P / P₁) * (1 - β * (P / P₁)) - γ * (Z / Z₁) * (P / P₁)^2 / (1 + (P / P₁)^2))
+    dZ = ξ * Z₁ * ((Z / Z₁) * (P / P₁)^2 / (1 + (P / P₁)^2) - (Z / Z₁)^2)
 
-    SVector{2}([dP, dZ])
+    return SVector{2}([dP, dZ])
 end
 
 """
@@ -72,14 +75,14 @@ In-place definition of the ramped modified Truscott-Brindley system.
 See also [`rampedmodifiedtruscottbrindley`](@ref).
 """
 function rampedmodifiedtruscottbrindley!(du, u, p, t)
-
     P, Z, α = u
     β, γ, P₁, Z₁, ξ, v, Ttrans, Tramp = p
 
-    du[1] = P₁*(α*(P/P₁)*(1-β*(P/P₁))-γ*(Z/Z₁)*(P/P₁)^2/(1+(P/P₁)^2));
-    du[2] = ξ*Z₁* ((Z/Z₁)*(P/P₁)^2/(1+(P/P₁)^2)-(Z/Z₁)^2);
-    du[3] = t ∈ Ttrans..(Ttrans+Tramp) ? v : 0;
-
+    du[1] =
+        P₁ *
+        (α * (P / P₁) * (1 - β * (P / P₁)) - γ * (Z / Z₁) * (P / P₁)^2 / (1 + (P / P₁)^2))
+    du[2] = ξ * Z₁ * ((Z / Z₁) * (P / P₁)^2 / (1 + (P / P₁)^2) - (Z / Z₁)^2)
+    return du[3] = t ∈ Ttrans .. (Ttrans + Tramp) ? v : 0
 end
 
 """
@@ -89,15 +92,16 @@ Out-of-place definition of the ramped modified Truscott-Brindley system.
 See also [`rampedmodifiedtruscottbrindley!`](@ref).
 """
 function rampedmodifiedtruscottbrindley(u, p, t)
-
     P, Z, α = u
     β, γ, P₁, Z₁, ξ, v, Ttrans, Tramp = p
 
-    dP = P₁*(α*(P/P₁)*(1-β*(P/P₁))-γ*(Z/Z₁)*(P/P₁)^2/(1+(P/P₁)^2));
-    dZ = ξ*Z₁* ((Z/Z₁)*(P/P₁)^2/(1+(P/P₁)^2)-(Z/Z₁)^2);
-    dα = t ∈ Ttrans..(Ttrans+Tramp) ? v : 0;
+    dP =
+        P₁ *
+        (α * (P / P₁) * (1 - β * (P / P₁)) - γ * (Z / Z₁) * (P / P₁)^2 / (1 + (P / P₁)^2))
+    dZ = ξ * Z₁ * ((Z / Z₁) * (P / P₁)^2 / (1 + (P / P₁)^2) - (Z / Z₁)^2)
+    dα = t ∈ Ttrans .. (Ttrans + Tramp) ? v : 0
 
-    SA[dP,dZ,dα]
+    return SA[dP, dZ, dα]
 end
 
 # function modtbwd_rσ(r, σ) # a convenient three-parameter version of the modifiedtruscottbrindley system

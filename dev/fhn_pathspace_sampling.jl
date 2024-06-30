@@ -25,23 +25,30 @@ function FitzHughNagumoSPDE(u, p, t)
     ϵ, β, α, γ, κ, Ι, a, σ, dz = p[1]
 
     # N points from 1 to N
-    N = Int(length(u)/2)
+    N = Int(length(u) / 2)
     du = zeros(length(u))
 
-    for i in 2:N-1
-        
+    for i in 2:(N - 1)
+
         # variable u
-        du[i] = (1/a * central2(u,i,dz) + (1+κ/(ϵ*a)) * central(u,i+N,dz)
-                    - 1/(ϵ^2*a)*(-α*u[i]^3+γ*u[i]-κ*u[i+N]+Ι)*(-3*α*u[i]^2+γ)
-                    + 1*(β*u[i+N]-u[i]) + σ^2*(3*α*u[i]/ϵ))
+        du[i] = (
+            1 / a * central2(u, i, dz) + (1 + κ / (ϵ * a)) * central(u, i + N, dz) -
+            1 / (ϵ^2 * a) *
+            (-α * u[i]^3 + γ * u[i] - κ * u[i + N] + Ι) *
+            (-3 * α * u[i]^2 + γ) +
+            1 * (β * u[i + N] - u[i]) +
+            σ^2 * (3 * α * u[i] / ϵ)
+        )
 
         # variable v
-        du[i+N] = (central2(u,i+N,dz) - (1+κ/(ϵ*a))*central(u,i,dz)
-                    + 1*κ/(ϵ^2*a)*(-α*u[i]^3+γ*u[i]-κ*u[i+N]+Ι)
-                    + 1*β*(-β*u[i+N]+u[i]))
+        du[i + N] = (
+            central2(u, i + N, dz) - (1 + κ / (ϵ * a)) * central(u, i, dz) +
+            1 * κ / (ϵ^2 * a) * (-α * u[i]^3 + γ * u[i] - κ * u[i + N] + Ι) +
+            1 * β * (-β * u[i + N] + u[i])
+        )
     end
 
-    SVector{length(u)}(du)
+    return SVector{length(u)}(du)
 end
 
 """
@@ -70,7 +77,12 @@ R and L (for the default FHN parameters).
 A list of two matrices, each with columns = coordinates and rows = virtual time instances.
 The first matrix contains the u coordinates, the second matrix the v coordinates.
 """
-function fhn_pathspace_sampling(ϵ, σ, T, dz, init=nothing;
+function fhn_pathspace_sampling(
+    ϵ,
+    σ,
+    T,
+    dz,
+    init=nothing;
     dt=0.001,
     tmax=10.0,
     noise=0,
@@ -83,34 +95,47 @@ function fhn_pathspace_sampling(ϵ, σ, T, dz, init=nothing;
     saveat=dt,
     save_every=1,
     divterm=true,
-    burnin=10)
+    burnin=10,
+)
 
     # number of points to discretize path
-    N = round(Int, T/dz) + 1
-    
+    N = round(Int, T / dz) + 1
+
     # no noise on boundary conditions
     cov = Matrix(1I(2N))
-    cov[1,1] = 0
-    cov[N,N] = 0
-    cov[N+1,N+1] = 0
+    cov[1, 1] = 0
+    cov[N, N] = 0
+    cov[N + 1, N + 1] = 0
     cov[2N, 2N] = 0
 
     # initial path
     if init == nothing
         # fixed points
-        R = [sqrt(2/3), sqrt(2/27)]
-        L = - [sqrt(2/3), sqrt(2/27)]
+        R = [sqrt(2 / 3), sqrt(2 / 27)]
+        L = -[sqrt(2 / 3), sqrt(2 / 27)]
 
-        rr, ll = -range(L[1], R[1], length=N), -range(L[2], R[2], length=N)
-        init = vcat(rr,ll)
+        rr, ll = -range(L[1], R[1]; length=N), -range(L[2], R[2]; length=N)
+        init = vcat(rr, ll)
     end
 
     # Setup SPDE problem
-    spde(eps, sigma) = StochSystem(FitzHughNagumoSPDE, [eps, β, α, γ, κ, Ι, a, Int(divterm)*sigma, dz],
-    zeros(2N), sqrt(2/dz)*noise, idfunc, nothing, cov, "WhiteGauss")
+    function spde(eps, sigma)
+        return StochSystem(
+            FitzHughNagumoSPDE,
+            [eps, β, α, γ, κ, Ι, a, Int(divterm) * sigma, dz],
+            zeros(2N),
+            sqrt(2 / dz) * noise,
+            idfunc,
+            nothing,
+            cov,
+            "WhiteGauss",
+        )
+    end
 
-    sim = simulate(spde(ϵ,σ), init, dt=dt, tmax=tmax, saveat=saveat)
-    println("$(N) path points, $(round(Int, tmax/dt)) virtual time points, simulation status: $(sim.retcode)")
+    sim = simulate(spde(ϵ, σ), init; dt=dt, tmax=tmax, saveat=saveat)
+    println(
+        "$(N) path points, $(round(Int, tmax/dt)) virtual time points, simulation status: $(sim.retcode)",
+    )
 
-    sim[1:N,1:save_every:end], sim[N+1:2N,1:save_every:end]
+    return sim[1:N, 1:save_every:end], sim[(N + 1):(2N), 1:save_every:end]
 end

@@ -5,15 +5,15 @@ function meier_stein(u, p, t) # out-of-place
     x, y = u
     dx = x - x^3 - 10 * x * y^2
     dy = -(1 + x^2) * y
-    SA[dx, dy]
+    return SA[dx, dy]
 end
 σ = 0.1
 
 sde = CoupledSDEs(meier_stein, diag_noise_funtion(σ), zeros(2))
 
-fps, eigs, stab = fixedpoints(sde, [-3,-3], [3,3])
+fps, eigs, stab = fixedpoints(sde, [-3, -3], [3, 3])
 
 @test stab == [true, true, false]
 fp1, fp2 = fps[stab]
 @test fp1 ≈ -fp2
-@test all(broadcast(v -> all( v .< 0), real.(eigs[stab])))
+@test all(broadcast(v -> all(v .< 0), real.(eigs[stab])))

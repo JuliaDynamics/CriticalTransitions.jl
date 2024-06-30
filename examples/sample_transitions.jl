@@ -14,7 +14,6 @@ data = jldopen("filepath/filename.jld2")
 include("../src/CriticalTransitions.jl")
 using .CriticalTransitions, Printf
 
-
 ###########################################################
 # SETTINGS ################################################
 ###########################################################
@@ -23,7 +22,7 @@ using .CriticalTransitions, Printf
 σ = 0.15                # noise intensity
 ϵ = 1.0                 # time scale parameter
 
-β, α, γ, κ, Ι = 3., 1., 1., 1., 0.
+β, α, γ, κ, Ι = 3.0, 1.0, 1.0, 1.0, 0.0
 pf = [ϵ, β, α, γ, κ, Ι]
 
 # Noise settings
@@ -36,10 +35,10 @@ rad_i = 0.03            # ball radius around initial point
 rad_f = 0.1             # ball radius around final point
 
 # Run settings
-N = 500                	# number of samples
+N = 500                # number of samples
 tmax = Int64(1e3)       # maximum simulation time
 dt = 0.01               # time step
-solver = EM()		# SDEProblem solver
+solver = EM()# SDEProblem solver
 
 # I/O settings
 filetext = "fhn_transAB_eps$(@sprintf "%.2e" ϵ)_noise$(@sprintf "%.2e" σ)_eye_$(N)"
@@ -53,7 +52,7 @@ save_path = "../data/"
 sys = StochSystem(fitzhugh_nagumo, pf, 2, σ, idfunc, nothing, Σ, process)
 
 # Get fixed points
-pts, eigs, stab = fixedpoints(sys, [-10,-10], [10,10])
+pts, eigs, stab = fixedpoints(sys, [-10, -10], [10, 10])
 A, B = pts[stab]
 
 # A->B or B->A?
@@ -67,20 +66,30 @@ info1 = "Start/end conditions:\n Initial state: $(A), ball radius $(rad_i)\n Fin
 info2 = "Run details:\n time step dt=$(dt), maximum duration tmax=$(tmax), solver=$(string(solver))"
 info3 = "Dataset info:\n paths: transition path arrays of dimension (state × time), where a state is a vector [u,v]\n times: arrays of time values of the corresponding paths"
 
-println(info0*"\n... "*info1*"\n... "*info2)
+println(info0 * "\n... " * info1 * "\n... " * info2)
 println("... Saving data to yymmdd_$(save_path*filetext).jld2.")
 
 # Create data file
 file = make_jld2(filetext, save_path)
-write(file, "system_info", sys_string(sys, verbose=true))
-write(file, "run_info", info0*"\n"*info1*"\n"*info2)
+write(file, "system_info", sys_string(sys; verbose=true))
+write(file, "run_info", info0 * "\n" * info1 * "\n" * info2)
 write(file, "data_info", info3)
 
 # Call transitions function
-precompile(transitions, (StochSystem, State, State, Int64,))
-samples, times, idx = transitions(sys, A, B, N;
-    rad_i=rad_i, rad_f=rad_f, dt=dt, tmax=tmax, solver=solver,
-    savefile=file, Nmax=1000)
+precompile(transitions, (StochSystem, State, State, Int64))
+samples, times, idx = transitions(
+    sys,
+    A,
+    B,
+    N;
+    rad_i=rad_i,
+    rad_f=rad_f,
+    dt=dt,
+    tmax=tmax,
+    solver=solver,
+    savefile=file,
+    Nmax=1000,
+)
 
 # Save which sample numbers transitioned
 write(file, "sample_idxs", string(sort(idx)))

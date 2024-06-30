@@ -9,7 +9,7 @@ $(TYPEDSIGNATURES)
 Identity function for noise function of `CoupledSDEs` (out-of-place).
 """
 function idfunc(u, p, t)
-    ones(length(u))
+    return ones(length(u))
 end;
 
 """
@@ -19,7 +19,7 @@ Identity function for noise function `CoupledSDEs` (in-place).
 """
 function idfunc!(du, u, p, t)
     du .= ones(length(u))
-    nothing
+    return nothing
 end;
 
 """
@@ -37,59 +37,56 @@ function intervals_to_box(bmin::Vector, bmax::Vector)
     intervals = []
     dim = length(bmin)
     for i in 1:dim
-        push!(intervals, bmin[i]..bmax[i])
+        push!(intervals, bmin[i] .. bmax[i])
     end
     box = intervals[1]
     for i in 2:dim
         box = box × intervals[i]
     end
-    box
+    return box
 end;
 
 function additive_idx!(du, u, p, t, idx)
-    du[idx] = 1.
-    nothing
+    du[idx] = 1.0
+    return nothing
 end;
 
-function additive_idx(u,p,t,idx)
+function additive_idx(u, p, t, idx)
     du = zeros(length(u))
-    du[idx] = 1.
-    SVector{length(u)}(du)
+    du[idx] = 1.0
+    return SVector{length(u)}(du)
 end;
 
 function multiplicative_idx!(du, u, p, t, idx)
-    du[idx] = u[idx]
+    return du[idx] = u[idx]
 end;
 
 function multiplicative_idx(u, p, t, idx)
     du = zeros(length(u))
     du[idx] = u[idx]
-    SVector{length(u)}(du)
+    return SVector{length(u)}(du)
 end
 
-
 function multiplicative_first!(du, u, p, t)
-    du[1] = u[1];
+    return du[1] = u[1]
 end;
 
 function multiplicative_first(u, p, t)
+    du = zeros(length(u))
+    du[1] = u[1]
 
-    du = zeros(length(u));
-    du[1] = u[1];
-
-    SVector{length(u)}(du)
+    return SVector{length(u)}(du)
 end;
 
 function additive_first!(du, u, p, t)
-    du[1] = 1;
+    return du[1] = 1
 end;
 
 function additive_first(u, p, t)
+    du = zeros(length(u))
+    du[1] = 1
 
-    du = zeros(length(u));
-    du[1] = 1;
-
-    SVector{length(u)}(du)
+    return SVector{length(u)}(du)
 end;
 
 """
@@ -104,7 +101,7 @@ where `A` is a square matrix of dimension `(length(vec) x length(vec))`.
 """
 function anorm(vec, A; square=false)
     normsquared = dot(vec, A, vec)
-    square ? normsquared : sqrt(normsquared)
+    return square ? normsquared : sqrt(normsquared)
 end;
 
 """
@@ -129,16 +126,16 @@ function subnorm(vec; directions=1:length(vec))
     for i in directions
         sum += vec[i]^2
     end
-    sqrt(sum)
+    return sqrt(sum)
 end;
 
 # Central finite difference, second derivative
 function central(f, idx, dz)
-    (f[idx+1] - f[idx-1])/(2*dz)
+    return (f[idx + 1] - f[idx - 1]) / (2 * dz)
 end;
 
 function central2(f, idx, dz)
-    (f[idx+1] - 2f[idx] + f[idx-1])/(dz^2)
+    return (f[idx + 1] - 2f[idx] + f[idx - 1]) / (dz^2)
 end;
 
 """
@@ -148,12 +145,12 @@ accuracy of the approximation. The exact absolute value function is obtained in 
 ``\\xi \\to \\infty``.
 """
 function smoothabs(x, xi=1000)
-    x*tanh(x*xi)
+    return x * tanh(x * xi)
 end;
 
 """
 """
-function diag_noise_funtion(σ; in_place = false)
+function diag_noise_funtion(σ; in_place=false)
     if in_place
         return (du, u, p, t) -> σ .* idfunc!(du, u, p, t)
     else
