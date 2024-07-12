@@ -119,7 +119,7 @@ The `savefile` keyword argument allows saving the data to a `.jld2` or `.h5` fil
   - `idx` (Array): list of sample indices i that produced a transition
   - `N_fail` (Int): number of samples that failed to produce a transition
 
-> An example script using `transitions` is available [here](https://github.com/juliadynamics/CriticalTransitions.jl/blob/main/scripts/sample_transitions_h5.jl).
+> An example script using `transitions` is available [here](https://github.com/juliadynamics/CriticalTransitions.jl/blob/main/examples/sample_transitions_h5.jl).
 """
 function transitions(
     sys::CoupledSDEs,

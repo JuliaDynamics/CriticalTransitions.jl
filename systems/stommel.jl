@@ -4,7 +4,7 @@ Stommel's hemispheric 2-box model of the Thermohaline Circulation[^Stommel1961].
 
 The state vector `u = [x, y]` describes the non-dimensional temperature (`x`) and salinity (`y`) gradients
 between the equatiorial and the polar box (details in the
-[online docs](https://juliadynamics.github.io/CriticalTransitions.jl/stable/man/systems/#Thermohaline-Circulation-box-models)).
+[online docs](https://juliadynamics.github.io/CriticalTransitions.jl/dev/man/systems/#Thermohaline-Circulation-box-models)).
 
 The parameter vector `p = [[delta, mu, R]]` comprises the ratio ``\\delta`` of the saline and thermal
 relaxation coefficients, the advective coefficient ``\\mu = 1/\\lambda``, and the constant ``R``
@@ -59,7 +59,7 @@ end
 """
     cessi(u, p, t)
 Cessi's hemispheric 2-box model of the Thermohaline Circulation
-([Cessi (1994)](https://doi.org/10.1175/1520-0485(1994)024%3C1911:ASBMOS%3E2.0.CO;2 )).
+([Cessi (1994)](https://doi.org/10.1175/1520-0485(1994)024%3C1911:ASBMOS%3E2.0.CO;2)).
 
 ## Parameters
 `p = [[alpha, mu2, pflux]]`

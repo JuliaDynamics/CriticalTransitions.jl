@@ -4,9 +4,6 @@
 
 Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystems.jl/stable/) and [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/), this package aims to provide a toolbox for dynamical systems under time-dependent forcing, with a focus on tipping phenomena and metastability.
 
-!!! compat "Compatibility"
-    This version (`v0.2`) is now compatible with `DynamicalSystems v3`.
-
 ![CT.jl infographic](./figs/CTjl_structure.png)
 
 !!! info "Current features"
