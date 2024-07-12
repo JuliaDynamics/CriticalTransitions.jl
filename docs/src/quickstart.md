@@ -28,11 +28,3 @@ corresponding sample transition paths.
 ```@index
 Pages = ["man/systemanalysis.md", "man/simulation.md", "man/sampling.md", "man/largedeviations.md"]
 ```
-
-## Systems
-
-The following deterministic ODE systems have been implemented so far:
-
-```@index
-Pages = ["man/systems.md"]
-```
