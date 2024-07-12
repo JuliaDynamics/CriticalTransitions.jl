@@ -9,7 +9,6 @@ pages = [
         "Simulating the system" => "man/simulation.md",
         "Sampling transitions" => "man/sampling.md",
         "Large deviation theory" => "man/largedeviations.md",
-        "Noise processes" => "man/noise.md",
         "Utilities" => "man/utils.md",
     ],
     "Predefined systems" => "man/systems.md",

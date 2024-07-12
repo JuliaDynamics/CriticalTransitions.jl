@@ -1,5 +1,6 @@
 name = "CriticalTransitions"
 uuid = "251e6cd3-3112-48a5-99dd-66efcfd18334"
+authors = ["Reyk Börner, Ryan Deeley, Raphael Römer, Orjan Ameye"]
 repo = "https://github.com/juliadynamics/CriticalTransitions.jl.git"
 version = "0.3.0"
 

@@ -35,7 +35,33 @@ coupled ordinary differential equations as follows:
 ```math
 d\\vec{u} = \\vec{f}(\\vec{u}, p, t) dt + \\vec{g}(\\vec{u}, p, t) dW_t
 ```
-An alias for `CoupledSDEs` is `ContinuousDynamicalSystem`.
+
+Optionally provide the parameter container `p` and initial time as keyword `t0`.
+
+For construction instructions regarding `f, u0` see the [DynamicalSystems.jl tutorial](https://juliadynamics.github.io/DynamicalSystems.jl/latest/tutorial/#DynamicalSystemsBase.CoupledODEs).
+
+The stochastic part of the differential equation is defined by the function `g` and the keyword arguments `noise_rate_prototype` and `noise`. `noise` indicates the noise process applied during generation and defaults to Gaussian white noise. For details on defining various noise processes, refer to the noise process documentation page. `noise_rate_prototype` indicates the prototype type instance for the noise rates, i.e., the output of `g`. It can be any type which overloads `A_mul_B!` with itself being the middle argument. Commonly, this is a matrix or sparse matrix. If this is not given, it defaults to `nothing`, which means the problem should be interpreted as having diagonal noise.
+
+## DifferentialEquations.jl interfacing
+
+The ODEs are evolved via the solvers of DifferentialEquations.jl.
+When initializing a `CoupledODEs`, you can specify the solver that will integrate
+`f` in time, along with any other integration options, using the `diffeq` keyword.
+For example you could use `diffeq = (abstol = 1e-9, reltol = 1e-9)`.
+If you want to specify a solver, do so by using the keyword `alg`, e.g.:
+`diffeq = (alg = Tsit5(), reltol = 1e-6)`. This requires you to have been first
+`using OrdinaryDiffEq` to access the solvers. The default `diffeq` is:
+
+$(DynamicalSystemsBase.DEFAULT_DIFFEQ)
+
+`diffeq` keywords can also include `callback` for [event handling
+](http://docs.juliadiffeq.org/latest/features/callback_functions.html).
+
+Dev note: `CoupledSDEs` is a light wrapper of  `StochasticDiffEq.SDEIntegrator` from DifferentialEquations.jl.
+The integrator is available as the field `integ`, and the `SDEProblem` is `integ.sol.prob`.
+The convenience syntax `SDEProblem(ds::CoupledSDEs, tspan = (t0, Inf))` is available
+to extract the problem.
+```
 """
 struct CoupledSDEs{IIP,D,I,P} <: ContinuousTimeDynamicalSystem
     # D parametrised by length of u0
