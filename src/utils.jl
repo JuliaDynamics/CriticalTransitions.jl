@@ -41,7 +41,6 @@ function add_noise_strength(σ, g)
     end
 end
 
-
 """
 $(TYPEDSIGNATURES)
 
