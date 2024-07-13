@@ -11,8 +11,8 @@
     @testset "diagonal additive noise" begin
         # diagonal additive noise: σ*N(0,dt)
         # a vector of random numbers dW whose size matches the output of g where the noise is applied element-wise
-        prob = SDEProblem(meier_stein, diag_noise_function(σ), zeros(2), (0.0, Inf))
-        sde = CoupledSDEs(meier_stein, diag_noise_function(σ), zeros(2))
+        prob = SDEProblem(meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf))
+        sde = CoupledSDEs(meier_stein, diagonal_noise(σ), zeros(2))
 
         @test sde.integ.sol.prob.f == prob.f
         @test sde.integ.sol.prob.g == prob.g
@@ -58,7 +58,8 @@
             du[2, 1] = 1.2u[2]
             du[2, 2] = 0.2u[2]
             du[2, 3] = 0.3u[2]
-            return du[2, 4] = 1.8u[2]
+            du[2, 4] = 1.8u[2]
+            return nothing
         end
         # prob = SDEProblem(f, g, ones(2), (0.0, 1.0), noise_rate_prototype = zeros(2, 4))
         # diffeq =(alg=SRIW1(), noise_rate_prototype = zeros(2, 4))
