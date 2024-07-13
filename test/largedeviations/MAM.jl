@@ -1,6 +1,6 @@
 @testset "MAM FitzHugh-Nagumo" begin
     p = [0.1, 3, 1, 1, 1, 0]
-    fhn = CoupledSDEs(CT.fitzhugh_nagumo, diag_noise_function(0.1), zeros(2), p)
+    fhn = CoupledSDEs(CT.fitzhugh_nagumo, diagonal_noise(0.1), zeros(2), p)
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
     N, T = 200, 2.0
@@ -12,7 +12,7 @@
 end
 
 @testset "MAM Ornstein-Uhlenbeck" begin
-    ou = CoupledSDEs((u, p, t) -> -u, diag_noise_function(0.18), SA[1.0])
+    ou = CoupledSDEs((u, p, t) -> -u, diagonal_noise(0.18), SA[1.0])
     x0 = -1
     xT = 2.0
     T = 10.0

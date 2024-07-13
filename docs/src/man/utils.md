@@ -15,7 +15,7 @@ computed by typing:
 
 ```julia
 using CriticalTransitions, DynamicalSystems: lyapunovspectrum
-sys = CoupledSDEs(fitzhugh_nagumo, diag_noise_function(σ), zeros(2), [1.,3.,1.,1.,1.,0.])
+sys = CoupledSDEs(fitzhugh_nagumo, diagonal_noise(σ), zeros(2), [1.,3.,1.,1.,1.,0.])
 ls = lyapunovspectrum(CoupledODEs(sys), 10000)
 ```
 

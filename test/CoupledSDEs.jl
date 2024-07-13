@@ -31,9 +31,9 @@
         # a single random variable is applied to all dependent variables
         W = WienerProcess(0.0, 0.0, 0.0)
         prob = SDEProblem(
-            meier_stein, diag_noise_function(σ), zeros(2), (0.0, Inf); noise=W
+            meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf); noise=W
         )
-        sde = CoupledSDEs(meier_stein, diag_noise_function(σ), zeros(2); noise=W)
+        sde = CoupledSDEs(meier_stein, diagonal_noise(σ), zeros(2); noise=W)
 
         @test sde.integ.sol.prob.f == prob.f
         @test sde.integ.sol.prob.g == prob.g

@@ -19,7 +19,7 @@ p = [1., 3., 1., 1., 1., 0.]
 noise_strength = 0.02
 
 # Define stochastic system
-sys = CoupledSDEs(meier_stein, diag_noise_function(σ), zeros(2), p)
+sys = CoupledSDEs(meier_stein, diagonal_noise(σ), zeros(2), p)
 
 # Get stable fixed points
 fps, eigs, stab = fixedpoints(sys, [-2,-2], [2,2])
