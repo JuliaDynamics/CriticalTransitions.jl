@@ -9,6 +9,9 @@ The function $f$ is the deterministic part of the system and is assumed to be of
 
 The function $g$ represent the stochastics dynamics of the system and should be the of the same type (iip or oop) as $f$. The keyword `noise` defines the system [noise process](#noise-process). In combination with `g` one can define different type of stochastic systems. Examples of different type of stochastics systems can be found on the [StochasticDiffEq.jl tutorial page](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/sde_example/). A quick overview of the different types of stochastic systems can be found [here](#Type-of-stochastic-system).
 
+!!! warning
+    Some algrorithms need to know the overall noise strength of the system. Howeverm the noise strength is ambiguous in the case of non-diagonal noise. Hence, these methods ask for the noise strength to be provided explicitly. This can be done by setting the `noise_strength` keyword.
+
 
 ```@docs
 CoupledSDEs
