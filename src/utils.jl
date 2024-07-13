@@ -157,7 +157,7 @@ function diag_noise_function(σ; in_place=false)
         return (u, p, t) -> σ .* idfunc(u, p, t)
     end
 end
-function diag_noise_function(σ, g)
+function add_noise_strength(σ, g)
     if SciMLBase.isinplace(g, 4)
         return (du, u, p, t) -> σ .* g(du, u, p, t)
     else

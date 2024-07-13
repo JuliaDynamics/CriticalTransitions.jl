@@ -91,8 +91,7 @@ function CoupledSDEs(
     seed=UInt64(0),
 )
     IIP = isinplace(f, 4) # from SciMLBase
-    IIP == isinplace(g, 4) ||
-        throw(ArgumentError("f and g must both be in-place or out-of-place"))
+    @assert IIP == isinplace(g, 4) "f and g must both be in-place or out-of-place"
 
     s = correct_state(Val{IIP}(), u0)
     T = eltype(s)
@@ -108,10 +107,7 @@ function CoupledSDEs(
     )
     return CoupledSDEs(prob, diffeq)
 end
-# function CoupledSDEs(f, u0, p=SciMLBase.NullParameters(); σ, t0=0, diffeq=DEFAULT_DIFFEQ)
-#     IIP = isinplace(f, 4) # from SciMLBase
-#     CoupledSDEs(f, IIP ? idfunc! : idfunc, u0, p; t0=t0, diffeq=diffeq)
-# end
+
 # This preserves the referrenced MTK system and the originally passed diffeq kwargs
 CoupledSDEs(ds::CoupledSDEs, diffeq) = CoupledSDEs(SDEProblem(ds), merge(ds.diffeq, diffeq))
 
