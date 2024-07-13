@@ -30,9 +30,7 @@
         # Scalar noise Wiener
         # a single random variable is applied to all dependent variables
         W = WienerProcess(0.0, 0.0, 0.0)
-        prob = SDEProblem(
-            meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf); noise=W
-        )
+        prob = SDEProblem(meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf); noise=W)
         sde = CoupledSDEs(meier_stein, diagonal_noise(σ), zeros(2); noise=W)
 
         @test sde.integ.sol.prob.f == prob.f
