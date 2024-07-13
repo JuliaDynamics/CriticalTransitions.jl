@@ -23,6 +23,26 @@ function idfunc!(du, u, p, t)
 end;
 
 """
+"""
+function diagonal_noise!(σ)
+    function (du, u, p, t)
+        idfunc!(du, u, p, t)
+        du .*= σ
+        return nothing
+    end
+end
+diagonal_noise(σ) = (u, p, t) -> σ .* idfunc(u, p, t)
+
+function add_noise_strength(σ, g)
+    if SciMLBase.isinplace(g, 4)
+        return (du, u, p, t) -> σ .* g(du, u, p, t)
+    else
+        return (u, p, t) -> σ .* g(u, p, t)
+    end
+end
+
+
+"""
 $(TYPEDSIGNATURES)
 
 Generates a box from specifying the interval limits in each dimension.
@@ -147,20 +167,3 @@ accuracy of the approximation. The exact absolute value function is obtained in 
 function smoothabs(x, xi=1000)
     return x * tanh(x * xi)
 end;
-
-"""
-"""
-function diag_noise_function(σ; in_place=false)
-    if in_place
-        return (du, u, p, t) -> σ .* idfunc!(du, u, p, t)
-    else
-        return (u, p, t) -> σ .* idfunc(u, p, t)
-    end
-end
-function add_noise_strength(σ, g)
-    if SciMLBase.isinplace(g, 4)
-        return (du, u, p, t) -> σ .* g(du, u, p, t)
-    else
-        return (u, p, t) -> σ .* g(u, p, t)
-    end
-end
