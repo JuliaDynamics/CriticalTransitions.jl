@@ -228,7 +228,3 @@ function successful_step(integ::SciMLBase.AbstractSDEIntegrator)
     rcode = integ.sol.retcode
     return rcode == SciMLBase.ReturnCode.Default || rcode == SciMLBase.ReturnCode.Success
 end
-
-function noise_strength(sys::CoupledSDEs)
-    return error("Not yet implemented")
-end

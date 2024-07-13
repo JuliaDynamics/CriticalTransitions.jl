@@ -40,8 +40,7 @@ include("../systems/stommel.jl")
 include("../systems/rivals.jl")
 
 # Core types
-export CoupledSDEs, diag_noise_function
-export noise_strength
+export CoupledSDEs, diagonal_noise!, diagonal_noise, add_noise_strength
 
 # Methods
 export equilib, fixedpoints, basins, basinboundary, basboundary
