@@ -65,52 +65,50 @@ function intervals_to_box(bmin::Vector, bmax::Vector)
     return box
 end;
 
-function additive_idx!(du, u, p, t, idx)
-    du[idx] = 1.0
-    return nothing
-end;
+# function additive_idx!(du, u, p, t, idx)
+#     du[idx] = 1.0
+#     return nothing
+# end;
 
-function additive_idx(u, p, t, idx)
-    du = zeros(length(u))
-    du[idx] = 1.0
-    return SVector{length(u)}(du)
-end;
+# function additive_idx(u, p, t, idx)
+#     du = zeros(length(u))
+#     du[idx] = 1.0
+#     return SVector{length(u)}(du)
+# end;
 
-function multiplicative_idx!(du, u, p, t, idx)
-    return du[idx] = u[idx]
-end;
+# function multiplicative_idx!(du, u, p, t, idx)
+#     return du[idx] = u[idx]
+# end;
 
-function multiplicative_idx(u, p, t, idx)
-    du = zeros(length(u))
-    du[idx] = u[idx]
-    return SVector{length(u)}(du)
-end
+# function multiplicative_idx(u, p, t, idx)
+#     du = zeros(length(u))
+#     du[idx] = u[idx]
+#     return SVector{length(u)}(du)
+# end
 
-function multiplicative_first!(du, u, p, t)
-    return du[1] = u[1]
-end;
+# function multiplicative_first!(du, u, p, t)
+#     return du[1] = u[1]
+# end;
 
-function multiplicative_first(u, p, t)
-    du = zeros(length(u))
-    du[1] = u[1]
+# function multiplicative_first(u, p, t)
+#     du = zeros(length(u))
+#     du[1] = u[1]
 
-    return SVector{length(u)}(du)
-end;
+#     return SVector{length(u)}(du)
+# end;
 
-function additive_first!(du, u, p, t)
-    return du[1] = 1
-end;
+# function additive_first!(du, u, p, t)
+#     return du[1] = 1
+# end;
 
-function additive_first(u, p, t)
-    du = zeros(length(u))
-    du[1] = 1
+# function additive_first(u, p, t)
+#     du = zeros(length(u))
+#     du[1] = 1
 
-    return SVector{length(u)}(du)
-end;
+#     return SVector{length(u)}(du)
+# end;
 
 """
-$(TYPEDSIGNATURES)
-
 Calculates the generalized ``A``-norm of the vector `vec`,
 ``||v||_A := \\sqrt(v^\\top \\cdot A \\cdot v)``,
 where `A` is a square matrix of dimension `(length(vec) x length(vec))`.

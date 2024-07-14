@@ -38,6 +38,8 @@ makedocs(;
     linkcheck=true,
     modules=[
         CriticalTransitions,
+        # CriticalTransitions.StochasticDiffEq,
+        CriticalTransitions.DiffEqNoiseProcess,
         Base.get_extension(CriticalTransitions, :ChaosToolsExt),
         Base.get_extension(CriticalTransitions, :CoupledSDEsBaisin),
     ],

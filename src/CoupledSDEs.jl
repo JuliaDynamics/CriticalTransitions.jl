@@ -52,7 +52,9 @@ If you want to specify a solver, do so by using the keyword `alg`, e.g.:
 `diffeq = (alg = Tsit5(), reltol = 1e-6)`. This requires you to have been first
 `using OrdinaryDiffEq` to access the solvers. The default `diffeq` is:
 
+```julia
 $(DynamicalSystemsBase.DEFAULT_DIFFEQ)
+```
 
 `diffeq` keywords can also include `callback` for [event handling
 ](http://docs.juliadiffeq.org/latest/features/callback_functions.html).

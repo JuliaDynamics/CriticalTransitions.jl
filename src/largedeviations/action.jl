@@ -13,7 +13,7 @@ Returns a single number, which is the value of the action functional
 
 where ``\\phi_t`` denotes the path in state space, ``b`` the drift field, and ``T`` the
 total time of the path. The subscript ``Q`` refers to the
-generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see [`anorm`](@ref)). Here
+generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm``). Here
 ``Q`` is the noise covariance matrix `sys.Σ`.
 
 ## Keyword arguments
@@ -53,7 +53,7 @@ Returns a single number, which is the value of the action functional
 
 where ``\\phi_t`` denotes the path in state space, ``b`` the drift field, ``T`` the total
 time of the path, and ``\\sigma`` the noise strength. The subscript ``Q`` refers to the
-generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see [`anorm`](@ref)). Here
+generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm``). Here
 ``Q`` is the noise covariance matrix.
 
 ## Keyword arguments
@@ -112,7 +112,7 @@ by the integral
 
 where ``s`` is the arclength coordinate, ``L`` the arclength, ``b`` the drift field, and the
 subscript ``Q`` refers to the generalized dot product ``\\langle a, b \\rangle_Q := a^{\\top}
-\\cdot Q^{-1} b`` (see [`anorm`](@ref)). Here ``Q`` is the noise covariance matrix `sys.Σ`.
+\\cdot Q^{-1} b`` (see `anorm``). Here ``Q`` is the noise covariance matrix `sys.Σ`.
 
 ## Keyword arguments
 * `cov_inv = nothing`: Inverse of the covariance matrix ``\\Sigma``.

@@ -11,7 +11,7 @@ pages = [
         "Large deviation theory" => "man/largedeviations.md",
         "Utilities" => "man/utils.md",
     ],
-    "Predefined systems" => "man/systems.md",
-    "Development stage" => "man/dev.md",
+    # "Predefined systems" => "man/systems.md",
+    # "Development stage" => "man/dev.md",
 ]
 #! format: on
