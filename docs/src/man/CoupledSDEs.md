@@ -55,6 +55,7 @@ sol = simulate(sde, 1.0, dt=0.01, alg=SOSRA())
 plot(sol)
 ```
 ### Multiplicative noise
+Multiplicative Noise is when $g_i(t, u)=a_i u$
 ```@example type
 function g(du, u, p, t)
     du[1] = σ*u[1]
@@ -66,7 +67,7 @@ sol = simulate(sde, 1.0, dt=0.01, alg=SOSRI())
 plot(sol)
 ```
 
-### Non-diagonal noise
+#### Non-diagonal noise
 Non-diagonal noise allows for the terms to linearly mixed via g being a matrix. Suppose we have two Wiener processes and two dependent random variables such that the output of `g` is a 2x2 matrix. Therefore, we have
 ```math
 du_1 = f_1(u,p,t)dt + g_{11}(u,p,t)dW_1 + g_{12}(u,p,t)dW_2 \\
@@ -97,3 +98,9 @@ plot(sol)
 
 ## Noise process
 We provide the noise processes $text{d}\mathcal{W}$ that can be used in the stochastic simulations through the [DiffEqNoiseProcess.jl](https://docs.sciml.ai/DiffEqNoiseProcess/stable) package. A complete list of the available processes can be found [here](https://docs.sciml.ai/DiffEqNoiseProcess/stable/noise_processes/). We list some of the most common ones below:
+```@docs
+WienerProcess
+SimpleWienerProcess
+OrnsteinUhlenbeckProcess
+CorrelatedWienerProcess
+```
