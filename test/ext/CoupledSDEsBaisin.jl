@@ -2,7 +2,7 @@
     using Attractors, ChaosTools
     # Define systems
     g = diagonal_noise(0.215)
-    system = CoupledSDEs(CT.fitzhugh_nagumo, g, [2.0, 0.1], [0.1, 3.0, 1.0, 1.0, 1.0, 0.0])
+    system = CoupledSDEs(fitzhugh_nagumo, g, [2.0, 0.1], [0.1, 3.0, 1.0, 1.0, 1.0, 0.0])
 
     # Set up domain
     A, B, C = [0.0, 0.0], [1.0, 0.0], [0.0, 1.0]
