@@ -31,13 +31,13 @@ include("largedeviations/action.jl")
 include("largedeviations/min_action_method.jl")
 include("largedeviations/geometric_min_action_method.jl")
 
-include("../systems/fitzhughnagumo.jl")
-include("../systems/truscottbrindley_mod.jl")
-include("../systems/truscottbrindley_orig.jl")
-include("../systems/truscottbrindley_orig1.jl")
-include("../systems/rooth.jl")
-include("../systems/stommel.jl")
-include("../systems/rivals.jl")
+# include("../systems/fitzhughnagumo.jl")
+# include("../systems/truscottbrindley_mod.jl")
+# include("../systems/truscottbrindley_orig.jl")
+# include("../systems/truscottbrindley_orig1.jl")
+# include("../systems/rooth.jl")
+# include("../systems/stommel.jl")
+# include("../systems/rivals.jl")
 
 # Core types
 export CoupledSDEs, diagonal_noise!, diagonal_noise, add_noise_strength
@@ -51,17 +51,5 @@ export min_action_method, geometric_min_action_method
 export basins, basinboundary
 export edgetracking, bisect_to_edge, attractor_mapper
 export make_jld2, make_h5, intervals_to_box
-
-# Systems
-# export fitzhugh_nagumo, fitzhugh_nagumo!, fhn_ϵσ, fhn_ϵσ_backward
-# export modifiedtruscottbrindley,
-#     modifiedtruscottbrindley!, modtb_αξσ, modtb_αξσ1, modtb_αξσ_backward
-# export rampedmodifiedtruscottbrindley, modifiedtruscottbrindley!, rmodtb_ξvTtrTraσ
-# export originaltruscottbrindley, originaltruscottbrindley!, origtb_rσ
-# export rampedoriginaltruscottbrindley, rampedoriginaltruscottbrindley!, rorigtb_vTtrTraσ
-# export originaltruscottbrindley1, originaltruscottbrindley1!, origtb1_rσ
-# export rampedoriginaltruscottbrindley1, rampedoriginaltruscottbrindley1!, rorigtb1_vTtrTraσ
-# export rivals!, rivals, rivals_ϵσ
-# export rooth_smooth, stommel, cessi
 
 end # module CriticalTransitions

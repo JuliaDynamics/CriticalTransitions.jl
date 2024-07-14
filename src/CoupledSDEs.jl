@@ -57,7 +57,7 @@ $(DynamicalSystemsBase.DEFAULT_DIFFEQ)
 ```
 
 `diffeq` keywords can also include `callback` for [event handling
-](http://docs.juliadiffeq.org/latest/features/callback_functions.html).
+](https://docs.sciml.ai/DiffEqDocs/stable/features/callback_functions/).
 
 Dev note: `CoupledSDEs` is a light wrapper of  `StochasticDiffEq.SDEIntegrator` from DifferentialEquations.jl.
 The integrator is available as the field `integ`, and the `SDEProblem` is `integ.sol.prob`.

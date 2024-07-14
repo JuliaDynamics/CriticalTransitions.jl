@@ -38,7 +38,7 @@ end
     modifiedtruscottbrindley!(du, u, p, t)
 In-place definition of the modified Truscott-Brindley system.
 
-See also [`modifiedtruscottbrindley`](@ref).
+See also `modifiedtruscottbrindley`.
 """
 function modifiedtruscottbrindley!(du, u, p, t)
     P, Z = u
@@ -54,7 +54,7 @@ end
     modifiedtruscottbrindley(u, p, t)
 Out-of-place definition of the modified Truscott-Brindley system.
 
-See also [`modifiedtruscottbrindley!`](@ref).
+See also `modifiedtruscottbrindley!`.
 """
 function modifiedtruscottbrindley(u, p, t)
     P, Z = u

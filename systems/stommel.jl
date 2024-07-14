@@ -19,7 +19,7 @@ as described in [^Stommel 1961]. The original values in the bistable regime are 
   * `"diffu_abs"`: Absolute flow law Q2 in eq. (2.4) of [^Cessi1994]
   * `"diffu_sqr"`: Absolute flow law Q3 in eq. (2.4) of [^Cessi1994]
 
-See also [`cessi`](@ref).
+See also `cessi`
 
 [^Stommel1961]:
     [Stommel (1961). Thermohaline Convection with two stable regimes of flow]
@@ -64,7 +64,7 @@ Cessi's hemispheric 2-box model of the Thermohaline Circulation
 ## Parameters
 `p = [[alpha, mu2, pflux]]`
 
-See also [`stommel`](@ref).
+See also `stommel`.
 """
 function cessi(u, p, t)
     # Non-dimensional model parameters [Cessi 1994]

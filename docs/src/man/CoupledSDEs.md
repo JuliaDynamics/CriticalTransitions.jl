@@ -19,10 +19,11 @@ CoupledSDEs
 ## Type of stochastic system
 Let us make some examples of the different types of stochastic systems that can be defined.
 ```@example type
-using CriticalTransitions, CairoMakie
-
+using CriticalTransitions, Plots
+import Random # hide
+Random.seed!(10) # hide
 f!(du, u, p, t) = du .= 1.01u
-σ = 0.1
+σ = 0.25
 ```
 ### Additive noise
 When `g` is independent of the state variables `u`, the noise is called additive.
@@ -97,7 +98,7 @@ plot(sol)
 ### Corelated noise
 
 ## Noise process
-We provide the noise processes $text{d}\mathcal{W}$ that can be used in the stochastic simulations through the [DiffEqNoiseProcess.jl](https://docs.sciml.ai/DiffEqNoiseProcess/stable) package. A complete list of the available processes can be found [here](https://docs.sciml.ai/DiffEqNoiseProcess/stable/noise_processes/). We list some of the most common ones below:
+We provide the noise processes $\text{d}\mathcal{W}$ that can be used in the stochastic simulations through the [DiffEqNoiseProcess.jl](https://docs.sciml.ai/DiffEqNoiseProcess/stable) package. A complete list of the available processes can be found [here](https://docs.sciml.ai/DiffEqNoiseProcess/stable/noise_processes/). We list some of the most common ones below:
 ```@docs
 WienerProcess
 SimpleWienerProcess

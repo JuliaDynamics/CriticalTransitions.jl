@@ -4,7 +4,6 @@ using DocumenterInterLinks
 using Pkg
 
 using CriticalTransitions, ChaosTools, Attractors
-using CairoMakie
 
 project_toml = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 package_version = project_toml["version"]
@@ -26,6 +25,9 @@ html_options = Dict(
     :prettyurls => true,
     :canonical => "https://juliadynamics.github.io/CriticalTransitions.jl/",
     :mathengine => Documenter.MathJax2(),
+    # :example_size_threshold => nothing,
+    # :size_threshold_warn => nothing,
+    # :size_threshold => nothing,
 )
 
 if Documenter.DOCUMENTER_VERSION >= v"1.3.0"
@@ -36,16 +38,17 @@ makedocs(;
     authors=authors,
     sitename="CriticalTransitions.jl",
     linkcheck=true,
+    pagesonly=true,
+    checkdocs=:exports,
     modules=[
         CriticalTransitions,
-        # CriticalTransitions.StochasticDiffEq,
         CriticalTransitions.DiffEqNoiseProcess,
         Base.get_extension(CriticalTransitions, :ChaosToolsExt),
         Base.get_extension(CriticalTransitions, :CoupledSDEsBaisin),
     ],
     doctest=false,
     format=Documenter.HTML(; html_options...),
-    warnonly=[:doctest, :missing_docs, :cross_references, :linkcheck],
+    warnonly=[:missing_docs],
     pages=pages,
     plugins=[bib, links],
 )
