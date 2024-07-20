@@ -31,13 +31,7 @@ include("largedeviations/action.jl")
 include("largedeviations/min_action_method.jl")
 include("largedeviations/geometric_min_action_method.jl")
 
-# include("../systems/fitzhughnagumo.jl")
-# include("../systems/truscottbrindley_mod.jl")
-# include("../systems/truscottbrindley_orig.jl")
-# include("../systems/truscottbrindley_orig1.jl")
-# include("../systems/rooth.jl")
-# include("../systems/stommel.jl")
-# include("../systems/rivals.jl")
+include("../systems/CTLibrary.jl")
 
 # Core types
 export CoupledSDEs, diagonal_noise!, diagonal_noise, add_noise_strength
