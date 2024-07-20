@@ -117,7 +117,7 @@ end;
 #     return SVector{length(u)}(du)
 # end;
 
-"""
+@doc doc"""
 Calculates the generalized ``A``-norm of the vector `vec`,
 ``||v||_A := \\sqrt(v^\\top \\cdot A \\cdot v)``,
 where `A` is a square matrix of dimension `(length(vec) x length(vec))`.
@@ -130,7 +130,7 @@ function anorm(vec, A; square=false)
     return square ? normsquared : sqrt(normsquared)
 end;
 
-"""
+@doc doc"""
 $(TYPEDSIGNATURES)
 
 Returns the Euclidean norm of the vector `vec`; however, if `directions` are specified, the
@@ -164,7 +164,7 @@ function central2(f, idx, dz)
     return (f[idx + 1] - 2f[idx] + f[idx - 1]) / (dz^2)
 end;
 
-"""
+@doc doc"""
 $(TYPEDSIGNATURES)
 Smooth approximation of `abs(x)`, ``|x| = x \\tanh(\\xi x)``, where ``xi`` controls the
 accuracy of the approximation. The exact absolute value function is obtained in the limit

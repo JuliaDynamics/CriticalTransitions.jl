@@ -12,7 +12,7 @@ using IntervalRootFinding
 using ForwardDiff
 using Symbolics
 using Optim, Dierckx
-using Printf, DrWatson, Dates, Statistics
+using Printf, DrWatson, Dates, Statistics, Markdown
 
 # Define custom types
 # Parameters = Union{Vector{Any}, Nothing};
@@ -34,7 +34,8 @@ include("largedeviations/geometric_min_action_method.jl")
 include("../systems/CTLibrary.jl")
 
 # Core types
-export CoupledSDEs, diagonal_noise!, diagonal_noise, add_noise_strength
+export CoupledSDEs,
+    diagonal_noise!, diagonal_noise, add_noise_strength, noise_process, covariance_matrix
 
 # Methods
 export equilib, fixedpoints, basins, basinboundary, basboundary

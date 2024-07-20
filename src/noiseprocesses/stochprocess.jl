@@ -5,7 +5,7 @@ Translates the stochastic process specified in `sys` into the language required 
 `SDEProblem` of `DynamicalSystems.jl`.
 """
 function noise_process(sys::CoupledSDEs)
-    sys.integ.W
+    return sys.integ.W
 end
 
 """
