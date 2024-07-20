@@ -14,14 +14,18 @@
         prob = SDEProblem(meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf))
         sde = CoupledSDEs(meier_stein, diagonal_noise(σ), zeros(2))
 
-        @test sde.integ.sol.prob.f == prob.f
-        @test sde.integ.sol.prob.g == prob.g
+        @test sde.integ.sol.prob.f isa SDEFunction
+        @test sde.integ.sol.prob.f.f == prob.f
+        # @test sde.integ.sol.prob.g == prob.g
         @test sde.integ.sol.prob.u0 == prob.u0
         @test sde.integ.sol.prob.tspan == prob.tspan
         @test sde.integ.sol.prob.p == prob.p
         @test sde.integ.sol.prob.noise_rate_prototype == prob.noise_rate_prototype
         @test sde.integ.sol.prob.noise == prob.noise
         @test sde.integ.sol.prob.seed == prob.seed
+
+        noise = sde.integ.sol.prob.noise
+        @test noise == nothing
     end
     # @show sde.integ.W.dist
     # @show sde.integ.sol.prob
@@ -33,14 +37,20 @@
         prob = SDEProblem(meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf); noise=W)
         sde = CoupledSDEs(meier_stein, diagonal_noise(σ), zeros(2); noise=W)
 
-        @test sde.integ.sol.prob.f == prob.f
-        @test sde.integ.sol.prob.g == prob.g
+        @test sde.integ.sol.prob.f isa SDEFunction
+        @test sde.integ.sol.prob.f.f == prob.f
+        # @test sde.integ.sol.prob.g == prob.g
         @test sde.integ.sol.prob.u0 == prob.u0
         @test sde.integ.sol.prob.tspan == prob.tspan
         @test sde.integ.sol.prob.p == prob.p
         @test sde.integ.sol.prob.noise_rate_prototype == prob.noise_rate_prototype
         @test sde.integ.sol.prob.noise == prob.noise
         @test sde.integ.sol.prob.seed == prob.seed
+
+        noise = sde.integ.sol.prob.noise
+        @test noise == W
+        @test length(noise.dW) == 1
+        @test W.covariance == nothing
     end
 
     @testset "Multiplicative noise" begin
@@ -66,8 +76,9 @@
         )
         prob = SDEProblem(f, g, zeros(2), (0.0, Inf); noise_rate_prototype=zeros(2, 4))
 
-        @test sde.integ.sol.prob.f == prob.f
-        @test sde.integ.sol.prob.g == prob.g
+        @test sde.integ.sol.prob.f isa SDEFunction
+        @test sde.integ.sol.prob.f.f == prob.f
+        # @test sde.integ.sol.prob.g == prob.g
         @test sde.integ.sol.prob.u0 == prob.u0
         @test sde.integ.sol.prob.tspan == prob.tspan
         @test sde.integ.sol.prob.p == prob.p

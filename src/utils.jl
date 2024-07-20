@@ -33,12 +33,21 @@ function diagonal_noise!(σ)
 end
 diagonal_noise(σ) = (u, p, t) -> σ .* idfunc(u, p, t)
 
-function add_noise_strength(σ, g)
-    if SciMLBase.isinplace(g, 4)
-        return (du, u, p, t) -> σ .* g(du, u, p, t)
-    else
-        return (u, p, t) -> σ .* g(u, p, t)
+function σg(σ, g)
+    return (u, p, t) -> σ .* g(u, p, t)
+end
+
+function σg!(σ, g!)
+    function (du, u, p, t)
+        g!(du, u, p, t)
+        du .*= σ
+        return nothing
     end
+end
+
+function add_noise_strength(σ, g, IIP)
+    newg = IIP ? σg!(σ, g) : σg(σ, g)
+    return newg
 end
 
 """

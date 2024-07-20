@@ -65,11 +65,12 @@ The convenience syntax `SDEProblem(ds::CoupledSDEs, tspan = (t0, Inf))` is avail
 to extract the problem.
 ```
 """
-struct CoupledSDEs{IIP,D,I,P} <: ContinuousTimeDynamicalSystem
+struct CoupledSDEs{IIP,D,I,P,S} <: ContinuousTimeDynamicalSystem
     # D parametrised by length of u0
     integ::I
     # things we can't recover from `integ`
     p0::P
+    noise_strength
     diffeq # isn't parameterized because it is only used for display
 end
 
@@ -86,7 +87,8 @@ function CoupledSDEs(
     g,
     u0,
     p=SciMLBase.NullParameters();
-    t0=0,
+    noise_strength=1.0,
+    t0=0.0,
     diffeq=DEFAULT_DIFFEQ,
     noise_rate_prototype=nothing,
     noise=nothing,
@@ -107,13 +109,10 @@ function CoupledSDEs(
         noise=noise,
         seed=seed,
     )
-    return CoupledSDEs(prob, diffeq)
+    return CoupledSDEs(prob, diffeq; noise_strength=noise_strength)
 end
 
-# This preserves the referrenced MTK system and the originally passed diffeq kwargs
-CoupledSDEs(ds::CoupledSDEs, diffeq) = CoupledSDEs(SDEProblem(ds), merge(ds.diffeq, diffeq))
-
-function CoupledSDEs(prob::SDEProblem, diffeq=DEFAULT_DIFFEQ)
+function CoupledSDEs(prob::SDEProblem, diffeq=DEFAULT_DIFFEQ; noise_strength=1.0)
     IIP = isinplace(prob) # from SciMLBase
     D = length(prob.u0)
     P = typeof(prob.p)
@@ -122,6 +121,9 @@ function CoupledSDEs(prob::SDEProblem, diffeq=DEFAULT_DIFFEQ)
         U = eltype(prob.u0)
         prob = SciMLBase.remake(prob; tspan=(U(0), U(Inf)))
     end
+    sde_function = SDEFunction(prob.f, add_noise_strength(noise_strength, prob.g, IIP))
+    prob = SciMLBase.remake(prob; f=sde_function)
+
     solver, remaining = _decompose_into_solver_and_remaining(diffeq)
     integ = __init(
         prob,
@@ -135,7 +137,9 @@ function CoupledSDEs(prob::SDEProblem, diffeq=DEFAULT_DIFFEQ)
         # so there is no reason to limit the maximum time evolution
         maxiters=Inf,
     )
-    return CoupledSDEs{IIP,D,typeof(integ),P}(integ, deepcopy(prob.p), diffeq)
+    return CoupledSDEs{IIP,D,typeof(integ),P,true}(
+        integ, deepcopy(prob.p), noise_strength, diffeq
+    )
 end
 
 """
@@ -148,19 +152,21 @@ function CoupledSDEs(
     ds::DynamicalSystemsBase.CoupledODEs,
     g;
     diffeq=DEFAULT_DIFFEQ,
+    noise_strength=1.0,
     noise_rate_prototype=nothing,
     noise=nothing,
     seed=UInt64(0),
 )
     return CoupledSDEs(
         dynamic_rule(ds),
-        g,
+        prob.g,
         current_state(ds),
         ds.p0;
         diffeq=diffeq,
         noise_rate_prototype=noise_rate_prototype,
         noise=noise,
         seed=seed,
+        noise_strength=noise_strength,
     )
 end
 
@@ -179,7 +185,7 @@ end
 # Pretty print
 function additional_details(ds::CoupledSDEs)
     solver, remaining = _decompose_into_solver_and_remaining(ds.diffeq)
-    return ["ODE solver" => string(nameof(typeof(solver))), "ODE kwargs" => remaining]
+    return ["SDE solver" => string(nameof(typeof(solver))), "SDE kwargs" => remaining]
 end
 
 ###########################################################################################
