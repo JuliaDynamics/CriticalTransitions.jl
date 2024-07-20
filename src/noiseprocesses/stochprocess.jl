@@ -31,7 +31,7 @@ $(TYPEDSIGNATURES)
 Gives the noise strength specified in `sys`.
 """
 function noise_strength(sys::CoupledSDEs)
-    sys.noise_strength
+    return sys.noise_strength
 end
 
 """
