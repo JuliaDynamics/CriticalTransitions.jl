@@ -2,12 +2,17 @@
 
 A `CoupledSDEs` defines a stochastic dynamical system of the form
 
-``\text{d}\vec x = f(\vec x(t); \ p)  \text{d}t + g(\vec x(t);  \ p) \text{d}\mathcal{W} \ ,``
+```math
+\text{d}\vec x = f(\vec x(t); \ p)  \text{d}t + g(\vec x(t);  \ p) \text{d}\mathcal{W} \ ,
+```
 where $\text{d}\mathcal{W}=\Gamma \cdot \text{d}\mathcal{N}$, $\vec x \in \mathbb{R}^\text{dim}$ and $\mathcal N$ denotes a stochastic process. The (positive definite) noise covariance matrix is $\Sigma = \Gamma \Gamma^\top \in \mathbb R^{N\times N}$.
 
 The function $f$ is the deterministic part of the system and is assumed to be of similar form as is accepted in [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystems.jl/latest/tutorial/), i.e., `f(u, p, t)` for out-of-place (oop) and `f(du, u, p, t)` for in-place (iip).
 
 The function $g$ represent the stochastics dynamics of the system and should be the of the same type (iip or oop) as $f$. The keyword `noise` defines the system [noise process](#noise-process). In combination with `g` one can define different type of stochastic systems. Examples of different type of stochastics systems can be found on the [StochasticDiffEq.jl tutorial page](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/sde_example/). A quick overview of the different types of stochastic systems can be found [here](#Type-of-stochastic-system).
+
+!!! info
+    Note that nonlinear mixings of the Noise Process $\mathcal{W}$ are not Stochasitic Differential Equations but are a different class of differential equations of random ordinary differential equations (RODEs) which have a separate set of solvers. See [this example](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/rode_example/) of DifferentialEquations.jl.
 
 !!! warning
     Some algrorithms need to know the overall noise strength of the system. However, the noise strength is ambiguous in the case of non-diagonal noise. Hence, these methods ask for the noise strength to be provided explicitly. This can be done by setting the `noise_strength` keyword.
@@ -45,7 +50,7 @@ sol = simulate(sde, 1.0, dt=0.01, alg=SOSRA())
 plot(sol)
 ```
 
-#### scalar noise
+#### Scalar noise
 Scalar noise is where a single random variable is applied to all dependent variables. To do this, one has to give the noise process to the `noise` keyword of the `CoupledSDEs` constructor. A common example is the Wiener process starting at `W0=0.0` at time `t0=0.0`.
 
 ```@example type
@@ -92,10 +97,16 @@ plot(sol)
 !!! warning
     Non-diagonal problem need specific type of solvers. See the [SciML recommendations](https://docs.sciml.ai/DiffEqDocs/stable/solvers/sde_solve/#sde_solve).
 
-!!! info
-    Note that nonlinear mixings are not Stochasitic Differential Equations but are a different class of differential equations of random ordinary differential equations (RODEs) which have a separate set of solvers. See [this example](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/rode_example/) of DifferentialEquations.jl.
-
 ### Corelated noise
+```@example type
+ρ = 0.3
+Σ = [1 ρ; ρ 1]
+t0 = 0.0; W0 = zeros(2); Z0 = zeros(2);
+W = CorrelatedWienerProcess(Σ, t0, W0, Z0)
+sde = CoupledSDEs(f!, diagonal_noise!(σ), zeros(2); noise=W)
+sol = simulate(sde, 1.0, dt=0.01, alg=SOSRA())
+plot(sol)
+```
 
 ## Noise process
 We provide the noise processes $\text{d}\mathcal{W}$ that can be used in the stochastic simulations through the [DiffEqNoiseProcess.jl](https://docs.sciml.ai/DiffEqNoiseProcess/stable) package. A complete list of the available processes can be found [here](https://docs.sciml.ai/DiffEqNoiseProcess/stable/noise_processes/). We list some of the most common ones below:

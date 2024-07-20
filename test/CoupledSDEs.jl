@@ -53,7 +53,27 @@
         @test W.covariance == nothing
     end
 
-    @testset "Multiplicative noise" begin
+    @testset "multiplicative noise Wiener" begin
+        # multiplicative noise Wiener
+        # a single random variable is applied to all dependent variables
+        g(u, p, t) = σ .* u
+        prob = SDEProblem(meier_stein, g, zeros(2), (0.0, Inf))
+        sde = CoupledSDEs(meier_stein, g, zeros(2))
+
+        @test sde.integ.sol.prob.f isa SDEFunction
+        @test sde.integ.sol.prob.f.f == prob.f
+        @test sde.integ.sol.prob.u0 == prob.u0
+        @test sde.integ.sol.prob.tspan == prob.tspan
+        @test sde.integ.sol.prob.p == prob.p
+        @test sde.integ.sol.prob.noise_rate_prototype == prob.noise_rate_prototype
+        @test sde.integ.sol.prob.noise == prob.noise
+        @test sde.integ.sol.prob.seed == prob.seed
+
+        noise = sde.integ.sol.prob.noise
+        @test noise == nothing
+    end
+
+    @testset "Non-diagonal noise" begin
         # non-diagonal noise allows for the terms to linearly mixed via g being a matrix.
         # four Wiener processes and two dependent random variables
         # the output of g to be a 2x4 matrix, such that the solution is g(u,p,t)*dW, the matrix multiplication.
@@ -85,5 +105,41 @@
         @test sde.integ.sol.prob.noise_rate_prototype == prob.noise_rate_prototype
         @test sde.integ.sol.prob.noise == prob.noise
         @test sde.integ.sol.prob.seed == prob.seed
+    end
+
+    @testset "Correlated noise Wiener" begin
+        f!(du, u, p, t) = du .= 1.01u
+        σ = 0.25
+
+        ρ = 0.3; Γ = [1 ρ; ρ 1]
+        t0 = 0.0
+        W0 = zeros(2)
+        Z0 = zeros(2)
+        W = CorrelatedWienerProcess(Γ, t0, W0, Z0)
+        prob = SDEProblem(f!, diagonal_noise!(σ), zeros(2), (0.0, Inf); noise=W)
+        sde = CoupledSDEs(f!, diagonal_noise!(σ), zeros(2); noise=W)
+
+        @test sde.integ.sol.prob.f isa SDEFunction
+        @test sde.integ.sol.prob.f.f == prob.f
+        @test sde.integ.sol.prob.u0 == prob.u0
+        @test sde.integ.sol.prob.tspan == prob.tspan
+        @test sde.integ.sol.prob.p == prob.p
+        @test sde.integ.sol.prob.noise_rate_prototype == prob.noise_rate_prototype
+        @test sde.integ.sol.prob.noise == prob.noise
+        @test sde.integ.sol.prob.seed == prob.seed
+
+        @test W.covariance == Γ
+        @testset "covariance" begin
+            using DiffEqNoiseProcess, StatsBase
+            prob = NoiseProblem(W, (0.0, 1.0))
+            output_func = (sol, i) -> (sol.dW, false)
+            ensemble_prob = EnsembleProblem(prob; output_func=output_func)
+
+            dt = 0.1
+            sol = Array(solve(ensemble_prob; dt=dt, trajectories=1_000_000))
+
+            @test zero(mean(sol; dims=2)[:]) ≈ mean(sol; dims=2)[:] atol = 1e-2
+            @test W.covariance ≈ cov(sol; dims=2) / dt rtol = 1e-2
+        end
     end
 end
