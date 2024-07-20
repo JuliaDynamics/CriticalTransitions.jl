@@ -50,3 +50,13 @@ function drift(sys::CoupledSDEs{IIP}, x) where {IIP}
         return f(x, sys.p0, 0)
     end
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Computes the divergence of the drift field `sys.f` at the given point `x`.
+"""
+function div_drift(sys::CoupledSDEs, x)
+    b(x) = drift(sys, x)
+    return tr(ForwardDiff.jacobian(b, x))
+end;

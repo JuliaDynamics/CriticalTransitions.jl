@@ -16,16 +16,11 @@ total time of the path. The subscript ``Q`` refers to the
 generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm``). Here
 ``Q`` is the noise covariance matrix `sys.Σ`.
 
-## Keyword arguments
-* `cov_inv = nothing`: Inverse of the covariance matrix ``\\Sigma``.
-  If `nothing`, ``\\Sigma^{-1}`` is computed automatically.
 """
-function fw_action(sys::CoupledSDEs, path, time; cov_inv=nothing)
-    if ~all(diff(time) .≈ diff(time[1:2]))
-        error("Fw_action is only defined for equispaced time")
-    end
+function fw_action(sys::CoupledSDEs, path, time)
+    @assert all(diff(time) .≈ diff(time[1:2])) "Freidlin-Wentzell action is only defined for equispaced time"
     # Inverse of covariance matrix
-    A = isnothing(cov_inv) ? inv(covariance_matrix(sys)) : cov_inv
+    A = inv(covariance_matrix(sys)) # Do we have to take the inverse here?
 
     # Compute action integral
     integrand = fw_integrand(sys, path, time, A)
@@ -56,26 +51,21 @@ time of the path, and ``\\sigma`` the noise strength. The subscript ``Q`` refers
 generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm``). Here
 ``Q`` is the noise covariance matrix.
 
-## Keyword arguments
-* `cov_inv = nothing`: Inverse of the covariance matrix ``\\Sigma``.
-  If `nothing`, ``\\Sigma^{-1}`` is computed automatically.
 """
-function om_action(sys::CoupledSDEs, path, time, noise_strength; cov_inv=nothing)
-    if ~all(diff(time) .≈ diff(time[1:2]))
-        error("Fw_action is only defined for equispaced time")
-    end
-    # Inverse of covariance matrix
-    (cov_inv == nothing) ? A = inv(covariance_matrix(sys)) : A = cov_inv
+function om_action(sys::CoupledSDEs, path, time)
+    @assert all(diff(time) .≈ diff(time[1:2])) "Fw_action is only defined for equispaced time"
+
+    σ = noise_strength(sys)
     # Compute action integral
     S = 0
     for i in 1:(size(path, 2) - 1)
         S +=
-            noise_strength^2 / 2 * (
+            σ^2 / 2 * (
                 (div_drift(sys, path[:, i + 1]) + div_drift(sys, path[:, i])) / 2 *
                 (time[i + 1] - time[i])
             )
     end
-    return fw_action(sys, path, time; cov_inv=A) + S / 2
+    return fw_action(sys, path, time) + S / 2
 end;
 
 """
@@ -89,11 +79,11 @@ Computes the action functional specified by `functional` for a given CoupledSDEs
 """
 function action(sys::CoupledSDEs, path::Matrix, time, functional; kwargs...)
     if functional == "FW"
-        return fw_action(sys, path, time; kwargs...)
+        action = fw_action(sys, path, time; kwargs...)
     elseif functional == "OM"
-        error("Not yet implemented since it depends on noise strength.")
-        #return om_action(sys, path, time; kwargs...)
+        action = om_action(sys, path, time; kwargs...)
     end
+    return action
 end;
 
 """
@@ -114,16 +104,12 @@ where ``s`` is the arclength coordinate, ``L`` the arclength, ``b`` the drift fi
 subscript ``Q`` refers to the generalized dot product ``\\langle a, b \\rangle_Q := a^{\\top}
 \\cdot Q^{-1} b`` (see `anorm``). Here ``Q`` is the noise covariance matrix `sys.Σ`.
 
-## Keyword arguments
-* `cov_inv = nothing`: Inverse of the covariance matrix ``\\Sigma``.
-  If `nothing`, ``\\Sigma^{-1}`` is computed automatically.
-
 Returns the value of the geometric action ``\\bar S``.
 """
-function geometric_action(sys::CoupledSDEs, path, arclength=1.0; cov_inv=nothing)
+function geometric_action(sys::CoupledSDEs, path, arclength=1.0)
     N = size(path, 2)
     v = path_velocity(path, range(0, arclength; length=N); order=4)
-    A = isnothing(cov_inv) ? inv(covariance_matrix(sys)) : cov_inv
+    A = inv(covariance_matrix(sys))
 
     b(x) = drift(sys, x)
 
@@ -157,16 +143,6 @@ function fw_integrand(sys::CoupledSDEs, path, time, A)
         sqnorm[i] = anorm(v[:, i] - drift, A; square=true)
     end
     return sqnorm
-end;
-
-"""
-$(TYPEDSIGNATURES)
-
-Computes the divergence of the drift field `sys.f` at the given point `x`.
-"""
-function div_drift(sys::CoupledSDEs, x)
-    b(x) = drift(sys, x)
-    return tr(ForwardDiff.jacobian(b, x))
 end;
 
 """

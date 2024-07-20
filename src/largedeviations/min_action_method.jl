@@ -93,14 +93,12 @@ function min_action_method(
 )
     verbose && println("=== Initializing MAM action minimizer ===")
 
-    A = inv(covariance_matrix(sys))
     function f(x)
         return action(
             sys,
             fix_ends(x, init[:, 1], init[:, end]),
             range(0.0, T; length=size(init, 2)),
-            functional;
-            cov_inv=A,
+            functional,
         )
     end
 

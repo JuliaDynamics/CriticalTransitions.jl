@@ -78,13 +78,12 @@ function geometric_min_action_method(
 )
     verbose && println("=== Initializing gMAM action minimizer ===")
 
-    A = inv(covariance_matrix(sys))
     path = init
     x_i = init[:, 1]
     x_f = init[:, end]
     N = length(init[1, :])
 
-    S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength; cov_inv=A)
+    S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength)
     paths = [path]
     action = [S(path)]
 
@@ -93,7 +92,7 @@ function geometric_min_action_method(
         if method == "HeymannVandenEijnden"
             error("The HeymannVandenEijnden method is broken")
             # update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
-            # tau = tau, cov_inv = A)
+            # tau = tau)
         else
             update = Optim.optimize(S, path, method, Optim.Options(; iterations=1))
             update_path = Optim.minimizer(update)
@@ -134,15 +133,10 @@ Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `
 
   - `tau = 0.1`: step size
   - `diff_order = 4`: order of the finite differencing along the path. Either `2` or `4`.
-  - `cov_inv` = nothing: inverse of the covariance matrix `sys.Σ`. If `nothing`, it is computed.
 
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
-function heymann_vandeneijnden_step(
-    sys::CoupledSDEs, path, N, L; tau=0.1, diff_order=4, cov_inv=nothing
-)
-    (cov_inv == nothing) ? A = inv(covariance_matrix(sys)) : A = cov_inv
-
+function heymann_vandeneijnden_step(sys::CoupledSDEs, path, N, L; tau=0.1, diff_order=4)
     dx = L / (N - 1)
     update = zeros(size(path))
     lambdas, lambdas_prime = zeros(N), zeros(N)
