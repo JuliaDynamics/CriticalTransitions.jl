@@ -35,7 +35,7 @@ include("../systems/CTLibrary.jl")
 
 # Core types
 export CoupledSDEs,
-    diagonal_noise!, diagonal_noise, add_noise_strength, noise_process, covariance_matrix
+    idfunc!, idfunc, add_noise_strength, noise_process, covariance_matrix, noise_strength
 
 # Methods
 export equilib, fixedpoints, basins, basinboundary, basboundary

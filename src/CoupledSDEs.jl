@@ -53,7 +53,7 @@ If you want to specify a solver, do so by using the keyword `alg`, e.g.:
 `using OrdinaryDiffEq` to access the solvers. The default `diffeq` is:
 
 ```julia
-$(DynamicalSystemsBase.DEFAULT_DIFFEQ)
+$(CriticalTransitions.DEFAULT_DIFFEQ)
 ```
 
 `diffeq` keywords can also include `callback` for [event handling
@@ -86,8 +86,8 @@ function CoupledSDEs(
     f,
     g,
     u0,
-    p=SciMLBase.NullParameters();
     noise_strength=1.0,
+    p=SciMLBase.NullParameters();
     t0=0.0,
     diffeq=DEFAULT_DIFFEQ,
     noise_rate_prototype=nothing,
@@ -109,10 +109,10 @@ function CoupledSDEs(
         noise=noise,
         seed=seed,
     )
-    return CoupledSDEs(prob, diffeq; noise_strength=noise_strength)
+    return CoupledSDEs(prob, diffeq, noise_strength)
 end
 
-function CoupledSDEs(prob::SDEProblem, diffeq=DEFAULT_DIFFEQ; noise_strength=1.0)
+function CoupledSDEs(prob::SDEProblem, diffeq=DEFAULT_DIFFEQ, noise_strength=1.0)
     IIP = isinplace(prob) # from SciMLBase
     D = length(prob.u0)
     P = typeof(prob.p)
@@ -150,9 +150,9 @@ system into a [`CoupledSDEs`](@ref).
 """
 function CoupledSDEs(
     ds::DynamicalSystemsBase.CoupledODEs,
-    g;
+    g,
+    noise_strength=1.0;
     diffeq=DEFAULT_DIFFEQ,
-    noise_strength=1.0,
     noise_rate_prototype=nothing,
     noise=nothing,
     seed=UInt64(0),
@@ -161,12 +161,12 @@ function CoupledSDEs(
         dynamic_rule(ds),
         prob.g,
         current_state(ds),
+        noise_strength,
         ds.p0;
         diffeq=diffeq,
         noise_rate_prototype=noise_rate_prototype,
         noise=noise,
         seed=seed,
-        noise_strength=noise_strength,
     )
 end
 
@@ -207,23 +207,6 @@ referrenced_sciml_prob(ds::CoupledSDEs) = ds.integ.sol.prob
 # so that `ds` is printed
 set_state!(ds::CoupledSDEs, u::AbstractArray) = (set_state!(ds.integ, u); ds)
 SciMLBase.step!(ds::CoupledSDEs, args...) = (step!(ds.integ, args...); ds)
-
-"""
-$(TYPEDSIGNATURES)
-
-Returns the drift field ``b(x)`` of the CoupledSDEs `sys` at the state vector `x`.
-"""
-function drift(sys::CoupledSDEs{IIP}, x) where {IIP}
-    # assumes the drift is time independent
-    f = dynamic_rule(sys)
-    if IIP
-        dx = similar(x)
-        f(dx, x, sys.p0, 0)
-        return dx
-    else
-        return f(x, sys.p0, 0)
-    end
-end
 
 # For checking successful step, the `SciMLBase.step!` function checks
 # `integ.sol.retcode in (ReturnCode.Default, ReturnCode.Success) || break`.

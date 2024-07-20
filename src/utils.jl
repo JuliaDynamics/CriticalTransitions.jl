@@ -22,16 +22,16 @@ function idfunc!(du, u, p, t)
     return nothing
 end;
 
-"""
-"""
-function diagonal_noise!(σ)
-    function (du, u, p, t)
-        idfunc!(du, u, p, t)
-        du .*= σ
-        return nothing
-    end
-end
-diagonal_noise(σ) = (u, p, t) -> σ .* idfunc(u, p, t)
+# """
+# """
+# function diagonal_noise!(σ)
+#     function (du, u, p, t)
+#         idfunc!(du, u, p, t)
+#         du .*= σ
+#         return nothing
+#     end
+# end
+# diagonal_noise(σ) = (u, p, t) -> σ .* idfunc(u, p, t)
 
 function σg(σ, g)
     return (u, p, t) -> σ .* g(u, p, t)

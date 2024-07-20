@@ -1,4 +1,13 @@
 @testset "initialisation" begin
+    function diagonal_noise!(σ)
+        function (du, u, p, t)
+            idfunc!(du, u, p, t)
+            du .*= σ
+            return nothing
+        end
+    end
+    diagonal_noise(σ) = (u, p, t) -> σ .* idfunc(u, p, t)
+
     # Define the system
     function meier_stein(u, p, t) # out-of-place
         x, y = u
@@ -12,10 +21,10 @@
         # diagonal additive noise: σ*N(0,dt)
         # a vector of random numbers dW whose size matches the output of g where the noise is applied element-wise
         prob = SDEProblem(meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf))
-        sde = CoupledSDEs(meier_stein, diagonal_noise(σ), zeros(2))
+        sde = CoupledSDEs(meier_stein, idfunc, zeros(2), σ)
 
         @test sde.integ.sol.prob.f isa SDEFunction
-        @test sde.integ.sol.prob.f.f == prob.f
+        @test sde.integ.sol.prob.f.f.f == prob.f.f
         # @test sde.integ.sol.prob.g == prob.g
         @test sde.integ.sol.prob.u0 == prob.u0
         @test sde.integ.sol.prob.tspan == prob.tspan
@@ -35,10 +44,10 @@
         # a single random variable is applied to all dependent variables
         W = WienerProcess(0.0, 0.0, 0.0)
         prob = SDEProblem(meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf); noise=W)
-        sde = CoupledSDEs(meier_stein, diagonal_noise(σ), zeros(2); noise=W)
+        sde = CoupledSDEs(meier_stein, idfunc, zeros(2), σ; noise=W)
 
         @test sde.integ.sol.prob.f isa SDEFunction
-        @test sde.integ.sol.prob.f.f == prob.f
+        @test sde.integ.sol.prob.f.f.f == prob.f.f
         # @test sde.integ.sol.prob.g == prob.g
         @test sde.integ.sol.prob.u0 == prob.u0
         @test sde.integ.sol.prob.tspan == prob.tspan
@@ -56,12 +65,13 @@
     @testset "multiplicative noise Wiener" begin
         # multiplicative noise Wiener
         # a single random variable is applied to all dependent variables
-        g(u, p, t) = σ .* u
-        prob = SDEProblem(meier_stein, g, zeros(2), (0.0, Inf))
-        sde = CoupledSDEs(meier_stein, g, zeros(2))
+        g_sde(u, p, t) = σ .* u
+        g_Csde(u, p, t) = σ .* u
+        prob = SDEProblem(meier_stein, g_sde, zeros(2), (0.0, Inf))
+        sde = CoupledSDEs(meier_stein, g_Csde, zeros(2), σ)
 
         @test sde.integ.sol.prob.f isa SDEFunction
-        @test sde.integ.sol.prob.f.f == prob.f
+        @test sde.integ.sol.prob.f.f.f == prob.f.f
         @test sde.integ.sol.prob.u0 == prob.u0
         @test sde.integ.sol.prob.tspan == prob.tspan
         @test sde.integ.sol.prob.p == prob.p
@@ -97,7 +107,7 @@
         prob = SDEProblem(f, g, zeros(2), (0.0, Inf); noise_rate_prototype=zeros(2, 4))
 
         @test sde.integ.sol.prob.f isa SDEFunction
-        @test sde.integ.sol.prob.f.f == prob.f
+        @test sde.integ.sol.prob.f.f.f == prob.f.f
         # @test sde.integ.sol.prob.g == prob.g
         @test sde.integ.sol.prob.u0 == prob.u0
         @test sde.integ.sol.prob.tspan == prob.tspan
@@ -109,7 +119,6 @@
 
     @testset "Correlated noise Wiener" begin
         f!(du, u, p, t) = du .= 1.01u
-        σ = 0.25
 
         ρ = 0.3
         Γ = [1 ρ; ρ 1]
@@ -118,10 +127,10 @@
         Z0 = zeros(2)
         W = CorrelatedWienerProcess(Γ, t0, W0, Z0)
         prob = SDEProblem(f!, diagonal_noise!(σ), zeros(2), (0.0, Inf); noise=W)
-        sde = CoupledSDEs(f!, diagonal_noise!(σ), zeros(2); noise=W)
+        sde = CoupledSDEs(f!, idfunc!, zeros(2), σ; noise=W)
 
         @test sde.integ.sol.prob.f isa SDEFunction
-        @test sde.integ.sol.prob.f.f == prob.f
+        @test sde.integ.sol.prob.f.f.f == prob.f.f
         @test sde.integ.sol.prob.u0 == prob.u0
         @test sde.integ.sol.prob.tspan == prob.tspan
         @test sde.integ.sol.prob.p == prob.p
