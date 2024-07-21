@@ -9,13 +9,13 @@ where $\text{d}\mathcal{W}=\Gamma \cdot \text{d}\mathcal{N}$, $\vec x \in \mathb
 
 The function $f$ is the deterministic part of the system and is assumed to be of similar form as is accepted in [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystems.jl/latest/tutorial/), i.e., `f(u, p, t)` for out-of-place (oop) and `f(du, u, p, t)` for in-place (iip).
 
-The function $g$ represent the stochastics dynamics of the system and should be the of the same type (iip or oop) as $f$. The keyword `noise` defines the system [noise process](#noise-process). In combination with `g` one can define different type of stochastic systems. Examples of different type of stochastics systems can be found on the [StochasticDiffEq.jl tutorial page](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/sde_example/). A quick overview of the different types of stochastic systems can be found [here](#Type-of-stochastic-system).
+The function $g$ represent the stochastics dynamics of the system and should be the of the same type (iip or oop) as $f$.
+
+ The keyword `noise` defines the system [noise process](#noise-process). In combination with `g` one can define different type of stochastic systems. Examples of different type of stochastics systems can be found on the [StochasticDiffEq.jl tutorial page](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/sde_example/). A quick overview of the different types of stochastic systems can be found [here](#Type-of-stochastic-system).
 
 !!! info
     Note that nonlinear mixings of the Noise Process $\mathcal{W}$ are not Stochasitic Differential Equations but are a different class of differential equations of random ordinary differential equations (RODEs) which have a separate set of solvers. See [this example](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/rode_example/) of DifferentialEquations.jl.
 
-!!! warning
-    Some algrorithms need to know the overall noise strength of the system. However, the noise strength is ambiguous in the case of non-diagonal noise. Hence, these methods ask for the noise strength to be provided explicitly. This can be done by setting the `noise_strength` keyword.
 
 
 ```@docs
@@ -38,11 +38,11 @@ A system of diagional noise is the most common type of noise. It is defined by a
 ```@example type
 t0 = 0.0; W0 = zeros(2);
 W = WienerProcess(t0, W0, 0.0)
-sde = CoupledSDEs(f!, diagonal_noise!(σ), zeros(2); noise=W)
+sde = CoupledSDEs(f!, idfunc!, zeros(2), σ; noise=W)
 ```
 or equivalently
 ```@example type
-sde = CoupledSDEs(f!, diagonal_noise!(σ), zeros(2))
+sde = CoupledSDEs(f!, idfunc!, zeros(2), σ)
 ```
 The `diagonal_noise!` function is a helper function equivalent to `(du, u, p, t) -> σ .* idfunc!(du, u, p, t)` with `idfunc!(du, u, p, t) = (du .= ones(length(u)); return nothing)`. The vector `dW` is by default zero mean white gaussian noise $\mathcal{N}(0, \text{d}t)$ where the variance is the timestep $\text{d}t$ unit variance (Wiener Process).
 ```@example type
@@ -56,7 +56,7 @@ Scalar noise is where a single random variable is applied to all dependent varia
 ```@example type
 t0 = 0.0; W0 = 0.0;
 noise = WienerProcess(t0, W0, 0.0)
-sde = CoupledSDEs(f!, diagonal_noise!(σ), rand(2)./10; noise=noise)
+sde = CoupledSDEs(f!, idfunc!, rand(2)./10, σ; noise=noise)
 sol = simulate(sde, 1.0, dt=0.01, alg=SOSRA())
 plot(sol)
 ```
@@ -103,7 +103,7 @@ plot(sol)
 Σ = [1 ρ; ρ 1]
 t0 = 0.0; W0 = zeros(2); Z0 = zeros(2);
 W = CorrelatedWienerProcess(Σ, t0, W0, Z0)
-sde = CoupledSDEs(f!, diagonal_noise!(σ), zeros(2); noise=W)
+sde = CoupledSDEs(f!, idfunc!, zeros(2), σ; noise=W)
 sol = simulate(sde, 1.0, dt=0.01, alg=SOSRA())
 plot(sol)
 ```

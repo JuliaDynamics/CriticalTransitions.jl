@@ -28,7 +28,7 @@ end
 # Define CoupledSDEs
 """
     CoupledSDEs <: ContinuousTimeDynamicalSystem
-    CoupledSDEs(f, g, u0 [, p]; kwargs...)
+    CoupledSDEs(f, g, u0 [, σ, p]; kwargs...)
 
 A stochastic continuous time dynamical system defined by a set of
 coupled ordinary differential equations as follows:
@@ -36,7 +36,7 @@ coupled ordinary differential equations as follows:
 d\\vec{u} = \\vec{f}(\\vec{u}, p, t) dt + \\vec{g}(\\vec{u}, p, t) dW_t
 ```
 
-Optionally provide the parameter container `p` and initial time as keyword `t0`.
+Optionally provide the overall noise strength `σ`, the parameter container `p` and initial time as keyword `t0`. If `σ` is provided, the stochastic function `g` is multiplied by `σ`.
 
 For construction instructions regarding `f, u0` see the [DynamicalSystems.jl tutorial](https://juliadynamics.github.io/DynamicalSystems.jl/latest/tutorial/#DynamicalSystemsBase.CoupledODEs).
 
@@ -63,7 +63,6 @@ Dev note: `CoupledSDEs` is a light wrapper of  `StochasticDiffEq.SDEIntegrator` 
 The integrator is available as the field `integ`, and the `SDEProblem` is `integ.sol.prob`.
 The convenience syntax `SDEProblem(ds::CoupledSDEs, tspan = (t0, Inf))` is available
 to extract the problem.
-```
 """
 struct CoupledSDEs{IIP,D,I,P,S} <: ContinuousTimeDynamicalSystem
     # D parametrised by length of u0

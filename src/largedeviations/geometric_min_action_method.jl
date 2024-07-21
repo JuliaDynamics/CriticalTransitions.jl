@@ -64,7 +64,6 @@ system and `N` is the number of path points.
 For more information see the main method,
 [`geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength::Float64; kwargs...)`](@ref).
 """
-
 function geometric_min_action_method(
     sys::CoupledSDEs,
     init::Matrix,

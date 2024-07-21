@@ -14,7 +14,7 @@ geometric_action(sys::CoupledSDEs, path, arclength=1; kwargs...)
 
 ### Onsager-Machlup action
 ```@docs
-om_action(sys::CoupledSDEs, path, time, noise_strength; kwargs...)
+om_action(sys::CoupledSDEs, path, time; kwargs...)
 ```
 
 For convenience, a general [`action`](@ref) function is available where the type of functional is set as an argument:

@@ -1,4 +1,4 @@
-"""
+@doc doc"""
 $(TYPEDSIGNATURES)
 
 Calculates the Freidlin-Wentzell action of a given `path` with time points `time` in a
@@ -32,11 +32,10 @@ function fw_action(sys::CoupledSDEs, path, time)
     return S / 2
 end;
 
-"""
+@doc doc"""
 $(TYPEDSIGNATURES)
 
-Calculates the Onsager-Machlup action of a given `path` with time points `time` for the
-drift field `sys.f` at given `noise_strength`.
+Calculates the Onsager-Machlup action of a given `path` with time points `time` for the drift field `sys.f` at given `sys.noise_strength`.
 
 The path must be a `(D x N)` matrix, where `D` is the dimensionality of the system `sys` and
 `N` is the number of path points. The `time` array must have length `N`.
@@ -50,7 +49,6 @@ where ``\\phi_t`` denotes the path in state space, ``b`` the drift field, ``T`` 
 time of the path, and ``\\sigma`` the noise strength. The subscript ``Q`` refers to the
 generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm``). Here
 ``Q`` is the noise covariance matrix.
-
 """
 function om_action(sys::CoupledSDEs, path, time)
     @assert all(diff(time) .≈ diff(time[1:2])) "Fw_action is only defined for equispaced time"
@@ -68,7 +66,7 @@ function om_action(sys::CoupledSDEs, path, time)
     return fw_action(sys, path, time) + S / 2
 end;
 
-"""
+@doc doc"""
 $(TYPEDSIGNATURES)
 
 Computes the action functional specified by `functional` for a given CoupledSDEs `sys` and
@@ -86,7 +84,7 @@ function action(sys::CoupledSDEs, path::Matrix, time, functional; kwargs...)
     return action
 end;
 
-"""
+@doc doc"""
 $(TYPEDSIGNATURES)
 
 Calculates the geometric action of a given `path` with specified `arclength` for the drift
@@ -126,7 +124,7 @@ function geometric_action(sys::CoupledSDEs, path, arclength=1.0)
     return S * arclength / (N - 1)
 end
 
-"""
+@doc doc"""
 $(TYPEDSIGNATURES)
 
 Computes the squared ``A``-norm ``|| \\dot \\phi_t - b ||^2_A`` (see `fw_action` for
@@ -145,7 +143,7 @@ function fw_integrand(sys::CoupledSDEs, path, time, A)
     return sqnorm
 end;
 
-"""
+@doc doc"""
 $(TYPEDSIGNATURES)
 
 Returns the velocity along a given `path` with time points given by `time`.
