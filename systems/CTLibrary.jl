@@ -10,4 +10,9 @@ include("rooth.jl")
 include("stommel.jl")
 include("rivals.jl")
 
+export fitzhughnagumo, fitzhughnagumo!, stommel, rivals!, rival, cessi, rooth_smooth
+modifiedtruscottbrindleywithdimensions!, modifiedtruscottbrindleywithdimensions
+originaltruscottbrindley!, originaltruscottbrindley
+rampedoriginaltruscottbrindley!, rampedoriginaltruscottbrindley
+
 end
