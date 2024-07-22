@@ -38,11 +38,11 @@ A system of diagional noise is the most common type of noise. It is defined by a
 ```@example type
 t0 = 0.0; W0 = zeros(2);
 W = WienerProcess(t0, W0, 0.0)
-sde = CoupledSDEs(f!, idfunc!, zeros(2), (), σ; noise=W)
+sde = CoupledSDEs(f!, idfunc!, zeros(2), nothing, σ; noise=W)
 ```
 or equivalently
 ```@example type
-sde = CoupledSDEs(f!, idfunc!, zeros(2), (), σ)
+sde = CoupledSDEs(f!, idfunc!, zeros(2), nothing, σ)
 ```
 where we used the helper function
 ```@docs
@@ -61,7 +61,7 @@ Scalar noise is where a single random variable is applied to all dependent varia
 ```@example type
 t0 = 0.0; W0 = 0.0;
 noise = WienerProcess(t0, W0, 0.0)
-sde = CoupledSDEs(f!, idfunc!, rand(2)./10, (), σ; noise=noise)
+sde = CoupledSDEs(f!, idfunc!, rand(2)./10, nothing, σ; noise=noise)
 sol = simulate(sde, 1.0, dt=0.01, alg=SOSRA())
 plot(sol)
 ```
@@ -108,7 +108,7 @@ plot(sol)
 Σ = [1 ρ; ρ 1]
 t0 = 0.0; W0 = zeros(2); Z0 = zeros(2);
 W = CorrelatedWienerProcess(Σ, t0, W0, Z0)
-sde = CoupledSDEs(f!, idfunc!, zeros(2), (), σ; noise=W)
+sde = CoupledSDEs(f!, idfunc!, zeros(2), nothing, σ; noise=W)
 sol = simulate(sde, 1.0, dt=0.01, alg=SOSRA())
 plot(sol)
 ```
