@@ -29,7 +29,7 @@ end
     using IntervalRootFinding.IntervalArithmetic
     bmin = [-2, -1, 0]
     bmax = [2, 1, 1]
-    expected = (Interval([-2,2]...),Interval([-1,1]...),Interval([0,1]...))
+    expected = (Interval([-2, 2]...), Interval([-1, 1]...), Interval([0, 1]...))
     @test intervals_to_box(bmin, bmax).v.data == expected
 end
 
@@ -121,7 +121,7 @@ end
 @testset "anorm" begin
     vector = [1, 2, 3]
     A = [1 0 0; 0 2 0; 0 0 3]
-    expected = sqrt(1^2 + 2^2*2 + 3^2*3)
+    expected = sqrt(1^2 + 2^2 * 2 + 3^2 * 3)
     @test anorm(vector, A) == expected
 end
 
@@ -130,7 +130,7 @@ end
     vector = [3, 7, 4]
     directions = [1, 3]
     expected = sqrt(3^2 + 4^2)
-    @test subnorm(vector, directions=directions) == expected
+    @test subnorm(vector; directions=directions) == expected
 end
 
 # Test for central
@@ -138,7 +138,7 @@ end
     f = [1, 2, 3, 4, 5]
     idx = 3
     dz = 1
-    expected = (f[idx+1] - f[idx-1]) / (2 * dz)
+    expected = (f[idx + 1] - f[idx - 1]) / (2 * dz)
     @test CT.central(f, idx, dz) == expected
 end
 
@@ -147,7 +147,7 @@ end
     f = [1, 2, 3, 4, 5]
     idx = 3
     dz = 1
-    expected = (f[idx+1] - 2 * f[idx] + f[idx-1]) / dz^2
+    expected = (f[idx + 1] - 2 * f[idx] + f[idx - 1]) / dz^2
     @test CT.central2(f, idx, dz) == expected
 end
 

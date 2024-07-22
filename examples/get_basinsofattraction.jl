@@ -8,24 +8,24 @@ include("../src/CriticalTransitions.jl")
 using .CriticalTransitions, HDF5
 
 # Define systems
-eps = [0.01, 0.1, 1., 10.];
+eps = [0.01, 0.1, 1.0, 10.0];
 systems = Dict();
 for i in eps
     systems[i] = StochSystem(fitzhugh_nagumo, [i, 3, 1, 1, 1, 0], 2, 0.1)
 end;
 
 # Set up domain
-A, B, C = [0.,0.], [1.,0.], [0.,1.];
-box = intervals_to_box([-2,-1.5], [2,1.5]);
+A, B, C = [0.0, 0.0], [1.0, 0.0], [0.0, 1.0];
+box = intervals_to_box([-2, -1.5], [2, 1.5]);
 step = 0.02;
 
 # Compute basins of attraction
 function iterate_boas(p)
-    _boas = Dict();
-    Threads.@threads for i in p 
+    _boas = Dict()
+    Threads.@threads for i in p
         _boas[i] = basins(systems[i], A, B, C, box; bstep=[step, step])
     end
-    _boas
+    return _boas
 end
 boas = iterate_boas(eps)
 

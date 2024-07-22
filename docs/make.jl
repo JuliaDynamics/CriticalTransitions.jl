@@ -1,44 +1,56 @@
 using Documenter
 using DocumenterCitations
-using CriticalTransitions
+using DocumenterInterLinks
+using Pkg
 
-bib = CitationBibliography(
-    joinpath(@__DIR__, "src", "refs.bib");
-    style=:numeric
+using CriticalTransitions, ChaosTools, Attractors
+
+project_toml = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
+package_version = project_toml["version"]
+name = project_toml["name"]
+authors = join(project_toml["authors"], ", ") * " and contributors"
+github = "https://github.com/juliadynamics/CriticalTransitions.jl"
+
+links = InterLinks(
+# "DiffEqNoiseProcess" => "https://docs.sciml.ai/DiffEqNoiseProcess/stable/",
+# "DifferentialEquations" => "https://docs.sciml.ai/DiffEqDocs/stable/",
+# "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",
 )
+
+bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style=:numeric)
+
+include("pages.jl")
+
+html_options = Dict(
+    :prettyurls => true,
+    :canonical => "https://juliadynamics.github.io/CriticalTransitions.jl/",
+    :mathengine => Documenter.MathJax2(),
+    # :example_size_threshold => nothing,
+    # :size_threshold_warn => nothing,
+    # :size_threshold => nothing,
+)
+
+if Documenter.DOCUMENTER_VERSION >= v"1.3.0"
+    html_options[:inventory_version] = package_version
+end
 
 makedocs(;
+    authors=authors,
     sitename="CriticalTransitions.jl",
-    repo = Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
-    modules=[CriticalTransitions],
-    doctest=false,
-    format = Documenter.HTML(
-        canonical="https://juliadynamics.github.io/CriticalTransitions.jl/",
-        prettyurls = true,
-        mathengine = Documenter.MathJax2()
-        ),
-    linkcheck = true,
-    warnonly = [:doctest, :missing_docs, :cross_references, :linkcheck],
-    pages=Any[
-        "Home" => "index.md",
-        "Quickstart" => "quickstart.md",
-        "Tutorial" => "tutorial.md",
-        "Manual" => Any[
-            "Defining a StochSystem" => "man/stochsystem.md",
-            "Stability analysis" => "man/systemanalysis.md",
-            "Simulating the system" => "man/simulation.md",
-            "Sampling transitions" => "man/sampling.md",
-            "Large deviation theory" => "man/largedeviations.md",
-            "Noise processes" => "man/noise.md",
-            "Utilities" => "man/utils.md"
-        ],
-        "Predefined systems" => "man/systems.md",
-        "Development stage" => "man/dev.md"
+    linkcheck=true,
+    pagesonly=true,
+    checkdocs=:exports,
+    modules=[
+        CriticalTransitions,
+        CriticalTransitions.DiffEqNoiseProcess,
+        Base.get_extension(CriticalTransitions, :ChaosToolsExt),
+        Base.get_extension(CriticalTransitions, :CoupledSDEsBaisin),
     ],
-    plugins=[bib]
+    doctest=false,
+    format=Documenter.HTML(; html_options...),
+    warnonly=[:missing_docs],
+    pages=pages,
+    plugins=[bib, links],
 )
 
-deploydocs(
-    repo = "github.com/JuliaDynamics/CriticalTransitions.jl.git",
-    push_preview = false
-)
+deploydocs(; repo="github.com/JuliaDynamics/CriticalTransitions.jl.git", push_preview=false)

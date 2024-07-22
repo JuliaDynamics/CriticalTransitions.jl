@@ -15,9 +15,8 @@ A 2D system given by
 where ``\epsilon`` is the parameter of time scale separation between the state variables ``u`` and ``v``. The parameters ``\alpha >0``, ``\beta >1``, ``\gamma>0``, and ``\kappa>0`` are real constants, and ``I`` denotes a driving term.
 
 ```@docs
-fitzhugh_nagumo(u, p, t)
-fitzhugh_nagumo!(du, u, p, t)
-fhn_ϵσ(ϵ, σ)   
+CriticalTransitions.fitzhugh_nagumo(u, p, t)
+CriticalTransitions.fitzhugh_nagumo!(du, u, p, t)
 ```
 
 ## Population dynamics
@@ -57,12 +56,11 @@ Specifically, here we introduce the dimensionless variables ``\tilde{P}, \tilde{
 ```  
 where ``P_1, P_0, Z_1, Z_0`` and ``t_0`` are constants to be determined in the non-dimensionalisation process. We take ``P_0 = h, Z_0 = a/m, t_0 = 1/a`` and subsequently introduce the following dimensionless parameters ``\alpha := r/a, \beta := h/K, \gamma := a/(mh)``. The values of the (dimensionless) constants ``P_1`` and ``Z_1`` are tuned according to the user's preference; they can be chosen in  a way such that the fixed points of the system are all contained within the ``[0,1]\times [0,1]`` subspace, for instance (for which the values ``P_1 = \beta`` and ``Z_0 = 5/6`` are appropriate in this set up).  
 
-Below, the functions [`modifiedtruscottbrindley`](@ref) and [`modifiedtruscottbrindley!`](@ref) implement the non-dimensional form of the system. 
+Below, the functions `modifiedtruscottbrindley` and `modifiedtruscottbrindley!` implement the non-dimensional form of the system. 
 
 ```@docs
-modifiedtruscottbrindley(u, p, t)
-modifiedtruscottbrindley!(du, u, p, t)
-modtb_αξσ(α, ξ, σ)
+CriticalTransitions.modifiedtruscottbrindley(u, p, t)
+CriticalTransitions.modifiedtruscottbrindley!(du, u, p, t)
 ```
 
 ## Earth & Climate
@@ -80,16 +78,16 @@ The famous 2-box model introduced by Stommel (1961) and later studied by Cessi (
 
 where ``x`` and ``y`` denote non-dimensional gradients of temperature and salinity, respectively, between the equatorial and the polar box.
 
-The original Stommel 1961 model (see [`stommel`](@ref)), defined in terms of the parameters ``\delta``, ``\lambda``, and ``R``, is obtained by setting ``\tau = ct``, ``\nu = 1/\lambda``, ``f(x-y) = |x-y|``, and ``A=0``.
+The original Stommel 1961 model (see `stommel`), defined in terms of the parameters ``\delta``, ``\lambda``, and ``R``, is obtained by setting ``\tau = ct``, ``\nu = 1/\lambda``, ``f(x-y) = |x-y|``, and ``A=0``.
 
-Cessi's 1994 version of the model ([`cessi`](@ref)), written in terms of the parameters ``\alpha``, ``\mu^2``, and ``p``, follows from the above equations by setting ``\tau = t/t_r``, ``\delta = 2/\\alpha``, ``\nu=\mu^2``, ``f(x-y) = (x-y)^2/k``, ``R=pH/(2S_0)``, and ``A=1``.
+Cessi's 1994 version of the model (`cessi`), written in terms of the parameters ``\alpha``, ``\mu^2``, and ``p``, follows from the above equations by setting ``\tau = t/t_r``, ``\delta = 2/\\alpha``, ``\nu=\mu^2``, ``f(x-y) = (x-y)^2/k``, ``R=pH/(2S_0)``, and ``A=1``.
 
 ```@docs
-stommel(u, p, t; kwargs...)
-cessi(u, p, t)
+CriticalTransitions.stommel(u, p, t; kwargs...)
+CriticalTransitions.cessi(u, p, t)
 ```
 
 #### Interhemispheric 3-box model
 ```@docs
-rooth_smooth(u, p, t; kwargs...)
+CriticalTransitions.rooth_smooth(u, p, t; kwargs...)
 ```
