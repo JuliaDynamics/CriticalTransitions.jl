@@ -14,11 +14,6 @@ using Symbolics
 using Optim, Dierckx
 using Printf, DrWatson, Dates, Statistics, Markdown
 
-# Define custom types
-# Parameters = Union{Vector{Any}, Nothing};
-# CovMatrix = Union{Matrix, UniformScaling{Bool}, Diagonal{Bool, Vector{Bool}}};
-# State = Union{Vector, SVector}
-
 include("extention_functions.jl")
 include("utils.jl")
 include("CoupledSDEs.jl")
@@ -41,7 +36,7 @@ export CoupledSDEs,
 export equilib, fixedpoints, basins, basinboundary, basboundary
 export simulate, relax
 export transition, transitions
-export fw_integrand, fw_action, om_action, action, geometric_action
+export fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
 export basins, basinboundary
 export edgetracking, bisect_to_edge, attractor_mapper

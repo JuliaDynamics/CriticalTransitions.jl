@@ -12,9 +12,9 @@ authors = join(project_toml["authors"], ", ") * " and contributors"
 github = "https://github.com/juliadynamics/CriticalTransitions.jl"
 
 links = InterLinks(
-    "DiffEqNoiseProcess" => "https://docs.sciml.ai/DiffEqNoiseProcess/stable/",
-    "DifferentialEquations" => "https://docs.sciml.ai/DiffEqDocs/stable/",
-    "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",
+# "DiffEqNoiseProcess" => "https://docs.sciml.ai/DiffEqNoiseProcess/stable/",
+# "DifferentialEquations" => "https://docs.sciml.ai/DiffEqDocs/stable/",
+# "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",
 )
 
 bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style=:numeric)

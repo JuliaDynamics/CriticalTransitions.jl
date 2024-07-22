@@ -44,7 +44,12 @@ or equivalently
 ```@example type
 sde = CoupledSDEs(f!, idfunc!, zeros(2), σ)
 ```
-The `diagonal_noise!` function is a helper function equivalent to `(du, u, p, t) -> σ .* idfunc!(du, u, p, t)` with `idfunc!(du, u, p, t) = (du .= ones(length(u)); return nothing)`. The vector `dW` is by default zero mean white gaussian noise $\mathcal{N}(0, \text{d}t)$ where the variance is the timestep $\text{d}t$ unit variance (Wiener Process).
+where we used the helper function
+```@docs
+idfunc!
+idfunc
+```
+The vector `dW` is by default zero mean white gaussian noise $\mathcal{N}(0, \text{d}t)$ where the variance is the timestep $\text{d}t$ unit variance (Wiener Process).
 ```@example type
 sol = simulate(sde, 1.0, dt=0.01, alg=SOSRA())
 plot(sol)

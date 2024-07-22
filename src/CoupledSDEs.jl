@@ -36,7 +36,7 @@ coupled ordinary differential equations as follows:
 d\\vec{u} = \\vec{f}(\\vec{u}, p, t) dt + \\vec{g}(\\vec{u}, p, t) dW_t
 ```
 
-Optionally provide the overall noise strength `σ`, the parameter container `p` and initial time as keyword `t0`. If `σ` is provided, the stochastic function `g` is multiplied by `σ`.
+Optionally provide the overall noise strength `σ`, the parameter container `p` and initial time as keyword `t0`. If `σ` is provided, the diffusion function `g` is multiplied by `σ`.
 
 For construction instructions regarding `f, u0` see the [DynamicalSystems.jl tutorial](https://juliadynamics.github.io/DynamicalSystems.jl/latest/tutorial/#DynamicalSystemsBase.CoupledODEs).
 

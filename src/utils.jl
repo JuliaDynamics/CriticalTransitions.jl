@@ -6,32 +6,23 @@ Functions in this file are independent of types/functions defined in CriticalTra
 """
 $(TYPEDSIGNATURES)
 
-Identity function for noise function of `CoupledSDEs` (out-of-place).
+Identity function for a diffusion function `g` of `CoupledSDEs` (out-of-place).
+Equivalent to `(u, p, t) -> ones(length(u))`,
 """
-function idfunc(u, p, t)
+function idfunc(u, p, t) # TODO: return same type as u
     return ones(length(u))
 end;
 
 """
 $(TYPEDSIGNATURES)
 
-Identity function for noise function `CoupledSDEs` (in-place).
+Identity function for a diffusion function `g` of `CoupledSDEs` (in-place).
+Equivalent to `idfunc!(du, u, p, t) = (du .= ones(length(u)); return nothing)`
 """
 function idfunc!(du, u, p, t)
     du .= ones(length(u))
     return nothing
 end;
-
-# """
-# """
-# function diagonal_noise!(σ)
-#     function (du, u, p, t)
-#         idfunc!(du, u, p, t)
-#         du .*= σ
-#         return nothing
-#     end
-# end
-# diagonal_noise(σ) = (u, p, t) -> σ .* idfunc(u, p, t)
 
 function σg(σ, g)
     return (u, p, t) -> σ .* g(u, p, t)
@@ -74,50 +65,7 @@ function intervals_to_box(bmin::Vector, bmax::Vector)
     return box
 end;
 
-# function additive_idx!(du, u, p, t, idx)
-#     du[idx] = 1.0
-#     return nothing
-# end;
-
-# function additive_idx(u, p, t, idx)
-#     du = zeros(length(u))
-#     du[idx] = 1.0
-#     return SVector{length(u)}(du)
-# end;
-
-# function multiplicative_idx!(du, u, p, t, idx)
-#     return du[idx] = u[idx]
-# end;
-
-# function multiplicative_idx(u, p, t, idx)
-#     du = zeros(length(u))
-#     du[idx] = u[idx]
-#     return SVector{length(u)}(du)
-# end
-
-# function multiplicative_first!(du, u, p, t)
-#     return du[1] = u[1]
-# end;
-
-# function multiplicative_first(u, p, t)
-#     du = zeros(length(u))
-#     du[1] = u[1]
-
-#     return SVector{length(u)}(du)
-# end;
-
-# function additive_first!(du, u, p, t)
-#     return du[1] = 1
-# end;
-
-# function additive_first(u, p, t)
-#     du = zeros(length(u))
-#     du[1] = 1
-
-#     return SVector{length(u)}(du)
-# end;
-
-@doc doc"""
+"""
 Calculates the generalized ``A``-norm of the vector `vec`,
 ``||v||_A := \\sqrt(v^\\top \\cdot A \\cdot v)``,
 where `A` is a square matrix of dimension `(length(vec) x length(vec))`.
@@ -130,7 +78,7 @@ function anorm(vec, A; square=false)
     return square ? normsquared : sqrt(normsquared)
 end;
 
-@doc doc"""
+"""
 $(TYPEDSIGNATURES)
 
 Returns the Euclidean norm of the vector `vec`; however, if `directions` are specified, the
@@ -164,7 +112,7 @@ function central2(f, idx, dz)
     return (f[idx + 1] - 2f[idx] + f[idx - 1]) / (dz^2)
 end;
 
-@doc doc"""
+"""
 $(TYPEDSIGNATURES)
 Smooth approximation of `abs(x)`, ``|x| = x \\tanh(\\xi x)``, where ``xi`` controls the
 accuracy of the approximation. The exact absolute value function is obtained in the limit

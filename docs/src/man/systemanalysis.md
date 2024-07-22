@@ -10,9 +10,9 @@ fixedpoints
 
 ## Basins of attraction
 ```@docs
-basins(sys::CoupledSDEs, A, B, C, H; kwargs)
-basinboundary(X, Y, h; kwargs...)
-basboundary(sys::CoupledSDEs, xrange::Vector, yrange::Vector, xspacing::Float64, attractors::Vector; kwargs...)
+basins
+basinboundary
+basboundary
 ```
 
 ## Edge tracking

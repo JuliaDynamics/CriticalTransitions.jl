@@ -14,8 +14,20 @@ Lyapunov spectrum of a `CoupledSDEs`, here exemplified by the FitzHugh-Nagumo mo
 computed by typing:
 
 ```julia
-using CriticalTransitions, DynamicalSystems: lyapunovspectrum
-sys = CoupledSDEs(fitzhugh_nagumo, diagonal_noise(σ), zeros(2), [1.,3.,1.,1.,1.,0.])
+using CriticalTransitions
+using DynamicalSystems: lyapunovspectrum
+
+function fitzhugh_nagumo(u, p, t)
+    x, y = u
+    ϵ, β, α, γ, κ, I = p
+
+    dx = (-α * x^3 + γ * x - κ * y + I) / ϵ
+    dy = -β * y + x
+
+    return SA[dx, dy]
+end
+
+sys = CoupledSDEs(fitzhugh_nagumo, id_func, zeros(2), σ, [1.,3.,1.,1.,1.,0.])
 ls = lyapunovspectrum(CoupledODEs(sys), 10000)
 ```
 
@@ -26,7 +38,11 @@ CoupledODEs(sys::CoupledSDEs; diffeq, t0=0.0)
 ## `CoupledSDEs` utility functions
 
 ```@docs
+noise_strength
+covariance_matrix
+noise_process
 CriticalTransitions.drift
+CriticalTransitions.div_drift
 ```
 
 ## Saving data

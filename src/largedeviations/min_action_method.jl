@@ -73,7 +73,7 @@ initial condition `init`, given a system `sys` and total path time `T`.
 The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dimension
 of the system and `N` is the number of path points. The physical time of the path
 is specified by `T`, such that the time step between consecutive path points is
-``\\Deltat = T/N``.
+``\\Delta t = T/N``.
 
 For more information see the main method,
 [`min_action_method(sys::CoupledSDEs, x_i, x_f, N::Int, T::Real; kwargs...)`](@ref).

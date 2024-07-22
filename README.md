@@ -14,12 +14,22 @@ See [package documentation](https://juliadynamics.github.io/CriticalTransitions.
 ```julia
 using CriticalTransitions
 
+function fitzhugh_nagumo(u, p, t)
+    x, y = u
+    ϵ, β, α, γ, κ, I = p
+
+    dx = (-α * x^3 + γ * x - κ * y + I) / ϵ
+    dy = -β * y + x
+
+    return SA[dx, dy]
+end
+
 # System parameters
 p = [1., 3., 1., 1., 1., 0.]
 noise_strength = 0.02
 
 # Define stochastic system
-sys = CoupledSDEs(meier_stein, diagonal_noise(σ), zeros(2), p)
+sys = CoupledSDEs(fitzhugh_nagumo, id_func, zeros(2), noise_strength, p)
 
 # Get stable fixed points
 fps, eigs, stab = fixedpoints(sys, [-2,-2], [2,2])

@@ -4,23 +4,23 @@
 
 ### Freidlin-Wentzell action
 ```@docs
-fw_action(sys::CoupledSDEs, path, time; kwargs...)
+fw_action
 ```
 
 ### Geometric Freidlin-Wentzell action
 ```@docs
-geometric_action(sys::CoupledSDEs, path, arclength=1; kwargs...)
+geometric_action
 ```
 
 ### Onsager-Machlup action
 ```@docs
-om_action(sys::CoupledSDEs, path, time; kwargs...)
+om_action
 ```
 
 For convenience, a general [`action`](@ref) function is available where the type of functional is set as an argument:
 
 ```@docs
-action(sys::CoupledSDEs, path::Matrix, time, functional; kwargs...)
+action
 ```
 
 ## Minimum action paths
@@ -31,7 +31,7 @@ between two states of a `CoupledSDEs`.
 Minimization of the Freidlin-Wentzell action using the L-BFGS algorithm of `Optim.jl`.
 
 ```@docs
-min_action_method(sys::CoupledSDEs, x_i, x_f, N::Int, T::Float64; kwargs...)
+min_action_method
 ```
 
 ### Geometric minimum action method (gMAM)
@@ -39,5 +39,5 @@ Minimization of the geometric action following
 [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601).
 
 ```@docs
-geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength=1; kwargs...)
+geometric_min_action_method
 ```

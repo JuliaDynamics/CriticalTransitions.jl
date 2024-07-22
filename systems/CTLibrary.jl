@@ -10,6 +10,4 @@ include("rooth.jl")
 include("stommel.jl")
 include("rivals.jl")
 
-export fitzhugh_nagumo
-
 end

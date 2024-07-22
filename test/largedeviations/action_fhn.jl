@@ -39,7 +39,7 @@ end
 
 # Test fw_integrand function
 @testset "fw_integrand" begin
-    integrand = fw_integrand(sys, path, time, A)
+    integrand = CriticalTransitions.fw_integrand(sys, path, time, A)
     @test minimum(integrand) > 0.18
 end
 
