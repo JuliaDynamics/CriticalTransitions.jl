@@ -1,5 +1,29 @@
 # Changelog for `CriticalTransitions.jl`
 
+## v0.2.1
+Freeze before major overhaul `v0.3.0`
+
+#### Fixes
+* bug fixes in the following functions:
+    * `min_action_method`
+    * `geometric_min_action_method`
+    * `StochSystem(::CouplesODEs)`
+    * `fhn_pathspace_sampling`
+
+#### Enhancements
+* expanded output of `transitions` function
+
+#### Additions
+* tests for various functions
+* dev functions `basboundary`, `bisect_to_edge2`, `langevinmcmc_not_every_step`
+
+#### Deprecations
+* `to_cds` function (still exists but will raise deprecation warning)
+
+Since `v0.2.0`, we also joined
+[JuliaDynamics](https://juliadynamics.github.io/JuliaDynamics/) with this package, such that
+the code is now hosted at [https://github.com/JuliaDynamics/CriticalTransitions.jl](https://github.com/JuliaDynamics/CriticalTransitions.jl), and improved the documentation.
+
 ## v0.2.0
 Compatibility upgrade to `DynamicalSystems v3`
 
