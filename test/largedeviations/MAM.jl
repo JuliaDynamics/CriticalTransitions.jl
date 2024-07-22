@@ -1,7 +1,7 @@
 @testset "MAM FitzHugh-Nagumo" begin
     p = [0.1, 3, 1, 1, 1, 0]
     σ = 0.1
-    fhn = CoupledSDEs(fitzhugh_nagumo, idfunc, zeros(2), σ, p)
+    fhn = CoupledSDEs(fitzhugh_nagumo, idfunc, zeros(2), p, σ)
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
     N, T = 200, 2.0
@@ -14,7 +14,7 @@ end
 
 @testset "MAM Ornstein-Uhlenbeck" begin
     σ = 0.18
-    ou = CoupledSDEs((u, p, t) -> -u, idfunc, SA[1.0], σ)
+    ou = CoupledSDEs((u, p, t) -> -u, idfunc, SA[1.0], (), σ)
     x0 = -1
     xT = 2.0
     T = 10.0

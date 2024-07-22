@@ -28,7 +28,7 @@ end
 # Define CoupledSDEs
 """
     CoupledSDEs <: ContinuousTimeDynamicalSystem
-    CoupledSDEs(f, g, u0 [, σ, p]; kwargs...)
+    CoupledSDEs(f, g, u0 [, p, σ]; kwargs...)
 
 A stochastic continuous time dynamical system defined by a set of
 coupled ordinary differential equations as follows:
@@ -66,6 +66,7 @@ to extract the problem.
 """
 struct CoupledSDEs{IIP,D,I,P,S} <: ContinuousTimeDynamicalSystem
     # D parametrised by length of u0
+    # S indicated if the noise strength has been added to the diffusion function
     integ::I
     # things we can't recover from `integ`
     p0::P
@@ -85,8 +86,8 @@ function CoupledSDEs(
     f,
     g,
     u0,
-    noise_strength=1.0,
-    p=SciMLBase.NullParameters();
+    p=SciMLBase.NullParameters(),
+    noise_strength=1.0;
     t0=0.0,
     diffeq=DEFAULT_DIFFEQ,
     noise_rate_prototype=nothing,
@@ -150,6 +151,7 @@ system into a [`CoupledSDEs`](@ref).
 function CoupledSDEs(
     ds::DynamicalSystemsBase.CoupledODEs,
     g,
+    p, # the parameter contained likely is changed as the diffusion function g is added.
     noise_strength=1.0;
     diffeq=DEFAULT_DIFFEQ,
     noise_rate_prototype=nothing,
@@ -160,8 +162,8 @@ function CoupledSDEs(
         dynamic_rule(ds),
         prob.g,
         current_state(ds),
-        noise_strength,
-        ds.p0;
+        p,
+        noise_strength;
         diffeq=diffeq,
         noise_rate_prototype=noise_rate_prototype,
         noise=noise,

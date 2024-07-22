@@ -20,8 +20,8 @@
     @testset "diagonal additive noise" begin
         # diagonal additive noise: σ*N(0,dt)
         # a vector of random numbers dW whose size matches the output of g where the noise is applied element-wise
-        prob = SDEProblem(meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf))
-        sde = CoupledSDEs(meier_stein, idfunc, zeros(2), σ)
+        prob = SDEProblem(meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf), ())
+        sde = CoupledSDEs(meier_stein, idfunc, zeros(2), (), σ)
 
         @test sde.integ.sol.prob.f isa SDEFunction
         @test sde.integ.sol.prob.f.f.f == prob.f.f
@@ -43,8 +43,8 @@
         # Scalar noise Wiener
         # a single random variable is applied to all dependent variables
         W = WienerProcess(0.0, 0.0, 0.0)
-        prob = SDEProblem(meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf); noise=W)
-        sde = CoupledSDEs(meier_stein, idfunc, zeros(2), σ; noise=W)
+        prob = SDEProblem(meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf), (); noise=W)
+        sde = CoupledSDEs(meier_stein, idfunc, zeros(2), (), σ; noise=W)
 
         @test sde.integ.sol.prob.f isa SDEFunction
         @test sde.integ.sol.prob.f.f.f == prob.f.f
@@ -67,8 +67,8 @@
         # a single random variable is applied to all dependent variables
         g_sde(u, p, t) = σ .* u
         g_Csde(u, p, t) = σ .* u
-        prob = SDEProblem(meier_stein, g_sde, zeros(2), (0.0, Inf))
-        sde = CoupledSDEs(meier_stein, g_Csde, zeros(2), σ)
+        prob = SDEProblem(meier_stein, g_sde, zeros(2), (0.0, Inf), ())
+        sde = CoupledSDEs(meier_stein, g_Csde, zeros(2), (), σ)
 
         @test sde.integ.sol.prob.f isa SDEFunction
         @test sde.integ.sol.prob.f.f.f == prob.f.f
@@ -126,8 +126,8 @@
         W0 = zeros(2)
         Z0 = zeros(2)
         W = CorrelatedWienerProcess(Γ, t0, W0, Z0)
-        prob = SDEProblem(f!, diagonal_noise!(σ), zeros(2), (0.0, Inf); noise=W)
-        sde = CoupledSDEs(f!, idfunc!, zeros(2), σ; noise=W)
+        prob = SDEProblem(f!, diagonal_noise!(σ), zeros(2), (0.0, Inf), (); noise=W)
+        sde = CoupledSDEs(f!, idfunc!, zeros(2), (), σ; noise=W)
 
         @test sde.integ.sol.prob.f isa SDEFunction
         @test sde.integ.sol.prob.f.f.f == prob.f.f

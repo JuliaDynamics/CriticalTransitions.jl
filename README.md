@@ -29,7 +29,7 @@ p = [1., 3., 1., 1., 1., 0.]
 noise_strength = 0.02
 
 # Define stochastic system
-sys = CoupledSDEs(fitzhugh_nagumo, id_func, zeros(2), noise_strength, p)
+sys = CoupledSDEs(fitzhugh_nagumo, id_func, zeros(2), p, noise_strength)
 
 # Get stable fixed points
 fps, eigs, stab = fixedpoints(sys, [-2,-2], [2,2])

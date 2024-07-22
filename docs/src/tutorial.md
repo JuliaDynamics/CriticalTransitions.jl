@@ -51,7 +51,7 @@ p = [1., 3., 1., 1., 1., 0.] # Parameters (ϵ, β, α, γ, κ, I)
 σ = 0.2 # noise strength
 
 # CoupledSDE
-sys = CoupledSDEs(fitzhugh_nagumo, idfunc, zeros(2), σ, p)
+sys = CoupledSDEs(fitzhugh_nagumo, idfunc, zeros(2), p, σ)
 ```
 Here we have chosen `zeros(2)` as the initial state of the system. The length of this vector must correspond to the system's dimensionality, but for now the state is just a placeholder that aligns our syntax with that of DifferentialEquations.jl and DynamicalSystems.jl.
 
