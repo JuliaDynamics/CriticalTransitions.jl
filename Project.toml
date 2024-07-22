@@ -1,7 +1,7 @@
 name = "CriticalTransitions"
 uuid = "251e6cd3-3112-48a5-99dd-66efcfd18334"
 repo = "https://github.com/juliadynamics/CriticalTransitions.jl.git"
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 Attractors = "f3fd9213-ca85-4dba-9dfd-7fc91308fec7"
