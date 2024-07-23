@@ -186,7 +186,9 @@ end
 # Pretty print
 function additional_details(ds::CoupledSDEs)
     solver, remaining = _decompose_into_solver_and_remaining(ds.diffeq)
-    return ["SDE solver" => string(nameof(typeof(solver))), "SDE kwargs" => remaining]
+    return [
+        "SDE solver" => string(nameof(typeof(solver))), "SDE kwargs" => remaining,
+        "Noise strength" => ds.noise_strength]
 end
 
 ###########################################################################################
