@@ -140,7 +140,7 @@
 
         @test W.covariance == Γ
         @testset "covariance" begin
-            using DiffEqNoiseProcess, StatsBase
+            using DiffEqNoiseProcess, Statistics
             prob = NoiseProblem(W, (0.0, 1.0))
             output_func = (sol, i) -> (sol.dW, false)
             ensemble_prob = EnsembleProblem(prob; output_func=output_func)

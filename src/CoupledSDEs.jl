@@ -1,7 +1,13 @@
-using DynamicalSystemsBase: CoupledODEs, isinplace, __init, SciMLBase, correct_state
-import DynamicalSystemsBase: successful_step, _set_parameter!, current_state
-using StochasticDiffEq: SDEProblem, SDEIntegrator
-using StochasticDiffEq: EM, SDEProblem
+using DynamicalSystemsBase.SciMLBase: __init
+using DynamicalSystemsBase:
+    DynamicalSystemsBase,
+    CoupledODEs,
+    isinplace,
+    SciMLBase,
+    correct_state,
+    _set_parameter!,
+    current_state
+using StochasticDiffEq: SDEProblem
 
 ###########################################################################################
 # DiffEq options
@@ -53,7 +59,7 @@ If you want to specify a solver, do so by using the keyword `alg`, e.g.:
 `using OrdinaryDiffEq` to access the solvers. The default `diffeq` is:
 
 ```julia
-$(CriticalTransitions.DEFAULT_DIFFEQ)
+$(DEFAULT_DIFFEQ)
 ```
 
 `diffeq` keywords can also include `callback` for [event handling
@@ -160,7 +166,7 @@ function CoupledSDEs(
 )
     return CoupledSDEs(
         dynamic_rule(ds),
-        prob.g,
+        g,
         current_state(ds),
         p,
         noise_strength;
@@ -177,7 +183,9 @@ $(TYPEDSIGNATURES)
 Converts a [`CoupledSDEs`](@ref) into [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/tutorial/#DynamicalSystemsBase.CoupledODEs)
 from DynamicalSystems.jl.
 """
-function CoupledODEs(sys::CoupledSDEs; diffeq=DynamicalSystemsBase.DEFAULT_DIFFEQ, t0=0.0)
+function DynamicalSystemsBase.CoupledODEs(
+    sys::CoupledSDEs; diffeq=DynamicalSystemsBase.DEFAULT_DIFFEQ, t0=0.0
+)
     return DynamicalSystemsBase.CoupledODEs(
         sys.integ.f, SVector{length(sys.integ.u)}(sys.integ.u), sys.p0; diffeq=diffeq, t0=t0
     )
@@ -197,7 +205,7 @@ SciMLBase.isinplace(::CoupledSDEs{IIP}) where {IIP} = IIP
 StateSpaceSets.dimension(::CoupledSDEs{IIP,D}) where {IIP,D} = D
 DynamicalSystemsBase.current_state(ds::CoupledSDEs) = current_state(ds.integ)
 
-function set_parameter!(ds::CoupledSDEs, args...)
+function DynamicalSystemsBase.set_parameter!(ds::CoupledSDEs, args...)
     _set_parameter!(ds, args...)
     u_modified!(ds.integ, true)
     return nothing
@@ -216,7 +224,7 @@ SciMLBase.step!(ds::CoupledSDEs, args...) = (step!(ds.integ, args...); ds)
 # Besides, within DynamicalSystems.jl the integration is never expected to terminate.
 # Nevertheless here we extend explicitly only for ODE stuff because it may be that for
 # other type of DEIntegrators a different step interruption is possible.
-function successful_step(integ::SciMLBase.AbstractSDEIntegrator)
+function DynamicalSystemsBase.successful_step(integ::SciMLBase.AbstractSDEIntegrator)
     rcode = integ.sol.retcode
     return rcode == SciMLBase.ReturnCode.Default || rcode == SciMLBase.ReturnCode.Success
 end

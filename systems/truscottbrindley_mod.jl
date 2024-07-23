@@ -82,7 +82,7 @@ function rampedmodifiedtruscottbrindley!(du, u, p, t)
         P₁ *
         (α * (P / P₁) * (1 - β * (P / P₁)) - γ * (Z / Z₁) * (P / P₁)^2 / (1 + (P / P₁)^2))
     du[2] = ξ * Z₁ * ((Z / Z₁) * (P / P₁)^2 / (1 + (P / P₁)^2) - (Z / Z₁)^2)
-    return du[3] = t ∈ Ttrans .. (Ttrans + Tramp) ? v : 0
+    return du[3] = t ∈ interval(Ttrans, (Ttrans + Tramp)) ? v : 0
 end
 
 """
@@ -99,7 +99,7 @@ function rampedmodifiedtruscottbrindley(u, p, t)
         P₁ *
         (α * (P / P₁) * (1 - β * (P / P₁)) - γ * (Z / Z₁) * (P / P₁)^2 / (1 + (P / P₁)^2))
     dZ = ξ * Z₁ * ((Z / Z₁) * (P / P₁)^2 / (1 + (P / P₁)^2) - (Z / Z₁)^2)
-    dα = t ∈ Ttrans .. (Ttrans + Tramp) ? v : 0
+    dα = t ∈ interval(Ttrans, (Ttrans + Tramp)) ? v : 0
 
     return SA[dP, dZ, dα]
 end

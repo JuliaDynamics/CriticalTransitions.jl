@@ -56,11 +56,11 @@ function intervals_to_box(bmin::Vector, bmax::Vector)
     intervals = []
     dim = length(bmin)
     for i in 1:dim
-        push!(intervals, bmin[i] .. bmax[i])
+        push!(intervals, interval(bmin[i], bmax[i]))
     end
     box = intervals[1]
     for i in 2:dim
-        box = box × intervals[i]
+        box = IntervalBox(box, intervals[i])
     end
     return box
 end;
