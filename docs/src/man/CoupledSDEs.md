@@ -122,21 +122,18 @@ CorrelatedWienerProcess
 ```
 
 ## Interface to `DynamicalSystems.jl`
+#### Converting between `CoupledSDEs` and `CoupledODEs`
 
 !!! tip "Analyzing deterministic dynamics with DynamicalSystems.jl"
     The deterministic part of a [`CoupledSDEs`](@ref) system can easily be extracted as a 
     [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/dev/tutorial/#DynamicalSystemsBase.CoupledODEs), a common subtype of a `ContinuousTimeDynamicalSystem` in DynamicalSystems.jl.
-    
-
-    - 
-    type of `DynamicalSystems.jl` using the function [`CoupledODEs`](@ref). Vice vera,
-    a `CoupledODEs` system can be converted into a `CoupledSDEs` via `CoupledSDEs(ds::CoupledODEs, g)` with g the noise function.
-
-#### Converting between `CoupledSDEs` and `CoupledODEs`
 
 - `CoupledODEs(sde::CoupledSDEs)` extracts the deterministic part of `sde` as a `CoupledODEs`
 - `CoupledSDEs(ode::CoupledODEs, g)`, with `g` the noise function, turns `ode` into a `CoupledSDEs`
 
+```@docs
+CoupledODEs
+```
 For example, the
 Lyapunov spectrum of a `CoupledSDEs` in the absence of noise, here exemplified by the
 FitzHugh-Nagumo model, can be computed by typing:
@@ -157,8 +154,4 @@ end
 
 sys = CoupledSDEs(fitzhugh_nagumo, idfunc, zeros(2), [1.,3.,1.,1.,1.,0.], 0.1)
 ls = lyapunovspectrum(CoupledODEs(sys), 10000)
-```
-
-```@docs
-CoupledODEs
 ```
