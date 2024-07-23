@@ -1,18 +1,42 @@
 module CriticalTransitions
 
-using Reexport
-@reexport using DynamicalSystemsBase
+# Base
+using Statistics: Statistics, mean
+using LinearAlgebra: LinearAlgebra, Diagonal, I, norm, tr
+using StaticArrays: StaticArrays, SVector
+
+# core
+using DynamicalSystemsBase: DynamicalSystemsBase, ContinuousTimeDynamicalSystem,
+                            StateSpaceSets, dimension, dynamic_rule
+using DiffEqNoiseProcess: DiffEqNoiseProcess
+using OrdinaryDiffEq: OrdinaryDiffEq, Tsit5
+using StochasticDiffEq: StochasticDiffEq, DiscreteCallback, ODEProblem,
+                        SDEFunction, SOSRA, remake, solve, step!, terminate!,
+                        u_modified!
+
+using ForwardDiff: ForwardDiff
+using IntervalRootFinding: IntervalRootFinding, dot, eltype
+using Dierckx: Dierckx, ParametricSpline
+using Optim: Optim, LBFGS
+using Symbolics: Symbolics
+
+# io and documentation
+using Format: Format
+using Dates: Dates # are we using this?
+using DrWatson: DrWatson # are we using this?
+using Printf: Printf
+using Markdown: Markdown
+using DocStringExtensions: TYPEDSIGNATURES
+using HDF5: HDF5, h5open, push!
+using JLD2: JLD2, jldopen
+using ProgressBars: ProgressBars, tqdm
+using ProgressMeter: ProgressMeter
+
+# reexport
+using Reexport: @reexport
 @reexport using StaticArrays
-@reexport using OrdinaryDiffEq
 @reexport using StochasticDiffEq
 @reexport using DiffEqNoiseProcess
-@reexport using LinearAlgebra
-using Format, Dates, JLD2, HDF5, ProgressBars, ProgressMeter, DocStringExtensions
-using IntervalRootFinding
-using ForwardDiff
-using Symbolics
-using Optim, Dierckx
-using Printf, DrWatson, Dates, Statistics, Markdown
 
 include("extention_functions.jl")
 include("utils.jl")

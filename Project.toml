@@ -38,6 +38,7 @@ ChaosToolsExt = ["ChaosTools"]
 CoupledSDEsBaisin = ["ChaosTools", "Attractors"]
 
 [compat]
+Aqua = "0.8"
 Attractors = "1.15.0"
 ChaosTools = "3.1.2"
 Dierckx = "0.5.3"
@@ -46,10 +47,12 @@ DocStringExtensions = "0.9.3"
 Documenter = "1.4.1"
 DrWatson = "2.14.1"
 DynamicalSystemsBase = "3.7.1"
+ExplicitImports = "1.6"
 Format = "1"
 ForwardDiff = "0.10.36"
 HDF5 = "0.17.1"
 IntervalRootFinding = "0.5.11"
+JET = "0.9"
 JLD2 = "0.4.46"
 Markdown = ">=1.9.0"
 Optim = "1.9.3"
@@ -67,11 +70,14 @@ julia = "1.9"
 Attractors = "f3fd9213-ca85-4dba-9dfd-7fc91308fec7"
 ChaosTools = "608a59af-f2a3-5ad4-90b4-758bdf3122a7"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 IntervalRootFinding = "d2bf35a9-74e0-55ec-b149-d360ff49b807"
 ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+ExplicitImports = "7d51a73a-1435-4ff3-83d9-f097790105c7"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Random", "IntervalRootFinding", "ModelingToolkit", "Documenter", "Attractors", "ChaosTools", "StatsBase"]
+test = ["Test", "Random", "IntervalRootFinding", "ModelingToolkit", "Documenter", "Attractors", "ChaosTools", "StatsBase", "ExplicitImports", "Aqua", "JET"]
