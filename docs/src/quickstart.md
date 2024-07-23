@@ -14,11 +14,11 @@ As this module is not published yet, there are two ways to access it:
 ## Basic usage
 The general workflow of `CriticalTransitions` essentially follows two steps:
 
-1. Define your system (see [Define a CoupledSDE](@ref))
+1. Define your system (see [Define a CoupledSDEs system](@ref))
 2. Investigate the system by calling methods (see [Methods](@ref))
 
-!!! info "Extension to RateSystem and TippingSystem"
-    We are currently working on extending the types of dynamical systems that can be studied with CriticalTransitions.jl. Particularly, we are planning to introduce the overarching structure `TippingSystem`, which has two subtypes: `CoupledSDEs` (as it already exists) and `RateSystem`, a new dynamical system type in which the system parameters may evolve in time.
+!!! info "New system type: RateSystem"
+    We are planning to introduce the the struct `RateSystem` along `CoupledSDEs`. In a `RateSystem`, the time dependence of parameters can conveniently be specified, laying the foundation for a toolbox to study rate-induced tipping, or R-tipping.
 
 ## Methods
 

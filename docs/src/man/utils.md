@@ -1,39 +1,4 @@
-# Convenience functions and types
-
-## Interface to `DynamicalSystems.jl`
-
-!!! tip "Using the functionality of DynamicalSystems.jl"
-    A [`CoupledSDEs`](@ref) can easily be turned into a 
-    [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/dev/tutorial/#DynamicalSystemsBase.CoupledODEs)
-    instance of `DynamicalSystems.jl` using the function [`CoupledODEs`](@ref). Vice vera,
-    a `CoupledODEs` system can be converted into a `CoupledSDEs` via `CoupledSDEs(ds::CoupledODEs, g)` with g the noise function.
-
-This way, many of the methods in `DynamicalSystems.jl` can be used directly, even if we have
-not written an analogue method that takes `CoupledSDEs` as input. For example, the
-Lyapunov spectrum of a `CoupledSDEs`, here exemplified by the FitzHugh-Nagumo model, can be
-computed by typing:
-
-```julia
-using CriticalTransitions
-using DynamicalSystems: lyapunovspectrum
-
-function fitzhugh_nagumo(u, p, t)
-    x, y = u
-    ϵ, β, α, γ, κ, I = p
-
-    dx = (-α * x^3 + γ * x - κ * y + I) / ϵ
-    dy = -β * y + x
-
-    return SA[dx, dy]
-end
-
-sys = CoupledSDEs(fitzhugh_nagumo, id_func, zeros(2), σ, [1.,3.,1.,1.,1.,0.])
-ls = lyapunovspectrum(CoupledODEs(sys), 10000)
-```
-
-```@docs
-CoupledODEs(sys::CoupledSDEs; diffeq, t0=0.0)
-```
+# Utility functions
 
 ## `CoupledSDEs` utility functions
 

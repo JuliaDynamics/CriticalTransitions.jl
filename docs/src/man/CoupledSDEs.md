@@ -1,40 +1,39 @@
-# Define a CoupledSDE
+# Define a CoupledSDEs system
 
 A `CoupledSDEs` defines a stochastic dynamical system of the form
 
 ```math
-\text{d}\vec x = f(\vec x(t); \ p)  \text{d}t + g(\vec x(t);  \ p) \text{d}\mathcal{W} \ ,
+\text{d}\vec x = f(\vec x(t); \ p)  \text{d}t + \sigma (\vec x(t);  \ p) \, \text{d}\mathcal{W} \ ,
 ```
-where $\text{d}\mathcal{W}=\Gamma \cdot \text{d}\mathcal{N}$, $\vec x \in \mathbb{R}^\text{dim}$ and $\mathcal N$ denotes a stochastic process. The (positive definite) noise covariance matrix is $\Sigma = \Gamma \Gamma^\top \in \mathbb R^{N\times N}$.
+where $\vec x \in \mathbb{R}^\text{D}$, $\sigma > 0$ is the noise strength, $\text{d}\mathcal{W}=\Gamma \cdot \text{d}\mathcal{N}$, and $\mathcal N$ denotes a stochastic process. The (positive definite) noise covariance matrix is $\Sigma = \Gamma \Gamma^\top \in \mathbb R^{N\times N}$.
 
-The function $f$ is the deterministic part of the system and is assumed to be of similar form as is accepted in [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystems.jl/latest/tutorial/), i.e., `f(u, p, t)` for out-of-place (oop) and `f(du, u, p, t)` for in-place (iip).
+The function $f$ is the deterministic part of the system and follows the syntax of a `ContinuousTimeDynamicalSystem` in [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystems.jl/latest/tutorial/), i.e., `f(u, p, t)` for out-of-place (oop) and `f!(du, u, p, t)` for in-place (iip). The function $g$ allows to specify the stochastic dynamics of the system along with the [noise process](#noise-process) $\mathcal{W}$. It should be of the same type (iip or oop) as $f$.
 
-The function $g$ represent the stochastics dynamics of the system and should be the of the same type (iip or oop) as $f$.
-
- The keyword `noise` defines the system [noise process](#noise-process). In combination with `g` one can define different type of stochastic systems. Examples of different type of stochastics systems can be found on the [StochasticDiffEq.jl tutorial page](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/sde_example/). A quick overview of the different types of stochastic systems can be found [here](#Type-of-stochastic-system).
+By combining $\sigma$, $g$ and $\mathcal{W}$, you can define different type of stochastic systems. Examples of different types of stochastic systems can be found on the [StochasticDiffEq.jl tutorial page](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/sde_example/). A quick overview of common types of stochastic systems can be found [below](#Type-of-stochastic-system).
 
 !!! info
-    Note that nonlinear mixings of the Noise Process $\mathcal{W}$ are not Stochasitic Differential Equations but are a different class of differential equations of random ordinary differential equations (RODEs) which have a separate set of solvers. See [this example](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/rode_example/) of DifferentialEquations.jl.
-
-
+    Note that nonlinear mixings of the Noise Process $\mathcal{W}$ fall into the class of random ordinary differential equations (RODEs) which have a separate set of solvers. See [this example](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/rode_example/) of DifferentialEquations.jl.
 
 ```@docs
 CoupledSDEs
 ```
-## Type of stochastic system
-Let us make some examples of the different types of stochastic systems that can be defined.
+
+## Defining stochastic dynamics
+Let's look at some examples of the different types of stochastic systems that can be defined.
+
+For simplicity, we choose a slow exponential growth in 2 dimensions as the deterministic dynamics `f`:
 ```@example type
 using CriticalTransitions, Plots
 import Random # hide
 Random.seed!(10) # hide
-f!(du, u, p, t) = du .= 1.01u
-σ = 0.25
+f!(du, u, p, t) = du .= 1.01u # deterministic part
+σ = 0.25 # noise strength
 ```
 ### Additive noise
-When `g` is independent of the state variables `u`, the noise is called additive.
+When `g \, \text{d}\mathcal{W}` is independent of the state variables `u`, the noise is called additive.
 
 #### Diagonal noise
-A system of diagional noise is the most common type of noise. It is defined by a vector of random numbers `dW` whose size matches the output of `g` where the noise is applied element-wise, i.e. `g.*dW`.
+A system of diagonal noise is the most common type of noise. It is defined by a vector of random numbers `dW` whose size matches the output of `g` where the noise is applied element-wise, i.e. `g.*dW`.
 ```@example type
 t0 = 0.0; W0 = zeros(2);
 W = WienerProcess(t0, W0, 0.0)
@@ -100,9 +99,9 @@ plot(sol)
 ```
 
 !!! warning
-    Non-diagonal problem need specific type of solvers. See the [SciML recommendations](https://docs.sciml.ai/DiffEqDocs/stable/solvers/sde_solve/#sde_solve).
+    Non-diagonal problems need specific type of solvers. See the [SciML recommendations](https://docs.sciml.ai/DiffEqDocs/stable/solvers/sde_solve/#sde_solve).
 
-### Corelated noise
+### Correlated noise
 ```@example type
 ρ = 0.3
 Σ = [1 ρ; ρ 1]
@@ -113,11 +112,53 @@ sol = simulate(sde, 1.0, dt=0.01, alg=SOSRA())
 plot(sol)
 ```
 
-## Noise process
-We provide the noise processes $\text{d}\mathcal{W}$ that can be used in the stochastic simulations through the [DiffEqNoiseProcess.jl](https://docs.sciml.ai/DiffEqNoiseProcess/stable) package. A complete list of the available processes can be found [here](https://docs.sciml.ai/DiffEqNoiseProcess/stable/noise_processes/). We list some of the most common ones below:
+## Available noise processes
+We provide the noise processes $\mathcal{W}$ that can be used in the stochastic simulations through the [DiffEqNoiseProcess.jl](https://docs.sciml.ai/DiffEqNoiseProcess/stable) package. A complete list of the available processes can be found [here](https://docs.sciml.ai/DiffEqNoiseProcess/stable/noise_processes/). We list some of the most common ones below:
 ```@docs
 WienerProcess
 SimpleWienerProcess
 OrnsteinUhlenbeckProcess
 CorrelatedWienerProcess
+```
+
+## Interface to `DynamicalSystems.jl`
+
+!!! tip "Analyzing deterministic dynamics with DynamicalSystems.jl"
+    The deterministic part of a [`CoupledSDEs`](@ref) system can easily be extracted as a 
+    [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/dev/tutorial/#DynamicalSystemsBase.CoupledODEs), a common subtype of a `ContinuousTimeDynamicalSystem` in DynamicalSystems.jl.
+    
+
+    - 
+    type of `DynamicalSystems.jl` using the function [`CoupledODEs`](@ref). Vice vera,
+    a `CoupledODEs` system can be converted into a `CoupledSDEs` via `CoupledSDEs(ds::CoupledODEs, g)` with g the noise function.
+
+#### Converting between `CoupledSDEs` and `CoupledODEs`
+
+- `CoupledODEs(sde::CoupledSDEs)` extracts the deterministic part of `sde` as a `CoupledODEs`
+- `CoupledSDEs(ode::CoupledODEs, g)`, with `g` the noise function, turns `ode` into a `CoupledSDEs`
+
+For example, the
+Lyapunov spectrum of a `CoupledSDEs` in the absence of noise, here exemplified by the
+FitzHugh-Nagumo model, can be computed by typing:
+
+```@example type
+using CriticalTransitions
+using DynamicalSystems: lyapunovspectrum
+
+function fitzhugh_nagumo(u, p, t)
+    x, y = u
+    ϵ, β, α, γ, κ, I = p
+
+    dx = (-α * x^3 + γ * x - κ * y + I) / ϵ
+    dy = -β * y + x
+
+    return SA[dx, dy]
+end
+
+sys = CoupledSDEs(fitzhugh_nagumo, idfunc, zeros(2), [1.,3.,1.,1.,1.,0.], 0.1)
+ls = lyapunovspectrum(CoupledODEs(sys), 10000)
+```
+
+```@docs
+CoupledODEs
 ```

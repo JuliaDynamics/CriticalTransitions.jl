@@ -1,5 +1,14 @@
 # Changelog for `CriticalTransitions.jl`
 
+## v0.3.0
+Major overhaul introducing `CoupledSDEs`
+
+This release replaces the `StochSystem` struct with the new `CoupledSDEs` struct to define a stochastic dynamical system. To see how the new version works, check out the [documentation](https://juliadynamics.github.io/CriticalTransitions.jl/dev/).
+
+The update is a breaking change for almost all functions, because the interface is now built around `CoupledSDEs`. The benefit is that the package now integrates much more seamlessly with DynamicalSystems.jl and DifferentialEquations.jl. To use the package with the old `StochSystem` struct, choose version v0.2.1 or lower.
+
+Full changelog [here](https://github.com/JuliaDynamics/CriticalTransitions.jl/compare/v0.2.1...v0.3.0)
+
 ## v0.2.1
 Freeze before major overhaul `v0.3.0`
 

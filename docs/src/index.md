@@ -4,7 +4,7 @@
 
 Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystems.jl/stable/) and [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/), this package aims to provide a toolbox for dynamical systems under time-dependent forcing, with a focus on tipping phenomena and metastability.
 
-![CT.jl infographic](./figs/CTjl_structure.png)
+![CT.jl infographic](./figs/CTjl_structure_v0.3_small.jpeg)
 
 !!! info "Current features"
     * **Stability analysis**: Fixed points, linear stability, basins of attraction, edge tracking
@@ -16,6 +16,7 @@ Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSyste
     * **Rare event simulation**: importance sampling, AMS
     * **Quasipotentials**: Ordered line integral method (OLIM)
     * **Rate-induced tipping** tools
+    * **Symbolic** differentiation of action functionals
     * ...?
 
 
