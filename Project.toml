@@ -37,8 +37,8 @@ ChaosToolsExt = ["ChaosTools"]
 CoupledSDEsBaisin = ["ChaosTools", "Attractors"]
 
 [compat]
-Aqua = "0.8"
-Attractors = "1.15"
+Aqua = "0.8.7"
+Attractors = "1.18"
 ChaosTools = "3.1"
 Dates = ">=1.9.0"
 Dierckx = "0.5.3"
@@ -46,7 +46,7 @@ DiffEqNoiseProcess = "5.22"
 DocStringExtensions = "0.9.3"
 Documenter = "^1.4.1"
 DynamicalSystemsBase = "3.7.1"
-ExplicitImports = "1.6.0"
+ExplicitImports = "1.9"
 Format = "1"
 ForwardDiff = "0.10.36"
 HDF5 = "0.17.1"
