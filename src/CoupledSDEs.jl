@@ -8,7 +8,6 @@ using DynamicalSystemsBase:
     _set_parameter!,
     current_state
 using StochasticDiffEq: SDEProblem
-using StochasticDiffEq: EM, SDEProblem
 
 ###########################################################################################
 # DiffEq options
