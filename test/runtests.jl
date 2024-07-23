@@ -41,7 +41,7 @@ end
 
 @testset "Code linting" begin
     using JET
-    # JET.test_package(HarmonicBalance; target_defined_modules=true)
+    JET.test_package(CriticalTransitions; target_defined_modules=true)
 end
 
 @testset "CoupledSDEs" begin

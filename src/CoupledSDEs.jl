@@ -167,7 +167,7 @@ function CoupledSDEs(
 )
     return CoupledSDEs(
         dynamic_rule(ds),
-        prob.g,
+        g,
         current_state(ds),
         p,
         noise_strength;

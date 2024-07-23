@@ -46,7 +46,7 @@ function rampedoriginaltruscottbrindley!(du, u, p, t)
 
     du[1] = r * P * (1 - P / K) - Rₘ * Z * P^2 / (α^2 + P^2)
     du[2] = γ * Rₘ * Z * P^2 / (α^2 + P^2) - μ * Z
-    return du[3] = t ∈ Ttrans .. (Ttrans + Tramp) ? v : 0
+    return du[3] = t ∈ interval(Ttrans, (Ttrans + Tramp)) ? v : 0
 end
 
 """
@@ -61,7 +61,7 @@ function rampedoriginaltruscottbrindley(u, p, t)
 
     dP = r * P * (1 - P / K) - Rₘ * Z * P^2 / (α^2 + P^2)
     dZ = γ * Rₘ * Z * P^2 / (α^2 + P^2) - μ * Z
-    dr = t ∈ Ttrans .. (Ttrans + Tramp) ? v : 0
+    dr = t ∈ interval(Ttrans, (Ttrans + Tramp)) ? v : 0
 
     return SA[dP, dZ, dr]
 end

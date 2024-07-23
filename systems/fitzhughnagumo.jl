@@ -34,10 +34,6 @@ function fitzhugh_nagumo(u, p, t)
     return SA[dx, dy]
 end
 
-# For backwards compatibility
-FitzHughNagumo(u, p, t) = fitzhugh_nagumo(u, p, t)
-FitzHughNagumo!(u, p, t) = fitzhugh_nagumo!(u, p, t)
-
 # """
 #     fhn_ϵσ(ϵ,σ)
 # A shortcut command for returning a CoupledSDEs of the FitzHugh Nagumo system in a default setup with additive isotropic noise.
