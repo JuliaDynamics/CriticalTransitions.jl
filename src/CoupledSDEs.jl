@@ -1,5 +1,6 @@
 using DynamicalSystemsBase.SciMLBase: __init
 using DynamicalSystemsBase:
+    DynamicalSystemsBase,
     CoupledODEs,
     isinplace,
     SciMLBase,
@@ -183,7 +184,9 @@ $(TYPEDSIGNATURES)
 Converts a [`CoupledSDEs`](@ref) into [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/tutorial/#DynamicalSystemsBase.CoupledODEs)
 from DynamicalSystems.jl.
 """
-function CoupledODEs(sys::CoupledSDEs; diffeq=DynamicalSystemsBase.DEFAULT_DIFFEQ, t0=0.0)
+function DynamicalSystemsBase.CoupledODEs(
+    sys::CoupledSDEs; diffeq=DynamicalSystemsBase.DEFAULT_DIFFEQ, t0=0.0
+)
     return DynamicalSystemsBase.CoupledODEs(
         sys.integ.f, SVector{length(sys.integ.u)}(sys.integ.u), sys.p0; diffeq=diffeq, t0=t0
     )

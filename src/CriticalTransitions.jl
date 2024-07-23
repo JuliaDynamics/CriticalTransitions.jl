@@ -2,7 +2,7 @@ module CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra: LinearAlgebra, Diagonal, I, norm, tr
+using LinearAlgebra: LinearAlgebra, Diagonal, I, norm, tr, dot
 using StaticArrays: StaticArrays, SVector
 
 # core
@@ -27,7 +27,7 @@ using StochasticDiffEq:
     u_modified!
 
 using ForwardDiff: ForwardDiff
-using IntervalRootFinding: IntervalRootFinding, dot, eltype
+using IntervalArithmetic: interval, IntervalBox
 using Dierckx: Dierckx, ParametricSpline
 using Optim: Optim, LBFGS
 using Symbolics: Symbolics
@@ -65,7 +65,13 @@ using .CTLibrary
 
 # Core types
 export CoupledSDEs,
-    idfunc!, idfunc, add_noise_strength, noise_process, covariance_matrix, noise_strength
+    idfunc!,
+    idfunc,
+    add_noise_strength,
+    noise_process,
+    covariance_matrix,
+    noise_strength,
+    CoupledODEs
 
 # Methods
 export equilib, basins, basinboundary, basboundary
