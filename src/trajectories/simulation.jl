@@ -41,20 +41,3 @@ function relax(sys::CoupledSDEs, T, init=current_state(sys);
     prob = ODEProblem{isinplace(sde_prob)}(dynamic_rule(sys), init, (0, T), sys.p0)
     return solve(prob, alg; kwargs...)
 end;
-
-
-using CriticalTransitions
-
-function fitzhugh_nagumo(u, p, t)
-    x, y = u
-    ϵ, β, α, γ, κ, I = p
-
-    dx = (-α * x^3 + γ * x - κ * y + I) / ϵ
-    dy = -β * y + x
-
-    return SA[dx, dy]
-end
-
-using DynamicalSystems
-sys = CoupledSDEs(fitzhugh_nagumo, id_func, zeros(2), [1.,3.,1.,1.,1.,0.],  σ)
-ls = lyapunovspectrum(CoupledODEs(sys), 10000)

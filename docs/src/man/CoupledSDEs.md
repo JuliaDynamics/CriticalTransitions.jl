@@ -141,7 +141,7 @@ For example, the
 Lyapunov spectrum of a `CoupledSDEs` in the absence of noise, here exemplified by the
 FitzHugh-Nagumo model, can be computed by typing:
 
-```@example type
+```julia
 using CriticalTransitions
 using DynamicalSystems: lyapunovspectrum
 
