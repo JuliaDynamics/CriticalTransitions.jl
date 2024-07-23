@@ -14,6 +14,6 @@ include("basin/basinsofattraction.jl")
 include("basin/edgetrack.jl")
 include("basin/basinboundary.jl")
 
-export basins, basboundary, basinboundary
+export basins, basboundary, basinboundary,
 
 end # module CoupledSDEsBaisin

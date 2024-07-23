@@ -233,6 +233,8 @@ vector `attractors` containing as elements the state vectors of the stable fixed
 and a parameter `eps` to control the mapping algorithm. For more info, see the
 [`docs`](https://juliadynamics.github.io/Attractors.jl/dev/attractors/#Attractors.AttractorsViaProximity).
 """
-function attractor_mapper(sys::CoupledSDEs, attractors, eps=0.01; kwargs...)
+function Attractors.AttractorsViaProximity(
+    sys::CoupledSDEs, attractors, eps=0.01; kwargs...
+)
     return Attractors.AttractorsViaProximity(CoupledODEs(sys), attrs, eps; kwargs...)
 end

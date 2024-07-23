@@ -6,13 +6,25 @@ using LinearAlgebra: LinearAlgebra, Diagonal, I, norm, tr
 using StaticArrays: StaticArrays, SVector
 
 # core
-using DynamicalSystemsBase: DynamicalSystemsBase, ContinuousTimeDynamicalSystem,
-                            StateSpaceSets, dimension, dynamic_rule
+using DynamicalSystemsBase:
+    DynamicalSystemsBase,
+    ContinuousTimeDynamicalSystem,
+    StateSpaceSets,
+    dimension,
+    dynamic_rule
 using DiffEqNoiseProcess: DiffEqNoiseProcess
 using OrdinaryDiffEq: OrdinaryDiffEq, Tsit5
-using StochasticDiffEq: StochasticDiffEq, DiscreteCallback, ODEProblem,
-                        SDEFunction, SOSRA, remake, solve, step!, terminate!,
-                        u_modified!
+using StochasticDiffEq:
+    StochasticDiffEq,
+    DiscreteCallback,
+    ODEProblem,
+    SDEFunction,
+    SOSRA,
+    remake,
+    solve,
+    step!,
+    terminate!,
+    u_modified!
 
 using ForwardDiff: ForwardDiff
 using IntervalRootFinding: IntervalRootFinding, dot, eltype
@@ -22,8 +34,6 @@ using Symbolics: Symbolics
 
 # io and documentation
 using Format: Format
-using Dates: Dates # are we using this?
-using DrWatson: DrWatson # are we using this?
 using Printf: Printf
 using Markdown: Markdown
 using DocStringExtensions: TYPEDSIGNATURES
@@ -58,13 +68,14 @@ export CoupledSDEs,
     idfunc!, idfunc, add_noise_strength, noise_process, covariance_matrix, noise_strength
 
 # Methods
-export equilib, fixedpoints, basins, basinboundary, basboundary
+export equilib, basins, basinboundary, basboundary
 export simulate, relax
 export transition, transitions
 export fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
-export basins, basinboundary
-export edgetracking, bisect_to_edge, attractor_mapper
 export make_jld2, make_h5, intervals_to_box
-
+# export basins, basinboundary
+# export edgetracking, bisect_to_edge, AttractorsViaProximity
+# export fixedpoints
+# ^ extention tests needed
 end # module CriticalTransitions
