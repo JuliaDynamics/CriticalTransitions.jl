@@ -1,7 +1,7 @@
 using ModelingToolkit
 
 @testset begin
-    @variables t
+    @independent_variables t
     D = Differential(t)
     sts = @variables x(t) y(t) z(t)
     ps = @parameters σ ρ
@@ -35,7 +35,7 @@ end
 
 @testset begin
     using ModelingToolkit
-    @variables t
+    @independent_variables t
     ps = @parameters α β
     sts = @variables x(t)
     D = Differential(t)

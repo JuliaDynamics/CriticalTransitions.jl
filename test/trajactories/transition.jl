@@ -1,6 +1,6 @@
 
 @testset "fitzhugh_nagumo" begin
-    using Random
+    using Random, LinearAlgebra
     Random.seed!(SEED)
 
     p = [1.0, 3.0, 1.0, 1.0, 1.0, 0.0] # Parameters (ϵ, β, α, γ, κ, I)

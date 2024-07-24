@@ -12,8 +12,8 @@ This function uses the [`SDEProblem`](https://diffeq.sciml.ai/stable/types/sde_t
 For more info, see [`SDEProblem`](https://diffeq.sciml.ai/stable/types/sde_types/#SciMLBase.SDEProblem).
 
 """
-function simulate(sys::CoupledSDEs, T, init=current_state(sys);
-    alg=sys.integ.alg, kwargs...
+function simulate(
+    sys::CoupledSDEs, T, init=current_state(sys); alg=sys.integ.alg, kwargs...
 )
     prob = remake(referrenced_sciml_prob(sys); u0=init, tspan=(0, T))
     return solve(prob, alg; kwargs...)
@@ -34,9 +34,7 @@ For more info, see [`ODEProblem`](https://diffeq.sciml.ai/stable/types/ode_types
 For stochastic integration, see [`simulate`](@ref).
 
 """
-function relax(sys::CoupledSDEs, T, init=current_state(sys);
-    alg=Tsit5(), kwargs...
-)
+function relax(sys::CoupledSDEs, T, init=current_state(sys); alg=Tsit5(), kwargs...)
     sde_prob = referrenced_sciml_prob(sys)
     prob = ODEProblem{isinplace(sde_prob)}(dynamic_rule(sys), init, (0, T), sys.p0)
     return solve(prob, alg; kwargs...)

@@ -26,7 +26,7 @@ end
 
 # Test for intervals_to_box
 @testset "intervals_to_box" begin
-    using IntervalRootFinding.IntervalArithmetic
+    using CriticalTransitions.IntervalArithmetic
     bmin = [-2, -1, 0]
     bmax = [2, 1, 1]
     expected = (Interval([-2, 2]...), Interval([-1, 1]...), Interval([0, 1]...))

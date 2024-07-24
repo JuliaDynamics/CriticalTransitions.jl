@@ -141,6 +141,8 @@ function heymann_vandeneijnden_step(sys::CoupledSDEs, path, N, L; tau=0.1, diff_
     lambdas, lambdas_prime = zeros(N), zeros(N)
     x_prime = path_velocity(path, 0:dx:L; order=diff_order)
 
+    A = inv(covariance_matrix(sys))
+
     for i in 2:(N - 1)
         lambdas[i] = anorm(drift(sys, path[:, i]), A) / anorm(path[:, i], A)
     end

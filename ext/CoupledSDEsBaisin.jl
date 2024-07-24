@@ -8,6 +8,7 @@ using ProgressMeter
 using ProgressBars
 using DynamicalSystemsBase: ParallelDynamicalSystem
 using DocStringExtensions
+using LinearAlgebra
 
 include("basin/planeofbox.jl")
 include("basin/basinsofattraction.jl")

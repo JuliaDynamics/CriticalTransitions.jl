@@ -75,11 +75,11 @@ Computes the action functional specified by `functional` for a given CoupledSDEs
 * `functional = "FW"`: Returns the Freidlin-Wentzell action ([`fw_action`](@ref))
 * `functional = "OM"`: Returns the Onsager-Machlup action ([`om_action`](@ref))
 """
-function action(sys::CoupledSDEs, path::Matrix, time, functional; kwargs...)
+function action(sys::CoupledSDEs, path::Matrix, time, functional)
     if functional == "FW"
-        action = fw_action(sys, path, time; kwargs...)
+        action = fw_action(sys, path, time)
     elseif functional == "OM"
-        action = om_action(sys, path, time; kwargs...)
+        action = om_action(sys, path, time)
     end
     return action
 end;
