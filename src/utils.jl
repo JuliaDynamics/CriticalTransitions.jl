@@ -9,8 +9,8 @@ $(TYPEDSIGNATURES)
 Identity function for a diffusion function `g` of `CoupledSDEs` (out-of-place).
 Equivalent to `(u, p, t) -> ones(length(u))`,
 """
-function idfunc(u, p, t) # TODO: return same type as u
-    return ones(length(u))
+function idfunc(u, p, t)
+    return typeof(u)(ones(eltype(u), length(u)))
 end;
 
 """
@@ -20,7 +20,7 @@ Identity function for a diffusion function `g` of `CoupledSDEs` (in-place).
 Equivalent to `idfunc!(du, u, p, t) = (du .= ones(length(u)); return nothing)`
 """
 function idfunc!(du, u, p, t)
-    du .= ones(length(u))
+    du .= ones(eltype(u), length(u))
     return nothing
 end;
 
