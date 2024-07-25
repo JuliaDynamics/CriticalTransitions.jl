@@ -42,9 +42,11 @@
     @testset "Scalar noise Wiener" begin
         # Scalar noise Wiener
         # a single random variable is applied to all dependent variables
+        f!(du, u, p, t) = du .= 1.01u # deterministic part
+        σ = 0.25 # noise strength
         W = WienerProcess(0.0, 0.0, 0.0)
-        prob = SDEProblem(meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf), (); noise=W)
-        sde = CoupledSDEs(meier_stein, idfunc, zeros(2), (), σ; noise=W)
+        prob = SDEProblem(f!, diagonal_noise!(σ), zeros(2), (0.0, Inf), (); noise=W)
+        sde = CoupledSDEs(f!, idfunc!, zeros(2), (), σ; noise=W)
 
         @test sde.integ.sol.prob.f isa SDEFunction
         @test sde.integ.sol.prob.f.f.f == prob.f.f
@@ -60,6 +62,10 @@
         @test noise == W
         @test length(noise.dW) == 1
         @test W.covariance == nothing
+
+        sol = simulate(sde, 1.0, dt=0.01, alg=SOSRA())
+        # every vatiable has the same noise and dynamic_rule
+        @test all(sol[1,:] .≈ sol[2,:])
     end
 
     @testset "multiplicative noise Wiener" begin
