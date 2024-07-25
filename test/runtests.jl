@@ -58,13 +58,9 @@ end
     include("largedeviations/gMAM.jl")
 end
 
-# @testset "utilities" begin
-#     include("utils.jl")
-# end
-
-# @testset "basin" begin
-#     include("basin/basin_boundary.jl")
-# end
+@testset "utilities" begin
+    include("utils.jl")
+end
 
 @testset "Trajactories" begin
     include("trajactories/simulate.jl")

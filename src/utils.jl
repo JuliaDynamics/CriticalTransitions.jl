@@ -60,7 +60,7 @@ function intervals_to_box(bmin::Vector, bmax::Vector)
     end
     box = intervals[1]
     for i in 2:dim
-        box = IntervalBox(box, intervals[i])
+        box = IntervalArithmetic.cross(box, intervals[i])
     end
     return box
 end;
