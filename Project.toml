@@ -72,6 +72,7 @@ Attractors = "f3fd9213-ca85-4dba-9dfd-7fc91308fec7"
 ChaosTools = "608a59af-f2a3-5ad4-90b4-758bdf3122a7"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 ExplicitImports = "7d51a73a-1435-4ff3-83d9-f097790105c7"
+IntervalArithmetic = "d1acc4aa-44c8-5952-acd4-ba5d80a2a253"
 JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
@@ -79,4 +80,4 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Random", "ModelingToolkit", "Documenter", "Attractors", "ChaosTools", "Statistics", "ExplicitImports", "Aqua", "JET"]
+test = ["Test", "Random", "ModelingToolkit", "Documenter", "Attractors", "ChaosTools", "Statistics", "ExplicitImports", "Aqua", "JET", "IntervalArithmetic"]
