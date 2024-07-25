@@ -18,7 +18,6 @@ end
     @test du == expected
 end
 
-
 # Test for intervals_to_box
 @testset "intervals_to_box" begin
     using IntervalArithmetic
