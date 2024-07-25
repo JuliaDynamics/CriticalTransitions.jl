@@ -27,7 +27,7 @@ using StochasticDiffEq:
     u_modified!
 
 using ForwardDiff: ForwardDiff
-using IntervalArithmetic: interval, IntervalBox
+using IntervalArithmetic: IntervalArithmetic, interval
 using Dierckx: Dierckx, ParametricSpline
 using Optim: Optim, LBFGS
 using Symbolics: Symbolics
