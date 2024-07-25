@@ -52,6 +52,7 @@ using Reexport: @reexport
 include("extention_functions.jl")
 include("utils.jl")
 include("CoupledSDEs.jl")
+include("CoupledSDEs_utils.jl")
 include("io.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
