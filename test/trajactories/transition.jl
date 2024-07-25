@@ -21,6 +21,11 @@
     @test ensemble.success_rate ≈ 1.0
     @test ensemble.t_trans ≈ 4.493941793363376 atol = 1e-2
     # SEED is different on github
-    @test (ensemble.t_res ≈ 5299.9856646947555 || ensemble.t_res ≈ 4953.8808216023845)
-    @test (length(ensemble.times) ≈ 11 || length(ensemble.times) ≈ 10)
+    if ensemble.t_res ≈ 5299.98
+        @test length(ensemble.times) == 11
+        @test ensemble.t_res ≈ 5299.98
+    else
+        @test length(ensemble.times) == 10
+        @test ensemble.t_res ≈ 4953.88
+    end
 end
