@@ -47,20 +47,20 @@ using NLPModelsIpopt
     v(0) == 0
     u(T) == 1
     v(T) == 0
-    du = u - u^3 - 10*u*v^2
-    dv = -(1 - u^2)*v
+    du = u - u^3 - 10 * u * v^2
+    dv = -(1 - u^2) * v
     ∫((∂ₜ(u) - du)^2 + (∂ₜ(v) - dv)^2) → min
 end
 
 ocp = Model()                                   # empty optimal control problem
-time!(ocp, t0=0, tf=1)                          # initial and final times
+time!(ocp; t0=0, tf=1)                          # initial and final times
 state!(ocp, 0)                                  # dimension of the state
 control!(ocp, 2)                                # dimension of the control
 
 constraint!(ocp, :initial; lb=[-1, 0], ub=[-1, 0]) # initial condition
 constraint!(ocp, :final; lb=[1, 0], ub=[1, 0]) # final condition
 
-dynamics!(ocp, (x, u) -> [ x[2], u ])           # dynamics of the double integrator
+dynamics!(ocp, (x, u) -> [x[2], u])           # dynamics of the double integrator
 
 objective!(ocp, :lagrange, (x, u) -> 0.5u^2)    # cost in Lagrange form
 control

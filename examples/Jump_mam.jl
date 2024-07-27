@@ -7,16 +7,16 @@ model = InfiniteModel(optimizer_with_attributes(opt));
 
 @infinite_parameter(model, t in [0, T], num_supports = ns)
 
-xx(t) = (-1*(1-t/T) + 1*t/T)
+xx(t) = (-1 * (1 - t / T) + 1 * t / T)
 xxx = xx.(supports(t))
-yy(t) = 0.3 .* (- xx(t) .^ 2 .+ 1)
+yy(t) = 0.3 .* (-xx(t) .^ 2 .+ 1)
 yyy = yy.(supports(t))
 scatter(xxx, yyy)
 
 @variable(model, u, Infinite(t), start = xx)
 @variable(model, v, Infinite(t), start = yy)
-du = u - u^3 - 10*u*v^2
-dv = -(1 - u^2)*v
+du = u - u^3 - 10 * u * v^2
+dv = -(1 - u^2) * v
 
 @objective(model, Min, ∫((∂(u, t) - du)^2 + (∂(v, t) - dv)^2, t))
 
@@ -34,4 +34,4 @@ u_opt = value.(u)
 v_opt = value.(v)
 plot(u_opt, v_opt)
 xlims!(-1.1, 1.1)
-ylims!(-0.1,0.5)
+ylims!(-0.1, 0.5)
