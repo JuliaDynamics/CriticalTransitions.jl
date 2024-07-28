@@ -39,7 +39,7 @@ makedocs(;
     sitename="CriticalTransitions.jl",
     linkcheck=true,
     pagesonly=true,
-    checkdocs=:exports,
+    checkdocs = :exported,
     modules=[
         CriticalTransitions,
         CriticalTransitions.DiffEqNoiseProcess,
