@@ -69,15 +69,15 @@ function geometric_min_action_method(
     init::Matrix,
     arclength=1.0;
     maxiter::Int=100,
-    converge=1e-5,
+    abstol=1e-5,
+    reltol=1e-5,
+    Stol=1e-5,
     method=LBFGS(),
     tau=0.1,
     verbose::Bool=true,
-    showprogress::Bool=false,
+    showprogress::Bool=true,
 )
-    verbose && println("=== Initializing gMAM action minimizer ===")
-
-    path = init
+    path = deepcopy(init)
     x_i = init[:, 1]
     x_f = init[:, end]
     N = length(init[1, :])
@@ -86,6 +86,9 @@ function geometric_min_action_method(
     paths = [path]
     action = [S(path)]
 
+    alpha = zeros(N)
+    arc = range(0, 1.0; length=N)
+
     iterator = showprogress ? tqdm(1:maxiter) : 1:maxiter
     for i in iterator
         if method == "HeymannVandenEijnden"
@@ -93,34 +96,39 @@ function geometric_min_action_method(
             # update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
             # tau = tau)
         else
-            update = Optim.optimize(S, path, method, Optim.Options(; iterations=1))
-            update_path = Optim.minimizer(update)
+            update = Optim.optimize(
+                S,
+                path,
+                method,
+                Optim.Options(; iterations=1, g_abstol=abstol, g_reltol=reltol, f_tol=Stol),
+            )
+            path .= Optim.minimizer(update)
         end
 
         # re-interpolate
-        path = interpolate_path(update_path, sys, N, arclength)
-        push!(paths, path)
-        push!(action, S(path))
+        interpolate_path!(path, alpha, arc)
 
-        if abs(action[end] - action[end - 1]) < converge
+        if Optim.converged(update)
             verbose && println("Converged after $(i) iterations.")
+            push!(paths, path)
+            push!(action, Optim.minimum(update))
             return paths, action
             break
         end
     end
+    push!(paths, path)
+    push!(action, S(path))
     verbose && @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
     return paths, action
 end
 
-function interpolate_path(path, sys, N, arclength)
-    s = zeros(N)
-    for j in 2:N
-        s[j] = s[j - 1] + anorm(path[:, j] - path[:, j - 1], covariance_matrix(sys))
-        #! anorm or norm?
-    end
-    s_length = s / s[end] * arclength
-    interp = ParametricSpline(s_length, path; k=3)
-    return reduce(hcat, [interp(x) for x in range(0, arclength; length=N)])
+function interpolate_path!(path, α, s)
+    α[2:end] .= vec(sqrt.(sum(diff(path; dims=2) .^ 2; dims=1)))
+    α .= cumsum(α; dims=1)
+    α .= α ./ α[end]
+    interp = ParametricSpline(α, path)
+    path .= Matrix(interp(s))
+    return nothing
 end
 
 """
