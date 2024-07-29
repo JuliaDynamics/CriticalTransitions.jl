@@ -18,8 +18,8 @@ function interpolate_path(path, N)
 end
 
 
-function interpolate_path!(path, s)
-    α[2:end] .= vec(sqrt.(sum(diff(init; dims=2) .^ 2; dims=1)))
+function interpolate_path!(path, α, s)
+    α[2:end] .= vec(sqrt.(sum(diff(path; dims=2) .^ 2; dims=1)))
     α .= cumsum(α; dims=1)
     α .= α ./ α[end]
     interp = ParametricSpline(α, path)
@@ -30,21 +30,5 @@ end
 using BenchmarkTools
 alpha = zeros(N)
 arc = range(0, 1.0; length=N)
-@benchmark interpolate_path($init, $N, $arclength)
-@benchmark interpolate_path!($alpha, $init, $arc)
-
-path = init
-x_i = init[:, 1]
-x_f = init[:, end]
-N = length(init[1, :])
-
-S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength)
-paths = [path]
-action = [S(path)]
-
-alpha = zeros(N)
-arc = range(0, 1.0; length=N)
-
-update = Optim.optimize(S, path, LBFGS(), Optim.Options(; iterations=1))
-path .= Optim.minimizer(update)
-Optim.converged(update)
+@benchmark interpolate_path($init, $N)
+@benchmark interpolate_path!($init, $alpha, $arc)

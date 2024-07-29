@@ -69,11 +69,12 @@ function geometric_min_action_method(
     init::Matrix,
     arclength=1.0;
     maxiter::Int=100,
-    abstol=1e-5,
-    reltol=1e-5,
+    abstol=1e-8,
+    reltol=1e-8,
     Stol=1e-5,
     method=LBFGS(),
     tau=0.1,
+    iter_per_batch=1,
     verbose::Bool=true,
     showprogress::Bool=true,
 )
@@ -100,7 +101,9 @@ function geometric_min_action_method(
                 S,
                 path,
                 method,
-                Optim.Options(; iterations=1, g_abstol=abstol, g_reltol=reltol, f_tol=Stol),
+                Optim.Options(;
+                    iterations=iter_per_batch, g_abstol=abstol, g_reltol=reltol, f_tol=Stol
+                ),
             )
             path .= Optim.minimizer(update)
         end
