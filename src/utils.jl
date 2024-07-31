@@ -10,7 +10,7 @@ Identity function for a diffusion function `g` of `CoupledSDEs` (out-of-place).
 Equivalent to `(u, p, t) -> ones(length(u))`,
 """
 function idfunc(u, p, t)
-    return typeof(u)(ones(eltype(u), length(u)))
+    return  SVector{length(u)}(ones(eltype(u), length(u)))
 end;
 
 """
