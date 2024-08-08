@@ -28,7 +28,7 @@ using StochasticDiffEq:
 
 using ForwardDiff: ForwardDiff
 using IntervalArithmetic: IntervalArithmetic, interval
-using Dierckx: Dierckx, ParametricSpline
+using Interpolations: LinearInterpolation
 using Optim: Optim, LBFGS
 using Symbolics: Symbolics
 

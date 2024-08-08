@@ -1,5 +1,4 @@
 using CriticalTransitions, StaticArrays, LinearAlgebra
-using CriticalTransitions: fix_ends
 
 using CairoMakie
 using MathTeXEngine: get_font
@@ -29,7 +28,7 @@ xx = range(-1.0, 1.0; length=100)
 yy = 0.3 .* (-xx .^ 2 .+ 1)
 init = Matrix([xx yy]')
 
-gm = geometric_min_action_method(sys, init; maxiter=1000, Stol=1e-6, iter_per_batch=5)
+gm = geometric_min_action_method(sys, init; maxiter=1000, Stol=1e-6, iter_per_batch=1)
 
 begin
     u_min = -1.1
@@ -64,13 +63,7 @@ begin
     )
 
     hm = heatmap!(
-        ax,
-        u_range,
-        v_range,
-        z;
-        colormap=:Blues,
-        colorrange=(zmin, zmax),
-        colorscale=sqrt,
+        ax, u_range, v_range, z; colormap=:Blues, colorrange=(zmin, zmax), colorscale=sqrt
     )
     Colorbar(fig[1, 2], hm; label="", width=15, ticksize=15, tickalign=1)
     streamplot!(

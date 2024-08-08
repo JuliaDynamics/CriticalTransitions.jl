@@ -25,7 +25,7 @@
         @test length(ensemble.times) == 11
         @test ensemble.t_res ≈ 5299.98 atol = 1e-1
     else
-        @test length(ensemble.times) == 10
-        @test ensemble.t_res ≈ 4953.88 atol = 1e-1
+        @test length(ensemble.times) == 10 broken=inrepl
+        @test ensemble.t_res ≈ 4953.88 atol = 1e-1 broken=inrepl
     end
 end

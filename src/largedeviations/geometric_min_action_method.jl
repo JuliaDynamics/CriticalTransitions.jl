@@ -25,31 +25,9 @@ algorithm[^1].
 
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
-function geometric_min_action_method(
-    sys::CoupledSDEs,
-    x_i,
-    x_f,
-    arclength=1.0;
-    N=100,
-    maxiter=100,
-    converge=1e-5,
-    method=LBFGS(),
-    tau=0.1,
-    verbose::Bool=true,
-    showprogress::Bool=false,
-)
+function geometric_min_action_method(sys::CoupledSDEs, x_i, x_f; N=100, kwargs...)
     path = reduce(hcat, range(x_i, x_f; length=N))
-    return geometric_min_action_method(
-        sys::CoupledSDEs,
-        path,
-        arclength;
-        maxiter=maxiter,
-        converge=converge,
-        method=method,
-        tau=tau,
-        verbose=verbose,
-        showprogress=showprogress,
-    )
+    return geometric_min_action_method(sys::CoupledSDEs, path; kwargs...)
 end
 
 """
@@ -66,8 +44,7 @@ For more information see the main method,
 """
 function geometric_min_action_method(
     sys::CoupledSDEs,
-    init::Matrix,
-    arclength=1.0;
+    init::Matrix;
     maxiter::Int=100,
     abstol=1e-8,
     reltol=1e-8,
@@ -83,9 +60,11 @@ function geometric_min_action_method(
     x_f = init[:, end]
     N = length(init[1, :])
 
-    S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength)
-    paths = [path]
-    action = [S(path)]
+    S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), 1.0)
+    paths = Matrix[]
+    action = Float64[]
+    push!(paths, path)
+    push!(action, S(path))
 
     alpha = zeros(N)
     arc = range(0, 1.0; length=N)
@@ -129,8 +108,8 @@ function interpolate_path!(path, α, s)
     α[2:end] .= vec(sqrt.(sum(diff(path; dims=2) .^ 2; dims=1)))
     α .= cumsum(α; dims=1)
     α .= α ./ α[end]
-    interp = ParametricSpline(α, path)
-    path .= Matrix(interp(s))
+    path[1,:] .= LinearInterpolation(α, path[1,:])(s)
+    path[2,:] .= LinearInterpolation(α, path[2,:])(s)
     return nothing
 end
 

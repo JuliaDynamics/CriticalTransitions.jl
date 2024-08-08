@@ -17,7 +17,6 @@ function interpolate_path(path, N)
     return reduce(hcat, [interp(x) for x in range(0, 1.0; length=N)])
 end
 
-
 function interpolate_path!(path, α, s)
     α[2:end] .= vec(sqrt.(sum(diff(path; dims=2) .^ 2; dims=1)))
     α .= cumsum(α; dims=1)

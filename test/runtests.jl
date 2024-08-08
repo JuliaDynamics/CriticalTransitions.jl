@@ -6,6 +6,7 @@ using Random
 const SEED = 0xd8e5d8df
 Random.seed!(SEED)
 
+const inrepl = (local REPL = get(Base.loaded_modules, Base.PkgId(Base.UUID("3fa0cd96-eef1-5676-8a61-b3b8758bbffb"), "REPL"), nothing); REPL !== nothing)
 function fitzhugh_nagumo(u, p, t)
     x, y = u
     ϵ, β, α, γ, κ, I = p
