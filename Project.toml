@@ -63,7 +63,7 @@ Reexport = "1.2.2"
 StaticArrays = "1.9.3"
 Statistics = ">=1.9"
 StochasticDiffEq = "6.65.1"
-Symbolics = "5.32"
+Symbolics = "5.32, 6"
 julia = "1.9"
 
 [extras]
