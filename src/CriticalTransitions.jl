@@ -2,16 +2,10 @@ module CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra: LinearAlgebra, Diagonal, I, norm, tr, dot
+using LinearAlgebra: LinearAlgebra, I, norm, dot #, Diagonal, tr
 using StaticArrays: StaticArrays, SVector
 
-# core
-using DynamicalSystemsBase:
-    DynamicalSystemsBase,
-    ContinuousTimeDynamicalSystem,
-    StateSpaceSets,
-    dimension,
-    dynamic_rule
+# Core
 using DiffEqNoiseProcess: DiffEqNoiseProcess
 using OrdinaryDiffEq: OrdinaryDiffEq, Tsit5
 using StochasticDiffEq:
@@ -25,6 +19,17 @@ using StochasticDiffEq:
     step!,
     terminate!,
     u_modified!
+using DynamicalSystemsBase:
+    DynamicalSystemsBase,
+    #ContinuousTimeDynamicalSystem,
+    CoupledODEs,
+    CoupledSDEs,
+    #StateSpaceSets,
+    #dimension,
+    dynamic_rule
+
+#StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
+#using DynamicalSystemsBase.StochasticSystemsBase: CoupledSDEs
 
 using ForwardDiff: ForwardDiff
 using IntervalArithmetic: IntervalArithmetic, interval
@@ -51,8 +56,8 @@ using Reexport: @reexport
 
 include("extention_functions.jl")
 include("utils.jl")
-include("CoupledSDEs.jl")
-include("CoupledSDEs_utils.jl")
+#include("CoupledSDEs.jl")
+#include("CoupledSDEs_utils.jl")
 include("io.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
@@ -70,9 +75,9 @@ export CoupledSDEs,
     idfunc!,
     idfunc,
     add_noise_strength,
-    noise_process,
-    covariance_matrix,
-    noise_strength,
+    #noise_process,
+    #covariance_matrix,
+    #noise_strength,
     CoupledODEs
 
 # Methods
