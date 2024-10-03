@@ -1,5 +1,5 @@
 """
-    equilib(sys::CoupledSDEs, state; kwargs...)
+    equilib(sys::CoupledSDEs [, state]; kwargs...)
 Returns the equilibrium solution of the system `sys` for given initial condition `state`.
 
 > Warning: This algorithm simply evolves the deterministic system forward in time until a steady-state condition is satisfied.
@@ -12,13 +12,12 @@ Returns the equilibrium solution of the system `sys` for given initial condition
 * `dt = 0.01`: time step of the ODE solver.
 * `solver = Euler()`: ODE solver used for evolving the state.
 """
-function equilib(sys::CoupledSDEs, state; dt=0.01, tmax=1e5, abstol=1e-5, solver=Tsit5())
+function equilib(sys::CoupledSDEs, state=nothing; dt=0.01, tmax=1e5, abstol=1e-5, solver=Tsit5())
     condition(u, t, integrator) = norm(integrator.uprev - u) < abstol
     affect!(integrator) = terminate!(integrator)
     equilib_cond = DiscreteCallback(condition, affect!)
-
-    prob = ODEProblem(sys.integ.f, state, (0, tmax), sys.p0)
+    isnothing(state) ? nothing : set_state!(sys, state)
+    prob = sys.integ.sol.prob
     sol = solve(prob, solver; dt=dt, callback=equilib_cond, save_on=false, save_start=false)
-
     return sol.u[1]
 end;

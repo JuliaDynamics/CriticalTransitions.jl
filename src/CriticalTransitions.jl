@@ -2,7 +2,7 @@ module CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra: LinearAlgebra, I, norm, dot #, Diagonal, tr
+using LinearAlgebra: LinearAlgebra, I, norm, dot, tr #, Diagonal, tr
 using StaticArrays: StaticArrays, SVector
 
 # Core
@@ -26,7 +26,9 @@ using DynamicalSystemsBase:
     CoupledSDEs,
     #StateSpaceSets,
     #dimension,
-    dynamic_rule
+    dynamic_rule,
+    current_state,
+    set_state!
 
 #StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
 #using DynamicalSystemsBase.StochasticSystemsBase: CoupledSDEs
@@ -54,8 +56,13 @@ using Reexport: @reexport
 @reexport using StochasticDiffEq
 @reexport using DiffEqNoiseProcess
 
+StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
+covariance_matrix = StochasticSystemsBase.covariance_matrix
+diffusion_matrix = StochasticSystemsBase.diffusion_matrix
+
 include("extention_functions.jl")
 include("utils.jl")
+include("system_utils.jl")
 #include("CoupledSDEs.jl")
 #include("CoupledSDEs_utils.jl")
 include("io.jl")
