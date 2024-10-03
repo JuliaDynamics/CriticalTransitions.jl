@@ -20,7 +20,7 @@ generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm``). 
 function fw_action(sys::CoupledSDEs, path, time)
     @assert all(diff(time) .≈ diff(time[1:2])) "Freidlin-Wentzell action is only defined for equispaced time"
     # Inverse of covariance matrix
-    A = inv(covariance_matrix(sys)) # Do we have to take the inverse here?
+    A = inv(covariance_matrix(sys)) 
 
     # Compute action integral
     integrand = fw_integrand(sys, path, time, A)
@@ -35,7 +35,7 @@ end;
 """
 $(TYPEDSIGNATURES)
 
-Calculates the Onsager-Machlup action of a given `path` with time points `time` for the drift field `sys.f` at given `sys.noise_strength`.
+Calculates the Onsager-Machlup action of a given `path` with time points `time` for the drift field `sys.f` at given `noise_strength`.
 
 The path must be a `(D x N)` matrix, where `D` is the dimensionality of the system `sys` and
 `N` is the number of path points. The `time` array must have length `N`.
@@ -50,10 +50,10 @@ time of the path, and ``\\sigma`` the noise strength. The subscript ``Q`` refers
 generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm``). Here
 ``Q`` is the noise covariance matrix.
 """
-function om_action(sys::CoupledSDEs, path, time)
+function om_action(sys::CoupledSDEs, path, time, noise_strength)
     @assert all(diff(time) .≈ diff(time[1:2])) "Fw_action is only defined for equispaced time"
 
-    σ = noise_strength(sys)
+    σ = noise_strength
     # Compute action integral
     S = 0
     for i in 1:(size(path, 2) - 1)
@@ -75,11 +75,11 @@ Computes the action functional specified by `functional` for a given CoupledSDEs
 * `functional = "FW"`: Returns the Freidlin-Wentzell action ([`fw_action`](@ref))
 * `functional = "OM"`: Returns the Onsager-Machlup action ([`om_action`](@ref))
 """
-function action(sys::CoupledSDEs, path::Matrix, time, functional)
+function action(sys::CoupledSDEs, path::Matrix, time, functional; noise_strength=nothing)
     if functional == "FW"
         action = fw_action(sys, path, time)
     elseif functional == "OM"
-        action = om_action(sys, path, time)
+        action = om_action(sys, path, time, noise_strength)
     end
     return action
 end;
