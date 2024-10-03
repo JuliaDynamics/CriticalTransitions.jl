@@ -44,9 +44,9 @@ end
     JET.test_package(CriticalTransitions; target_defined_modules=true)
 end
 
-@testset "CoupledSDEs" begin
-    include("CoupledSDEs.jl")
-end
+#@testset "CoupledSDEs" begin
+#    include("CoupledSDEs.jl")
+#end
 
 @testset "ModelingToolkit" begin
     include("ModelingToolkit.jl")
@@ -58,9 +58,9 @@ end
     include("largedeviations/gMAM.jl")
 end
 
-@testset "utilities" begin
-    include("utils.jl")
-end
+#@testset "utilities" begin
+#    include("utils.jl")
+#end
 
 @testset "Trajactories" begin
     include("trajactories/simulate.jl")

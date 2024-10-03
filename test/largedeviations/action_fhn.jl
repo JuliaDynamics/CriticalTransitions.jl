@@ -4,9 +4,9 @@ Random.seed!(SEED)
 # System setup - FitzHugh-Nagumo model
 p = [1.0, 3.0, 1.0, 1.0, 1.0, 0.0] # Parameters (ϵ, β, α, γ, κ, I)
 σ = 0.2 # noise strength
-sys = CoupledSDEs(fitzhugh_nagumo, idfunc, zeros(2), p, σ; seed=SEED)
+sys = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ)#, seed=SEED)
 
-A = inv(CT.covariance_matrix(sys))
+A = inv(covariance_matrix(sys))
 T, N = 2.0, 100
 
 x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
@@ -22,7 +22,7 @@ end
 
 # Test om_action function
 @testset "om_action" begin
-    S = om_action(sys, path, time)
+    S = om_action(sys, path, time, σ)
     @test isapprox(S, 0.26, atol=0.01)
 end
 

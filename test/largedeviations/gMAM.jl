@@ -1,7 +1,7 @@
 @testset "gMAM FitzHugh-Nagumo" begin
     p = [0.1, 3, 1, 1, 1, 0]
     σ = 0.1
-    fhn = CoupledSDEs(fitzhugh_nagumo, idfunc, zeros(2), p, σ)
+    fhn = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ)
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
     N = 100
@@ -19,7 +19,7 @@ end
     end
     σ = 0.25
     # sys = CoupledSDEs(fitzhugh_nagumo, idfunc, zeros(2), p, σ)
-    sys = CoupledSDEs(meier_stein, idfunc, zeros(2), (), σ)
+    sys = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
 
     # initial path: parabola
     xx = range(-1.0, 1.0; length=30)

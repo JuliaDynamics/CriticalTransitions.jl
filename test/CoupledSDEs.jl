@@ -21,7 +21,7 @@
         # diagonal additive noise: σ*N(0,dt)
         # a vector of random numbers dW whose size matches the output of g where the noise is applied element-wise
         prob = SDEProblem(meier_stein, diagonal_noise(σ), zeros(2), (0.0, Inf), ())
-        sde = CoupledSDEs(meier_stein, idfunc, zeros(2), (), σ)
+        sde = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
 
         @test sde.integ.sol.prob.f isa SDEFunction
         @test sde.integ.sol.prob.f.f.f == prob.f.f
@@ -46,7 +46,7 @@
         σ = 0.25 # noise strength
         W = WienerProcess(0.0, 0.0, 0.0)
         prob = SDEProblem(f!, diagonal_noise!(σ), zeros(2), (0.0, Inf), (); noise=W)
-        sde = CoupledSDEs(f!, idfunc!, zeros(2), (), σ; noise=W)
+        sde = CoupledSDEs(f!, zeros(2); noise_process=W, noise_strength=σ)
 
         @test sde.integ.sol.prob.f isa SDEFunction
         @test sde.integ.sol.prob.f.f.f == prob.f.f
@@ -74,7 +74,7 @@
         g_sde(u, p, t) = σ .* u
         g_Csde(u, p, t) = σ .* u
         prob = SDEProblem(meier_stein, g_sde, zeros(2), (0.0, Inf), ())
-        sde = CoupledSDEs(meier_stein, g_Csde, zeros(2), (), σ)
+        sde = CoupledSDEs(meier_stein, zeros(2); g=g_Csde)
 
         @test sde.integ.sol.prob.f isa SDEFunction
         @test sde.integ.sol.prob.f.f.f == prob.f.f
@@ -108,7 +108,7 @@
         # prob = SDEProblem(f, g, ones(2), (0.0, 1.0), noise_rate_prototype = zeros(2, 4))
         # diffeq =(alg=SRIW1(), noise_rate_prototype = zeros(2, 4))
         sde = CoupledSDEs(
-            f, g, zeros(2); noise_rate_prototype=zeros(2, 4), diffeq=(alg=RKMilCommute(),)
+            f, zeros(2); g, noise_prototype=zeros(2, 4), diffeq=(alg=RKMilCommute(),)
         )
         prob = SDEProblem(f, g, zeros(2), (0.0, Inf); noise_rate_prototype=zeros(2, 4))
 
@@ -133,7 +133,7 @@
         Z0 = zeros(2)
         W = CorrelatedWienerProcess(Γ, t0, W0, Z0)
         prob = SDEProblem(f!, diagonal_noise!(σ), zeros(2), (0.0, Inf), (); noise=W)
-        sde = CoupledSDEs(f!, idfunc!, zeros(2), (), σ; noise=W)
+        sde = CoupledSDEs(f!, zeros(2); noise_process=W, noise_strength=σ)
 
         @test sde.integ.sol.prob.f isa SDEFunction
         @test sde.integ.sol.prob.f.f.f == prob.f.f
