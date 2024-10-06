@@ -20,11 +20,7 @@ using StochasticDiffEq:
     terminate!,
     u_modified!
 using DynamicalSystemsBase:
-    DynamicalSystemsBase,
-    CoupledSDEs,
-    dynamic_rule,
-    current_state,
-    set_state!
+    DynamicalSystemsBase, CoupledSDEs, dynamic_rule, current_state, set_state!
 
 #StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
 #using DynamicalSystemsBase.StochasticSystemsBase: CoupledSDEs
@@ -68,10 +64,7 @@ include("../systems/CTLibrary.jl")
 using .CTLibrary
 
 # Core types
-export CoupledSDEs,
-    noise_process,
-    covariance_matrix,
-    diffusion_matrix
+export CoupledSDEs, noise_process, covariance_matrix, diffusion_matrix
 
 # Methods
 export equilib, basins, basinboundary, basboundary

@@ -7,7 +7,7 @@
     N = 100
     res = geometric_min_action_method(fhn, x_i, x_f; N=75, maxiter=200, verbose=false)
     S = geometric_action(fhn, res[1][end])
-    @test isapprox(S, 0.18, atol=0.01) broken=true
+    @test isapprox(S, 0.18, atol=0.01) broken = true
 end
 
 @testset "gMAM Meier Stein" begin
@@ -36,7 +36,7 @@ end
         path = gm[1][end]
         action_val = gm[2][end]
         @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=1e-3))
-        @test all(isapprox.(action_val, 0.3375, atol=1e-3)) broken=true
+        @test all(isapprox.(action_val, 0.3375, atol=1e-3)) broken = true
     end
 
     @testset "HeymannVandenEijnden" begin # broken

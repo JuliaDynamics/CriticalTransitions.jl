@@ -9,7 +9,7 @@
         fhn, x_i, x_f, N, T; maxiter=100, verbose=false, save_info=false
     )
     S = fw_action(fhn, inst, range(0.0, T; length=N))
-    @test isapprox(S, 0.18, atol=0.01) broken=true
+    @test isapprox(S, 0.18, atol=0.01) broken = true
 end
 
 @testset "MAM Ornstein-Uhlenbeck" begin

@@ -15,9 +15,7 @@
     u0 = zeros(2)
     sys = CoupledSDEs(fitzhugh_nagumo, u0, param; noise_strength=σ)
 
-    @testset "correlation" begin
-
-    end
+    @testset "correlation" begin end
 
     @testset "noise" begin
         diff = diffusion_matrix(sys)
@@ -25,7 +23,7 @@
         @test diff isa AbstractMatrix
         @test cov isa AbstractMatrix
         @test all(diag(diff) .== σ)
-        @test diff.^2 == cov
+        @test diff .^ 2 == cov
 
         W = noise_process(sys)
         int_cov = W.covariance
@@ -35,9 +33,8 @@
 
     @testset "drift" begin
         using CriticalTransitions: drift
-        drift_vector = drift(sys, [0,0])
-        drift_vector isa SVector{2, Float64}
-        @test drift_vector == [0,0]
+        drift_vector = drift(sys, [0, 0])
+        drift_vector isa SVector{2,Float64}
+        @test drift_vector == [0, 0]
     end
-
 end

@@ -22,7 +22,6 @@
     @test ensemble.t_trans ≈ 4.493941793363376 atol = 1e-2
     # SEED is different on github
     # SEED doesn;t work on github
-    @test length(ensemble.times) == 11 broken=true
-    @test ensemble.t_res ≈ 5299.98 broken=true
-
+    @test length(ensemble.times) == 11 broken = true
+    @test ensemble.t_res ≈ 5299.98 broken = true
 end

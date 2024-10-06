@@ -45,7 +45,7 @@ end
 end
 
 @testset "CoupledSDEs" begin
-   include("CoupledSDEs.jl")
+    include("CoupledSDEs.jl")
 end
 
 @testset "ModelingToolkit" begin
@@ -59,7 +59,7 @@ end
 end
 
 @testset "utilities" begin
-   include("utils.jl")
+    include("utils.jl")
 end
 
 # @testset "Trajactories" begin
