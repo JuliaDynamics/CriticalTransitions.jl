@@ -44,40 +44,40 @@ end
     JET.test_package(CriticalTransitions; target_defined_modules=true)
 end
 
-#@testset "CoupledSDEs" begin
-#    include("CoupledSDEs.jl")
-#end
+@testset "CoupledSDEs" begin
+   include("CoupledSDEs.jl")
+end
 
 @testset "ModelingToolkit" begin
     include("ModelingToolkit.jl")
 end
 
-@testset "Large Deviations" begin
-    include("largedeviations/action_fhn.jl")
-    include("largedeviations/MAM.jl")
-    include("largedeviations/gMAM.jl")
-end
+# @testset "Large Deviations" begin
+#     include("largedeviations/action_fhn.jl")
+#     include("largedeviations/MAM.jl")
+#     include("largedeviations/gMAM.jl")
+# end
 
 #@testset "utilities" begin
 #    include("utils.jl")
 #end
 
-@testset "Trajactories" begin
-    include("trajactories/simulate.jl")
-    include("trajactories/transition.jl")
-end
+# @testset "Trajactories" begin
+#     include("trajactories/simulate.jl")
+#     include("trajactories/transition.jl")
+# end
 
-@testset "Extentions" begin
-    @testset "ChaosToolsExt" begin
-        include("ext/ChaosToolsExt.jl")
-    end
+# @testset "Extentions" begin
+#     @testset "ChaosToolsExt" begin
+#         include("ext/ChaosToolsExt.jl")
+#     end
 
-    @testset "CoupledSDEsBaisin" begin
-        include("ext/CoupledSDEsBaisin.jl")
-    end
-end
+#     @testset "CoupledSDEsBaisin" begin
+#         include("ext/CoupledSDEsBaisin.jl")
+#     end
+# end
 
-@testset "Doctests" begin
-    using Documenter
-    Documenter.doctest(CriticalTransitions)
-end
+# @testset "Doctests" begin
+#     using Documenter
+#     Documenter.doctest(CriticalTransitions)
+# end

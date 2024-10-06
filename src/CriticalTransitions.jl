@@ -2,7 +2,7 @@ module CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra: LinearAlgebra, I, norm, dot, tr #, Diagonal, tr
+using LinearAlgebra: LinearAlgebra, I, norm, dot, tr
 using StaticArrays: StaticArrays, SVector
 
 # Core
@@ -22,7 +22,7 @@ using StochasticDiffEq:
 using DynamicalSystemsBase:
     DynamicalSystemsBase,
     #ContinuousTimeDynamicalSystem,
-    CoupledODEs,
+    # CoupledODEs,
     CoupledSDEs,
     #StateSpaceSets,
     #dimension,
@@ -56,15 +56,9 @@ using Reexport: @reexport
 @reexport using StochasticDiffEq
 @reexport using DiffEqNoiseProcess
 
-StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
-covariance_matrix = StochasticSystemsBase.covariance_matrix
-diffusion_matrix = StochasticSystemsBase.diffusion_matrix
-
 include("extention_functions.jl")
 include("utils.jl")
 include("system_utils.jl")
-#include("CoupledSDEs.jl")
-#include("CoupledSDEs_utils.jl")
 include("io.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
@@ -79,13 +73,9 @@ using .CTLibrary
 
 # Core types
 export CoupledSDEs,
-    idfunc!,
-    idfunc,
-    add_noise_strength,
-    #noise_process,
-    #covariance_matrix,
-    #noise_strength,
-    CoupledODEs
+    noise_process,
+    covariance_matrix,
+    diffusion_matrix
 
 # Methods
 export equilib, basins, basinboundary, basboundary
