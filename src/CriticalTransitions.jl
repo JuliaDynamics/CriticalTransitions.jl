@@ -21,11 +21,7 @@ using StochasticDiffEq:
     u_modified!
 using DynamicalSystemsBase:
     DynamicalSystemsBase,
-    #ContinuousTimeDynamicalSystem,
-    # CoupledODEs,
     CoupledSDEs,
-    #StateSpaceSets,
-    #dimension,
     dynamic_rule,
     current_state,
     set_state!

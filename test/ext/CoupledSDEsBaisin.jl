@@ -2,7 +2,7 @@
     using Attractors, ChaosTools
     # Define systems
     system = CoupledSDEs(
-        fitzhugh_nagumo, idfunc, [2.0, 0.1], [0.1, 3.0, 1.0, 1.0, 1.0, 0.0], 0.215
+        fitzhugh_nagumo, [2.0, 0.1], [0.1, 3.0, 1.0, 1.0, 1.0, 0.0]; noise_strength=0.215
     )
 
     # Set up domain
