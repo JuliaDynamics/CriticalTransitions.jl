@@ -65,6 +65,7 @@ using .CTLibrary
 
 # Core types
 export CoupledSDEs, noise_process, covariance_matrix, diffusion_matrix
+export dynamic_rule, current_state, set_state!
 
 # Methods
 export equilib, basins, basinboundary, basboundary

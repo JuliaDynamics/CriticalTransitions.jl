@@ -103,6 +103,19 @@ function subnorm(vec; directions=1:length(vec))
     return sqrt(sum)
 end;
 
+"""
+$(TYPEDSIGNATURES)
+
+Normalizes the covariance matrix ``Q`` (in-place) by dividing it by
+``L_1(Q)/\\text{dim}(Q)``, where ``L_1(Q)`` is the L1 matrix norm of ``Q`` and
+``\\text{dim}(Q)`` is the dimension of ``Q``.
+"""
+function normalize_covariance!(covariance)
+    l1norm = norm(covariance, 1)
+    dim = size(covariance)[1]
+    return covariance * dim/l1norm
+end
+
 # Central finite difference, second derivative
 function central(f, idx, dz)
     return (f[idx + 1] - f[idx - 1]) / (2 * dz)

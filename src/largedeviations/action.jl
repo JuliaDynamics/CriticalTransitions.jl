@@ -20,7 +20,7 @@ generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm``). 
 function fw_action(sys::CoupledSDEs, path, time)
     @assert all(diff(time) .≈ diff(time[1:2])) "Freidlin-Wentzell action is only defined for equispaced time"
     # Inverse of covariance matrix
-    A = inv(covariance_matrix(sys))
+    A = inv(normalize_covariance!(covariance_matrix(sys)))
 
     # Compute action integral
     integrand = fw_integrand(sys, path, time, A)
@@ -107,7 +107,7 @@ Returns the value of the geometric action ``\\bar S``.
 function geometric_action(sys::CoupledSDEs, path, arclength=1.0)
     N = size(path, 2)
     v = path_velocity(path, range(0, arclength; length=N); order=4)
-    A = inv(covariance_matrix(sys))
+    A = inv(normalize_covariance!(covariance_matrix(sys)))
 
     b(x) = drift(sys, x)
 

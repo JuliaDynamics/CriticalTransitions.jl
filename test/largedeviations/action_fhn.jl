@@ -17,13 +17,13 @@ time = range(0.0, T; length=N)
 
 @testset "fw_action" begin
     S = fw_action(sys, path, time)
-    @test isapprox(S, 0.32, atol=0.01) broken = true
+    @test isapprox(S, 0.32, atol=0.01)
 end
 
 # Test om_action function
 @testset "om_action" begin
     S = om_action(sys, path, time, σ)
-    @test isapprox(S, 0.26, atol=0.01) broken = true
+    @test isapprox(S, 0.26, atol=0.01)
 end
 
 # Test action function
@@ -34,7 +34,7 @@ end
 # Test geometric_action function
 @testset "geometric_action" begin
     S = geometric_action(sys, path)
-    @test isapprox(S, 0.23, atol=0.01) broken = true
+    @test isapprox(S, 0.23, atol=0.01)
 end
 
 # Test fw_integrand function
