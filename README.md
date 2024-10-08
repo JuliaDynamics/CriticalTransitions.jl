@@ -26,22 +26,22 @@ function fitzhugh_nagumo(u, p, t)
     dx = (-α * x^3 + γ * x - κ * y + I) / ϵ
     dy = -β * y + x
 
-    return SA[dx, dy]
+    return SVector{2}([dx, dy])
 end
 
 # System parameters
-p = [1., 3., 1., 1., 1., 0.]
+params = [1., 3., 1., 1., 1., 0.]
 noise_strength = 0.02
+initial_state = zeros(2)
 
 # Define stochastic system
-sys = CoupledSDEs(fitzhugh_nagumo, id_func, zeros(2), p, noise_strength)
+sys = CoupledSDEs(fitzhugh_nagumo, initial_state, params; noise_strength)
 
-# Get stable fixed points
-fps, eigs, stab = fixedpoints(sys, [-2,-2], [2,2])
-fp1, fp2 = fps[stab]
+# Run a sample trajectory
+traj = trajectory(sys, 10.0)
 
-# Generate noise-induced transition from one fixed point to the other
-path, times, success = transition(sys, fp1, fp2)
+# Compute minimum action path using gMAM algorithm
+instanton = geometric_min_action_method(sys, initial_state, current_state(sys))
 
 # ... and more, check out the documentation!
 ```
