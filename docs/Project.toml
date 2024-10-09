@@ -1,14 +1,15 @@
 [deps]
 Attractors = "f3fd9213-ca85-4dba-9dfd-7fc91308fec7"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
-Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 ChaosTools = "608a59af-f2a3-5ad4-90b4-758bdf3122a7"
 CriticalTransitions = "251e6cd3-3112-48a5-99dd-66efcfd18334"
+DiffEqNoiseProcess = "77a26b50-5914-5dd7-bc55-306e6241c503"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterCitations = "daee34ce-89f3-4625-b898-19384cb65244"
 DocumenterInterLinks = "d12716ef-a0f6-4df4-a9f1-a5a34e75c656"
+DynamicalSystemsBase = "6e36e845-645a-534a-86f2-f5d4aa5a06b4"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
-
 
 [compat]
 Documenter = "1"

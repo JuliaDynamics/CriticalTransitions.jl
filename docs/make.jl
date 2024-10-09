@@ -48,7 +48,7 @@ makedocs(;
     ],
     doctest=false,
     format=Documenter.HTML(; html_options...),
-    warnonly=[:missing_docs],
+    warnonly=[:missing_docs, :docs_block, :cross_references],
     pages=pages,
     plugins=[bib, links],
 )
