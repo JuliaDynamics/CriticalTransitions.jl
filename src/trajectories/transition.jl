@@ -40,9 +40,9 @@ This function simulates `sys` in time, starting from initial condition `x_i`, un
 * `path` (Matrix): transition path (size [dim × N], where N is the number of time points)
 * `times` (Vector): time values (since start of simulation) of the path points (size N)
 * `success` (bool): if `true`, a transition occured (i.e. the ball around `x_f` has been reached), else `false`
-* `kwargs...`: keyword arguments passed to [`simulate`](@ref)
+* `kwargs...`: keyword arguments passed to [`solve`](@ref)
 
-See also [`transitions`](@ref), [`simulate`](@ref).
+See also [`transitions`](@ref), [`trajectory`](@ref).
 """
 function transition(
     sys::CoupledSDEs,
@@ -58,8 +58,9 @@ function transition(
     condition(u, t, integrator) = subnorm(u - x_f; directions=rad_dims) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
-
-    sim = simulate(sys, tmax, x_i; callback=cb_ball, kwargs...)
+    
+    prob = remake(sys.integ.sol.prob; u0=x_i, tspan=(0, tmax))
+    sim = solve(prob, sys.integ.alg; callback=cb_ball, kwargs...)
     success = sim.retcode == SciMLBase.ReturnCode.Terminated
 
     simt = sim.t
