@@ -46,7 +46,7 @@ makedocs(;
         CriticalTransitions.DiffEqNoiseProcess,
         Base.get_extension(CriticalTransitions, :ChaosToolsExt),
         Base.get_extension(CriticalTransitions, :CoupledSDEsBaisin),
-        Base.get_extension(CriticalTransitions, :StochasticSystemsBase)
+        Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
     ],
     doctest=false,
     format=Documenter.HTML(; html_options...),
