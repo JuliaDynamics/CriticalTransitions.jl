@@ -25,6 +25,23 @@ function covariance_matrix(sys::CoupledSDEs)
     end
 end
 
+# add covariance to noise if it is nothing (resolves ambiguity)
+function resolve_covariance!(prob, noise_type, param, D, IIP)
+    noise = prob.noise
+    noise_prototype = prob.noise_rate_prototype
+    noise_size = isnothing(noise_prototype) ? nothing : size(noise_prototype)
+    encoded_cov = noise_type[:additive] && noise_type[:autonomous] && noise_size == (D, D)
+    if encoded_cov && !isnothing(noise) && isnothing(noise.covariance)
+        if IIP
+            du = deepcopy(noise_prototype)
+            prob.g(du, zeros(D), param, 0.0)
+            noise.covariance = du
+        else
+            noise.covariance = prob.g(zeros(D), param, 0.0)
+        end # NoiseProcess is a mutable struct
+    end
+end
+
 """
 $(TYPEDSIGNATURES)
 
