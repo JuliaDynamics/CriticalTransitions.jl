@@ -46,11 +46,12 @@ makedocs(;
         CriticalTransitions.DiffEqNoiseProcess,
         Base.get_extension(CriticalTransitions, :ChaosToolsExt),
         Base.get_extension(CriticalTransitions, :CoupledSDEsBaisin),
+        DynamicalSystemsBase,
         Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
     ],
     doctest=false,
     format=Documenter.HTML(; html_options...),
-    warnonly=[:missing_docs, :docs_block, :cross_references],
+    warnonly=[:missing_docs, :linkcheck, :cross_references],
     pages=pages,
     plugins=[bib, links],
 )

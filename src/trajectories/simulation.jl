@@ -12,7 +12,7 @@ This function is equivalent to calling [`trajectory`](@ref) on the deterministic
 * `kwargs...`: keyword arguments passed to [`trajectory`](@ref)
 
 For more info, see [`ODEProblem`](https://diffeq.sciml.ai/stable/types/ode_types/#SciMLBase.ODEProblem).
-For stochastic integration, see [`trajectory`](@ref) and [`simulate`](@ref).
+For stochastic integration, see [`trajectory`](@ref).
 
 """
 function deterministic_orbit(

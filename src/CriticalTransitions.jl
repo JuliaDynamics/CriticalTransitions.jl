@@ -23,9 +23,6 @@ using DynamicalSystemsBase:
     DynamicalSystemsBase, CoupledSDEs, CoupledODEs,
     dynamic_rule, current_state, set_state!, trajectory
 
-#StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
-#using DynamicalSystemsBase.StochasticSystemsBase: CoupledSDEs
-
 using ForwardDiff: ForwardDiff
 using IntervalArithmetic: IntervalArithmetic, interval
 using Dierckx: Dierckx, ParametricSpline
