@@ -69,6 +69,7 @@ export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_mat
 export dynamic_rule, current_state, set_state!, trajectory
 
 # Methods
+export drift, div_drift
 export equilib, deterministic_orbit
 export transition, transitions
 export basins, basinboundary, basboundary
