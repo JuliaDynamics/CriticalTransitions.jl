@@ -1,5 +1,27 @@
 # Changelog for `CriticalTransitions.jl`
 
+## v0.4.0
+New `CoupledSDEs` design
+
+This release upgrades CriticalTransitions.jl to be compatible with the re-design of `CoupledSDEs`, which has now been integrated in [`DynamicalSystemsBase.jl v3.11`](https://juliadynamics.github.io/DynamicalSystemsBase.jl/stable/CoupledSDEs/).
+
+Since we have updated the syntax of defining a `CoupledSDEs` system, this is a breaking change.
+
+#### Changed functions
+- `CoupledSDEs` is now constructed with different args and kwargs
+- `fw_action`, `geometric_action` and `om_action` now normalize the covariance matrix when computing the action functional
+- `noise_strength` is not a function anymore but a kwarg for `CoupledSDEs` and other functions
+- `om_action` now requires `noise_strength` as input argument
+- `relax` was renamed to `deterministic_orbit`
+- `trajectory` has been added to replace `simulate`
+
+#### Deprecations
+- `add_noise_strength`, `idfunc` and `idfunc!` are no longer needed and have been removed
+- the function `noise_strength(::CoupledSDEs)` has been removed
+- `simulate` has been removed
+
+Full changelog [here](https://github.com/JuliaDynamics/CriticalTransitions.jl/compare/v0.3.0...v0.4.0).
+
 ## v0.3.0
 Major overhaul introducing `CoupledSDEs`
 

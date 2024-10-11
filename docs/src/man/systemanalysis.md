@@ -8,13 +8,6 @@ equilib(sys::CoupledSDEs, state; kwargs...)
 fixedpoints
 ```
 
-## Basins of attraction
-```@docs
-basins
-basinboundary
-basboundary
-```
-
 ## Edge tracking
 The edge tracking algorithm is a simple numerical method to find the *edge state* or
 (possibly chaotic) saddle on the boundary between two basins of attraction. It is first

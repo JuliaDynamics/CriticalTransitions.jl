@@ -4,6 +4,7 @@ using CriticalTransitions
 using DocStringExtensions
 using ForwardDiff
 using ChaosTools: ChaosTools, fixedpoints
+using DynamicalSystemsBase: CoupledODEs, StateSpaceSet
 
 export fixedpoints
 
@@ -23,7 +24,7 @@ Returns fixed points, their eigenvalues and stability of the system `sys` within
 
 ## Output
 `[fp, eigs, stable]`
-* `fp`: `Dataset` of fixed points
+* `fp`: `StateSpaceSet` of fixed points
 * `eigs`: vector of Jacobian eigenvalues of each fixed point
 * `stable`: vector of booleans indicating the stability of each fixed point (`true`=stable, `false`=unstable)
 

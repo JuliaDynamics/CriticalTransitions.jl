@@ -26,23 +26,20 @@ This function simulates `sys` in time, starting from initial condition `x_i`, un
 ## Keyword arguments
 * `rad_i=0.1`: radius of ball around `x_i`
 * `rad_f=0.1`: radius of ball around `x_f`
-* `cut_start=true`: if `false`, returns the whole trajectory up to the transition
-* `dt=0.01`: time step of integration
 * `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
 * `rad_dims=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
   `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
   insert a vector of indices of the dimensions to be included.
-* `solver=EM()`: numerical solver. Defaults to Euler-Mayurama.
-* `progress`: shows a progress bar with respect to `tmax`
+* `cut_start=true`: if `false`, returns the whole trajectory up to the transition
+* `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#CommonSolve.solve-Tuple{SciMLBase.AbstractDEProblem,%20Vararg{Any}})
 
 ## Output
 `[path, times, success]`
 * `path` (Matrix): transition path (size [dim × N], where N is the number of time points)
 * `times` (Vector): time values (since start of simulation) of the path points (size N)
 * `success` (bool): if `true`, a transition occured (i.e. the ball around `x_f` has been reached), else `false`
-* `kwargs...`: keyword arguments passed to [`simulate`](@ref)
 
-See also [`transitions`](@ref), [`simulate`](@ref).
+See also [`transitions`](@ref), [`trajectory`](@ref).
 """
 function transition(
     sys::CoupledSDEs,
@@ -51,15 +48,16 @@ function transition(
     rad_i=0.1,
     rad_f=0.1,
     tmax=1e3,
-    cut_start=true,
     rad_dims=1:length(current_state(sys)),
+    cut_start=true,
     kwargs...,
 )
     condition(u, t, integrator) = subnorm(u - x_f; directions=rad_dims) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
-
-    sim = simulate(sys, tmax, x_i; callback=cb_ball, kwargs...)
+    
+    prob = remake(sys.integ.sol.prob; u0=x_i, tspan=(0, tmax))
+    sim = solve(prob, sys.integ.alg; callback=cb_ball, kwargs...)
     success = sim.retcode == SciMLBase.ReturnCode.Terminated
 
     simt = sim.t
@@ -81,7 +79,7 @@ function transition(
 end;
 
 """
-$(TYPEDSIGNATURES)
+    function transitions(sys::CoupledSDEs, x_i, x_f, N=1; kwargs...)
 
 Generates an ensemble of `N` transition samples of `sys` from point `x_i` to point `x_f`.
 
@@ -90,15 +88,15 @@ This function repeatedly calls the [`transition`](@ref) function to efficiently 
 ## Keyword arguments
   - `rad_i=0.1`: radius of ball around `x_i`
   - `rad_f=0.1`: radius of ball around `x_f`
-  - `cut_start=true`: if `false`, returns the whole trajectory up to the transition
   - `Nmax`: number of attempts before the algorithm stops even if less than `N` transitions occurred.
-  - `dt=0.01`: time step of integration
   - `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
   - `rad_dims=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
     `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
     insert a vector of indices of the dimensions to be included.
-  - `progress`: shows a progress bar with respect to `Nmax`
+  - `cut_start=true`: if `false`, returns the whole trajectory up to the transition
   - `savefile`: if `nothing`, no data is saved to a file. To save to a file, see below.
+  - `showprogress`: shows a progress bar with respect to `Nmax`
+  - `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#CommonSolve.solve-Tuple{SciMLBase.AbstractDEProblem,%20Vararg{Any}})
 
 See also [`transition`](@ref).
 

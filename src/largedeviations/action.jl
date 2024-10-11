@@ -2,25 +2,26 @@
 $(TYPEDSIGNATURES)
 
 Calculates the Freidlin-Wentzell action of a given `path` with time points `time` in a
-drift field specified by the deterministic dynamics of `sys`.
+drift field specified by the deterministic dynamics `f = dynamic_rule(sys)` and
+(normalized) noise covariance matrix `covariance_matrix(sys)`.
 
 The path must be a `(D x N)` matrix, where `D` is the dimensionality of the system `sys` and
 `N` is the number of path points. The `time` array must have length `N`.
 
 Returns a single number, which is the value of the action functional
 
-``S_T[\\phi_t] = \\frac{1}{2} \\int_0^T || \\dot \\phi_t - b(\\phi_t) ||^2_Q dt``
+``S_T[\\phi_t] = \\frac{1}{2} \\int_0^T || \\dot \\phi_t - f(\\phi_t) ||^2_Q \\text{d}t``
 
 where ``\\phi_t`` denotes the path in state space, ``b`` the drift field, and ``T`` the
 total time of the path. The subscript ``Q`` refers to the
-generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm``). Here
-``Q`` is the noise covariance matrix `sys.Σ`.
-
+generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm`). Here
+``Q`` is the noise covariance matrix normalized by ``D/L_1(Q)``, with ``L_1`` being the
+L1 matrix norm.
 """
 function fw_action(sys::CoupledSDEs, path, time)
     @assert all(diff(time) .≈ diff(time[1:2])) "Freidlin-Wentzell action is only defined for equispaced time"
     # Inverse of covariance matrix
-    A = inv(covariance_matrix(sys)) # Do we have to take the inverse here?
+    A = inv(normalize_covariance!(covariance_matrix(sys)))
 
     # Compute action integral
     integrand = fw_integrand(sys, path, time, A)
@@ -33,27 +34,28 @@ function fw_action(sys::CoupledSDEs, path, time)
 end;
 
 """
-$(TYPEDSIGNATURES)
+    om_action(sys::CoupledSDEs, path, time, noise_strength)
 
-Calculates the Onsager-Machlup action of a given `path` with time points `time` for the drift field `sys.f` at given `sys.noise_strength`.
+Calculates the Onsager-Machlup action of a given `path` with time points `time` for the drift field `f = dynamic_rule(sys)` at given `noise_strength`.
 
 The path must be a `(D x N)` matrix, where `D` is the dimensionality of the system `sys` and
 `N` is the number of path points. The `time` array must have length `N`.
 
 Returns a single number, which is the value of the action functional
 
-``I^{\\sigma}_T[\\phi_t] = \\frac{1}{2} \\int_0^T \\left( || \\dot \\phi_t - b(\\phi_t) ||^2_Q +
-\\frac{\\sigma^2}{2} \\div(b) \\right) \\, dt``
+``S^{\\sigma}_T[\\phi_t] = \\frac{1}{2} \\int_0^T \\left( || \\dot \\phi_t - f(\\phi_t) ||^2_Q +
+\\sigma^2 \\nabla \\cdot f \\right) \\, \\text{d} t``
 
 where ``\\phi_t`` denotes the path in state space, ``b`` the drift field, ``T`` the total
 time of the path, and ``\\sigma`` the noise strength. The subscript ``Q`` refers to the
-generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm``). Here
-``Q`` is the noise covariance matrix.
+generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm`). Here
+``Q`` is the noise covariance matrix normalized by ``D/L_1(Q)``, with ``L_1`` being the
+L1 matrix norm.
 """
-function om_action(sys::CoupledSDEs, path, time)
+function om_action(sys::CoupledSDEs, path, time, noise_strength)
     @assert all(diff(time) .≈ diff(time[1:2])) "Fw_action is only defined for equispaced time"
 
-    σ = noise_strength(sys)
+    σ = noise_strength
     # Compute action integral
     S = 0
     for i in 1:(size(path, 2) - 1)
@@ -75,11 +77,11 @@ Computes the action functional specified by `functional` for a given CoupledSDEs
 * `functional = "FW"`: Returns the Freidlin-Wentzell action ([`fw_action`](@ref))
 * `functional = "OM"`: Returns the Onsager-Machlup action ([`om_action`](@ref))
 """
-function action(sys::CoupledSDEs, path::Matrix, time, functional)
+function action(sys::CoupledSDEs, path::Matrix, time, functional; noise_strength=nothing)
     if functional == "FW"
         action = fw_action(sys, path, time)
     elseif functional == "OM"
-        action = om_action(sys, path, time)
+        action = om_action(sys, path, time, noise_strength)
     end
     return action
 end;
@@ -88,26 +90,29 @@ end;
 $(TYPEDSIGNATURES)
 
 Calculates the geometric action of a given `path` with specified `arclength` for the drift
-field `sys.f`.
+field specified by the deterministic dynamics `f = dynamic_rule(sys)` and
+(normalized) noise covariance matrix `covariance_matrix(sys)`.
 
 For a given path ``\\varphi``, the geometric action ``\\bar S`` corresponds to the minimum
-of the Freidlin-Wentzell action ``S_T(\\phi)`` over all travel times ``T>0``, where ``\\phi``
+of the Freidlin-Wentzell action ``S_T(\\varphi)`` over all travel times ``T>0``, where ``\\varphi``
 denotes the path's parameterization in physical time (see [`fw_action`](@ref)). It is given
 by the integral
 
-``\\bar S[\\varphi] = \\int_0^L \\left( ||\\varphi'||_Q \\, ||b(\\varphi)||_Q - \\langle \\varphi', \\,
-    b(\\varphi) \\rangle_Q \\right) \\, ds``
+``\\bar S[\\varphi] = \\int_0^L \\left( ||\\varphi'||_Q \\, ||f(\\varphi)||_Q - \\langle \\varphi', \\,
+    f(\\varphi) \\rangle_Q \\right) \\, \\text{d}s``
 
-where ``s`` is the arclength coordinate, ``L`` the arclength, ``b`` the drift field, and the
+where ``s`` is the arclength coordinate, ``L`` the arclength, ``f`` the drift field, and the
 subscript ``Q`` refers to the generalized dot product ``\\langle a, b \\rangle_Q := a^{\\top}
-\\cdot Q^{-1} b`` (see `anorm``). Here ``Q`` is the noise covariance matrix `sys.Σ`.
+\\cdot Q^{-1} b`` (see `anorm`). Here
+``Q`` is the noise covariance matrix normalized by ``D/L_1(Q)``, with ``L_1`` being the
+L1 matrix norm.
 
 Returns the value of the geometric action ``\\bar S``.
 """
 function geometric_action(sys::CoupledSDEs, path, arclength=1.0)
     N = size(path, 2)
     v = path_velocity(path, range(0, arclength; length=N); order=4)
-    A = inv(covariance_matrix(sys))
+    A = inv(normalize_covariance!(covariance_matrix(sys)))
 
     b(x) = drift(sys, x)
 

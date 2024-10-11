@@ -49,9 +49,9 @@ p = [1., 3., 1., 1., 1., 0.] # Parameters (ϵ, β, α, γ, κ, I)
 σ = 0.2 # noise strength
 
 # CoupledSDE
-sys = CoupledSDEs(fitzhugh_nagumo, idfunc, zeros(2), p, σ)
+sys = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ)
 ```
-Here the first field `fitzhugh_nagumo` specifies the deterministic dynamics `f` (see [Define a CoupledSDEs system](@ref)), and the second field `idfunc` specifies the noise function `g`. The `idfunc` identity function is predefined for convenience. We have chosen `zeros(2)` as the initial state of the system, which is the third field. The length of this vector must match the system's dimensionality. In the fourth field, we specify the parameter vector, which includes the parameters of `f` followed by the parameters of `g` (in this case, there are no parameters for `g`). Lastly, `σ` sets the noise strength. Since we have not specified a noise process, the default case of an uncorrelated Wiener process is used.
+Here the first field `fitzhugh_nagumo` specifies the deterministic dynamics `f` (see [Define a CoupledSDEs system](@ref)). We have chosen `zeros(2)` as the initial state of the system, which is the second field. The length of this vector must match the system's dimensionality. In the (optional) third field, we specify the parameter vector `p`, which includes the parameters of `f` followed by the parameters of `g` (in this case, there are no parameters for `g`). Lastly, `noise_strength` sets the noise strength. Since we have not specified a noise process, the default case of an uncorrelated Wiener process is used.
 
 !!! note "Multiplicative and/or correlated noise"
     Of course, it is also possible to define more complicated noise processes than simple additive white noise. This is done by specifying a custom *noise function* and *covariance matrix* in the `CoupledSDEs` definition. For more info, see [Define a CoupledSDEs system](@ref).
@@ -72,10 +72,10 @@ fp1, fp2 = eqs[stab]
 ```
 
 ### Stochastic simulation
-Using the [`simulate`](@ref) function, we now run a simulation of our system for `1e3` time units starting out from the fixed point `fp1`:
+Using the [`trajectory`](@ref) function, we now run a simulation of our system for `100` time units starting out from the fixed point `fp1`:
 
 ```@example MAIN
-sim = simulate(sys, 1e3, fp1; saveat=0.1)
+sim = trajectory(sys, 100, fp1)
 ```
 
 In the keyword arguments, we have specified at which interval the solution is saved. Further keyword arguments can be used to change the solver (the default is `SOSRA()` for stochastic integration) and other settings.
@@ -86,7 +86,7 @@ Let's plot the result. Did the trajectory transition to the other attractor?
 
 ```@example MAIN
 using Plots
-plt = plot(sim[1, :], sim[2, :]; xlabel="u", ylabel="v", legend=false)
+plt = plot(sim[1][:,1], sim[1][:,2]; xlabel="u", ylabel="v", legend=false)
 scatter!([fp1[1], fp2[1]], [fp1[2], fp2[2]], color=:red, markersize=4)
 xlims!(-1.2, 1.2)
 ylims!(-0.6, 0.6)
