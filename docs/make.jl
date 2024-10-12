@@ -4,6 +4,7 @@ using DocumenterInterLinks
 using Pkg
 
 using CriticalTransitions, ChaosTools, Attractors
+using DynamicalSystemsBase
 
 project_toml = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 package_version = project_toml["version"]
@@ -45,10 +46,12 @@ makedocs(;
         CriticalTransitions.DiffEqNoiseProcess,
         Base.get_extension(CriticalTransitions, :ChaosToolsExt),
         Base.get_extension(CriticalTransitions, :CoupledSDEsBaisin),
+        DynamicalSystemsBase,
+        Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
     ],
     doctest=false,
     format=Documenter.HTML(; html_options...),
-    warnonly=[:missing_docs],
+    warnonly=[:missing_docs, :linkcheck, :cross_references],
     pages=pages,
     plugins=[bib, links],
 )

@@ -25,7 +25,7 @@ action
 
 ## Minimum action paths
 We provide the following two methods to calculate *instantons*, or minimum action paths,
-between two states of a `CoupledSDEs`.
+between two states of a `CoupledSDEs` system.
 
 ### Minimum action method (MAM)
 Minimization of the Freidlin-Wentzell action using the L-BFGS algorithm of `Optim.jl`.

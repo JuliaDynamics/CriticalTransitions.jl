@@ -7,10 +7,9 @@ Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSyste
 ![CT.jl infographic](./figs/CTjl_structure_v0.3_small.jpeg)
 
 !!! info "Current features"
-    * **Stability analysis**: Fixed points, linear stability, basins of attraction, edge tracking
-    * **Stochastic simulation**: Gaussian noise, uncorrelated and correlated, additive and multiplicative
-    * **Transition path sampling**: Ensemble sampling by direct simulation and Pathspace Langevin MCMC
-    * **Large deviation theory**: Action functionals and minimization algorithms (MAM, gMAM)
+    * **Stochastic simulation** made easy: Gaussian noise, uncorrelated and correlated, additive and multiplicative
+    * **Transition path sampling**: Parallelized ensemble rejection sampling
+    * **Large deviation theory** tools: Action functionals and minimization algorithms (MAM, gMAM)
 
 !!! ukw "Planned features"
     * **Rare event simulation**: importance sampling, AMS

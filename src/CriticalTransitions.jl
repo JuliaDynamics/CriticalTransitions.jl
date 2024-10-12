@@ -2,16 +2,10 @@ module CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra: LinearAlgebra, Diagonal, I, norm, tr, dot
+using LinearAlgebra: LinearAlgebra, I, norm, dot, tr
 using StaticArrays: StaticArrays, SVector
 
-# core
-using DynamicalSystemsBase:
-    DynamicalSystemsBase,
-    ContinuousTimeDynamicalSystem,
-    StateSpaceSets,
-    dimension,
-    dynamic_rule
+# Core
 using DiffEqNoiseProcess: DiffEqNoiseProcess
 using OrdinaryDiffEq: OrdinaryDiffEq, Tsit5
 using StochasticDiffEq:
@@ -25,6 +19,14 @@ using StochasticDiffEq:
     step!,
     terminate!,
     u_modified!
+using DynamicalSystemsBase:
+    DynamicalSystemsBase,
+    CoupledSDEs,
+    CoupledODEs,
+    dynamic_rule,
+    current_state,
+    set_state!,
+    trajectory
 
 using ForwardDiff: ForwardDiff
 using IntervalArithmetic: IntervalArithmetic, interval
@@ -51,8 +53,7 @@ using Reexport: @reexport
 
 include("extention_functions.jl")
 include("utils.jl")
-include("CoupledSDEs.jl")
-include("CoupledSDEs_utils.jl")
+include("system_utils.jl")
 include("io.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
@@ -66,23 +67,18 @@ include("../systems/CTLibrary.jl")
 using .CTLibrary
 
 # Core types
-export CoupledSDEs,
-    idfunc!,
-    idfunc,
-    add_noise_strength,
-    noise_process,
-    covariance_matrix,
-    noise_strength,
-    CoupledODEs
+export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
+export dynamic_rule, current_state, set_state!, trajectory
 
 # Methods
-export equilib, basins, basinboundary, basboundary
-export simulate, relax
+export drift, div_drift
+export equilib, deterministic_orbit
 export transition, transitions
+export basins, basinboundary, basboundary
 export fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
 export make_jld2, make_h5, intervals_to_box
-# export basins, basinboundary
+export covariance_matrix, diffusion_matrix
 # export edgetracking, bisect_to_edge, AttractorsViaProximity
 # export fixedpoints
 # ^ extention tests needed

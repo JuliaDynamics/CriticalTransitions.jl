@@ -1,23 +1,3 @@
-# Test for idfunc
-@testset "idfunc" begin
-    u = [1, 2, 3]
-    p = [0.1, 0.2, 0.3]
-    t = 0.5
-    expected = [1, 1, 1]
-    @test idfunc(u, p, t) == expected
-end
-
-# Test for idfunc!
-@testset "idfunc!" begin
-    du = zeros(3)
-    u = [1, 2, 3]
-    p = [0.1, 0.2, 0.3]
-    t = 0.5
-    expected = [1, 1, 1]
-    idfunc!(du, u, p, t)
-    @test du == expected
-end
-
 # Test for intervals_to_box
 @testset "intervals_to_box" begin
     using IntervalArithmetic
