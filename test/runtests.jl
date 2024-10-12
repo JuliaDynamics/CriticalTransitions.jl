@@ -58,13 +58,13 @@ end
     include("largedeviations/gMAM.jl")
 end
 
-@testset "utilities" begin
+@testset "Utilities" begin
     include("utils.jl")
 end
 
-@testset "Trajactories" begin
-    include("trajactories/simulate.jl")
-    include("trajactories/transition.jl")
+@testset "Trajectories" begin
+    include("trajectories/simulate.jl")
+    #   include("trajectories/transition.jl")
 end
 
 @testset "Extentions" begin

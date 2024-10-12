@@ -3,11 +3,14 @@
 ## `CoupledSDEs` utility functions
 
 ```@docs
-noise_strength
 covariance_matrix
+diffusion_matrix
+dynamic_rule
 noise_process
-CriticalTransitions.drift
-CriticalTransitions.div_drift
+current_state
+set_state!
+drift
+div_drift
 ```
 
 ## Saving data
