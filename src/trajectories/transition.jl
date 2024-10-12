@@ -55,7 +55,7 @@ function transition(
     condition(u, t, integrator) = subnorm(u - x_f; directions=rad_dims) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
-    
+
     prob = remake(sys.integ.sol.prob; u0=x_i, tspan=(0, tmax))
     sim = solve(prob, sys.integ.alg; callback=cb_ball, kwargs...)
     success = sim.retcode == SciMLBase.ReturnCode.Terminated

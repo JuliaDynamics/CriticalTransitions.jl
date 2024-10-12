@@ -47,7 +47,7 @@ makedocs(;
         Base.get_extension(CriticalTransitions, :ChaosToolsExt),
         Base.get_extension(CriticalTransitions, :CoupledSDEsBaisin),
         DynamicalSystemsBase,
-        Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
+        Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
     ],
     doctest=false,
     format=Documenter.HTML(; html_options...),

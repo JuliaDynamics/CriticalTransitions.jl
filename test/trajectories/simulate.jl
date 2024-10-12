@@ -6,8 +6,8 @@
     sys = CoupledSDEs(fitzhugh_nagumo, init, p; noise_strength=σ)
     traj = trajectory(sys, 10, init)
     relax = deterministic_orbit(sys, 10, init)
-    
-    @test traj[1][1,1] == 1.0
-    @test isapprox(relax[1][end,1], 0.816; atol=1e-2)
+
+    @test traj[1][1, 1] == 1.0
+    @test isapprox(relax[1][end, 1], 0.816; atol=1e-2)
     # These tests could be improved - Reyk
 end

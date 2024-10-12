@@ -20,8 +20,13 @@ using StochasticDiffEq:
     terminate!,
     u_modified!
 using DynamicalSystemsBase:
-    DynamicalSystemsBase, CoupledSDEs, CoupledODEs,
-    dynamic_rule, current_state, set_state!, trajectory
+    DynamicalSystemsBase,
+    CoupledSDEs,
+    CoupledODEs,
+    dynamic_rule,
+    current_state,
+    set_state!,
+    trajectory
 
 using ForwardDiff: ForwardDiff
 using IntervalArithmetic: IntervalArithmetic, interval
