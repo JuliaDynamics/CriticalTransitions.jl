@@ -113,7 +113,7 @@ Normalizes the covariance matrix ``Q`` (in-place) by dividing it by
 function normalize_covariance!(covariance)
     l1norm = norm(covariance, 1)
     dim = size(covariance)[1]
-    return covariance * dim/l1norm
+    return covariance * dim / l1norm
 end
 
 # Central finite difference, second derivative
