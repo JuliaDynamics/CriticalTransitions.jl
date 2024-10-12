@@ -10,7 +10,7 @@ Returns the equilibrium solution of the system `sys` for given initial condition
 * `abstol = 1e-5`: steady-state condition. Simulation ends when the rate of change (Euclidean distance in state space) of the state falls below `abstol`.
 * `tmax = 1e5`: maximum simulation time before the algorithm stops even if the steady-state condition is not reached.
 * `dt = 0.01`: time step of the ODE solver.
-* `solver = Euler()`: ODE solver used for evolving the state.
+* `solver = Tsit5()`: ODE solver used for evolving the state.
 """
 function equilib(
     sys::CoupledSDEs, state=nothing; dt=0.01, tmax=1e5, abstol=1e-5, solver=Tsit5()
