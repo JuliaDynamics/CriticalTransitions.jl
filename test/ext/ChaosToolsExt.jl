@@ -9,7 +9,7 @@ function meier_stein(u, p, t) # out-of-place
 end
 σ = 0.1
 
-sde = CoupledSDEs(meier_stein, idfunc, zeros(2), (), σ)
+sde = CoupledSDEs(meier_stein, zeros(2), (); noise_strength=σ)
 
 fps, eigs, stab = fixedpoints(sde, [-3, -3], [3, 3])
 
