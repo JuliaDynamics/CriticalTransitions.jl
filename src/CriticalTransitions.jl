@@ -21,7 +21,6 @@ using StochasticDiffEq:
     u_modified!
 using DynamicalSystemsBase:
     DynamicalSystemsBase,
-    ContinuousTimeDynamicalSystem,
     CoupledSDEs,
     CoupledODEs,
     dynamic_rule,

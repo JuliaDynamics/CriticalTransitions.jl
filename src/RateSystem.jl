@@ -6,7 +6,7 @@
 
 function RateSystem(tni,tnf,f,λ,p_λ,initvals)
     func(u,p,t) = combined_system(u,t,tni,tnf,f,λ,p_λ);
-    return ContinuousTimeDynamicalSystem(func, initvals, Float64[], t0=tni)
+    return CoupledODEs(func, initvals, Float64[], t0=tni)
 end
 
 function combined_system(u,t,tni,tnf,f,λ,p_λ)
