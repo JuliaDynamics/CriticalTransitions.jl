@@ -9,15 +9,37 @@ using LinearSolve: LinearProblem, KLUFactorization, solve
 
 using LinearAlgebra, SparseArrays
 
+"""
+A structure representing a system with Hamiltonian functions H_x and H_p.
+
+This system operates in an extended phase space where the Hamiltonian is assumed to be
+quadratic in the extended momentum. The phase space coordinates `x` are doubled to
+form a 2n-dimensional extended phase space.
+"""
 struct SgmamSystem
     H_x::Function
     H_p::Function
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Performs the simplified geometric Minimal Action Method (sgMAM) on the given system `sys`.
+
+This method computes the optimal path in the phase space of a Hamiltonian system that
+minimizes the action. The Hamiltonian functions `H_x` and `H_p` define the system's dynamics
+in a doubled phase. The initial state `x_initial` is evolved iteratively using constrained
+gradient descent with step size parameter `ϵ` over a specified number of iterations.
+The method can display a progress meter and will stop early if the relative tolerance
+`reltol` is achieved.
+
+The function returns a tuple containing the final state, the action value,
+the Lagrange multipliers, the momentum, and the state derivatives.
+"""
 function sgmam(
     sys::SgmamSystem,
     x_initial;
-    ϵ::Float64=1e-1,
+     ϵ::Float64=1e-1,
     iterations::Int64=1000,
     show_progress::Bool=false,
     reltol::Float64=NaN,
@@ -72,7 +94,6 @@ function update!(x, xdot, p, pdot, lambda, H_x, H_p, ϵ)
     xdotdot = zeros(size(xdot))
     central_diff!(xdotdot, xdot)
 
-    # each dof has same lambda, but possibly different H_pp^{-1}
     return update_x!(x, lambda, pdot, xdotdot, Hx, ϵ)
 end
 
