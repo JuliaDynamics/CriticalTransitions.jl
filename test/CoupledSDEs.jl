@@ -1,14 +1,6 @@
 @testset "API" begin
     using LinearAlgebra
-    function fitzhugh_nagumo(u, p, t)
-        x, y = u
-        ϵ, β, α, γ, κ, I = p
-
-        dx = (-α * x^3 + γ * x - κ * y + I) / ϵ
-        dy = -β * y + x
-
-        return SA[dx, dy]
-    end
+    using CriticalTransitions.CTLibrary: fitzhugh_nagumo
 
     σ = 0.2
     param = [1.0, 3, 1, 1, 1, 0]

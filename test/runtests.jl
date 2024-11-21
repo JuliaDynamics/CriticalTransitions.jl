@@ -6,15 +6,7 @@ using Random
 const SEED = 0xd8e5d8df
 Random.seed!(SEED)
 
-function fitzhugh_nagumo(u, p, t)
-    x, y = u
-    ϵ, β, α, γ, κ, I = p
-
-    dx = (-α * x^3 + γ * x - κ * y + I) / ϵ
-    dy = -β * y + x
-
-    return SA[dx, dy]
-end
+using CriticalTransitions.CTLibrary: fitzhugh_nagumo
 
 @testset "Code quality" begin
     using ExplicitImports, Aqua
