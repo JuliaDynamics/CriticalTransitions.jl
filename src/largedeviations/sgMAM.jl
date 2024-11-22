@@ -9,6 +9,8 @@ using LinearSolve: LinearProblem, KLUFactorization, solve
 
 using LinearAlgebra, SparseArrays
 
+using DocStringExtensions: TYPEDSIGNATURES
+
 """
 A structure representing a system with Hamiltonian functions H_x and H_p.
 
@@ -39,7 +41,7 @@ the Lagrange multipliers, the momentum, and the state derivatives.
 function sgmam(
     sys::SgmamSystem,
     x_initial;
-     ϵ::Float64=1e-1,
+    ϵ::Float64=1e-1,
     iterations::Int64=1000,
     show_progress::Bool=false,
     reltol::Float64=NaN,
