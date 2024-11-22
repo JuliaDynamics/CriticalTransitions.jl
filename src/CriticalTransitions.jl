@@ -30,7 +30,7 @@ using DynamicalSystemsBase:
 
 using ForwardDiff: ForwardDiff
 using IntervalArithmetic: IntervalArithmetic, interval
-using Interpolations: LinearInterpolation
+using Interpolations: linear_interpolation
 using Optim: Optim, LBFGS
 using Symbolics: Symbolics
 
