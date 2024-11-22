@@ -56,4 +56,4 @@ makedocs(;
     plugins=[bib, links],
 )
 
-deploydocs(; repo="github.com/JuliaDynamics/CriticalTransitions.jl.git", push_preview=false)
+deploydocs(; repo="github.com/JuliaDynamics/CriticalTransitions.jl.git", push_preview=true)

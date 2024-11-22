@@ -63,12 +63,17 @@ include("largedeviations/action.jl")
 include("largedeviations/min_action_method.jl")
 include("largedeviations/geometric_min_action_method.jl")
 
+include("largedeviations/sgMAM.jl")
+using .Sgmam: sgmam, SgmamSystem
+
 include("../systems/CTLibrary.jl")
 using .CTLibrary
 
 # Core types
 export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
 export dynamic_rule, current_state, set_state!, trajectory
+
+export sgmam, SgmamSystem
 
 # Methods
 export drift, div_drift
