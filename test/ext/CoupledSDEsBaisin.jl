@@ -1,3 +1,9 @@
+@testset "Method error" begin
+    @test_throws MethodError basins()
+    @test_throws MethodError basboundary()
+    @test_throws MethodError basinboundary()
+end
+
 @testset "fitzhugh_nagumo" begin
     using Attractors, ChaosTools
     # Define systems

@@ -82,4 +82,13 @@ export covariance_matrix, diffusion_matrix
 # export edgetracking, bisect_to_edge, AttractorsViaProximity
 # export fixedpoints
 # ^ extention tests needed
+
+# Error hint for extensions stubs
+function __init__()
+    Base.Experimental.register_error_hint(_baisin_error_hinter(basins), MethodError)
+    Base.Experimental.register_error_hint(_baisin_error_hinter(basboundary), MethodError)
+    Base.Experimental.register_error_hint(_baisin_error_hinter(basinboundary), MethodError)
+    return nothing
+end
+
 end # module CriticalTransitions
