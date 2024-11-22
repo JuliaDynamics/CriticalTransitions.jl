@@ -22,11 +22,11 @@ using CriticalTransitions, Printf, HDF5, Dates
 σ = 0.22               # noise intensity
 ϵ = 0.1                 # time scale parameter
 
-β, α, γ, κ, Ι = 3., 1., 1., 1., 0.
+β, α, γ, κ, Ι = 3.0, 1.0, 1.0, 1.0, 0.0
 pf = [ϵ, β, α, γ, κ, Ι]
 
 # Noise settings
-Σ = [1. 0.; 0. 1.]          # covariance matrix
+Σ = [1.0 0.0; 0.0 1.0]          # covariance matrix
 process = "WhiteGauss"  # noise process
 
 # Transition settings
@@ -35,11 +35,11 @@ rad_i = 0.03            # ball radius around initial point
 rad_f = 0.1             # ball radius around final point
 
 # Run settings
-N = 500              	# number of transition samples
+N = 500              # number of transition samples
 Nmax = 1000 #10000              # maximum number of attempts
 tmax = 1e3       # maximum simulation time per attempt
 dt = 0.01               # time step
-solver = EM()		# SDEProblem solver
+solver = EM()# SDEProblem solver
 
 ###########################################################
 # End of user settings. ###################################
@@ -58,7 +58,7 @@ save_path = "../data/"
 sys = StochSystem(fitzhugh_nagumo, pf, 2, σ, idfunc, nothing, Σ, process)
 
 # Fixed points
-A, B = [-sqrt(2/3), -sqrt(2/27)], [sqrt(2/3), sqrt(2/27)]
+A, B = [-sqrt(2 / 3), -sqrt(2 / 27)], [sqrt(2 / 3), sqrt(2 / 27)]
 
 # A->B or B->A?
 if AtoB
@@ -71,7 +71,7 @@ info1 = "Start/end conditions:\n Initial state: $(B), ball radius $(rad_i)\n Fin
 info2 = "Run details:\n time step dt=$(dt), maximum duration tmax=$(tmax), solver=$(string(solver))"
 info3 = "Dataset info:\n paths: transition path arrays of dimension (state × time), where a state is a vector [u,v]\n times: arrays of time values of the corresponding paths"
 
-println(info0*"\n--> "*info1*"\n--> "*info2)
+println(info0 * "\n--> " * info1 * "\n--> " * info2)
 println("--> Saving data to $(save_path).")
 
 # Create data file
@@ -83,22 +83,29 @@ paths = file["paths"]
 times = file["times"]
 attributes(paths)["data dimensions"] = "[coordinate (rows) × time (columns)], coordinates = [u,v], arbitrary units"
 attributes(times)["data dimensions"] = "[time (since beginning of simulation)], arbitrary units"
-attributes(file)["system_info"] = sys_string(sys, verbose=true)
+attributes(file)["system_info"] = sys_string(sys; verbose=true)
 attributes(file)["data_info"] = info3
-
-
-
 
 # Call transitions function
 tstart = now()
-samples, times, idx, reject = transitions(sys, B, A, N;
-    rad_i=rad_i, rad_f=rad_f, dt=dt, tmax=tmax, solver=solver,
-    savefile=file, Nmax=Nmax)
+samples, times, idx, reject = transitions(
+    sys,
+    B,
+    A,
+    N;
+    rad_i=rad_i,
+    rad_f=rad_f,
+    dt=dt,
+    tmax=tmax,
+    solver=solver,
+    savefile=file,
+    Nmax=Nmax,
+)
 
 # Finalize file
-runtime = canonicalize(Dates.CompoundPeriod(Millisecond(now()-tstart)))
-attributes(file)["run_info"] = info0*"\n"*info1*"\n"*info2*"\nRuntime: $(runtime)"
-write(file, "success_fraction", length(idx)/(reject+length(idx)))
+runtime = canonicalize(Dates.CompoundPeriod(Millisecond(now() - tstart)))
+attributes(file)["run_info"] = info0 * "\n" * info1 * "\n" * info2 * "\nRuntime: $(runtime)"
+write(file, "success_fraction", length(idx) / (reject + length(idx)))
 write(file, "path_numbers", sort(idx))
 
 # Close file

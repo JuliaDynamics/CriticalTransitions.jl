@@ -4,7 +4,7 @@ Stommel's hemispheric 2-box model of the Thermohaline Circulation[^Stommel1961].
 
 The state vector `u = [x, y]` describes the non-dimensional temperature (`x`) and salinity (`y`) gradients
 between the equatiorial and the polar box (details in the
-[online docs](https://juliadynamics.github.io/CriticalTransitions.jl/stable/man/systems/#Thermohaline-Circulation-box-models)).
+[online docs](https://juliadynamics.github.io/CriticalTransitions.jl/dev/man/systems/#Thermohaline-Circulation-box-models)).
 
 The parameter vector `p = [[delta, mu, R]]` comprises the ratio ``\\delta`` of the saline and thermal
 relaxation coefficients, the advective coefficient ``\\mu = 1/\\lambda``, and the constant ``R``
@@ -19,7 +19,7 @@ as described in [^Stommel 1961]. The original values in the bistable regime are 
   * `"diffu_abs"`: Absolute flow law Q2 in eq. (2.4) of [^Cessi1994]
   * `"diffu_sqr"`: Absolute flow law Q3 in eq. (2.4) of [^Cessi1994]
 
-See also [`cessi`](@ref).
+See also `cessi`
 
 [^Stommel1961]:
     [Stommel (1961). Thermohaline Convection with two stable regimes of flow]
@@ -30,48 +30,50 @@ See also [`cessi`](@ref).
 """
 function stommel(u, p, t; smooth=1e-6, flow_law="abs")
     x, y = u
-    delta, mu, R = p[1]
+    delta, mu, R = p
 
     if flow_law == "abs"
         # Original Stommel model
-        q = (smooth>0) ? smoothabs(x-y, 1/smooth) : abs(x-y)
+        q = (smooth > 0) ? smoothabs(x - y, 1 / smooth) : abs(x - y)
         diffu = 0
     elseif flow_law == "diffu_abs"
         # Absolute flow law Q2 in eq. (2.4) of Cessi 1994
-        q = (smooth>0) ? smoothabs(x-y, 1/smooth) : abs(x-y)
+        q = (smooth > 0) ? smoothabs(x - y, 1 / smooth) : abs(x - y)
         diffu = 1
     elseif flow_law == "diffu_sqr"
         # Quadratic flow law Q3 in eq. (2.4) of Cessi 1994
-        q = (x-y)^2
+        q = (x - y)^2
         diffu = 1
     else
-        @error("Invalid value of 'flow_law' kwarg. Options: 'abs', 'diffu_abs', 'diffu_sqr'.")
+        @error(
+            "Invalid value of 'flow_law' kwarg. Options: 'abs', 'diffu_abs', 'diffu_sqr'."
+        )
     end
 
-    dx = 1 - x - mu*x*q - diffu*delta*x
-    dy = delta*(R - y) - mu*y*q
+    dx = 1 - x - mu * x * q - diffu * delta * x
+    dy = delta * (R - y) - mu * y * q
 
-    SA[dx, dy]
+    return SA[dx, dy]
 end
 
 """
     cessi(u, p, t)
 Cessi's hemispheric 2-box model of the Thermohaline Circulation
-([Cessi (1994)](https://doi.org/10.1175/1520-0485(1994)024%3C1911:ASBMOS%3E2.0.CO;2 )).
+([Cessi (1994)](https://doi.org/10.1175/1520-0485(1994)024%3C1911:ASBMOS%3E2.0.CO;2)).
 
 ## Parameters
 `p = [[alpha, mu2, pflux]]`
 
-See also [`stommel`](@ref).
+See also `stommel`.
 """
 function cessi(u, p, t)
     # Non-dimensional model parameters [Cessi 1994]
-    alpha, mu2, pflux = p[1]
+    alpha, mu2, pflux = p
 
     # Convert to Stommel parameters
-    delta = 2/alpha
-    mu = 2/alpha*mu2
-    R = pflux/2
+    delta = 2 / alpha
+    mu = 2 / alpha * mu2
+    R = pflux / 2
 
-    stommel(u, [[delta, mu, R]], t; smooth=0, flow_law="diffu_sqr")
+    return stommel(u, [[delta, mu, R]], t; smooth=0, flow_law="diffu_sqr")
 end

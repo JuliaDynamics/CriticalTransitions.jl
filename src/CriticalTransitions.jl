@@ -1,91 +1,99 @@
 module CriticalTransitions
 
-using Reexport
-@reexport using DynamicalSystemsBase
+# Base
+using Statistics: Statistics, mean
+using LinearAlgebra: LinearAlgebra, I, norm, dot, tr
+using StaticArrays: StaticArrays, SVector
+
+# Core
+using DiffEqNoiseProcess: DiffEqNoiseProcess
+using OrdinaryDiffEq: OrdinaryDiffEq, Tsit5
+using StochasticDiffEq:
+    StochasticDiffEq,
+    DiscreteCallback,
+    ODEProblem,
+    SDEFunction,
+    SOSRA,
+    remake,
+    solve,
+    step!,
+    terminate!,
+    u_modified!
+using DynamicalSystemsBase:
+    DynamicalSystemsBase,
+    CoupledSDEs,
+    CoupledODEs,
+    dynamic_rule,
+    current_state,
+    set_state!,
+    trajectory
+
+using ForwardDiff: ForwardDiff
+using IntervalArithmetic: IntervalArithmetic, interval
+using Interpolations: linear_interpolation
+using Optim: Optim, LBFGS
+using Symbolics: Symbolics
+
+# io and documentation
+using Format: Format
+using Dates: Dates
+using Printf: Printf
+using Markdown: Markdown
+using DocStringExtensions: TYPEDSIGNATURES
+using HDF5: HDF5, h5open, push!
+using JLD2: JLD2, jldopen
+using ProgressBars: ProgressBars, tqdm
+using ProgressMeter: ProgressMeter
+
+# reexport
+using Reexport: @reexport
 @reexport using StaticArrays
-@reexport using OrdinaryDiffEq
 @reexport using StochasticDiffEq
 @reexport using DiffEqNoiseProcess
-@reexport using LinearAlgebra
-using Formatting, Dates, JLD2, HDF5, ProgressBars, ProgressMeter, DocStringExtensions
-using Attractors
-using ChaosTools
-using IntervalRootFinding
-using ForwardDiff
-using Symbolics
-using Optim, Dierckx
-using Printf, DrWatson, Dates, Statistics
 
+include("extention_functions.jl")
 include("utils.jl")
-include("StochSystem.jl")
-
-include("io/io.jl")
-include("noiseprocesses/gaussian.jl")
-include("systemanalysis/stability.jl")
-include("systemanalysis/basinsofattraction.jl")
-include("systemanalysis/basinboundary.jl")
+include("system_utils.jl")
+include("io.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
+include("trajectories/equib.jl")
+include("noiseprocesses/stochprocess.jl")
 include("largedeviations/action.jl")
 include("largedeviations/min_action_method.jl")
 include("largedeviations/geometric_min_action_method.jl")
 
-include("../systems/fitzhughnagumo.jl")
-include("../systems/truscottbrindley_mod.jl")
-include("../systems/truscottbrindley_orig.jl")
-include("../systems/truscottbrindley_orig1.jl")
-include("../systems/rooth.jl")
-include("../systems/stommel.jl")
-include("../systems/rivals.jl")
+include("largedeviations/sgMAM.jl")
+using .Sgmam: sgmam, SgmamSystem
 
-include("../dev/fhn_pathspace_sampling.jl")
-include("../dev/symbolic_langevinmcmc.jl")
-include("../dev/residence_times.jl")
-include("../dev/edgetrack_ct.jl")
-include("../dev/flexibletransitions.jl")
-include("../dev/RateSys1.jl")
+include("../systems/CTLibrary.jl")
+using .CTLibrary
 
 # Core types
-export StochSystem, State
+export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
+export dynamic_rule, current_state, set_state!, trajectory
+
+export sgmam, SgmamSystem
 
 # Methods
-export CoupledODEs, to_cds
-export equilib, fixedpoints, basins, basinboundary, basboundary
-export simulate, relax
+export drift, div_drift
+export equilib, deterministic_orbit
 export transition, transitions
-export langevinmcmc
-export langevinmcmc_not_every_step
-export fw_integrand, fw_action, om_action, action, geometric_action
+export basins, basinboundary, basboundary
+export fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
-export edgetracking, bisect_to_edge, attractor_mapper, bisect_to_edge2
-export idfunc, idfunc!
-export gauss
-export drift, is_iip
-export make_jld2, make_h5, sys_string, sys_info, intervals_to_box
-export anorm, subnorm
+export make_jld2, make_h5, intervals_to_box
+export covariance_matrix, diffusion_matrix
+# export edgetracking, bisect_to_edge, AttractorsViaProximity
+# export fixedpoints
+# ^ extention tests needed
 
-# Systems
-export fitzhugh_nagumo, fitzhugh_nagumo!, fhn_ϵσ, fhn_ϵσ_backward
-export modifiedtruscottbrindley, modifiedtruscottbrindley!, modtb_αξσ, modtb_αξσ1, modtb_αξσ_backward
-export rampedmodifiedtruscottbrindley, modifiedtruscottbrindley!, rmodtb_ξvTtrTraσ
-export originaltruscottbrindley, originaltruscottbrindley!, origtb_rσ
-export rampedoriginaltruscottbrindley, rampedoriginaltruscottbrindley!, rorigtb_vTtrTraσ
-export originaltruscottbrindley1, originaltruscottbrindley1!, origtb1_rσ
-export rampedoriginaltruscottbrindley1, rampedoriginaltruscottbrindley1!, rorigtb1_vTtrTraσ
-export rivals!, rivals, rivals_ϵσ
-export rooth_smooth, stommel, cessi
-
-# Development
-export transition2, transitions2
-export residence_time2, residence_times2
-export saddles_idx, repellers_idx, attractors_idx
-export additive_idx, additive_idx!
-export multiplicative_idx, multiplicative_idx!
-export FitzHughNagumoSPDE, fhn_pathspace_sampling
-export langevinmcmc_spde, symbolise_spde, stochastic_bridge 
-export jacobian
-export residence_time, residence_times, ResTimes, temporal, runandsavetimes, get_res_times
-export exit_time, exit_times
-export RateSystem, fL, stochtorate
+# Error hint for extensions stubs
+function __init__()
+    Base.Experimental.register_error_hint(_baisin_error_hinter(basins), MethodError)
+    Base.Experimental.register_error_hint(_baisin_error_hinter(basboundary), MethodError)
+    Base.Experimental.register_error_hint(_baisin_error_hinter(basinboundary), MethodError)
+    return nothing
+end
 
 end # module CriticalTransitions

@@ -1,5 +1,60 @@
 # Changelog for `CriticalTransitions.jl`
 
+## v0.4.0
+New `CoupledSDEs` design
+
+This release upgrades CriticalTransitions.jl to be compatible with the re-design of `CoupledSDEs`, which has now been integrated in [`DynamicalSystemsBase.jl v3.11`](https://juliadynamics.github.io/DynamicalSystemsBase.jl/stable/CoupledSDEs/).
+
+Since we have updated the syntax of defining a `CoupledSDEs` system, this is a breaking change.
+
+#### Changed functions
+- `CoupledSDEs` is now constructed with different args and kwargs
+- `fw_action`, `geometric_action` and `om_action` now normalize the covariance matrix when computing the action functional
+- `noise_strength` is not a function anymore but a kwarg for `CoupledSDEs` and other functions
+- `om_action` now requires `noise_strength` as input argument
+- `relax` was renamed to `deterministic_orbit`
+- `trajectory` has been added to replace `simulate`
+
+#### Deprecations
+- `add_noise_strength`, `idfunc` and `idfunc!` are no longer needed and have been removed
+- the function `noise_strength(::CoupledSDEs)` has been removed
+- `simulate` has been removed
+
+Full changelog [here](https://github.com/JuliaDynamics/CriticalTransitions.jl/compare/v0.3.0...v0.4.0).
+
+## v0.3.0
+Major overhaul introducing `CoupledSDEs`
+
+This release replaces the `StochSystem` struct with the new `CoupledSDEs` struct to define a stochastic dynamical system. To see how the new version works, check out the [documentation](https://juliadynamics.github.io/CriticalTransitions.jl/dev/).
+
+The update is a breaking change for almost all functions, because the interface is now built around `CoupledSDEs`. The benefit is that the package now integrates much more seamlessly with DynamicalSystems.jl and DifferentialEquations.jl. To use the package with the old `StochSystem` struct, choose version v0.2.1 or lower.
+
+Full changelog [here](https://github.com/JuliaDynamics/CriticalTransitions.jl/compare/v0.2.1...v0.3.0)
+
+## v0.2.1
+Freeze before major overhaul `v0.3.0`
+
+#### Fixes
+* bug fixes in the following functions:
+    * `min_action_method`
+    * `geometric_min_action_method`
+    * `StochSystem(::CouplesODEs)`
+    * `fhn_pathspace_sampling`
+
+#### Enhancements
+* expanded output of `transitions` function
+
+#### Additions
+* tests for various functions
+* dev functions `basboundary`, `bisect_to_edge2`, `langevinmcmc_not_every_step`
+
+#### Deprecations
+* `to_cds` function (still exists but will raise deprecation warning)
+
+Since `v0.2.0`, we also joined
+[JuliaDynamics](https://juliadynamics.github.io/JuliaDynamics/) with this package, such that
+the code is now hosted at [https://github.com/JuliaDynamics/CriticalTransitions.jl](https://github.com/JuliaDynamics/CriticalTransitions.jl), and improved the documentation.
+
 ## v0.2.0
 Compatibility upgrade to `DynamicalSystems v3`
 

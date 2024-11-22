@@ -1,28 +1,51 @@
 using CriticalTransitions, StaticArrays
-CT = CriticalTransitions
+const CT = CriticalTransitions
 using Test
 
 using Random
 const SEED = 0xd8e5d8df
 Random.seed!(SEED)
 
-@testset "StochSystem" begin
-    include("stochsystem.jl")
+using CriticalTransitions.CTLibrary: fitzhugh_nagumo
+
+@testset "code quality" begin
+    include("code_quality.jl")
+end
+
+@testset "CoupledSDEs" begin
+    include("CoupledSDEs.jl")
+end
+
+@testset "ModelingToolkit" begin
+    include("ModelingToolkit.jl")
 end
 
 @testset "Large Deviations" begin
+    include("largedeviations/action_fhn.jl")
     include("largedeviations/MAM.jl")
     include("largedeviations/gMAM.jl")
 end
 
-@testset "utilities" begin
+@testset "Utilities" begin
     include("utils.jl")
 end
 
-@testset "Baisin" begin
-    include("baisin/baisin_boundary.jl")
+@testset "Trajectories" begin
+    include("trajectories/simulate.jl")
+    #   include("trajectories/transition.jl")
 end
 
-@testset "Trajactories" begin
-    include("trajactories/simulate.jl")
+@testset "Extentions" begin
+    @testset "ChaosToolsExt" begin
+        include("ext/ChaosToolsExt.jl")
+    end
+
+    @testset "CoupledSDEsBaisin" begin
+        include("ext/CoupledSDEsBaisin.jl")
+    end
+end
+
+@testset "Doctests" begin
+    using Documenter
+    Documenter.doctest(CriticalTransitions)
 end

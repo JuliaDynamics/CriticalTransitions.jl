@@ -1,10 +1,7 @@
-include("planeofbox.jl")
-
-toattractors(V::Dataset) = Dict(i => StateSpaceSet([V[i]]) for i in 1:length(V))
-
 """
-    basins(sys::StochSystem, A, B, C, H; kwargs...)
-Computes the basins of attraction of StochSystem `sys` on a plane spanned by the distinct points `A`, `B`, `C` and limited by the box `H`. Uses the [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity) function from [`DynamicalSystems.jl`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/) to compute the basins of attraction.
+$(TYPEDSIGNATURES)
+
+Computes the basins of attraction of CoupledSDEs `sys` on a plane spanned by the distinct points `A`, `B`, `C` and limited by the box `H`. Uses the [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity) function from [`DynamicalSystems.jl`](https://juliadynamics.github.io/DynamicalSystems.jl/stable/) to compute the basins of attraction.
 
 `A`, `B`, `C` are elements of ``\\mathbb{R}^d`` (where ``d`` is the dimension of the  `sys`) and `H` is a hyperrectangle in ``\\mathbb{R}^d``.
 
@@ -21,30 +18,39 @@ This function returns a four-dimensional vector. The first two entries are discr
 * `ϵ_mapper = 0.01`: `ϵ` parameter of [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity)
 * `kwargs...`: keyword arguments passed to the [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity) function (namely, `Ttr, Δt, horizon_limit, mx_chk_lost`)
 """
-function basins(sys::StochSystem, A, B, C, H;
+function CriticalTransitions.basins(
+    sys::CoupledSDEs,
+    A,
+    B,
+    C,
+    H;
     bstep::Vector = [0.01, 0.01],
     pstep::Vector = [0.1, 0.1],
-    ϵ_mapper=0.01,
-    showprogress=false,
-    kwargs...)
+    ϵ_mapper      = 0.01,
+    showprogress  = false,
+    kwargs...,
+)
+    U, V = plane(A, B, C, H; step=pstep) # the intervals for the maximal plane P_{U,V}
 
-    U, V = plane(A, B, C, H; step = pstep); # the intervals for the maximal plane P_{U,V}
-
-    X = range(U[1], U[2]; step = bstep[1]); # the range of projections along the B-A direction
-    Y = range(V[1], V[2]; step = bstep[2]); # the range of projections along the C-A direction
-    h = zeros(length(Y),length(X)); # an array to store the attractors for each initial condition
+    X = range(U[1], U[2]; step=bstep[1]) # the range of projections along the B-A direction
+    Y = range(V[1], V[2]; step=bstep[2]) # the range of projections along the C-A direction
+    h = zeros(length(Y), length(X)) # an array to store the attractors for each initial condition
 
     # defining the parameters required to run the AttractorsViaProximity function
-    fps = CriticalTransitions.fixedpoints(sys, H);
-    attractors = toattractors(fps[1][fps[3]]);
+    fps = fixedpoints(sys, H)
+    attractors = toattractors(fps[1][fps[3]])
 
     # running the AttractorsViaProximity function using parallel computing
     iterator = showprogress ? tqdm(1:length(X)) : 1:length(X)
-    @Threads.threads for ii ∈ iterator
-        Z = [A+X[ii]*(B-A)+y*(C-A) for y ∈ Y]; # a row of initial conditions
-        h[:,ii] = Attractors.AttractorsViaProximity(CoupledODEs(sys), attractors, ϵ_mapper; kwargs...).(Z)
+    Threads.@threads for ii in iterator
+        Z = [A + X[ii] * (B - A) + y * (C - A) for y in Y] # a row of initial conditions
+        h[:, ii] =
+            Attractors.AttractorsViaProximity(
+                CoupledODEs(sys), attractors, ϵ_mapper; kwargs...
+            ).(Z)
     end
 
-    [X, Y, attractors, h]
-
+    return [X, Y, attractors, h]
 end
+
+toattractors(V::StateSpaceSet) = Dict(i => StateSpaceSet([V[i]]) for i in 1:length(V))

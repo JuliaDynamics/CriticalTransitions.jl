@@ -4,34 +4,46 @@ Functions in this file are independent of types/functions defined in CriticalTra
 """
 
 """
-    idfunc(u, p, t)
-Identity function for noise function `StochSystem.g` (out-of-place).
+$(TYPEDSIGNATURES)
+
+Identity function for a diffusion function `g` of `CoupledSDEs` (out-of-place).
+Equivalent to `(u, p, t) -> ones(length(u))`,
 """
 function idfunc(u, p, t)
-    ones(length(u))
+    return typeof(u)(ones(eltype(u), length(u)))
 end;
 
 """
-    idfunc!(du, u, p, t)
-Identity function for noise function `StochSystem.g` (in-place).
+$(TYPEDSIGNATURES)
+
+Identity function for a diffusion function `g` of `CoupledSDEs` (in-place).
+Equivalent to `idfunc!(du, u, p, t) = (du .= ones(length(u)); return nothing)`
 """
 function idfunc!(du, u, p, t)
-    du .= ones(length(u))
-    nothing
+    du .= ones(eltype(u), length(u))
+    return nothing
 end;
 
-"""
-    is_iip(f::Function)
-Asserts if f is in-place (true) or out-of-place (false).
+function σg(σ, g)
+    return (u, p, t) -> σ .* g(u, p, t)
+end
 
-> Warning: This function simply checks if there is a `!` in the function name. Thus, if you do not add a `!` to in-place function names (as recommended by the Julia style guide), this test will not work.
-"""
-function is_iip(f::Function)
-    occursin("!", String(Symbol(f)))
-end;
+function σg!(σ, g!)
+    function (du, u, p, t)
+        g!(du, u, p, t)
+        du .*= σ
+        return nothing
+    end
+end
+
+function add_noise_strength(σ, g, IIP)
+    newg = IIP ? σg!(σ, g) : σg(σ, g)
+    return newg
+end
 
 """
-    intervals_to_box(bmin::Vector, bmax::Vector)
+$(TYPEDSIGNATURES)
+
 Generates a box from specifying the interval limits in each dimension.
 * `bmin` (Vector): lower limit of the box in each dimension
 * `bmax` (Vector): upper limit
@@ -44,77 +56,31 @@ function intervals_to_box(bmin::Vector, bmax::Vector)
     intervals = []
     dim = length(bmin)
     for i in 1:dim
-        push!(intervals, bmin[i]..bmax[i])
+        push!(intervals, interval(bmin[i], bmax[i]))
     end
     box = intervals[1]
     for i in 2:dim
-        box = box × intervals[i]
+        box = IntervalArithmetic.cross(box, intervals[i])
     end
-    box
-end;
-
-function additive_idx!(du, u, p, t, idx)
-    du[idx] = 1.
-    nothing
-end;
-
-function additive_idx(u,p,t,idx)
-    du = zeros(length(u))
-    du[idx] = 1.
-    SVector{length(u)}(du)
-end;
-
-function multiplicative_idx!(du, u, p, t, idx)
-    du[idx] = u[idx]
-end;
-
-function multiplicative_idx(u, p, t, idx)
-    du = zeros(length(u))
-    du[idx] = u[idx]
-    SVector{length(u)}(du)
-end
-
-
-function multiplicative_first!(du, u, p, t)
-    du[1] = u[1];
-end;
-
-function multiplicative_first(u, p, t)
-
-    du = zeros(length(u));
-    du[1] = u[1];
-
-    SVector{length(u)}(du)
-end;
-
-function additive_first!(du, u, p, t)
-    du[1] = 1;
-end;
-
-function additive_first(u, p, t)
-
-    du = zeros(length(u));
-    du[1] = 1;
-
-    SVector{length(u)}(du)
+    return box
 end;
 
 """
-    anorm(vec, A; square=false)
 Calculates the generalized ``A``-norm of the vector `vec`,
 ``||v||_A := \\sqrt(v^\\top \\cdot A \\cdot v)``,
-where `A` is a square matrix of dimension `(lenth(vec) x length(vec))`.
+where `A` is a square matrix of dimension `(length(vec) x length(vec))`.
 
 # Keyword arguments
 * `square`: if `true`, returns square of norm; else, returns norm.
 """
 function anorm(vec, A; square=false)
     normsquared = dot(vec, A, vec)
-    square ? normsquared : sqrt(normsquared)
+    return square ? normsquared : sqrt(normsquared)
 end;
 
 """
-    subnorm(vec; kwargs...)
+$(TYPEDSIGNATURES)
+
 Returns the Euclidean norm of the vector `vec`; however, if `directions` are specified, the
 norm is only computed along the specified components of the vector, i.e. in a subspace of
 dimension `length(directions)`.
@@ -124,7 +90,7 @@ dimension `length(directions)`.
 be included. Defaults to `1:length(vec)`, i.e. all components.
 
 # Example
-`subnorm([3,7,4]; directions=[1,3]` calculates the norm of only the 1st and 3rd components
+`subnorm([3,7,4]; directions=[1,3])` calculates the norm of only the 1st and 3rd components
 of the vector [3,7,4]:
 
 ``\\sqrt{3^2+4^2} = 5``.
@@ -134,24 +100,37 @@ function subnorm(vec; directions=1:length(vec))
     for i in directions
         sum += vec[i]^2
     end
-    sqrt(sum)
-end;
-
-# Central finite difference, second derivative
-function central(f, idx, dz)
-    (f[idx+1] - f[idx-1])/(2*dz)
-end;
-
-function central2(f, idx, dz)
-    (f[idx+1] - 2f[idx] + f[idx-1])/(dz^2)
+    return sqrt(sum)
 end;
 
 """
-    smoothabs(x, xi=1000)
+$(TYPEDSIGNATURES)
+
+Normalizes the covariance matrix ``Q`` (in-place) by dividing it by
+``L_1(Q)/\\text{dim}(Q)``, where ``L_1(Q)`` is the L1 matrix norm of ``Q`` and
+``\\text{dim}(Q)`` is the dimension of ``Q``.
+"""
+function normalize_covariance!(covariance)
+    l1norm = norm(covariance, 1)
+    dim = size(covariance)[1]
+    return covariance * dim / l1norm
+end
+
+# Central finite difference, second derivative
+function central(f, idx, dz)
+    return (f[idx + 1] - f[idx - 1]) / (2 * dz)
+end;
+
+function central2(f, idx, dz)
+    return (f[idx + 1] - 2f[idx] + f[idx - 1]) / (dz^2)
+end;
+
+"""
+$(TYPEDSIGNATURES)
 Smooth approximation of `abs(x)`, ``|x| = x \\tanh(\\xi x)``, where ``xi`` controls the
 accuracy of the approximation. The exact absolute value function is obtained in the limit
 ``\\xi \\to \\infty``.
 """
 function smoothabs(x, xi=1000)
-    x*tanh(x*xi)
+    return x * tanh(x * xi)
 end;

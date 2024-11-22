@@ -14,25 +14,17 @@ As this module is not published yet, there are two ways to access it:
 ## Basic usage
 The general workflow of `CriticalTransitions` essentially follows two steps:
 
-1. Define your system (see [Defining a StochSystem](@ref))
+1. Define your system (see [Define a CoupledSDEs system](@ref))
 2. Investigate the system by calling methods (see [Methods](@ref))
 
-!!! info "Extension to RateSystem and TippingSystem"
-    We are currently working on extending the types of dynamical systems that can be studied with CriticalTransitions.jl. Particularly, we are planning to introduce the overarching structure `TippingSystem`, which has two subtypes: `StochSystem` (as it already exists) and `RateSystem`, a new dynamical system type in which the system parameters may evolve in time.
+!!! info "New system type: RateSystem"
+    We are planning to introduce the the struct `RateSystem` along `CoupledSDEs`. In a `RateSystem`, the time dependence of parameters can conveniently be specified, laying the foundation for a toolbox to study rate-induced tipping, or R-tipping.
 
 ## Methods
 
-Currently the following functions are implemented to analyze a [`StochSystem`](@ref) and 
+Currently the following functions are implemented to analyze a [`CoupledSDEs`](@ref) and 
 corresponding sample transition paths.
 
 ```@index
-Pages = ["man/systemanalysis.md", "man/simulation.md", "man/sampling.md", "man/largedeviations.md"]
-```
-
-## Systems
-
-The following deterministic ODE systems have been implemented so far:
-
-```@index
-Pages = ["man/systems.md"]
+Pages = ["man/simulation.md", "man/sampling.md", "man/largedeviations.md"]
 ```
