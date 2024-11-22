@@ -10,7 +10,9 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
     N = 100
-    res = geometric_min_action_method(fhn, x_i, x_f; N=75, maxiter=200, verbose=false, showprogress=false)
+    res = geometric_min_action_method(
+        fhn, x_i, x_f; N=75, maxiter=200, verbose=false, showprogress=false
+    )
     S = geometric_action(fhn, res[1][end])
     @test isapprox(S, 0.18, atol=0.01)
 end
@@ -35,8 +37,12 @@ end
     x_f = init[:, end]
 
     @testset "LBFGS" begin
-        gm = geometric_min_action_method(sys, x_i, x_f; maxiter=10, verbose=false, showprogress=false)
-        gm = geometric_min_action_method(sys, init; maxiter=100, verbose=false, showprogress=false)
+        gm = geometric_min_action_method(
+            sys, x_i, x_f; maxiter=10, verbose=false, showprogress=false
+        )
+        gm = geometric_min_action_method(
+            sys, init; maxiter=100, verbose=false, showprogress=false
+        )
 
         path = gm[1][end]
         action_val = gm[2][end]
@@ -46,11 +52,13 @@ end
 
     @testset "HeymannVandenEijnden" begin # broken
         method = "HeymannVandenEijnden"
-        gm = geometric_min_action_method(sys, init; maxiter=100, method=method, verbose=false, showprogress=false)
+        gm = geometric_min_action_method(
+            sys, init; maxiter=100, method=method, verbose=false, showprogress=false
+        )
 
         path = gm[1][end]
         action_val = gm[2][end]
-        @test all(isapprox.(path[2, :][(end - 5):end], 0, atol = 1e-3)) broken=true
-        @test all(isapprox.(action_val, 0.3375, atol = 1e-3)) broken=true
+        @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=1e-3)) broken = true
+        @test all(isapprox.(action_val, 0.3375, atol=1e-3)) broken = true
     end # HeymannVandenEijnden
 end # gMAM Meier Stein
