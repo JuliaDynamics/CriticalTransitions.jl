@@ -4,8 +4,8 @@ export sgmam, SgmamSystem
 
 using DataStructures: CircularBuffer
 using ProgressMeter: Progress, next!
-using Interpolations: LinearInterpolation
 using LinearSolve: LinearProblem, KLUFactorization, solve
+using CriticalTransitions: interpolate_path!
 
 using LinearAlgebra, SparseArrays
 
@@ -97,16 +97,6 @@ function update!(x, xdot, p, pdot, lambda, H_x, H_p, ϵ)
     central_diff!(xdotdot, xdot)
 
     return update_x!(x, lambda, pdot, xdotdot, Hx, ϵ)
-end
-
-function interpolate_path!(path, α, s)
-    α[2:end] .= vec(sqrt.(sum(diff(path; dims=2) .^ 2; dims=1)))
-    α .= cumsum(α; dims=1)
-    α .= α ./ last(α)
-    for dof in 1:size(path, 1)
-        path[dof, :] .= LinearInterpolation(α, path[dof, :])(s)
-    end
-    return nothing
 end
 
 function update_x!(x, λ, p′, x′′, Hx, ϵ)
