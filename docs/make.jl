@@ -38,7 +38,7 @@ end
 makedocs(;
     authors=authors,
     sitename="CriticalTransitions.jl",
-    repo = Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
+    repo=Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
     modules=[
         CriticalTransitions,
         CriticalTransitions.DiffEqNoiseProcess,

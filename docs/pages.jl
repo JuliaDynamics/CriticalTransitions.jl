@@ -2,7 +2,7 @@
 pages = [
     "Home" => "index.md",
     "Quickstart" => "quickstart.md",
-    "Tutorial" => "tutorial.md",
+    "Tutorial" => "examples/tutorial.md",
     "Examples" => Any[
         "Instanton for the Maier-Stein system" => "examples/gMAM_Maierstein.md"
     ],
