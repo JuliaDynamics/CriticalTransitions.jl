@@ -1,8 +1,14 @@
+@testset "Method error" begin
+    @test_throws MethodError basins()
+    @test_throws MethodError basboundary()
+    @test_throws MethodError basinboundary()
+end
+
 @testset "fitzhugh_nagumo" begin
     using Attractors, ChaosTools
     # Define systems
     system = CoupledSDEs(
-        fitzhugh_nagumo, idfunc, [2.0, 0.1], [0.1, 3.0, 1.0, 1.0, 1.0, 0.0], 0.215
+        fitzhugh_nagumo, [2.0, 0.1], [0.1, 3.0, 1.0, 1.0, 1.0, 0.0]; noise_strength=0.215
     )
 
     # Set up domain

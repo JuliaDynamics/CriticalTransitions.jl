@@ -26,5 +26,5 @@ Currently the following functions are implemented to analyze a [`CoupledSDEs`](@
 corresponding sample transition paths.
 
 ```@index
-Pages = ["man/systemanalysis.md", "man/simulation.md", "man/sampling.md", "man/largedeviations.md"]
+Pages = ["man/simulation.md", "man/sampling.md", "man/largedeviations.md"]
 ```

@@ -1,5 +1,3 @@
-toattractors(V::Dataset) = Dict(i => StateSpaceSet([V[i]]) for i in 1:length(V))
-
 """
 $(TYPEDSIGNATURES)
 
@@ -54,3 +52,5 @@ function CriticalTransitions.basins(
 
     return [X, Y, attractors, h]
 end
+
+toattractors(V::StateSpaceSet) = Dict(i => StateSpaceSet([V[i]]) for i in 1:length(V))
