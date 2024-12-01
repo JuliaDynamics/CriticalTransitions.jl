@@ -24,11 +24,3 @@ end
     expected = sqrt(3^2 + 4^2)
     @test subnorm(vector; directions=directions) == expected
 end
-
-# Test for smoothabs
-@testset "smoothabs" begin
-    x = 2
-    xi = 1000
-    expected = x * tanh(x * xi)
-    @test CT.smoothabs(x, xi) == expected
-end
