@@ -83,7 +83,7 @@ end;
 
 Generates an ensemble of `N` transition samples of `sys` from point `x_i` to point `x_f`.
 
-This function repeatedly calls the [`transition`](@ref) function to efficiently generate an ensemble of transitions, which are saved to a file or returned as an array of paths. Multi-threading is enabled.
+This function repeatedly calls the [`transition`](@ref) function to efficiently generate an ensemble of transitions. Multi-threading is enabled.
 
 ## Keyword arguments
   - `rad_i=0.1`: radius of ball around `x_i`
@@ -94,19 +94,10 @@ This function repeatedly calls the [`transition`](@ref) function to efficiently 
     `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
     insert a vector of indices of the dimensions to be included.
   - `cut_start=true`: if `false`, returns the whole trajectory up to the transition
-  - `savefile`: if `nothing`, no data is saved to a file. To save to a file, see below.
   - `showprogress`: shows a progress bar with respect to `Nmax`
   - `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#CommonSolve.solve-Tuple{SciMLBase.AbstractDEProblem,%20Vararg{Any}})
 
 See also [`transition`](@ref).
-
-## Saving data to file
-
-The `savefile` keyword argument allows saving the data to a `.jld2` or `.h5` file. To do so:
-
- 1. Create and open a file by typing `file = jld2open("filename.jld2", "a+")` or `file = h5open("filename.h5", "cw")`. This requires `JLD2.jl`/`HDF5.jl`; the convenience functions [`make_jld2`](@ref), [`make_h5`](@ref) provide this out of the box.
- 2. Pass the label `file` to the `savefile` argument of `transitions`.
- 3. Don't forget to `close(file)` at the end.
 
 ## Output
 
@@ -130,18 +121,9 @@ function transitions(
     Nmax=1000,
     cut_start=true,
     rad_dims=1:length(current_state(sys)),
-    savefile=nothing,
     showprogress::Bool=false,
     kwargs...,
 )
-    """
-    Generates N transition samples of sys from x_i to x_f.
-    Supports multi-threading.
-    rad_i:      ball radius around x_i
-    rad_f:      ball radius around x_f
-    cut_start:  if false, saves the whole trajectory up to the transition
-    savefile:   if not nothing, saves data to a specified open .jld2 file
-    """
 
     samples, times, idx::Vector{Int64}, r_idx::Vector{Int64} = [], [], [], []
 
@@ -165,14 +147,8 @@ function transitions(
                 print("\rStatus: $(length(idx)+1)/$(N) transitions complete.")
             end
 
-            if savefile == nothing
-                push!(samples, sim)
-                push!(times, simt)
-            else # store or save in .jld2/.h5 file
-                write(savefile, "paths/path " * string(j), sim)
-                write(savefile, "times/times " * string(j), simt)
-            end
-
+            push!(samples, sim)
+            push!(times, simt)
             push!(idx, j)
 
             if length(idx) > max(1, N - Threads.nthreads())

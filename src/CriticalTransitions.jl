@@ -81,7 +81,7 @@ export transition, transitions
 export basins, basinboundary, basboundary
 export fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
-export make_jld2, make_h5, intervals_to_box
+export intervals_to_box
 export covariance_matrix, diffusion_matrix
 # export edgetracking, bisect_to_edge, AttractorsViaProximity
 # export fixedpoints
