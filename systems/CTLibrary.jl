@@ -1,7 +1,7 @@
 module CTLibrary
 
 using CriticalTransitions: CriticalTransitions
-using IntervalArithmetic: interval
+using IntervalArithmetic: IntervalArithmetic, interval
 using StaticArrays: SA, SVector
 
 include("fitzhughnagumo.jl")

@@ -32,7 +32,6 @@ using ForwardDiff: ForwardDiff
 using Interpolations: linear_interpolation
 using Optim: Optim, LBFGS
 using Symbolics: Symbolics
-using IntervalArithmetic: IntervalArithmetic, interval
 
 # io and documentation
 using Format: Format

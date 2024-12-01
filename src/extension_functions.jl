@@ -1,6 +1,7 @@
 function basins end
 function basboundary end
 function basinboundary end
+function intervals_to_box end
 
 # ## Method error handling
 # We also inject a method error handler, which
