@@ -26,7 +26,7 @@ using DynamicalSystemsBase:
     dynamic_rule,
     current_state,
     set_state!,
-    trajectory,
+    trajectory
 
 using ForwardDiff: ForwardDiff
 using Interpolations: linear_interpolation
