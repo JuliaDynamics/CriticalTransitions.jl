@@ -27,13 +27,12 @@ using DynamicalSystemsBase:
     current_state,
     set_state!,
     trajectory,
-    interval
 
 using ForwardDiff: ForwardDiff
 using Interpolations: linear_interpolation
 using Optim: Optim, LBFGS
 using Symbolics: Symbolics
-using IntervalArithmetic: IntervalArithmetic
+using IntervalArithmetic: IntervalArithmetic, interval
 
 # io and documentation
 using Format: Format
