@@ -1,8 +1,5 @@
-StochasticSystemsBase = Base.get_extension(
-    DynamicalSystemsBase, :StochasticSystemsBase
-)
+StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
 diffusion_matrix = StochasticSystemsBase.diffusion_matrix
-
 
 @testset "diffusion_matrix" begin
     Γ = [1.0 0.3 0.0; 0.3 1 0.5; 0.0 0.5 1.0]
@@ -19,9 +16,11 @@ end
         g(u, p, t) = sqrt([1.0 0.3; 0.3 1])
         noise_prototype = zeros(2, 2)
 
-        sdeprob = SDEProblem(f, g, zeros(2), (0.0, 100_000), noise_rate_prototype=noise_prototype)
-        sol = solve(sdeprob, EM(), saveat=0.1, dt=0.1)
-        approx = cov(diff(reduce(hcat, sol.u); dims=2)./sqrt(0.1); dims=2)
+        sdeprob = SDEProblem(
+            f, g, zeros(2), (0.0, 100_000); noise_rate_prototype=noise_prototype
+        )
+        sol = solve(sdeprob, EM(); saveat=0.1, dt=0.1)
+        approx = cov(diff(reduce(hcat, sol.u); dims=2) ./ sqrt(0.1); dims=2)
         @test approx ≈ Γ atol = 1e-1
     end
     @testset "CT" begin
@@ -32,9 +31,9 @@ end
         f(u, p, t) = [0.0, 0.0]
         ds = CoupledSDEs(f, zeros(2), (); covariance=Γ, diffeq=diffeq_cov)
 
-        tr, _ = trajectory(ds, 1_000, Δt=0.1)
-        approx = cov(diff(reduce(hcat, tr.data); dims=2)./sqrt(0.1); dims=2)
-        @test approx ≈ Γ atol = 1e-1 broken=true
+        tr, _ = trajectory(ds, 1_000; Δt=0.1)
+        approx = cov(diff(reduce(hcat, tr.data); dims=2) ./ sqrt(0.1); dims=2)
+        @test approx ≈ Γ atol = 1e-1 broken = true
     end
 end
 
