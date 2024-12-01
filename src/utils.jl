@@ -4,68 +4,6 @@ Functions in this file are independent of types/functions defined in CriticalTra
 """
 
 """
-$(TYPEDSIGNATURES)
-
-Identity function for a diffusion function `g` of `CoupledSDEs` (out-of-place).
-Equivalent to `(u, p, t) -> ones(length(u))`,
-"""
-function idfunc(u, p, t)
-    return typeof(u)(ones(eltype(u), length(u)))
-end;
-
-"""
-$(TYPEDSIGNATURES)
-
-Identity function for a diffusion function `g` of `CoupledSDEs` (in-place).
-Equivalent to `idfunc!(du, u, p, t) = (du .= ones(length(u)); return nothing)`
-"""
-function idfunc!(du, u, p, t)
-    du .= ones(eltype(u), length(u))
-    return nothing
-end;
-
-function σg(σ, g)
-    return (u, p, t) -> σ .* g(u, p, t)
-end
-
-function σg!(σ, g!)
-    function (du, u, p, t)
-        g!(du, u, p, t)
-        du .*= σ
-        return nothing
-    end
-end
-
-function add_noise_strength(σ, g, IIP)
-    newg = IIP ? σg!(σ, g) : σg(σ, g)
-    return newg
-end
-
-"""
-$(TYPEDSIGNATURES)
-
-Generates a box from specifying the interval limits in each dimension.
-* `bmin` (Vector): lower limit of the box in each dimension
-* `bmax` (Vector): upper limit
-
-## Example
-`intervals_to_box([-2,-1,0], [2,1,1])` returns a 3D box of dimensions `[-2,2] × [-1,1] × [0,1]`.
-"""
-function intervals_to_box(bmin::Vector, bmax::Vector)
-    # Generates a box from specifying the interval limits
-    intervals = []
-    dim = length(bmin)
-    for i in 1:dim
-        push!(intervals, interval(bmin[i], bmax[i]))
-    end
-    box = intervals[1]
-    for i in 2:dim
-        box = IntervalArithmetic.cross(box, intervals[i])
-    end
-    return box
-end;
-
-"""
 Calculates the generalized ``A``-norm of the vector `vec`,
 ``||v||_A := \\sqrt(v^\\top \\cdot A \\cdot v)``,
 where `A` is a square matrix of dimension `(length(vec) x length(vec))`.

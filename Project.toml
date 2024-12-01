@@ -38,7 +38,7 @@ StateSpaceSets = "40b095a5-5852-4c12-98c7-d43bf788e795"
 
 [extensions]
 ChaosToolsExt = ["ChaosTools"]
-CoupledSDEsBaisin = ["ChaosTools", "Attractors"]
+CoupledSDEsBasin = ["ChaosTools", "Attractors"]
 
 [compat]
 Aqua = "0.8.7"

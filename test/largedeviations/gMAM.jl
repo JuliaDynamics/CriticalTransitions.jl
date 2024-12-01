@@ -25,7 +25,6 @@ end
         return [dx, dy]
     end
     σ = 0.25
-    # sys = CoupledSDEs(fitzhugh_nagumo, idfunc, zeros(2), p, σ)
     sys = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
 
     # initial path: parabola
