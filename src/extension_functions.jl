@@ -5,9 +5,9 @@ function basinboundary end
 # ## Method error handling
 # We also inject a method error handler, which
 # prints a suggestion if the Proj extension is not loaded.
-function _baisin_error_hinter(func)
+function _basin_error_hinter(func)
     return function _dump_error_hinter(io, exc, argtypes, kwargs)
-        if isnothing(Base.get_extension(CriticalTransitions, :CoupledSDEsBaisin)) &&
+        if isnothing(Base.get_extension(CriticalTransitions, :CoupledSDEsBasin)) &&
             exc.f == func
             print(
                 io,

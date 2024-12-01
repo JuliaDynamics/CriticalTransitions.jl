@@ -40,8 +40,6 @@ using Dates: Dates
 using Printf: Printf
 using Markdown: Markdown
 using DocStringExtensions: TYPEDSIGNATURES
-using HDF5: HDF5, h5open, push!
-using JLD2: JLD2, jldopen
 using ProgressBars: ProgressBars, tqdm
 using ProgressMeter: ProgressMeter
 
@@ -51,7 +49,7 @@ using Reexport: @reexport
 @reexport using StochasticDiffEq
 @reexport using DiffEqNoiseProcess
 
-include("extention_functions.jl")
+include("extension_functions.jl")
 include("utils.jl")
 include("system_utils.jl")
 include("trajectories/simulation.jl")
@@ -85,13 +83,13 @@ export intervals_to_box
 export covariance_matrix, diffusion_matrix
 # export edgetracking, bisect_to_edge, AttractorsViaProximity
 # export fixedpoints
-# ^ extention tests needed
+# ^ extension tests needed
 
 # Error hint for extensions stubs
 function __init__()
-    Base.Experimental.register_error_hint(_baisin_error_hinter(basins), MethodError)
-    Base.Experimental.register_error_hint(_baisin_error_hinter(basboundary), MethodError)
-    Base.Experimental.register_error_hint(_baisin_error_hinter(basinboundary), MethodError)
+    Base.Experimental.register_error_hint(_basin_error_hinter(basins), MethodError)
+    Base.Experimental.register_error_hint(_basin_error_hinter(basboundary), MethodError)
+    Base.Experimental.register_error_hint(_basin_error_hinter(basinboundary), MethodError)
     return nothing
 end
 

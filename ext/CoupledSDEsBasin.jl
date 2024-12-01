@@ -1,4 +1,4 @@
-module CoupledSDEsBaisin
+module CoupledSDEsBasin
 
 using CriticalTransitions
 using ChaosTools
@@ -17,4 +17,4 @@ include("basin/basinboundary.jl")
 
 export basins, basboundary, basinboundary
 
-end # module CoupledSDEsBaisin
+end # module CoupledSDEsBasin
