@@ -1,5 +1,5 @@
 """
-$(TYPEDSIGNATURES)
+    smoothabs(x, xi=1000)
 Smooth approximation of `abs(x)`, ``|x| = x \\tanh(\\xi x)``, where ``xi`` controls the
 accuracy of the approximation. The exact absolute value function is obtained in the limit
 ``\\xi \\to \\infty``.
