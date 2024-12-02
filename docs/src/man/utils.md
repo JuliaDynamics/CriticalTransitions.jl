@@ -12,9 +12,3 @@ set_state!
 drift
 div_drift
 ```
-
-### `length(sys.u)`-dimensional box
-
-```@docs
-intervals_to_box(bmin::Vector, bmax::Vector)
-```
