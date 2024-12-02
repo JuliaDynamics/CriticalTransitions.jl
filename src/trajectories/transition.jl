@@ -94,7 +94,7 @@ This function repeatedly calls the [`transition`](@ref) function to efficiently 
     `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
     insert a vector of indices of the dimensions to be included.
   - `cut_start=true`: if `false`, returns the whole trajectory up to the transition
-  - `showprogress`: shows a progress bar with respect to `Nmax`
+  - `show_progress`: shows a progress bar with respect to `Nmax`
   - `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#CommonSolve.solve-Tuple{SciMLBase.AbstractDEProblem,%20Vararg{Any}})
 
 See also [`transition`](@ref).
@@ -121,14 +121,11 @@ function transitions(
     Nmax=1000,
     cut_start=true,
     rad_dims=1:length(current_state(sys)),
-    showprogress::Bool=false,
+    show_progress::Bool=false,
     kwargs...,
 )
-
     samples, times, idx::Vector{Int64}, r_idx::Vector{Int64} = [], [], [], []
-
-    # iterator = showprogress ? tqdm(1:Nmax) : 1:Nmax
-
+    prog = Progress(Nmax; desc="Fishing for $N transitions... ", enabled=show_progress)
     Threads.@threads for j in 1:Nmax
         sim, simt, success = transition(
             sys,
@@ -143,14 +140,9 @@ function transitions(
         )
 
         if success
-            if showprogress
-                print("\rStatus: $(length(idx)+1)/$(N) transitions complete.")
-            end
-
             push!(samples, sim)
             push!(times, simt)
             push!(idx, j)
-
             if length(idx) > max(1, N - Threads.nthreads())
                 break
             else
@@ -159,6 +151,7 @@ function transitions(
         else
             push!(r_idx, j)
         end
+        next!(prog; showvalues=[("# transitions complete: ", length(idx) + 1)])
     end
 
     success_rate = length(idx) / (length(r_idx) + length(idx))

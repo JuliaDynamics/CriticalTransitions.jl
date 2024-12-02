@@ -39,8 +39,7 @@ using Dates: Dates
 using Printf: Printf
 using Markdown: Markdown
 using DocStringExtensions: TYPEDSIGNATURES
-using ProgressBars: ProgressBars, tqdm
-using ProgressMeter: ProgressMeter
+using ProgressMeter: Progress, next!
 
 # reexport
 using Reexport: @reexport

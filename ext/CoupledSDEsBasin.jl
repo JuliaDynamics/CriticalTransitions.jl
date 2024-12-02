@@ -5,7 +5,6 @@ using ChaosTools
 using Attractors:
     Attractors, AttractorsViaProximity, AttractorMapper, edgetracking, bisect_to_edge
 using ProgressMeter
-using ProgressBars
 using DynamicalSystemsBase: ParallelDynamicalSystem
 using DocStringExtensions
 using LinearAlgebra

@@ -31,7 +31,7 @@ function CriticalTransitions.intervals_to_box(bmin::Vector, bmax::Vector)
         box = IntervalArithmetic.cross(box, intervals[i])
     end
     return box
-end;
+end
 
 """
 $(TYPEDSIGNATURES)

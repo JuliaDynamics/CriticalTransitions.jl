@@ -21,16 +21,18 @@ The minimization can be performed in blocks to save intermediate results.
   - `functional = "FW"`: type of action functional to minimize.
     Defaults to [`fw_action`](@ref), alternative: [`om_action`](@ref).
   - `maxiter = 100`: maximum number of iterations before the algorithm stops.
+  - `action_tol=1e-5`: relative tolerance of action value to determine convergence
+  - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
+  - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
   - `blocks = 1`: number of iterative optimization blocks
   - `method = LBFGS()`: minimization algorithm (see [`Optim`](https://julianlsolvers.github.io/Optim.jl/stable/#))
-  - `save_info = true`: whether to save Optim information
+  - `save_iterations = true`: whether to save Optim information
   - `verbose = true`: whether to print Optim information during the run
-  - `showprogress = false`: whether to print a progress bar
-  - `kwargs...`: any keyword arguments from `Optim.Options` (see [docs](http://julianlsolvers.github.io/Optim.jl/stable/#user/config/))
+  - `show_progress = false`: whether to print a progress bar
 
 ## Output
 
-If `save_info`, returns `Optim.OptimizationResults`. Else, returns only the optimizer (path).
+If `save_iterations`, returns `Optim.OptimizationResults`. Else, returns only the optimizer (path).
 If `blocks > 1`, a vector of results/optimizers is returned.
 """
 function min_action_method(
@@ -43,10 +45,9 @@ function min_action_method(
     maxiter=100,
     blocks=1,
     method=LBFGS(),
-    save_info=true,
-    showprogress=false,
+    save_iterations=false,
+    show_progress=false,
     verbose=true,
-    kwargs...,
 )
     init = reduce(hcat, range(x_i, x_f; length=N))
     return min_action_method(
@@ -57,10 +58,9 @@ function min_action_method(
         maxiter=maxiter,
         blocks=blocks,
         method=method,
-        save_info=save_info,
-        showprogress=showprogress,
+        save_iterations=save_iterations,
+        show_progress=show_progress,
         verbose=verbose,
-        kwargs...,
     )
 end;
 
@@ -86,13 +86,13 @@ function min_action_method(
     maxiter=100,
     blocks=1,
     method=LBFGS(),
-    save_info=true,
-    showprogress=false,
-    verbose=true,
-    kwargs...,
+    action_tol=1e-5,
+    abstol=1e-8,
+    reltol=1e-8,
+    save_iterations=false,
+    verbose=false,
+    show_progress=true,
 )
-    verbose && println("=== Initializing MAM action minimizer ===")
-
     function f(x)
         return action(
             sys,
@@ -104,24 +104,31 @@ function min_action_method(
 
     result = Vector{Optim.OptimizationResults}(undef, blocks)
     result[1] = Optim.optimize(
-        f, init, method, Optim.Options(; iterations=Int(ceil(maxiter / blocks)), kwargs...)
+        f, init, method, Optim.Options(; iterations=Int(ceil(maxiter / blocks)))
     )
     verbose ? println(result[1]) : nothing
 
+    prog = Progress(blocks; desc="Running optimization blocks... ", enabled=show_progress)
     if blocks > 1
-        iterator = showprogress ? tqdm(2:blocks) : 2:blocks
-        for m in iterator
+        for m in 2:blocks
             result[m] = Optim.optimize(
                 f,
                 result[m - 1].minimizer,
                 method,
-                Optim.Options(; iterations=Int(ceil(maxiter / blocks)), kwargs...),
+                Optim.Options(;
+                    iterations=maxiter, g_abstol=abstol, g_reltol=reltol, f_tol=action_tol
+                ),
             )
             verbose ? println(result[m]) : nothing
         end
-        save_info ? (return result) : return [Optim.minimizer(result[i]) for i in 1:blocks]
+        if save_iterations
+            (return result)
+        else
+            return [Optim.minimizer(result[i]) for i in 1:blocks]
+        end
+        next!(prog)
     else
-        save_info ? (return result[end]) : return Optim.minimizer(result[end])
+        save_iterations ? (return result[end]) : return Optim.minimizer(result[end])
     end
 end;
 
