@@ -17,6 +17,7 @@ This function returns a four-dimensional vector. The first two entries are discr
 * `pstep = [0.1, 0.1]`: a vector of length two whose elements give the increments of the mesh that the maximisation process of finding a plane from a box is taken over (for more information see the source code of the function `plane` in the `src/systemanalysis/planeofbox.jl` file)
 * `ϵ_mapper = 0.01`: `ϵ` parameter of [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity)
 * `kwargs...`: keyword arguments passed to the [`AttractorsViaProximity`](https://juliadynamics.github.io/Attractors.jl/v1.2/attractors/#Attractors.AttractorsViaProximity) function (namely, `Ttr, Δt, horizon_limit, mx_chk_lost`)
+* `show_progress = false`: if true, displays a progress bar
 """
 function CriticalTransitions.basins(
     sys::CoupledSDEs,
@@ -27,7 +28,7 @@ function CriticalTransitions.basins(
     bstep::Vector = [0.01, 0.01],
     pstep::Vector = [0.1, 0.1],
     ϵ_mapper      = 0.01,
-    showprogress  = false,
+    show_progress = true,
     kwargs...,
 )
     U, V = plane(A, B, C, H; step=pstep) # the intervals for the maximal plane P_{U,V}
@@ -41,13 +42,14 @@ function CriticalTransitions.basins(
     attractors = toattractors(fps[1][fps[3]])
 
     # running the AttractorsViaProximity function using parallel computing
-    iterator = showprogress ? tqdm(1:length(X)) : 1:length(X)
-    Threads.@threads for ii in iterator
+    prog = Progress(length(X); enabled=show_progress)
+    Threads.@threads for ii in 1:length(X)
         Z = [A + X[ii] * (B - A) + y * (C - A) for y in Y] # a row of initial conditions
         h[:, ii] =
             Attractors.AttractorsViaProximity(
                 CoupledODEs(sys), attractors, ϵ_mapper; kwargs...
             ).(Z)
+        next!(prog)
     end
 
     return [X, Y, attractors, h]

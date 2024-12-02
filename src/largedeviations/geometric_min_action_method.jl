@@ -1,8 +1,9 @@
 """
 $(TYPEDSIGNATURES)
 
-Computes the minimizer of the Freidlin-Wentzell action using the geometric minimum
-action method (gMAM). Beta version, to be further documented.
+Computes the minimizer of the geometric Freidlin-Wentzell action based on the geometric
+minimum action method (gMAM), using optimizers of Optim.jl or the original formulation
+by Heymann and Vanden-Eijnden[^1].
 
 To set an initial path different from a straight line, see the multiple dispatch method
 
@@ -10,11 +11,15 @@ To set an initial path different from a straight line, see the multiple dispatch
 
 ## Keyword arguments
 
-  - `N = 100`: number of discretized path points
-  - `maxiter = 100`: maximum number of iterations before the algorithm stops
-  - `converge = 1e-5`: convergence threshold for absolute change in action
-  - `method = LBFGS()`: choice of optimization algorithm (see below)
-  - `tau = 0.1`: step size (used only if `method = "HeymannVandenEijnden"`)
+  - `maxiter::Int=100`: maximum number of optimization iterations before the alogrithm stops
+  - `action_tol=1e-5`: relative tolerance of action value to determine convergence
+  - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
+  - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
+  - `method=LBFGS()`: optimizer method (see [Optim.jl](https://julianlsolvers.github.io/Optim.jl/stable/user/config/))
+  - `iter_per_batch=1`: number of iterations per optimization batch
+  - `tau=0.1`: parameter in HeymannVandenEijnden method
+  - `verbose=false`: if true, print additional output
+  - `show_progress=true`: if true, display a progress bar
 
 ## Optimization algorithms
 
@@ -48,12 +53,12 @@ function geometric_min_action_method(
     maxiter::Int=100,
     abstol=1e-8,
     reltol=1e-8,
-    Stol=1e-5,
+    action_tol=1e-5,
     method=LBFGS(),
     tau=0.1,
     iter_per_batch=1,
-    verbose::Bool=true,
-    showprogress::Bool=true,
+    verbose=false,
+    show_progress=true,
 )
     path = deepcopy(init)
     x_i = init[:, 1]
@@ -69,10 +74,13 @@ function geometric_min_action_method(
     alpha = zeros(N)
     arc = range(0, 1.0; length=N)
 
-    iterator = showprogress ? tqdm(1:maxiter) : 1:maxiter
-    for i in iterator
+    prog = Progress(maxiter; enabled=show_progress)
+    for i in 1:maxiter
         if method == "HeymannVandenEijnden"
             # error("The HeymannVandenEijnden method is broken")
+            @warn(
+                "The HeymannVandenEijnden method may currently be implemented incorrectly."
+            )
             update_path = heymann_vandeneijnden_step(sys, path, N; tau=tau)
         else
             update = Optim.optimize(
@@ -80,7 +88,10 @@ function geometric_min_action_method(
                 path,
                 method,
                 Optim.Options(;
-                    iterations=iter_per_batch, g_abstol=abstol, g_reltol=reltol, f_tol=Stol
+                    iterations=iter_per_batch,
+                    g_abstol=abstol,
+                    g_reltol=reltol,
+                    f_tol=action_tol,
                 ),
             )
             path .= Optim.minimizer(update)
@@ -96,6 +107,7 @@ function geometric_min_action_method(
             return paths, action
             break
         end
+        next!(prog)
     end
     push!(paths, path)
     push!(action, S(path))

@@ -35,13 +35,13 @@ end
     #   include("trajectories/transition.jl")
 end
 
-@testset "Extentions" begin
+@testset "Extensions" begin
     @testset "ChaosToolsExt" begin
         include("ext/ChaosToolsExt.jl")
     end
 
-    @testset "CoupledSDEsBaisin" begin
-        include("ext/CoupledSDEsBaisin.jl")
+    @testset "CoupledSDEsBasin" begin
+        include("ext/CoupledSDEsBasin.jl")
     end
 end
 

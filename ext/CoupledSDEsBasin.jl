@@ -1,11 +1,10 @@
-module CoupledSDEsBaisin
+module CoupledSDEsBasin
 
 using CriticalTransitions
 using ChaosTools
 using Attractors:
     Attractors, AttractorsViaProximity, AttractorMapper, edgetracking, bisect_to_edge
 using ProgressMeter
-using ProgressBars
 using DynamicalSystemsBase: ParallelDynamicalSystem
 using DocStringExtensions
 using LinearAlgebra
@@ -17,4 +16,4 @@ include("basin/basinboundary.jl")
 
 export basins, basboundary, basinboundary
 
-end # module CoupledSDEsBaisin
+end # module CoupledSDEsBasin
