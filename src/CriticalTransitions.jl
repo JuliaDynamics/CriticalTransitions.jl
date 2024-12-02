@@ -49,7 +49,7 @@ using Reexport: @reexport
 
 include("extension_functions.jl")
 include("utils.jl")
-include("system_utils.jl")
+include("sde_utils.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 include("trajectories/equib.jl")
@@ -79,8 +79,6 @@ export fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
 export covariance_matrix, diffusion_matrix
 # export edgetracking, bisect_to_edge, AttractorsViaProximity
-# export fixedpoints
-# ^ extension tests needed
 
 # Error hint for extensions stubs
 function __init__()
