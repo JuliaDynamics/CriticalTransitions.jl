@@ -45,7 +45,7 @@ makedocs(;
         CriticalTransitions,
         CriticalTransitions.DiffEqNoiseProcess,
         Base.get_extension(CriticalTransitions, :ChaosToolsExt),
-        Base.get_extension(CriticalTransitions, :CoupledSDEsBaisin),
+        Base.get_extension(CriticalTransitions, :CoupledSDEsBasin),
         DynamicalSystemsBase,
         Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
     ],
