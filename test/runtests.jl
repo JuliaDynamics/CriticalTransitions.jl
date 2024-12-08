@@ -14,6 +14,7 @@ end
 
 @testset "CoupledSDEs" begin
     include("CoupledSDEs.jl")
+    include("covariance.jl")
 end
 
 @testset "ModelingToolkit" begin
