@@ -46,7 +46,7 @@ function Attractors.edgetracking(
     dt_mapper=0.01,
     solver=Vern9(),
     maxit=100,
-    verbose=true,
+    verbose=false,
     output_all=false,
     kwargs...,
 )
