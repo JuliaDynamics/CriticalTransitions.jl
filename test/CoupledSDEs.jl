@@ -6,6 +6,21 @@ using CriticalTransitions, Test
     using StochasticDiffEq: SDEProblem, SRA, SOSRA, LambaEM, CorrelatedWienerProcess
     using CriticalTransitions
 
+    @testset "drift" begin
+        using LinearAlgebra
+        using CriticalTransitions.CTLibrary: fitzhugh_nagumo
+
+        σ = 0.2
+        param = [1.0, 3, 1, 1, 1, 0]
+        u0 = zeros(2)
+        sys = CoupledSDEs(fitzhugh_nagumo, u0, param; noise_strength=σ)
+
+        using CriticalTransitions: drift
+        drift_vector = drift(sys, [0, 0])
+        drift_vector isa SVector{2,Float64}
+        @test drift_vector == [0, 0]
+    end
+
     # Creation of lorenz
     @inbounds function lorenz_rule(u, p, t)
         σ = p[1]
@@ -50,22 +65,10 @@ using CriticalTransitions, Test
     lor_oop_cov = CoupledSDEs(lorenz_rule, u0, p0; covariance=Γ, diffeq=diffeq_cov)
     lor_iip_cov = CoupledSDEs(lorenz_rule_iip, u0, p0; covariance=Γ, diffeq=diffeq_cov)
 
-    @testset "drift" begin
-        using LinearAlgebra
-        using CriticalTransitions.CTLibrary: fitzhugh_nagumo
-
-        σ = 0.2
-        param = [1.0, 3, 1, 1, 1, 0]
-        u0 = zeros(2)
-        sys = CoupledSDEs(fitzhugh_nagumo, u0, param; noise_strength=σ)
-
-        using CriticalTransitions: drift
-        drift_vector = drift(sys, [0, 0])
-        drift_vector isa SVector{2,Float64}
-        @test drift_vector == [0, 0]
-    end
 
     @testset "correct SDE propagation" begin
+        u0 = [0, 10.0, 0]
+        p0 = [10, 28, 8 / 3]
         lorenz_oop = CoupledSDEs(lorenz_rule, u0, p0)
         @test lorenz_oop.integ.alg isa SOSRA
 
@@ -87,11 +90,11 @@ using CriticalTransitions, Test
 
         # CoupledODEs creation
         ds = CoupledODEs(lorenz_oop)
-        @test dynamic_rule(ds) == lorenz_rule
+        @test dynamic_rule(ds).f == lorenz_rule
         @test ds.integ.alg isa Tsit5
         # and back
         sde = CoupledSDEs(ds, p0)
-        @test dynamic_rule(sde) == lorenz_rule
+        @test dynamic_rule(sde).f.f == lorenz_rule
         @test sde.integ.alg isa SOSRA
     end
 
