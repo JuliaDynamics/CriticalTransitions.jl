@@ -46,8 +46,8 @@ function min_action_method(
     blocks=1,
     method=LBFGS(),
     save_iterations=false,
-    show_progress=false,
-    verbose=true,
+    show_progress=true,
+    verbose=false,
 )
     init = reduce(hcat, range(x_i, x_f; length=N))
     return min_action_method(
