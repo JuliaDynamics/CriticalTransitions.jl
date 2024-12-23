@@ -65,7 +65,6 @@ using CriticalTransitions, Test
     lor_oop_cov = CoupledSDEs(lorenz_rule, u0, p0; covariance=Γ, diffeq=diffeq_cov)
     lor_iip_cov = CoupledSDEs(lorenz_rule_iip, u0, p0; covariance=Γ, diffeq=diffeq_cov)
 
-
     @testset "correct SDE propagation" begin
         u0 = [0, 10.0, 0]
         p0 = [10, 28, 8 / 3]
