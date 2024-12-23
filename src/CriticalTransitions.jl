@@ -75,6 +75,7 @@ export drift, div_drift
 export equilib, deterministic_orbit
 export transition, transitions
 export basins, basinboundary, basboundary
+export intervals_to_box
 export fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
 export covariance_matrix, diffusion_matrix
@@ -85,6 +86,9 @@ function __init__()
     Base.Experimental.register_error_hint(_basin_error_hinter(basins), MethodError)
     Base.Experimental.register_error_hint(_basin_error_hinter(basboundary), MethodError)
     Base.Experimental.register_error_hint(_basin_error_hinter(basinboundary), MethodError)
+    Base.Experimental.register_error_hint(
+        _basin_error_hinter(intervals_to_box), MethodError
+    )
     return nothing
 end
 

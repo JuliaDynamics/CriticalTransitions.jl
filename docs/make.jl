@@ -38,9 +38,7 @@ end
 makedocs(;
     authors=authors,
     sitename="CriticalTransitions.jl",
-    linkcheck=true,
-    pagesonly=true,
-    checkdocs=:exports,
+    repo=Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
     modules=[
         CriticalTransitions,
         CriticalTransitions.DiffEqNoiseProcess,
@@ -49,10 +47,13 @@ makedocs(;
         DynamicalSystemsBase,
         Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
     ],
+    pages=pages,
+    linkcheck=true,
+    pagesonly=true,
+    checkdocs=:exports,
     doctest=false,
     format=Documenter.HTML(; html_options...),
     warnonly=[:missing_docs, :linkcheck, :cross_references],
-    pages=pages,
     plugins=[bib, links],
 )
 
