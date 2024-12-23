@@ -202,7 +202,7 @@ fig
 [scatter!(ax, Point(fp[i]), color=stab[i] > 0 ? :red : :dodgerblue,
     markersize=10) for i in eachindex(fp)]
 
-for i in 1:3
+for i in 1:length(tt.paths)
     lines!(ax, tt.paths[i].u)
 end
 fig
