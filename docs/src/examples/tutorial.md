@@ -63,11 +63,8 @@ For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let's c
 
 ```@example MAIN
 using ChaosTools
-# Calculate fixed points
-box = intervals_to_box([-2,-2], [2,2])
-eqs, eigs, stab = fixedpoints(sys, box)
-
-# Store the two stable fixed points
+# Calculate fixed points and store the stable ones
+eqs, eigs, stab = fixedpoints(sys, [-2,-2], [2,2])
 fp1, fp2 = eqs[stab]
 ```
 

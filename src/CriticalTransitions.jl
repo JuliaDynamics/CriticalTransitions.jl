@@ -29,7 +29,6 @@ using DynamicalSystemsBase:
     trajectory
 
 using ForwardDiff: ForwardDiff
-using IntervalArithmetic: IntervalArithmetic, interval
 using Interpolations: linear_interpolation
 using Optim: Optim, LBFGS
 using Symbolics: Symbolics
@@ -40,10 +39,7 @@ using Dates: Dates
 using Printf: Printf
 using Markdown: Markdown
 using DocStringExtensions: TYPEDSIGNATURES
-using HDF5: HDF5, h5open, push!
-using JLD2: JLD2, jldopen
-using ProgressBars: ProgressBars, tqdm
-using ProgressMeter: ProgressMeter
+using ProgressMeter: Progress, next!
 
 # reexport
 using Reexport: @reexport
@@ -51,10 +47,9 @@ using Reexport: @reexport
 @reexport using StochasticDiffEq
 @reexport using DiffEqNoiseProcess
 
-include("extention_functions.jl")
+include("extension_functions.jl")
 include("utils.jl")
-include("system_utils.jl")
-include("io.jl")
+include("sde_utils.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 include("trajectories/equib.jl")
@@ -82,17 +77,14 @@ export transition, transitions
 export basins, basinboundary, basboundary
 export fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
-export make_jld2, make_h5, intervals_to_box
 export covariance_matrix, diffusion_matrix
 # export edgetracking, bisect_to_edge, AttractorsViaProximity
-# export fixedpoints
-# ^ extention tests needed
 
 # Error hint for extensions stubs
 function __init__()
-    Base.Experimental.register_error_hint(_baisin_error_hinter(basins), MethodError)
-    Base.Experimental.register_error_hint(_baisin_error_hinter(basboundary), MethodError)
-    Base.Experimental.register_error_hint(_baisin_error_hinter(basinboundary), MethodError)
+    Base.Experimental.register_error_hint(_basin_error_hinter(basins), MethodError)
+    Base.Experimental.register_error_hint(_basin_error_hinter(basboundary), MethodError)
+    Base.Experimental.register_error_hint(_basin_error_hinter(basinboundary), MethodError)
     return nothing
 end
 

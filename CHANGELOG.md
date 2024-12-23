@@ -1,5 +1,22 @@
 # Changelog for `CriticalTransitions.jl`
 
+## v0.5.0
+Package clean-up
+
+This release brings a streamlined source code, with unused and deprecated code removed, dependencies reduced, and a unified style of displaying progress meters.
+
+#### Changed functions
+- `intervals_to_box` is now part of the `ChaosToolsExt` extension and is loaded only when `using ChaosTools`
+- The keyword argument `showprogress` changed to `show_progress` in several functions for consistency
+- In `min_action_method`, the keyword argument `Stol` is now called `action_tol`
+
+#### Deprecations
+- Functions `make_h5` and `make_jld2` have been removed
+- Dependencies `HDF5`, `JLD2`, and `ProgressBars` have been removed
+- Dependency `IntervalArithmetic` is now only a dependency of some extensions
+
+Full changelog [here](https://github.com/JuliaDynamics/CriticalTransitions.jl/compare/v0.4.0...v0.5.0).
+
 ## v0.4.0
 New `CoupledSDEs` design
 

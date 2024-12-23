@@ -5,8 +5,33 @@ using DocStringExtensions
 using ForwardDiff
 using ChaosTools: ChaosTools, fixedpoints
 using DynamicalSystemsBase: CoupledODEs, StateSpaceSet
+using IntervalArithmetic: IntervalArithmetic, interval
 
-export fixedpoints
+export fixedpoints, intervals_to_box
+
+"""
+$(TYPEDSIGNATURES)
+
+Generates a box from specifying the interval limits in each dimension.
+* `bmin` (Vector): lower limit of the box in each dimension
+* `bmax` (Vector): upper limit
+
+## Example
+`intervals_to_box([-2,-1,0], [2,1,1])` returns a 3D box of dimensions `[-2,2] × [-1,1] × [0,1]`.
+"""
+function CriticalTransitions.intervals_to_box(bmin::Vector, bmax::Vector)
+    # Generates a box from specifying the interval limits
+    intervals = []
+    dim = length(bmin)
+    for i in 1:dim
+        push!(intervals, interval(bmin[i], bmax[i]))
+    end
+    box = intervals[1]
+    for i in 2:dim
+        box = IntervalArithmetic.cross(box, intervals[i])
+    end
+    return box
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -32,7 +57,7 @@ Returns fixed points, their eigenvalues and stability of the system `sys` within
 * `fixedpoints(sys::CoupedSDEs, box)`
 """
 function ChaosTools.fixedpoints(sys::CoupledSDEs, bmin::Vector, bmax::Vector)
-    box = intervals_to_box(bmin, bmax)
+    box = CriticalTransitions.intervals_to_box(bmin, bmax)
     return fixedpoints(sys::CoupledSDEs, box)
 end
 
