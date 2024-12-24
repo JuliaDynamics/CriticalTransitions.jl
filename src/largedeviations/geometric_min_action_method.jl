@@ -79,13 +79,13 @@ function geometric_min_action_method(
     converged = false
     if method == "HeymannVandenEijnden"
         # error("The HeymannVandenEijnden method is broken")
-        @warn("The HeymannVandenEijnden method may currently be implemented incorrectly.")
-        for i in 1:maxiter
-            update = heymann_vandeneijnden_step(sys, path, N; tau=tau)
-            path .= update
-            interpolate_path!(path, alpha, arc)
-            next!(prog)
-        end
+        @warn("The HeymannVandenEijnden method currently does not work.")
+        # for i in 1:maxiter
+        #     update = heymann_vandeneijnden_step(sys, path, N; tau=tau)
+        #     path .= update
+        #     interpolate_path!(path, alpha, arc)
+        #     next!(prog)
+        # end
     else
         for i in 1:maxiter
             update = Optim.optimize(
