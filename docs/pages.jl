@@ -4,7 +4,8 @@ pages = [
     "Quickstart" => "quickstart.md",
     "Tutorial" => "examples/tutorial.md",
     "Examples" => Any[
-        "Instanton for the Maier-Stein system" => "examples/gMAM_Maierstein.md"
+        "Anlyses for the Maier-Stein system" => "examples/gMAM_Maierstein.md",
+        "sgMAM for the Kerr Parametric Oscillator" => "examples/sgMAM_Kerr.md",
     ],
     "Manual" => Any[
         "Define a CoupledSDEs system" => "man/CoupledSDEs.md",
