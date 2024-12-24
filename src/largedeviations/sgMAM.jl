@@ -27,16 +27,20 @@ end
 $(TYPEDSIGNATURES)
 
 Performs the simplified geometric Minimal Action Method (sgMAM) on the given system `sys`.
+Our implementation is only valid for additive noise.
 
 This method computes the optimal path in the phase space of a Hamiltonian system that
-minimizes the action. The Hamiltonian functions `H_x` and `H_p` define the system's dynamics
-in a doubled phase. The initial state `x_initial` is evolved iteratively using constrained
-gradient descent with step size parameter `ϵ` over a specified number of iterations.
-The method can display a progress meter and will stop early if the relative tolerance
-`reltol` is achieved.
+minimizes the Freidlin–Wentzell action. The Hamiltonian functions `H_x` and `H_p` define
+the system's dynamics in a doubled phase. The initial state `x_initial` is evolved
+iteratively using constrained gradient descent with step size parameter `ϵ` over a specified
+number of iterations. The method can display a progress meter and will stop early if the
+relative tolerance `reltol` is achieved.
 
 The function returns a tuple containing the final state, the action value,
-the Lagrange multipliers, the momentum, and the state derivatives.
+the Lagrange multipliers, the momentum, and the state derivatives. The implementation is
+based on the work of [Grafke et al. (2019)](
+https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html.
+).
 """
 function sgmam(
     sys::SgmamSystem,
