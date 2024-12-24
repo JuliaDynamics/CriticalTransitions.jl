@@ -232,6 +232,7 @@ init = Matrix([xx yy]')
 
 ```@example GMAM
 gm = geometric_min_action_method(sys, init, maxiter=200; show_progress=false)
+MLP = gm.path
 ```
 
 ```@example GMAM
@@ -253,8 +254,8 @@ fig
 [scatter!(ax, Point(fp[i]), color=stab[i] > 0 ? :red : :dodgerblue,
     markersize=10) for i in eachindex(fp)]
 
-lines!(ax, gm[1][1], linewidth=3, color=:black, linestyle=:dash)
-lines!(ax, gm[1][end], linewidth=3, color=:orange)
+lines!(ax, init, linewidth=3, color=:black, linestyle=:dash)
+lines!(ax, MLP, linewidth=3, color=:orange)
 fig
 ```
 
