@@ -74,7 +74,9 @@ function sgmam(
         end
         next!(progress; showvalues=[("iterations", i), ("Stol", round(tol; sigdigits=3))])
     end
-    return MaximumLikelihoodPath(x, S[end]; λ = lambda, generalized_momentum=p, path_velocity=xdot)
+    return MaximumLikelihoodPath(
+        x, S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
+    )
 end
 
 function init_allocation(x_initial, Nt)

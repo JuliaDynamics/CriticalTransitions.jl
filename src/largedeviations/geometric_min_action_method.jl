@@ -79,9 +79,7 @@ function geometric_min_action_method(
     converged = false
     if method == "HeymannVandenEijnden"
         # error("The HeymannVandenEijnden method is broken")
-        @warn(
-            "The HeymannVandenEijnden method may currently be implemented incorrectly."
-        )
+        @warn("The HeymannVandenEijnden method may currently be implemented incorrectly.")
         for i in 1:maxiter
             update = heymann_vandeneijnden_step(sys, path, N; tau=tau)
             path .= update
