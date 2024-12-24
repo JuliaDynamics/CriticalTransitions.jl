@@ -35,33 +35,9 @@ The minimization can be performed in blocks to save intermediate results.
 If `save_iterations`, returns `Optim.OptimizationResults`. Else, returns only the optimizer (path).
 If `blocks > 1`, a vector of results/optimizers is returned.
 """
-function min_action_method(
-    sys::CoupledSDEs,
-    x_i,
-    x_f,
-    N::Int,
-    T::Real;
-    functional="FW",
-    maxiter=100,
-    blocks=1,
-    method=LBFGS(),
-    save_iterations=false,
-    show_progress=true,
-    verbose=false,
-)
+function min_action_method(sys::CoupledSDEs, x_i, x_f, N::Int, T::Real; kwargs...)
     init = reduce(hcat, range(x_i, x_f; length=N))
-    return min_action_method(
-        sys::CoupledSDEs,
-        init,
-        T;
-        functional=functional,
-        maxiter=maxiter,
-        blocks=blocks,
-        method=method,
-        save_iterations=save_iterations,
-        show_progress=show_progress,
-        verbose=verbose,
-    )
+    return min_action_method(sys::CoupledSDEs, init, T; kwargs...)
 end;
 
 """
@@ -83,53 +59,36 @@ function min_action_method(
     init::Matrix,
     T::Real;
     functional="FW",
-    maxiter=100,
-    blocks=1,
-    method=LBFGS(),
-    action_tol=1e-5,
-    abstol=1e-8,
-    reltol=1e-8,
-    save_iterations=false,
+    maxiter::Int=100,
+    abstol=nothing,
+    reltol=nothing,
+    method=Optimisers.Adam(),
+    AD=Optimization.AutoFiniteDiff(),
     verbose=false,
     show_progress=true,
 )
-    function f(x)
-        return action(
-            sys,
-            fix_ends(x, init[:, 1], init[:, end]),
-            range(0.0, T; length=size(init, 2)),
-            functional,
-        )
+    arc = range(0.0, T; length=size(init, 2))
+    S(x) = action(sys, fix_ends(x, init[:, 1], init[:, end]), arc, functional)
+
+    optf = OptimizationFunction((x, _) -> S(x), AD)
+    prob = OptimizationProblem(optf, init, ())
+
+    prog = Progress(maxiter; enabled=show_progress)
+    function callback(state, loss_val)
+        verbose && println("Loss: $loss_val")
+        show_progress ? next!(prog) : nothing
+        return false
     end
 
-    result = Vector{Optim.OptimizationResults}(undef, blocks)
-    result[1] = Optim.optimize(
-        f, init, method, Optim.Options(; iterations=Int(ceil(maxiter / blocks)))
+    sol = solve(
+        prob,
+        Optimisers.Adam();
+        maxiters=maxiter,
+        callback=callback,
+        abstol=abstol,
+        reltol=reltol,
     )
-    verbose ? println(result[1]) : nothing
-
-    prog = Progress(blocks; desc="Running optimization blocks... ", enabled=show_progress)
-    if blocks > 1
-        for m in 2:blocks
-            result[m] = Optim.optimize(
-                f,
-                result[m - 1].minimizer,
-                method,
-                Optim.Options(;
-                    iterations=maxiter, g_abstol=abstol, g_reltol=reltol, f_tol=action_tol
-                ),
-            )
-            verbose ? println(result[m]) : nothing
-        end
-        if save_iterations
-            (return result)
-        else
-            return [Optim.minimizer(result[i]) for i in 1:blocks]
-        end
-        next!(prog)
-    else
-        save_iterations ? (return result[end]) : return Optim.minimizer(result[end])
-    end
+    return MaximumLikelihoodPath(sol.u, sol.objective)
 end;
 
 """

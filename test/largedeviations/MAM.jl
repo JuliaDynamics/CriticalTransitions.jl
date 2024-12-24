@@ -1,3 +1,9 @@
+using CriticalTransitions
+using Test
+
+using CriticalTransitions.CTLibrary: fitzhugh_nagumo
+using OptimizationOptimJL: LBFGS
+
 @testset "MAM FitzHugh-Nagumo" begin
     p = [0.1, 3, 1, 1, 1, 0]
     σ = 0.1
@@ -5,9 +11,10 @@
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
     N, T = 200, 2.0
-    inst = min_action_method(fhn, x_i, x_f, N, T; maxiter=100)
-    scatter(inst[1, :], inst[2, :])
-    S = fw_action(fhn, inst, range(0.0, T; length=N))
+    method = LBFGS()
+    inst = min_action_method(fhn, x_i, x_f, N, T; maxiter=500)
+    # If you evolve for longer the path splits into two :/
+    S = fw_action(fhn, inst.path, range(0.0, T; length=N))
     @test isapprox(S, 0.18, atol=0.01)
 end
 
