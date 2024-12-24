@@ -5,7 +5,7 @@ pages = [
     "Tutorial" => "examples/tutorial.md",
     "Examples" => Any[
         "Anlyses for the Maier-Stein system" => "examples/gMAM_Maierstein.md",
-        "sgMAM for the Kerr Parametric Oscillator" => "examples/sgMAM_Kerr.md",
+        "sgMAM for the Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
     ],
     "Manual" => Any[
         "Define a CoupledSDEs system" => "man/CoupledSDEs.md",

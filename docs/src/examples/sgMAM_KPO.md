@@ -6,7 +6,7 @@ using CriticalTransitions, CairoMakie
 
 The KPO equation is a nonlinear ordinary differential equation that describes the response of the nonlinear parametrically driven resonator at its dominant resonant condition. The equation of motion are of the form:
 ```math
-\dot{\vb{x}} = \vb{f}(\vb{x}) + \sigma\vb{ξ}(t)
+\dot{\mathbf{x}} = \mathbf{f}(\mathbf{x}) + \sigma\mathbf{ξ}(t)
 ```
 where `f` is an autonemous drift function and and we have brownian noise `ξ` with intensity `σ`.
 
@@ -34,9 +34,9 @@ dfvdu(u, v) = (-2 * λ + 4 * (ω0 - ω^2) + 9 * α * u^2 + 3 * α * v^2) / (8 * 
 dfudv(u, v) = (-2 * λ - 4 * (ω0 - ω^2) - 3 * α * u^2 - 9 * α * v^2) / (8 * ω)
 ```
 
-The optimisation is performed in a doubled phase space, i.e., every variable of the SDE system is considered as a generelised coordinate $\vb{x}$ and gets a corresponding generalised momentum $\vb{p}$. The makes it that also systems with dissipative flow can be solved. As such, we extend the phase space by defining the hamiltionian
+The optimisation is performed in a doubled phase space, i.e., every variable of the SDE system is considered as a generelised coordinate $\mathbf{x}$ and gets a corresponding generalised momentum $\mathbf{p}$. The makes it that also systems with dissipative flow can be solved. As such, we extend the phase space by defining the hamiltionian
 ```math
-H = \sum_i \frac{p_i^2}{2} + f_i(\vb{x})p_i
+H = \sum_i \frac{p_i^2}{2} + f_i(\mathbf{x})p_i
 ```
 Hence, to use the sgMAM method, we need to define the derivatives of the Hamiltonian with respect to the phase space coordinates and the generalised momentum: 
 ```@example GMAM
