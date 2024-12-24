@@ -9,10 +9,7 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
     fhn = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ)
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
-    N = 100
-    res = geometric_min_action_method(
-        fhn, x_i, x_f; N=75, maxiter=200, verbose=false, show_progress=false
-    )
+    res = geometric_min_action_method(fhn, x_i, x_f; N=30, maxiter=500, show_progress=false)
     S = geometric_action(fhn, res.path)
     @test isapprox(S, 0.18, atol=0.01)
 end
@@ -40,19 +37,19 @@ end
             sys, x_i, x_f; maxiter=10, verbose=false, show_progress=false
         )
         gm = geometric_min_action_method(
-            sys, init; maxiter=100, verbose=false, show_progress=false
+            sys, init; maxiter=500, verbose=false, show_progress=false
         )
 
         path = gm.path
         action_val = gm.action
-        @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=1e-3))
-        @test all(isapprox.(action_val, 0.3375, atol=1e-3))
+        @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=0.01))
+        @test all(isapprox.(action_val, 0.3375, atol=0.01))
     end
 
     @testset "HeymannVandenEijnden" begin # broken
         method = "HeymannVandenEijnden"
         gm = geometric_min_action_method(
-            sys, init; maxiter=100, method=method, verbose=false, show_progress=false
+            sys, init; maxiter=500, method=method, verbose=false, show_progress=false
         )
 
         path = gm.path

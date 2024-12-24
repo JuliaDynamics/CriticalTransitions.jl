@@ -138,7 +138,7 @@ $(TYPEDSIGNATURES)
 Changes the first and last row of the matrix `x` to the vectors `x_i` and `x_f`,
 respectively.
 """
-function fix_ends(x::Matrix, x_i::Vector, x_f::Vector)
+function fix_ends(x::Matrix, x_i, x_f)
     m = x
     m[:, 1] = x_i
     m[:, end] = x_f
