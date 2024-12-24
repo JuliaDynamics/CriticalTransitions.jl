@@ -75,14 +75,19 @@ function geometric_min_action_method(
     arc = range(0, 1.0; length=N)
 
     prog = Progress(maxiter; enabled=show_progress)
-    for i in 1:maxiter
-        if method == "HeymannVandenEijnden"
-            # error("The HeymannVandenEijnden method is broken")
-            @warn(
-                "The HeymannVandenEijnden method may currently be implemented incorrectly."
-            )
-            update_path = heymann_vandeneijnden_step(sys, path, N; tau=tau)
-        else
+
+    converged = false
+    if method == "HeymannVandenEijnden"
+        # error("The HeymannVandenEijnden method is broken")
+        @warn("The HeymannVandenEijnden method currently does not work.")
+        # for i in 1:maxiter
+        #     update = heymann_vandeneijnden_step(sys, path, N; tau=tau)
+        #     path .= update
+        #     interpolate_path!(path, alpha, arc)
+        #     next!(prog)
+        # end
+    else
+        for i in 1:maxiter
             update = Optim.optimize(
                 S,
                 path,
@@ -95,24 +100,21 @@ function geometric_min_action_method(
                 ),
             )
             path .= Optim.minimizer(update)
+            interpolate_path!(path, alpha, arc)
+            if Optim.converged(update)
+                verbose && println("Converged after $(i) iterations.")
+                converged = true
+                break
+            end
+            next!(prog)
         end
-
-        # re-interpolate
-        interpolate_path!(path, alpha, arc)
-
-        if method != "HeymannVandenEijnden" && Optim.converged(update)
-            verbose && println("Converged after $(i) iterations.")
-            push!(paths, path)
-            push!(action, Optim.minimum(update))
-            return paths, action
-            break
-        end
-        next!(prog)
     end
-    push!(paths, path)
-    push!(action, S(path))
-    verbose && @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
-    return paths, action
+    # push!(paths, path)
+    # push!(action, S(path))
+    if verbose && !converged
+        @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
+    end
+    return MaximumLikelihoodPath(path, S(path))
 end
 
 """
