@@ -31,6 +31,8 @@ using DynamicalSystemsBase:
 using ForwardDiff: ForwardDiff
 using Interpolations: linear_interpolation
 using Optim: Optim, LBFGS
+using Optimization
+using OptimizationOptimisers: Optimisers
 using Symbolics: Symbolics
 
 # io and documentation
