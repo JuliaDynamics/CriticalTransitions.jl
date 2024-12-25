@@ -26,9 +26,9 @@ using DynamicalSystemsBase:
     dynamic_rule,
     current_state,
     set_state!,
-    trajectory
+    trajectory,
+    jacobian
 
-using ForwardDiff: ForwardDiff
 using Interpolations: linear_interpolation
 using Optimization
 using OptimizationOptimisers: Optimisers
@@ -36,9 +36,7 @@ using Symbolics: Symbolics
 
 # io and documentation
 using Format: Format
-using Dates: Dates
 using Printf: Printf
-using Markdown: Markdown
 using DocStringExtensions: TYPEDSIGNATURES
 using ProgressMeter: Progress, next!
 
