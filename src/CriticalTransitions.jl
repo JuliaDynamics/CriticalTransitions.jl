@@ -26,7 +26,8 @@ using DynamicalSystemsBase:
     dynamic_rule,
     current_state,
     set_state!,
-    trajectory
+    trajectory,
+    jacobian
 
 using Interpolations: linear_interpolation
 using Optim: Optim, LBFGS
