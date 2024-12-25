@@ -30,7 +30,6 @@ using DynamicalSystemsBase:
     jacobian
 
 using Interpolations: linear_interpolation
-using Optim: Optim, LBFGS
 using Optimization
 using OptimizationOptimisers: Optimisers
 using Symbolics: Symbolics
