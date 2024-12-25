@@ -37,9 +37,7 @@ using Symbolics: Symbolics
 
 # io and documentation
 using Format: Format
-using Dates: Dates
 using Printf: Printf
-using Markdown: Markdown
 using DocStringExtensions: TYPEDSIGNATURES
 using ProgressMeter: Progress, next!
 
