@@ -28,7 +28,6 @@ using DynamicalSystemsBase:
     set_state!,
     trajectory
 
-using ForwardDiff: ForwardDiff
 using Interpolations: linear_interpolation
 using Optim: Optim, LBFGS
 using Optimization

@@ -2,9 +2,8 @@ module ChaosToolsExt
 
 using CriticalTransitions
 using DocStringExtensions
-using ForwardDiff
 using ChaosTools: ChaosTools, fixedpoints
-using DynamicalSystemsBase: CoupledODEs, StateSpaceSet
+using DynamicalSystemsBase: CoupledODEs, StateSpaceSet, jacobian
 using IntervalArithmetic: IntervalArithmetic, interval
 
 export fixedpoints, intervals_to_box
@@ -62,8 +61,8 @@ function ChaosTools.fixedpoints(sys::CoupledSDEs, bmin::Vector, bmax::Vector)
 end
 
 function ChaosTools.fixedpoints(sys::CoupledSDEs, box)
-    jac(u, p, t) = ForwardDiff.jacobian((x) -> sys.integ.f(x, p, t), u)
-    return fixedpoints(CoupledODEs(sys), box, jac)
+    ds = CoupledODEs(sys)
+    return fixedpoints(CoupledODEs(sys), box, jacobian(ds))
 end
 
 # function saddles_idx(fps::Tuple)
