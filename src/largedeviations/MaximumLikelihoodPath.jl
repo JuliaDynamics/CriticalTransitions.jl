@@ -34,3 +34,9 @@ mutable struct MaximumLikelihoodPath{T,Phis,Ahis,Lambda,PV,GPV}
         )
     end
 end
+
+function prettyprint(mlp::MaximumLikelihoodPath)
+    return "Maximum Likelihood Path of size $(length(mlp.path[1,:])) in $(length(mlp.path[:,1])) dimensions"
+end
+
+Base.show(io::IO, mlp::MaximumLikelihoodPath) = print(io, prettyprint(mlp))
