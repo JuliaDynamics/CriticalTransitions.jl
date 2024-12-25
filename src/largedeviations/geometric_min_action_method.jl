@@ -159,8 +159,9 @@ function heymann_vandeneijnden_step(sys::CoupledSDEs, path, N; tau=0.1, diff_ord
     end
 
     b(x) = drift(sys, x)
+    jac(x) = jacobian(sys)(x, sys.p0)
 
-    J = [ForwardDiff.jacobian(b, path[:, i]) for i in 2:(N - 1)]
+    J = [jac(path[:, i]) for i in 2:(N - 1)]
     prod1 = [(J[i - 1] - J[i - 1]') * x_prime[:, i] for i in 2:(N - 1)]
     prod2 = [(J[i - 1]') * b(path[:, i]) for i in 2:(N - 1)]
 
