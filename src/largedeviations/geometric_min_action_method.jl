@@ -51,32 +51,22 @@ function geometric_min_action_method(
     sys::CoupledSDEs,
     init::Matrix;
     maxiter::Int=100,
-    abstol=1e-8,
-    reltol=1e-8,
-    action_tol=1e-5,
-    method=LBFGS(),
+    abstol=nothing,
+    reltol=nothing,
+    method=Optimisers.Adam(),
+    AD=Optimization.AutoFiniteDiff(),
     tau=0.1,
-    iter_per_batch=1,
     verbose=false,
     show_progress=true,
 )
     path = deepcopy(init)
-    x_i = init[:, 1]
-    x_f = init[:, end]
     N = length(init[1, :])
-
-    S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), 1.0)
-    paths = Matrix[]
-    action = Float64[]
-    push!(paths, path)
-    push!(action, S(path))
-
     alpha = zeros(N)
     arc = range(0, 1.0; length=N)
 
-    prog = Progress(maxiter; enabled=show_progress)
+    S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
 
-    converged = false
+    prog = Progress(maxiter; enabled=show_progress)
     if method == "HeymannVandenEijnden"
         # error("The HeymannVandenEijnden method is broken")
         @warn("The HeymannVandenEijnden method currently does not work.")
@@ -87,33 +77,28 @@ function geometric_min_action_method(
         #     next!(prog)
         # end
     else
-        for i in 1:maxiter
-            update = Optim.optimize(
-                S,
-                path,
-                method,
-                Optim.Options(;
-                    iterations=iter_per_batch,
-                    g_abstol=abstol,
-                    g_reltol=reltol,
-                    f_tol=action_tol,
-                ),
-            )
-            path .= Optim.minimizer(update)
-            interpolate_path!(path, alpha, arc)
-            if Optim.converged(update)
-                verbose && println("Converged after $(i) iterations.")
-                converged = true
-                break
-            end
-            next!(prog)
+        optf = OptimizationFunction((x, _) -> S(x), AD)
+        prob = OptimizationProblem(optf, init, ())
+
+        function callback(state, loss_val)
+            interpolate_path!(state.u, alpha, arc)
+            show_progress ? next!(prog) : nothing
+            return false
         end
+
+        sol = solve(
+            prob,
+            Optimisers.Adam();
+            maxiters=maxiter,
+            callback=callback,
+            abstol=abstol,
+            reltol=reltol,
+        )
+        path = sol.u
     end
-    # push!(paths, path)
-    # push!(action, S(path))
-    if verbose && !converged
-        @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
-    end
+    # if verbose && !converged
+    #     @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
+    # end
     return MaximumLikelihoodPath(path, S(path))
 end
 
