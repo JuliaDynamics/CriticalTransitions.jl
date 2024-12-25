@@ -41,7 +41,6 @@ $(TYPEDSIGNATURES)
 Computes the divergence of the drift field ``f(x)`` at state `x`. For time-
 dependent systems, the time can be specified as a keyword argument `t` (by default `t=0`).
 """
-function div_drift(sys::CoupledSDEs, x; t=0)
-    b(x) = drift(sys, x; t)
-    return tr(ForwardDiff.jacobian(b, x))
+function div_drift(sys::CoupledSDEs, x, t=0)
+    return tr(jacobian(sys)(x, sys.p0, t))
 end;
