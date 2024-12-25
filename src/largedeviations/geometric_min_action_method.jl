@@ -2,8 +2,8 @@
 $(TYPEDSIGNATURES)
 
 Computes the minimizer of the geometric Freidlin-Wentzell action based on the geometric
-minimum action method (gMAM), using optimizers of Optim.jl or the original formulation
-by Heymann and Vanden-Eijnden[^1].
+minimum action method (gMAM), using optimizers of OPtimization.jl or the original formulation
+by Heymann and Vanden-Eijnden[^1]. Only Freidlin-Wentzell action has a geometric formulation.
 
 To set an initial path different from a straight line, see the multiple dispatch method
 
@@ -12,19 +12,17 @@ To set an initial path different from a straight line, see the multiple dispatch
 ## Keyword arguments
 
   - `maxiter::Int=100`: maximum number of optimization iterations before the alogrithm stops
-  - `action_tol=1e-5`: relative tolerance of action value to determine convergence
   - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
   - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
-  - `method=LBFGS()`: optimizer method (see [Optim.jl](https://julianlsolvers.github.io/Optim.jl/stable/user/config/))
-  - `iter_per_batch=1`: number of iterations per optimization batch
-  - `tau=0.1`: parameter in HeymannVandenEijnden method
+  - `method = Adam()`: minimization algorithm (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
+  - `=0.1`: step size parameter in gradient descent HeymannVandenEijnden implementation.
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
 ## Optimization algorithms
 
 The `method` keyword argument takes solver methods of the
-[`Optim.jl`](https://julianlsolvers.github.io/Optim.jl/stable/#) package; alternatively,
+[`Optimization.jl`](https://docs.sciml.ai/Optimization/) package; alternatively,
 the option `solver = "HeymannVandenEijnden"` uses the original gMAM
 algorithm[^1].
 
@@ -55,7 +53,7 @@ function geometric_min_action_method(
     reltol=nothing,
     method=Optimisers.Adam(),
     AD=Optimization.AutoFiniteDiff(),
-    tau=0.1,
+    ϵ=0.1,
     verbose=false,
     show_progress=true,
 )

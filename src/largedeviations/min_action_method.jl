@@ -2,11 +2,11 @@
 $(TYPEDSIGNATURES)
 
 Runs the Minimum Action Method (MAM) to find the minimum action path (instanton) between an
-initial state `x_i` and final state `x_f`.
+initial state `x_i` and final state `x_f` in phase space.
 
 This algorithm uses the minimizers of the
-[`Optim`](https://julianlsolvers.github.io/Optim.jl/stable/#) package to minimize the
-Freidlin-Wentzell action functional (see [`fw_action`](@ref)) for the given CoupledSDEs
+[`Optimization.jl`](https://github.com/SciML/Optimization.jl) package to minimize the
+action functional (see [`fw_action`](@ref)) of a path for the given CoupledSDEs
 `sys`. The path is initialized as a straight line between `x_i` and `x_f`, parameterized in
 time via `N` equidistant points and total time `T`. Thus, the time step between discretized
 path points is ``\\Delta t = T/N``.
@@ -21,13 +21,10 @@ The minimization can be performed in blocks to save intermediate results.
   - `functional = "FW"`: type of action functional to minimize.
     Defaults to [`fw_action`](@ref), alternative: [`om_action`](@ref).
   - `maxiter = 100`: maximum number of iterations before the algorithm stops.
-  - `action_tol=1e-5`: relative tolerance of action value to determine convergence
   - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
   - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
-  - `blocks = 1`: number of iterative optimization blocks
-  - `method = LBFGS()`: minimization algorithm (see [`Optim`](https://julianlsolvers.github.io/Optim.jl/stable/#))
-  - `save_iterations = true`: whether to save Optim information
-  - `verbose = true`: whether to print Optim information during the run
+  - `method = Adam()`: minimization algorithm (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
+  - `verbose = true`: whether to print Optimization information during the run
   - `show_progress = false`: whether to print a progress bar
 
 ## Output
