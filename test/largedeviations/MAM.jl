@@ -2,7 +2,6 @@ using CriticalTransitions
 using Test
 
 using CriticalTransitions.CTLibrary: fitzhugh_nagumo
-using OptimizationOptimJL: LBFGS
 
 @testset "MAM FitzHugh-Nagumo" begin
     p = [0.1, 3, 1, 1, 1, 0]
@@ -25,7 +24,7 @@ end
     T = 10.0
     N = 51
     t = range(0, T, N)
-    inst_mam = min_action_method(ou, SA[x0], SA[xT], N, T, show_progress=false)
+    inst_mam = min_action_method(ou, SA[x0], SA[xT], N, T, maxiter=2000, show_progress=false)
     inst_sol =
         ((xT - x0 * exp(-T)) * exp.(t) .+ (x0 * exp(T) - xT) * exp.(-t)) /
         (exp(T) - exp(-T))
