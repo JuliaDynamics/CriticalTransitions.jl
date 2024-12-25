@@ -11,7 +11,6 @@ using OptimizationOptimJL: LBFGS
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
     N, T = 200, 2.0
-    method = LBFGS()
     inst = min_action_method(fhn, x_i, x_f, N, T; maxiter=500)
     # If you evolve for longer the path splits into two :/
     S = fw_action(fhn, inst.path, range(0.0, T; length=N))
