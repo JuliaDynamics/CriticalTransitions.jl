@@ -72,7 +72,7 @@ export sgmam, SgmamSystem
 
 # Methods
 export drift, div_drift
-export equilib, deterministic_orbit
+export deterministic_orbit
 export transition, transitions
 export basins, basinboundary, basboundary
 export intervals_to_box
