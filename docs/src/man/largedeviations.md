@@ -1,6 +1,11 @@
 # Large deviation theory
 
 
+## Maximum likelihood path
+```@docs
+MaximumLikelihoodPath
+```
+
 ## Minimum action paths
 The minimum action method (MAM) is a powerful numerical technique for calculating the most probable transition path between two metastable states in a stochastic dynamical system. In the limit of small noise, this path corresponds to the minimizer of an action functional. The action functional typically takes into account both the deterministic drift and the noise intensity of the system. By discretizing this path and using optimization techniques, MAM finds the trajectory that requires the least "effort" to transition between states in phase space.
 
