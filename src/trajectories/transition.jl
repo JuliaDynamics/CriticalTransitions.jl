@@ -125,7 +125,7 @@ See also [`transition`](@ref).
 function transitions(
     sys::CoupledSDEs,
     x_i,
-    x_f;
+    x_f,
     N::Int=1;
     radius::NTuple{2}=(0.1, 0.1),
     tmax=1e3,
