@@ -44,3 +44,5 @@ dependent systems, the time can be specified as a keyword argument `t` (by defau
 function div_drift(sys::CoupledSDEs, x, t=0)
     return tr(jacobian(sys)(x, sys.p0, t))
 end;
+
+trajectory_algorithm(ds::CoupledSDEs) = ds.integ.alg
