@@ -50,7 +50,7 @@ function transition(
     tmax=1e3,
     radius_directions=1:length(current_state(sys)),
     cut_start=true,
-    kwargs...,
+    kwargs...
 )
     rad_i, rad_f = radii
     prob, cb_ball = prepare_transition_problem(
@@ -124,7 +124,7 @@ See also [`transition`](@ref).
 function transitions(
     sys::CoupledSDEs,
     x_i,
-    x_f;
+    x_f,
     N::Int=1;
     radii::NTuple{2}=(0.1, 0.1),
     tmax=1e3,
@@ -144,7 +144,7 @@ function transitions(
         tries += 1
         !rerun && (success += 1)
         if !rerun && cut_start
-            sol = remove_start(sol, x[1], radii[1])
+            sol = remove_start(sol, x_i, radii[1])
         end
         return (sol, rerun)
     end
