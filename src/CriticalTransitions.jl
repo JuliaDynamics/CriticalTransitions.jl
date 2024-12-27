@@ -7,7 +7,7 @@ using StaticArrays: StaticArrays, SVector
 
 # Core
 using DiffEqNoiseProcess: DiffEqNoiseProcess
-using OrdinaryDiffEq: OrdinaryDiffEq, Tsit5
+using OrdinaryDiffEq: OrdinaryDiffEq
 using StochasticDiffEq:
     StochasticDiffEq,
     DiscreteCallback,
@@ -49,10 +49,10 @@ using Reexport: @reexport
 include("extension_functions.jl")
 include("utils.jl")
 include("sde_utils.jl")
+
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
-include("trajectories/equib.jl")
-include("noiseprocesses/stochprocess.jl")
+
 include("largedeviations/action.jl")
 include("largedeviations/MaximumLikelihoodPath.jl")
 include("largedeviations/min_action_method.jl")
@@ -72,7 +72,7 @@ export sgmam, SgmamSystem
 
 # Methods
 export drift, div_drift
-export equilib, deterministic_orbit
+export deterministic_orbit
 export transition, transitions
 export basins, basinboundary, basboundary
 export intervals_to_box
