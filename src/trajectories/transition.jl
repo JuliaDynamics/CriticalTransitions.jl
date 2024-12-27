@@ -1,4 +1,4 @@
-struct TransitionPathEnsemble{SSS,T,Tstat,ES}
+struct TransitionEnsemble{SSS,T,Tstat,ES}
     paths::Vector{SSS}
     times::Vector{T}
     success_rate::Tstat
@@ -7,15 +7,15 @@ struct TransitionPathEnsemble{SSS,T,Tstat,ES}
     sciml_ensemble::ES
 end;
 
-function prettyprint(tpe::TransitionPathEnsemble)
-    return "Transition path ensemble of $(length(tpe.times)) samples
-           - sampling success rate:      $(round(tpe.success_rate, digits=3))
-           - mean residence time:        $(round(tpe.residence_time, digits=3))
-           - mean transition time:       $(round(tpe.transition_time, digits=3))
-           - normalized transition rate: $(round(tpe.residence_time/tpe.transition_time, digits=1))"
+function prettyprint(te::TransitionEnsemble)
+    return "Transition path ensemble of $(length(te.times)) samples
+           - sampling success rate:      $(round(te.success_rate, digits=3))
+           - mean residence time:        $(round(te.residence_time, digits=3))
+           - mean transition time:       $(round(te.transition_time, digits=3))
+           - normalized transition rate: $(round(te.residence_time/te.transition_time, digits=1))"
 end
 
-Base.show(io::IO, tpe::TransitionPathEnsemble) = print(io, prettyprint(tpe))
+Base.show(io::IO, te::TransitionEnsemble) = print(io, prettyprint(te))
 
 """
 $(TYPEDSIGNATURES)
@@ -167,7 +167,7 @@ function transitions(
     samples = [StateSpaceSet(sol.u) for sol in sim]
     times = [sol.t for sol in sim]
 
-    return TransitionPathEnsemble(
+    return TransitionEnsemble(
         samples, times, success_rate, mean_res_time, mean_trans_time, sim
     )
 end;
