@@ -1,9 +1,9 @@
-struct TransitionPathEnsemble{SSS,T,ES}
+struct TransitionPathEnsemble{SSS,T, Tstat,ES}
     paths::Vector{SSS}
     times::Vector{T}
-    success_rate::T
-    t_res::T
-    t_trans::T
+    success_rate::Tstat
+    t_res::Tstat
+    t_trans::Tstat
     sciml_ensemble::ES
 end;
 
@@ -53,12 +53,16 @@ function transition(
 )
     x_i, x_f = x
     rad_i, rad_f = radius
-    prob = prepare_transition_problem(sys, x, radius, radius_dimension, tmax)
+    prob, cb_ball = prepare_transition_problem(sys, x, radius, radius_dimension, tmax)
 
     sim = solve(prob, trajectory_algorithm(sys); callback=cb_ball, kwargs...)
-    success = sim.retcode == SciMLBase.ReturnCode.Terminated
+    succes = sim.retcode == SciMLBase.ReturnCode.Terminated
 
-    return StateSpaceSet(sim.u), sim.t, success
+    if succes && cut_start
+        sim = remove_start(sim, x_i, rad_i)
+    end
+
+    return StateSpaceSet(sim.u), sim.t, succes
 end
 
 function prepare_transition_problem(sys, x, radius, rad_dims, tmax)
@@ -67,12 +71,12 @@ function prepare_transition_problem(sys, x, radius, rad_dims, tmax)
     condition(u, t, integrator) = subnorm(u - x_f; directions=rad_dims) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
-
-    return remake(referrenced_sciml_model(sys); u0=x_i, tspan=(0, tmax))
+    prob = remake(sys.integ.sol.prob; u0=x_i, tspan=(0, tmax))
+    return prob, cb_ball
 end
 
-cut_sol(sol, idx) = SciMLBase.setproperties(sol; u=sol.u[:, idx:end], t=sol.t[idx:end])
-function cut_start(sol, x_i, rad_i)
+remove_start(sol, idx) = SciMLBase.setproperties(sol; u=sol.u[idx:end], t=sol.t[idx:end])
+function remove_start(sol, x_i, rad_i)
     idx = size(sol)[2]
     dist = norm(sol[:, idx] - x_i)
     while dist > rad_i
@@ -82,7 +86,7 @@ function cut_start(sol, x_i, rad_i)
             "Trajactory never left the initial state sphere. Increase `tmax` or decrease `rad`.",
         )
     end
-    return cut_sol(sol, idx)
+    return remove_start(sol, idx)
 end
 
 """
@@ -128,25 +132,32 @@ function transitions(
     cut_start=true,
     rad_dims=1:length(current_state(sys)),
     show_progress::Bool=true,
-    EnsembleAlg::SciMLBase.BasicEnsembleAlgorithm,
+    EnsembleAlg=EnsembleThreads()::SciMLBase.BasicEnsembleAlgorithm,
     kwargs...,
 )
     # samples, times, idx::Vector{Int64}, r_idx::Vector{Int64} = [], [], [], []
-    prob = prepare_transition_problem(sys, x, radius, rad_dims, tmax)
+    prob, cb_ball = prepare_transition_problem(sys, x, radius, rad_dims, tmax)
 
     tries = 0
     succes = 0
     function output_func(sol, i)
-        rerun = sim.retcode != SciMLBase.ReturnCode.Terminated && i < Nmax
+        rerun = sol.retcode != SciMLBase.ReturnCode.Terminated && i < Nmax
         tries += 1
         !rerun && (succes += 1)
         if !rerun && cut_start
-            sol = cut_start(sol, x[1], radius[1])
+            sol = remove_start(sol, x[1], radius[1])
         end
         return (sol, rerun)
     end
     ensemble = EnsembleProblem(prob; output_func=output_func)
-    sim = solve(ensemble, trajectory_algorithm(sys), EnsembleAlg; trajectories=N, kwargs...)
+    sim = solve(
+        ensemble,
+        trajectory_algorithm(sys),
+        EnsembleAlg;
+        callback=cb_ball,
+        trajectories=N,
+        kwargs...,
+    )
 
     success_rate = succes / tries
     mean_res_time = mean([sol.t[1] for sol in sim])

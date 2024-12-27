@@ -38,7 +38,7 @@ function meier_stein(u, p, t) # out-of-place
     SA[dx, dy]
 end
 σ = 0.25
-sys = CoupledSDEs(meier_stein, zeros(2), []; noise_strength=σ)
+sys = CoupledSDEs(meier_stein, zeros(2), (); noise_strength=σ)
 ```
 
 A good reference to read about the large deviations methods is [this](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html) or [this]( https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html) blog post by Tobias Grafke.
@@ -150,7 +150,8 @@ bb = basinboundary(ba)
 We can quickly find a path which computes a transition from one attractor to another using the function `transition.
 
 ```@example GMAM
-path, time, succes = transition(sys, fp[stab][1], fp[stab][2]);
+paths_ends = (fp[stab][1], fp[stab][2])
+path, time, succes = transition(sys, paths_ends);
 ```
 
 ```@example GMAM
@@ -173,14 +174,14 @@ fig
     markersize=10) for i in eachindex(fp)]
 fig
 
-lines!(ax, path.u, color=:black)
+lines!(ax, path, color=:black)
 fig
 ```
 
 If we want to compute many: `transitions` is the function to use.
 
 ```@example GMAM
-tt = transitions(sys, fp[stab][1], fp[stab][2], 1, rad_i=0.1, rad_f=0.1, tmax=1e3);
+tt = transitions(sys, paths_ends, 3; tmax=1e3);
 ```
 
 ```@example GMAM
@@ -203,7 +204,7 @@ fig
     markersize=10) for i in eachindex(fp)]
 
 for i in 1:length(tt.paths)
-    lines!(ax, tt.paths[i].u)
+    lines!(ax, tt.paths[i])
 end
 fig
 ```

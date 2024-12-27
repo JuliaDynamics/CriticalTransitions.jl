@@ -7,7 +7,7 @@ using StaticArrays: StaticArrays, SVector
 
 # Core
 using DiffEqNoiseProcess: DiffEqNoiseProcess
-using OrdinaryDiffEq: OrdinaryDiffEq, Tsit5
+using OrdinaryDiffEq: OrdinaryDiffEq, Tsit5, EnsembleThreads
 using StochasticDiffEq:
     StochasticDiffEq,
     DiscreteCallback,
