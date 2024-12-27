@@ -27,7 +27,9 @@ using DynamicalSystemsBase:
     current_state,
     set_state!,
     trajectory,
-    jacobian
+    jacobian,
+    referrenced_sciml_model,
+    StateSpaceSet
 
 using Interpolations: linear_interpolation
 using Optimization

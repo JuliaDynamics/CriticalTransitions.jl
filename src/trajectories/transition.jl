@@ -53,13 +53,13 @@ function transition(
 )
     x_i, x_f = x
     rad_i, rad_f = radius
-    prob = prepare_transition_problem(sys, x, radius, rad_dims, tmax)
+    prob = prepare_transition_problem(sys, x, radius, radius_dimension, tmax)
 
     sim = solve(prob, trajectory_algorithm(sys); callback=cb_ball, kwargs...)
     success = sim.retcode == SciMLBase.ReturnCode.Terminated
 
     return StateSpaceSet(sim.u), sim.t, success
-end;
+end
 
 function prepare_transition_problem(sys, x, radius, rad_dims, tmax)
     x_i, x_f = x
@@ -73,17 +73,17 @@ end
 
 cut_sol(sol, idx) = SciMLBase.setproperties(sol; u=sol.u[:, idx:end], t=sol.t[idx:end])
 function cut_start(sol, x_i, rad_i)
-    idx = size(sim)[2]
-    dist = norm(sim[:, idx] - x_i)
+    idx = size(sol)[2]
+    dist = norm(sol[:, idx] - x_i)
     while dist > rad_i
         idx -= 1
-        dist = norm(sim[:, idx] - x_i)
+        dist = norm(sol[:, idx] - x_i)
         idx < 1 && error(
             "Trajactory never left the initial state sphere. Increase `tmax` or decrease `rad`.",
         )
     end
     return cut_sol(sol, idx)
-end;
+end
 
 """
     function transitions(sys::CoupledSDEs, x_i, x_f, N=1; kwargs...)
@@ -120,7 +120,7 @@ See also [`transition`](@ref).
 
 function transitions(
     sys::CoupledSDEs,
-    x::NTuple{2};
+    x::NTuple{2},
     N::Int=1;
     radius::NTuple{2}=(0.1, 0.1),
     tmax=1e3,
