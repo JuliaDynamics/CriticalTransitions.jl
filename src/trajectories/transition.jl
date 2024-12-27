@@ -1,4 +1,4 @@
-struct TransitionPathEnsemble{SSS,T, Tstat,ES}
+struct TransitionPathEnsemble{SSS,T,Tstat,ES}
     paths::Vector{SSS}
     times::Vector{T}
     success_rate::Tstat
