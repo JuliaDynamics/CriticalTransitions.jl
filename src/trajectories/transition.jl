@@ -28,7 +28,7 @@ This function simulates `sys` in time, starting from initial condition `x_i`, un
 * `rad_i=0.1`: radius of ball around `x_i`
 * `rad_f=0.1`: radius of ball around `x_f`
 * `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
-* `rad_dims=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
+* `radius_directions=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
   `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
   insert a vector of indices of the dimensions to be included.
 * `cut_start=true`: if `false`, returns the whole trajectory up to the transition
@@ -66,10 +66,10 @@ function transition(
     return StateSpaceSet(sim.u), sim.t, success
 end
 
-function prepare_transition_problem(sys, x, radius, rad_dims, tmax)
+function prepare_transition_problem(sys, x, radius, radius_directions, tmax)
     x_i, x_f = x
     _, rad_f = radius
-    condition(u, t, integrator) = subnorm(u - x_f; directions=rad_dims) < rad_f
+    condition(u, t, integrator) = subnorm(u - x_f; directions=radius_directions) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
     prob = remake(sys.integ.sol.prob; u0=x_i, tspan=(0, tmax))
@@ -102,7 +102,7 @@ This function repeatedly calls the [`transition`](@ref) function to efficiently 
   - `rad_f=0.1`: radius of ball around `x_f`
   - `Nmax`: number of attempts before the algorithm stops even if less than `N` transitions occurred.
   - `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
-  - `rad_dims=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
+  - `radius_directions=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
     `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
     insert a vector of indices of the dimensions to be included.
   - `cut_start=true`: if `false`, returns the whole trajectory up to the transition
@@ -126,18 +126,18 @@ See also [`transition`](@ref).
 function transitions(
     sys::CoupledSDEs,
     x_i,
-    x_f,
+    x_f;
     N::Int=1;
     radius::NTuple{2}=(0.1, 0.1),
     tmax=1e3,
     Nmax=100,
     cut_start=true,
-    rad_dims=1:length(current_state(sys)),
+    radius_directions=1:length(current_state(sys)),
     show_progress::Bool=true,
     EnsembleAlg=EnsembleThreads()::SciMLBase.BasicEnsembleAlgorithm,
     kwargs...,
 )
-    prob, cb_ball = prepare_transition_problem(sys, (x_i, x_f), radius, rad_dims, tmax)
+    prob, cb_ball = prepare_transition_problem(sys, (x_i, x_f), radius, radius_directions, tmax)
 
     tries = 0
     success = 0
