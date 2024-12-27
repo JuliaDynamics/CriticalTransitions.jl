@@ -19,9 +19,9 @@
 
     ensemble = transitions(sys, fp1, fp2, 10)
     @test ensemble.success_rate ≈ 1.0
-    @test ensemble.t_trans ≈ 4.493941793363376 atol = 1e-2
+    @test ensemble.transition_time ≈ 4.493941793363376 atol = 1e-2
     # SEED is different on github
     # SEED doesn;t work on github
     @test length(ensemble.times) == 10
-    @test ensemble.t_res ≈ 495.38809 atol = 1e-2
+    @test ensemble.residence_time ≈ 495.38809 atol = 1e-2
 end

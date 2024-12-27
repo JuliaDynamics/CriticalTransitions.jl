@@ -45,4 +45,9 @@ function div_drift(sys::CoupledSDEs, x, t=0)
     return tr(jacobian(sys)(x, sys.p0, t))
 end;
 
+"""
+$(TYPEDSIGNATURES)
+
+Returns the SDE solver specified in the `diffeq` settings of the `CoupledSDEs`.
+"""
 trajectory_algorithm(ds::CoupledSDEs) = ds.integ.alg

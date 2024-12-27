@@ -2,17 +2,17 @@ struct TransitionPathEnsemble{SSS,T,Tstat,ES}
     paths::Vector{SSS}
     times::Vector{T}
     success_rate::Tstat
-    t_res::Tstat
-    t_trans::Tstat
+    residence_time::Tstat
+    transition_time::Tstat
     sciml_ensemble::ES
 end;
 
 function prettyprint(tpe::TransitionPathEnsemble)
     return "Transition path ensemble of $(length(tpe.times)) samples
            - sampling success rate:      $(round(tpe.success_rate, digits=3))
-           - mean residence time:        $(round(tpe.t_res, digits=3))
-           - mean transition time:       $(round(tpe.t_trans, digits=3))
-           - normalized transition rate: $(round(tpe.t_res/tpe.t_trans, digits=1))"
+           - mean residence time:        $(round(tpe.residence_time, digits=3))
+           - mean transition time:       $(round(tpe.transition_time, digits=3))
+           - normalized transition rate: $(round(tpe.residence_time/tpe.transition_time, digits=1))"
 end
 
 Base.show(io::IO, tpe::TransitionPathEnsemble) = print(io, prettyprint(tpe))
@@ -48,21 +48,22 @@ function transition(
     x_f;
     radius::NTuple{2}=(0.1, 0.1),
     tmax=1e3,
-    radius_dimension=1:length(current_state(sys)),
+    radius_directions=1:length(current_state(sys)),
     cut_start=true,
     kwargs...,
 )
     rad_i, rad_f = radius
-    prob, cb_ball = prepare_transition_problem(sys, x, radius, radius_dimension, tmax)
+    prob, cb_ball = prepare_transition_problem(
+        sys, (x_i, x_f), radius, radius_directions, tmax)
 
     sim = solve(prob, trajectory_algorithm(sys); callback=cb_ball, kwargs...)
-    succes = sim.retcode == SciMLBase.ReturnCode.Terminated
+    success = sim.retcode == SciMLBase.ReturnCode.Terminated
 
-    if succes && cut_start
+    if success && cut_start
         sim = remove_start(sim, x_i, rad_i)
     end
 
-    return StateSpaceSet(sim.u), sim.t, succes
+    return StateSpaceSet(sim.u), sim.t, success
 end
 
 function prepare_transition_problem(sys, x, radius, rad_dims, tmax)
@@ -139,11 +140,11 @@ function transitions(
     prob, cb_ball = prepare_transition_problem(sys, (x_i, x_f), radius, rad_dims, tmax)
 
     tries = 0
-    succes = 0
+    success = 0
     function output_func(sol, i)
         rerun = sol.retcode != SciMLBase.ReturnCode.Terminated && i < Nmax
         tries += 1
-        !rerun && (succes += 1)
+        !rerun && (success += 1)
         if !rerun && cut_start
             sol = remove_start(sol, x[1], radius[1])
         end
@@ -159,7 +160,7 @@ function transitions(
         kwargs...,
     )
 
-    success_rate = succes / tries
+    success_rate = success / tries
     mean_res_time = mean([sol.t[1] for sol in sim])
     mean_trans_time = mean([(sol.t[end] - sol.t[1]) for sol in sim])
 
