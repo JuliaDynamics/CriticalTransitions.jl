@@ -3,7 +3,7 @@
 
 ## Maximum likelihood path
 ```@docs
-MaximumLikelihoodPath
+CriticalTransitions.MaximumLikelihoodPath
 ```
 
 ## Minimum action paths
