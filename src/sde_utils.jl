@@ -50,4 +50,4 @@ $(TYPEDSIGNATURES)
 
 Returns the SDE solver specified in the `diffeq` settings of the `CoupledSDEs`.
 """
-trajectory_algorithm(ds::CoupledSDEs) = ds.integ.alg
+solver(ds::CoupledSDEs) = ds.integ.alg

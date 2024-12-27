@@ -22,12 +22,12 @@ $(TYPEDSIGNATURES)
 
 Generates a sample transition from point `x_i` to point `x_f`.
 
-This function simulates `sys` in time, starting from initial condition `x_i`, until entering a `length(sys.u)`-dimensional ball of radius `rad_f` around `x_f`.
+This function simulates `sys` in time, starting from initial condition `x_i`,
+until entering a ball of given radius around `x_f`.
 
 ## Keyword arguments
-* `rad_i=0.1`: radius of ball around `x_i`
-* `rad_f=0.1`: radius of ball around `x_f`
-* `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
+* `radii=(0.1, 0.1)`: radius of the ball around `x_i` and `x_f`, respectively
+* `tmax=1e3`: maximum time until the simulation stops even `x_f` has not been reached
 * `radius_directions=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
   `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
   insert a vector of indices of the dimensions to be included.
@@ -46,17 +46,17 @@ function transition(
     sys::CoupledSDEs,
     x_i,
     x_f;
-    radius::NTuple{2}=(0.1, 0.1),
+    radii::NTuple{2}=(0.1, 0.1),
     tmax=1e3,
     radius_directions=1:length(current_state(sys)),
     cut_start=true,
     kwargs...,
 )
-    rad_i, rad_f = radius
+    rad_i, rad_f = radii
     prob, cb_ball = prepare_transition_problem(
-        sys, (x_i, x_f), radius, radius_directions, tmax)
+        sys, (x_i, x_f), radii, radius_directions, tmax)
 
-    sim = solve(prob, trajectory_algorithm(sys); callback=cb_ball, kwargs...)
+    sim = solve(prob, solver(sys); callback=cb_ball, kwargs...)
     success = sim.retcode == SciMLBase.ReturnCode.Terminated
 
     if success && cut_start
@@ -66,9 +66,9 @@ function transition(
     return StateSpaceSet(sim.u), sim.t, success
 end
 
-function prepare_transition_problem(sys, x, radius, radius_directions, tmax)
+function prepare_transition_problem(sys, x, radii, radius_directions, tmax)
     x_i, x_f = x
-    _, rad_f = radius
+    _, rad_f = radii
     condition(u, t, integrator) = subnorm(u - x_f; directions=radius_directions) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
@@ -98,15 +98,14 @@ Generates an ensemble of `N` transition samples of `sys` from point `x_i` to poi
 This function repeatedly calls the [`transition`](@ref) function to efficiently generate an ensemble of transitions. Multi-threading is enabled.
 
 ## Keyword arguments
-  - `rad_i=0.1`: radius of ball around `x_i`
-  - `rad_f=0.1`: radius of ball around `x_f`
+  - `radii=(0.1, 0.1)`: radius of the ball around `x_i` and `x_f`, respectively
   - `Nmax`: number of attempts before the algorithm stops even if less than `N` transitions occurred.
   - `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
   - `radius_directions=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
     `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
     insert a vector of indices of the dimensions to be included.
   - `cut_start=true`: if `false`, returns the whole trajectory up to the transition
-  - `show_progress`: shows a progress bar with respect to `Nmax`
+  - `show_progress=true`: shows a progress bar with respect to `Nmax`
   - `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#CommonSolve.solve-Tuple{SciMLBase.AbstractDEProblem,%20Vararg{Any}})
 
 See also [`transition`](@ref).
@@ -122,13 +121,12 @@ See also [`transition`](@ref).
 
 > An example script using `transitions` is available [here](https://github.com/juliadynamics/CriticalTransitions.jl/blob/main/examples/sample_transitions_h5.jl).
 """
-
 function transitions(
     sys::CoupledSDEs,
     x_i,
     x_f;
     N::Int=1;
-    radius::NTuple{2}=(0.1, 0.1),
+    radii::NTuple{2}=(0.1, 0.1),
     tmax=1e3,
     Nmax=100,
     cut_start=true,
@@ -137,7 +135,7 @@ function transitions(
     EnsembleAlg=EnsembleThreads()::SciMLBase.BasicEnsembleAlgorithm,
     kwargs...,
 )
-    prob, cb_ball = prepare_transition_problem(sys, (x_i, x_f), radius, radius_directions, tmax)
+    prob, cb_ball = prepare_transition_problem(sys, (x_i, x_f), radii, radius_directions, tmax)
 
     tries = 0
     success = 0
@@ -146,14 +144,14 @@ function transitions(
         tries += 1
         !rerun && (success += 1)
         if !rerun && cut_start
-            sol = remove_start(sol, x[1], radius[1])
+            sol = remove_start(sol, x[1], radii[1])
         end
         return (sol, rerun)
     end
     ensemble = EnsembleProblem(prob; output_func=output_func)
     sim = solve(
         ensemble,
-        trajectory_algorithm(sys),
+        solver(sys),
         EnsembleAlg;
         callback=cb_ball,
         trajectories=N,

@@ -72,7 +72,7 @@ export dynamic_rule, current_state, set_state!, trajectory
 export sgmam, SgmamSystem
 
 # Methods
-export drift, div_drift
+export drift, div_drift, solver
 export deterministic_orbit
 export transition, transitions
 export basins, basinboundary, basboundary
