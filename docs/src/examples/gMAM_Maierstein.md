@@ -151,7 +151,7 @@ We can quickly find a path which computes a transition from one attractor to ano
 
 ```@example GMAM
 paths_ends = (fp[stab][1], fp[stab][2])
-path, time, succes = transition(sys, paths_ends);
+path, time, succes = transition(sys, paths_ends...);
 ```
 
 ```@example GMAM
@@ -181,7 +181,7 @@ fig
 If we want to compute many: `transitions` is the function to use.
 
 ```@example GMAM
-tt = transitions(sys, paths_ends, 3; tmax=1e3);
+tt = transitions(sys, paths_ends..., 3; tmax=1e3);
 ```
 
 ```@example GMAM

@@ -44,14 +44,14 @@ See also [`transitions`](@ref), [`trajectory`](@ref).
 """
 function transition(
     sys::CoupledSDEs,
-    x::NTuple{2};
+    x_i,
+    x_f;
     radius::NTuple{2}=(0.1, 0.1),
     tmax=1e3,
     radius_dimension=1:length(current_state(sys)),
     cut_start=true,
     kwargs...,
 )
-    x_i, x_f = x
     rad_i, rad_f = radius
     prob, cb_ball = prepare_transition_problem(sys, x, radius, radius_dimension, tmax)
 
@@ -124,7 +124,8 @@ See also [`transition`](@ref).
 
 function transitions(
     sys::CoupledSDEs,
-    x::NTuple{2},
+    x_i,
+    x_f;
     N::Int=1;
     radius::NTuple{2}=(0.1, 0.1),
     tmax=1e3,
@@ -135,8 +136,7 @@ function transitions(
     EnsembleAlg=EnsembleThreads()::SciMLBase.BasicEnsembleAlgorithm,
     kwargs...,
 )
-    # samples, times, idx::Vector{Int64}, r_idx::Vector{Int64} = [], [], [], []
-    prob, cb_ball = prepare_transition_problem(sys, x, radius, rad_dims, tmax)
+    prob, cb_ball = prepare_transition_problem(sys, (x_i, x_f), radius, rad_dims, tmax)
 
     tries = 0
     succes = 0
