@@ -55,7 +55,7 @@ makedocs(;
     format=Documenter.HTML(; html_options...),
     warnonly=[:missing_docs, :linkcheck, :cross_references],
     plugins=[bib, links],
-    # draft=true,
+    draft=true,
 )
 
 deploydocs(; repo="github.com/JuliaDynamics/CriticalTransitions.jl.git", push_preview=true)
