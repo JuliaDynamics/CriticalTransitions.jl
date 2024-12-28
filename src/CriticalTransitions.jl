@@ -38,7 +38,7 @@ using Symbolics: Symbolics
 # io and documentation
 using Format: Format
 using Printf: Printf
-using DocStringExtensions: TYPEDSIGNATURES
+using DocStringExtensions: TYPEDSIGNATURES, TYPEDEF, TYPEDFIELDS, METHODLIST
 using ProgressMeter: Progress, next!
 
 # reexport
