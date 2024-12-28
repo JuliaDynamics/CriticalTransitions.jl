@@ -1,9 +1,9 @@
 # Large deviation theory
 
 
-## Maximum likelihood path
+## Mimumum action path
 ```@docs
-CriticalTransitions.MaximumLikelihoodPath
+CriticalTransitions.MinimumActionPath
 ```
 
 ## String method
