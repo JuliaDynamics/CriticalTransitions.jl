@@ -80,6 +80,7 @@ export basins, basinboundary, basboundary
 export intervals_to_box
 export fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
+export MinimumActionPath
 export string_method
 export covariance_matrix, diffusion_matrix
 # export edgetracking, bisect_to_edge, AttractorsViaProximity

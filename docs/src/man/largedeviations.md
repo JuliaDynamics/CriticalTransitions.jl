@@ -3,7 +3,7 @@
 
 ## Mimumum action path
 ```@docs
-CriticalTransitions.MinimumActionPath
+MinimumActionPath
 ```
 
 ## String method
