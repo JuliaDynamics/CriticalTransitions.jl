@@ -31,7 +31,7 @@ function string_method(
 
     progress = Progress(iterations; dt=0.5, enabled=show_progress)
     for i in 1:iterations
-        x += ϵ * H_p(x, 0 * x)
+        x += ϵ * H_p(x, 0 * x) # euler integration
         # reset initial and final points to allow for string computation
         # between points that are not stable fixed points
         x[:, 1] = x_initial[:, 1]
@@ -98,3 +98,37 @@ function init_allocation_string(x_initial, Nt)
     alpha = zeros(Nt)
     return x, alpha
 end
+
+# """
+# `stepEuler!(u, b, Δt)`: Perform an in place Euler step
+
+# ### Fields
+# * `u` - Initial state
+# * `b` - Gradient of energy
+# * `Δt` - Time step
+# """
+# function stepEuler!(u, b, Δt)
+#     gradV = b(u)
+#     @. u = u - Δt * gradV
+
+#     return u
+# end
+
+# """
+# `stepRK4!(u, b, Δt)`: Perform an in place RK4 step
+
+# ### Fields
+# * `u` - Initial state
+# * `b` - Gradient of energy
+# * `Δt` - Time step
+# """
+# function stepRK4!(u, b, Δt)
+#     gradV1 = b(u)
+#     gradV2 = b(u - 0.5 * Δt * gradV1)
+#     gradV3 = b(u - 0.5 * Δt * gradV2)
+#     gradV4 = b(u - Δt * gradV3)
+
+#     @. u = u - Δt / 6 * (gradV1 + 2 * gradV2 + 2 * gradV3 + gradV4)
+
+#     return u
+# end
