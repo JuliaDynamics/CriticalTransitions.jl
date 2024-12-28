@@ -38,8 +38,7 @@ relative tolerance `reltol` is achieved.
 
 The function returns a tuple containing the final state, the action value,
 the Lagrange multipliers, the momentum, and the state derivatives. The implementation is
-based on the work of [Grafke et al. (2019)](
-https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html.
+based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html.
 ).
 """
 function sgmam(
