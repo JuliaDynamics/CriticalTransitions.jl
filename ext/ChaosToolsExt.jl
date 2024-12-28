@@ -25,11 +25,7 @@ function CriticalTransitions.intervals_to_box(bmin::Vector, bmax::Vector)
     for i in 1:dim
         push!(intervals, interval(bmin[i], bmax[i]))
     end
-    box = intervals[1]
-    for i in 2:dim
-        box = IntervalArithmetic.cross(box, intervals[i])
-    end
-    return box
+    return intervals
 end
 
 """
