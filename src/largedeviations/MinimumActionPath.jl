@@ -1,5 +1,5 @@
 mutable struct MinimumActionPath{D,T,V,Phis,Ahis,Lambda,PV,GPV}
-    path::StateSpaceSet{D, T, V}
+    path::StateSpaceSet{D,T,V}
     action::T
     path_history::Phis
     action_history::Ahis
@@ -8,14 +8,14 @@ mutable struct MinimumActionPath{D,T,V,Phis,Ahis,Lambda,PV,GPV}
     path_velocity::PV
 
     function MinimumActionPath(
-        path::StateSpaceSet{D, T, V},
+        path::StateSpaceSet{D,T,V},
         action;
         path_history=nothing,
         action_history=nothing,
         λ=nothing,
         generalized_momentum=nothing,
         path_velocity=nothing,
-    ) where {D,T,V,}
+    ) where {D,T,V}
         return new{
             D,
             T,
@@ -37,7 +37,7 @@ mutable struct MinimumActionPath{D,T,V,Phis,Ahis,Lambda,PV,GPV}
     end
 end
 
-function prettyprint(mlp::MinimumActionPath{D}) where D
+function prettyprint(mlp::MinimumActionPath{D}) where {D}
     return "Maximum Likelihood Path of length $(length(mlp.path)) in $D dimensions"
 end
 
