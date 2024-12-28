@@ -38,7 +38,7 @@ function meier_stein(u, p, t) # out-of-place
     SA[dx, dy]
 end
 σ = 0.25
-sys = CoupledSDEs(meier_stein, zeros(2), []; noise_strength=σ)
+sys = CoupledSDEs(meier_stein, zeros(2), (); noise_strength=σ)
 ```
 
 A good reference to read about the large deviations methods is [this](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html) or [this]( https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html) blog post by Tobias Grafke.
@@ -150,7 +150,8 @@ bb = basinboundary(ba)
 We can quickly find a path which computes a transition from one attractor to another using the function `transition.
 
 ```@example GMAM
-path, time, succes = transition(sys, fp[stab][1], fp[stab][2]);
+paths_ends = (fp[stab][1], fp[stab][2])
+path, time, succes = transition(sys, paths_ends...);
 ```
 
 ```@example GMAM
@@ -173,14 +174,14 @@ fig
     markersize=10) for i in eachindex(fp)]
 fig
 
-lines!(ax, path.u, color=:black)
+lines!(ax, path, color=:black)
 fig
 ```
 
 If we want to compute many: `transitions` is the function to use.
 
 ```@example GMAM
-tt = transitions(sys, fp[stab][1], fp[stab][2], 1, rad_i=0.1, rad_f=0.1, tmax=1e3);
+tt = transitions(sys, paths_ends..., 3; tmax=1e3);
 ```
 
 ```@example GMAM
@@ -203,7 +204,7 @@ fig
     markersize=10) for i in eachindex(fp)]
 
 for i in 1:length(tt.paths)
-    lines!(ax, tt.paths[i].u)
+    lines!(ax, tt.paths[i])
 end
 fig
 ```
@@ -231,7 +232,8 @@ init = Matrix([xx yy]')
 `geometric_min_action_method` computes the minimizer of the Freidlin-Wentzell action using the geometric minimum action method (gMAM), to find the minimum action path (instanton) between an initial state x_i and final state x_f. The Minimum Action Method (MAM) is a more traditional approach, while the Geometric Minimum Action Method (gMAM) is a blend of the original MAM and the [string method](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.66.052301).
 
 ```@example GMAM
-gm = geometric_min_action_method(sys, init, maxiter=200; show_progress=false)
+gm = geometric_min_action_method(sys, init, maxiter=500; show_progress=false)
+MLP = gm.path
 ```
 
 ```@example GMAM
@@ -253,8 +255,8 @@ fig
 [scatter!(ax, Point(fp[i]), color=stab[i] > 0 ? :red : :dodgerblue,
     markersize=10) for i in eachindex(fp)]
 
-lines!(ax, gm[1][1], linewidth=3, color=:black, linestyle=:dash)
-lines!(ax, gm[1][end], linewidth=3, color=:orange)
+lines!(ax, init, linewidth=3, color=:black, linestyle=:dash)
+lines!(ax, MLP, linewidth=3, color=:orange)
 fig
 ```
 

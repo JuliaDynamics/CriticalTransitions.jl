@@ -2,8 +2,8 @@
 $(TYPEDSIGNATURES)
 
 Computes the minimizer of the geometric Freidlin-Wentzell action based on the geometric
-minimum action method (gMAM), using optimizers of Optim.jl or the original formulation
-by Heymann and Vanden-Eijnden[^1].
+minimum action method (gMAM), using optimizers of OPtimization.jl or the original formulation
+by Heymann and Vanden-Eijnden[^1]. Only Freidlin-Wentzell action has a geometric formulation.
 
 To set an initial path different from a straight line, see the multiple dispatch method
 
@@ -12,19 +12,17 @@ To set an initial path different from a straight line, see the multiple dispatch
 ## Keyword arguments
 
   - `maxiter::Int=100`: maximum number of optimization iterations before the alogrithm stops
-  - `action_tol=1e-5`: relative tolerance of action value to determine convergence
   - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
   - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
-  - `method=LBFGS()`: optimizer method (see [Optim.jl](https://julianlsolvers.github.io/Optim.jl/stable/user/config/))
-  - `iter_per_batch=1`: number of iterations per optimization batch
-  - `tau=0.1`: parameter in HeymannVandenEijnden method
+  - `method = Adam()`: minimization algorithm (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
+  - `=0.1`: step size parameter in gradient descent HeymannVandenEijnden implementation.
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
 ## Optimization algorithms
 
 The `method` keyword argument takes solver methods of the
-[`Optim.jl`](https://julianlsolvers.github.io/Optim.jl/stable/#) package; alternatively,
+[`Optimization.jl`](https://docs.sciml.ai/Optimization/) package; alternatively,
 the option `solver = "HeymannVandenEijnden"` uses the original gMAM
 algorithm[^1].
 
@@ -51,68 +49,55 @@ function geometric_min_action_method(
     sys::CoupledSDEs,
     init::Matrix;
     maxiter::Int=100,
-    abstol=1e-8,
-    reltol=1e-8,
-    action_tol=1e-5,
-    method=LBFGS(),
-    tau=0.1,
-    iter_per_batch=1,
+    abstol=nothing,
+    reltol=nothing,
+    method=Optimisers.Adam(),
+    AD=Optimization.AutoFiniteDiff(),
+    ϵ=0.1,
     verbose=false,
     show_progress=true,
 )
     path = deepcopy(init)
-    x_i = init[:, 1]
-    x_f = init[:, end]
     N = length(init[1, :])
-
-    S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), 1.0)
-    paths = Matrix[]
-    action = Float64[]
-    push!(paths, path)
-    push!(action, S(path))
-
     alpha = zeros(N)
     arc = range(0, 1.0; length=N)
 
+    S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
+
     prog = Progress(maxiter; enabled=show_progress)
-    for i in 1:maxiter
-        if method == "HeymannVandenEijnden"
-            # error("The HeymannVandenEijnden method is broken")
-            @warn(
-                "The HeymannVandenEijnden method may currently be implemented incorrectly."
-            )
-            update_path = heymann_vandeneijnden_step(sys, path, N; tau=tau)
-        else
-            update = Optim.optimize(
-                S,
-                path,
-                method,
-                Optim.Options(;
-                    iterations=iter_per_batch,
-                    g_abstol=abstol,
-                    g_reltol=reltol,
-                    f_tol=action_tol,
-                ),
-            )
-            path .= Optim.minimizer(update)
+    if method == "HeymannVandenEijnden"
+        # error("The HeymannVandenEijnden method is broken")
+        @warn("The HeymannVandenEijnden method currently does not work.")
+        # for i in 1:maxiter
+        #     update = heymann_vandeneijnden_step(sys, path, N; tau=tau)
+        #     path .= update
+        #     interpolate_path!(path, alpha, arc)
+        #     next!(prog)
+        # end
+    else
+        optf = OptimizationFunction((x, _) -> S(x), AD)
+        prob = OptimizationProblem(optf, init, ())
+
+        function callback(state, loss_val)
+            interpolate_path!(state.u, alpha, arc)
+            show_progress ? next!(prog) : nothing
+            return false
         end
 
-        # re-interpolate
-        interpolate_path!(path, alpha, arc)
-
-        if method != "HeymannVandenEijnden" && Optim.converged(update)
-            verbose && println("Converged after $(i) iterations.")
-            push!(paths, path)
-            push!(action, Optim.minimum(update))
-            return paths, action
-            break
-        end
-        next!(prog)
+        sol = solve(
+            prob,
+            Optimisers.Adam();
+            maxiters=maxiter,
+            callback=callback,
+            abstol=abstol,
+            reltol=reltol,
+        )
+        path = sol.u
     end
-    push!(paths, path)
-    push!(action, S(path))
-    verbose && @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
-    return paths, action
+    # if verbose && !converged
+    #     @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
+    # end
+    return MaximumLikelihoodPath(path, S(path))
 end
 
 """
@@ -172,8 +157,9 @@ function heymann_vandeneijnden_step(sys::CoupledSDEs, path, N; tau=0.1, diff_ord
     end
 
     b(x) = drift(sys, x)
+    jac(x) = jacobian(sys)(x, sys.p0)
 
-    J = [ForwardDiff.jacobian(b, path[:, i]) for i in 2:(N - 1)]
+    J = [jac(path[:, i]) for i in 2:(N - 1)]
     prod1 = [(J[i - 1] - J[i - 1]') * x_prime[:, i] for i in 2:(N - 1)]
     prod2 = [(J[i - 1]') * b(path[:, i]) for i in 2:(N - 1)]
 

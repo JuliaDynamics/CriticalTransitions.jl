@@ -11,17 +11,17 @@
 
     fp1 = [0.816, 0.272]
     fp2 = [-0.816, -0.272]
-    trajectory, time, succes = CT.transition(sys, fp1, fp2)
+    tr, time, succes = CT.transition(sys, fp1, fp2)
     @test succes
     @test time[end] < 1e3
-    @test norm(trajectory[:, 1] - fp1) < 0.1
-    @test norm(trajectory[:, end] - fp2) < 0.1
+    @test norm(tr[1, :] - fp1) < 0.1
+    @test norm(tr[end, :] - fp2) < 0.1
 
     ensemble = transitions(sys, fp1, fp2, 10)
     @test ensemble.success_rate ≈ 1.0
-    @test ensemble.t_trans ≈ 4.493941793363376 atol = 1e-2
+    @test ensemble.transition_time ≈ 4.493941793363376 atol = 1e-2
     # SEED is different on github
     # SEED doesn;t work on github
-    @test length(ensemble.times) == 11 broken = true
-    @test ensemble.t_res ≈ 5299.98 broken = true
+    @test length(ensemble.times) == 10
+    @test ensemble.residence_time ≈ 495.38809 atol = 1e-2
 end

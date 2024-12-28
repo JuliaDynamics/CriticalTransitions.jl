@@ -1,4 +1,3 @@
-
 using ChaosTools
 
 function meier_stein(u, p, t) # out-of-place
