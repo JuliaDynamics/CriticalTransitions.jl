@@ -5,8 +5,8 @@ export sgmam, SgmamSystem
 using DataStructures: CircularBuffer
 using ProgressMeter: Progress, next!
 using LinearSolve: LinearProblem, KLUFactorization, solve
-using CriticalTransitions: interpolate_path!, MaximumLikelihoodPath
-
+using CriticalTransitions: interpolate_path!, MinimumActionPath
+using DynamicalSystemsBase: StateSpaceSet
 using LinearAlgebra, SparseArrays
 
 using DocStringExtensions: TYPEDSIGNATURES
@@ -74,8 +74,8 @@ function sgmam(
         end
         next!(progress; showvalues=[("iterations", i), ("Stol", round(tol; sigdigits=3))])
     end
-    return MaximumLikelihoodPath(
-        x, S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
+    return MinimumActionPath(
+        StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
     )
 end
 

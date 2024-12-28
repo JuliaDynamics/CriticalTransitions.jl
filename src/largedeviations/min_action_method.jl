@@ -85,7 +85,7 @@ function min_action_method(
         abstol=abstol,
         reltol=reltol,
     )
-    return MaximumLikelihoodPath(sol.u, sol.objective)
+    return MinimumActionPath(StateSpaceSet(sol.u'), sol.objective)
 end;
 
 """

@@ -97,7 +97,7 @@ function geometric_min_action_method(
     # if verbose && !converged
     #     @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
     # end
-    return MaximumLikelihoodPath(path, S(path))
+    return MinimumActionPath(StateSpaceSet(path'), S(path))
 end
 
 """

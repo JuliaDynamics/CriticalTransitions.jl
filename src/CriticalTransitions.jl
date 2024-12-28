@@ -27,7 +27,8 @@ using DynamicalSystemsBase:
     current_state,
     set_state!,
     trajectory,
-    jacobian
+    jacobian,
+    StateSpaceSet
 
 using Interpolations: linear_interpolation
 using Optimization
@@ -54,7 +55,7 @@ include("trajectories/transition.jl")
 include("trajectories/equib.jl")
 include("noiseprocesses/stochprocess.jl")
 include("largedeviations/action.jl")
-include("largedeviations/MaximumLikelihoodPath.jl")
+include("largedeviations/MinimumActionPath.jl")
 include("largedeviations/min_action_method.jl")
 include("largedeviations/geometric_min_action_method.jl")
 
