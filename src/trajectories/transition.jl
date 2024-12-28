@@ -1,33 +1,34 @@
-struct TransitionPathEnsemble
-    paths::Vector
-    times::Vector
-    success_rate::Real
-    t_res::Real
-    t_trans::Real
+struct TransitionEnsemble{SSS,T,Tstat,ES}
+    paths::Vector{SSS}
+    times::Vector{T}
+    success_rate::Tstat
+    residence_time::Tstat
+    transition_time::Tstat
+    sciml_ensemble::ES
 end;
 
-function prettyprint(tpe::TransitionPathEnsemble)
-    return "Transition path ensemble of $(length(tpe.times)) samples
-           - sampling success rate:      $(round(tpe.success_rate, digits=3))
-           - mean residence time:        $(round(tpe.t_res, digits=3))
-           - mean transition time:       $(round(tpe.t_trans, digits=3))
-           - normalized transition rate: $(round(tpe.t_res/tpe.t_trans, digits=1))"
+function prettyprint(te::TransitionEnsemble)
+    return "Transition path ensemble of $(length(te.times)) samples
+           - sampling success rate:      $(round(te.success_rate, digits=3))
+           - mean residence time:        $(round(te.residence_time, digits=3))
+           - mean transition time:       $(round(te.transition_time, digits=3))
+           - normalized transition rate: $(round(te.residence_time/te.transition_time, digits=1))"
 end
 
-Base.show(io::IO, tpe::TransitionPathEnsemble) = print(io, prettyprint(tpe))
+Base.show(io::IO, te::TransitionEnsemble) = print(io, prettyprint(te))
 
 """
 $(TYPEDSIGNATURES)
 
 Generates a sample transition from point `x_i` to point `x_f`.
 
-This function simulates `sys` in time, starting from initial condition `x_i`, until entering a `length(sys.u)`-dimensional ball of radius `rad_f` around `x_f`.
+This function simulates `sys` in time, starting from initial condition `x_i`,
+until entering a ball of given radius around `x_f`.
 
 ## Keyword arguments
-* `rad_i=0.1`: radius of ball around `x_i`
-* `rad_f=0.1`: radius of ball around `x_f`
-* `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
-* `rad_dims=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
+* `radii=(0.1, 0.1)`: radius of the ball around `x_i` and `x_f`, respectively
+* `tmax=1e3`: maximum time until the simulation stops even `x_f` has not been reached
+* `radius_directions=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
   `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
   insert a vector of indices of the dimensions to be included.
 * `cut_start=true`: if `false`, returns the whole trajectory up to the transition
@@ -45,38 +46,50 @@ function transition(
     sys::CoupledSDEs,
     x_i,
     x_f;
-    rad_i=0.1,
-    rad_f=0.1,
+    radii::NTuple{2}=(0.1, 0.1),
     tmax=1e3,
-    rad_dims=1:length(current_state(sys)),
+    radius_directions=1:length(current_state(sys)),
     cut_start=true,
     kwargs...,
 )
-    condition(u, t, integrator) = subnorm(u - x_f; directions=rad_dims) < rad_f
-    affect!(integrator) = terminate!(integrator)
-    cb_ball = DiscreteCallback(condition, affect!)
+    rad_i, rad_f = radii
+    prob, cb_ball = prepare_transition_problem(
+        sys, (x_i, x_f), radii, radius_directions, tmax
+    )
 
-    prob = remake(sys.integ.sol.prob; u0=x_i, tspan=(0, tmax))
-    sim = solve(prob, sys.integ.alg; callback=cb_ball, kwargs...)
+    sim = solve(prob, solver(sys); callback=cb_ball, kwargs...)
     success = sim.retcode == SciMLBase.ReturnCode.Terminated
 
-    simt = sim.t
-    if cut_start
-        idx = size(sim)[2]
-        dist = norm(sim[:, idx] - x_i)
-        while dist > rad_i
-            idx -= 1
-            dist = norm(sim[:, idx] - x_i)
-            idx < 1 && error(
-                "Trajactory never left the initial state sphere. Increase tmax or decrease rad_i.",
-            )
-        end
-        sim = sim[:, idx:end]
-        simt = simt[idx:end]
+    if success && cut_start
+        sim = remove_start(sim, x_i, rad_i)
     end
 
-    return sim, simt, success
-end;
+    return StateSpaceSet(sim.u), sim.t, success
+end
+
+function prepare_transition_problem(sys, x, radii, radius_directions, tmax)
+    x_i, x_f = x
+    _, rad_f = radii
+    condition(u, t, integrator) = subnorm(u - x_f; directions=radius_directions) < rad_f
+    affect!(integrator) = terminate!(integrator)
+    cb_ball = DiscreteCallback(condition, affect!)
+    prob = remake(sys.integ.sol.prob; u0=x_i, tspan=(0, tmax))
+    return prob, cb_ball
+end
+
+remove_start(sol, idx) = SciMLBase.setproperties(sol; u=sol.u[idx:end], t=sol.t[idx:end])
+function remove_start(sol, x_i, rad_i)
+    idx = size(sol)[2]
+    dist = norm(sol[:, idx] - x_i)
+    while dist > rad_i
+        idx -= 1
+        dist = norm(sol[:, idx] - x_i)
+        idx < 1 && error(
+            "Trajactory never left the initial state sphere. Increase `tmax` or decrease `rad`.",
+        )
+    end
+    return remove_start(sol, idx)
+end
 
 """
     function transitions(sys::CoupledSDEs, x_i, x_f, N=1; kwargs...)
@@ -86,15 +99,14 @@ Generates an ensemble of `N` transition samples of `sys` from point `x_i` to poi
 This function repeatedly calls the [`transition`](@ref) function to efficiently generate an ensemble of transitions. Multi-threading is enabled.
 
 ## Keyword arguments
-  - `rad_i=0.1`: radius of ball around `x_i`
-  - `rad_f=0.1`: radius of ball around `x_f`
+  - `radii=(0.1, 0.1)`: radius of the ball around `x_i` and `x_f`, respectively
   - `Nmax`: number of attempts before the algorithm stops even if less than `N` transitions occurred.
   - `tmax=1e3`: maximum time when the simulation stops even `x_f` has not been reached
-  - `rad_dims=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
+  - `radius_directions=1:length(sys.u)`: the directions in phase space to consider when calculating the radii
     `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
     insert a vector of indices of the dimensions to be included.
   - `cut_start=true`: if `false`, returns the whole trajectory up to the transition
-  - `show_progress`: shows a progress bar with respect to `Nmax`
+  - `show_progress=true`: shows a progress bar with respect to `Nmax`
   - `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#CommonSolve.solve-Tuple{SciMLBase.AbstractDEProblem,%20Vararg{Any}})
 
 See also [`transition`](@ref).
@@ -114,51 +126,44 @@ function transitions(
     sys::CoupledSDEs,
     x_i,
     x_f,
-    N=1;
-    rad_i=0.1,
-    rad_f=0.1,
+    N::Int=1;
+    radii::NTuple{2}=(0.1, 0.1),
     tmax=1e3,
-    Nmax=1000,
+    Nmax=100,
     cut_start=true,
-    rad_dims=1:length(current_state(sys)),
-    show_progress::Bool=false,
+    radius_directions=1:length(current_state(sys)),
+    show_progress::Bool=true,
+    EnsembleAlg=EnsembleThreads()::SciMLBase.BasicEnsembleAlgorithm,
     kwargs...,
 )
-    samples, times, idx::Vector{Int64}, r_idx::Vector{Int64} = [], [], [], []
-    prog = Progress(Nmax; desc="Fishing for $N transitions... ", enabled=show_progress)
-    Threads.@threads for j in 1:Nmax
-        sim, simt, success = transition(
-            sys,
-            x_i,
-            x_f;
-            rad_i=rad_i,
-            rad_f=rad_f,
-            rad_dims=rad_dims,
-            tmax=tmax,
-            cut_start=cut_start,
-            kwargs...,
-        )
+    prob, cb_ball = prepare_transition_problem(
+        sys, (x_i, x_f), radii, radius_directions, tmax
+    )
 
-        if success
-            push!(samples, sim)
-            push!(times, simt)
-            push!(idx, j)
-            if length(idx) > max(1, N - Threads.nthreads())
-                break
-            else
-                continue
-            end
-        else
-            push!(r_idx, j)
+    tries = 0
+    success = 0
+    function output_func(sol, i)
+        rerun = sol.retcode != SciMLBase.ReturnCode.Terminated && i < Nmax
+        tries += 1
+        !rerun && (success += 1)
+        if !rerun && cut_start
+            sol = remove_start(sol, x_i, radii[1])
         end
-        next!(prog; showvalues=[("# transitions complete: ", length(idx) + 1)])
+        return (sol, rerun)
     end
+    ensemble = EnsembleProblem(prob; output_func=output_func)
+    sim = solve(
+        ensemble, solver(sys), EnsembleAlg; callback=cb_ball, trajectories=N, kwargs...
+    )
 
-    success_rate = length(idx) / (length(r_idx) + length(idx))
-    mean_res_time = sum([times[i][1] for i in 1:length(times)]) + tmax * length(r_idx)
-    mean_trans_time = mean([(times[i][end] - times[i][1]) for i in 1:length(times)])
+    success_rate = success / tries
+    mean_res_time = mean([sol.t[1] for sol in sim])
+    mean_trans_time = mean([(sol.t[end] - sol.t[1]) for sol in sim])
 
-    return TransitionPathEnsemble(
-        samples, times, success_rate, mean_res_time, mean_trans_time
+    samples = [StateSpaceSet(sol.u) for sol in sim]
+    times = [sol.t for sol in sim]
+
+    return TransitionEnsemble(
+        samples, times, success_rate, mean_res_time, mean_trans_time, sim
     )
 end;

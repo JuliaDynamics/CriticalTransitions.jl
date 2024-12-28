@@ -1,8 +1,19 @@
 # Large deviation theory
 
 
-## Minimum action paths
-The minimum action method (MAM) is a powerful numerical technique for calculating the most probable transition path between two metastable states in a stochastic dynamical system. In the limit of small noise, this path corresponds to the minimizer of an action functional. The action functional typically takes into account both the deterministic drift and the noise intensity of the system. By discretizing this path and using optimization techniques, MAM finds the trajectory that requires the least "effort" to transition between states in phase space.
+## Maximum likelihood path
+```@docs
+CriticalTransitions.MaximumLikelihoodPath
+```
+
+## String method
+The string method is a technique for finding transition paths between two states in a dynamical system. The method represents the path as a "string" of points that connects the states and evolves it to minimize the drift along the path. The resulating  tangent path is parrallel to the drift of the system, i.e., the string method computes the heteroclinic orbit. For non-gradient systems (detailed -balance is broken), the heteroclinic orbit differs from the transition path, it does correctly predict, it correctly captures the deterministic dynamics from the saddle point onward ("downhill" portion of the path).
+```@docs
+string_method
+```
+
+## Minimum action methods
+The minimum action method (MAM) is a technique for calculating the most probable transition path between two (meta)stable states in a stochastic dynamical system. In the limit of small noise, this path corresponds to the minimizer of an action functional. The action functional typically takes into account both the deterministic drift and the noise intensity of the system. By discretizing this path and using optimization techniques, MAM finds the trajectory that requires the least "effort" to transition between states in phase space.
 
 ### Minimum action method (MAM)
 Minimization of the action functioal using the optimization algorithm of `Optimization.jl`.

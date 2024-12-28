@@ -1,11 +1,6 @@
 using CriticalTransitions
-using Plots, NLsolve
+using Plots
 using BenchmarkTools
-
-function get_steady_state(sys, x0)
-    steady_state(x) = sys.H_p(x, zeros(size(x)))
-    return Xs = nlsolve(steady_state, x0).zero
-end
 
 const λ = 3 / 1.21 * 2 / 295
 const ω0 = 1.000
@@ -45,11 +40,17 @@ end
 
 sys = SgmamSystem(H_x, H_p)
 
+function KPO(x, p, t)
+    u, v = x
+    return [fu(u, v), fv(u, v)]
+end
+ds = CoupledSDEs(KPO, zeros(2), ())
+
 # setup
 Nt = 500  # number of discrete time steps
 s = collect(range(0; stop=1, length=Nt))
 
-xa = get_steady_state(sys, [1.0, 1.0])
+xa = [-0.02086931342925046, 0.09908886921365058]
 xb = -xa
 xsaddle = [0.0, 0.0]
 
@@ -58,18 +59,18 @@ xx = @. (xb[1] - xa[1]) * s + xa[1] + 4 * s * (1 - s) * xsaddle[1]
 yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
 x_initial = Matrix([xx yy]')
 
-MLP = sgmam(sys, x_initial; iterations=100_000, ϵ=10e2, show_progress=true)
-x_min = MLP.path
-S_min = MLP.action
+string = string_method(sys, x_initial; iterations=10_000, ϵ=0.5, show_progress=true)
 
-string = string_method(sys, x_initial; iterations=100_000, ϵ=0.5, show_progress=true)
-
-@show S_min;
 plot(x_initial[1, :], x_initial[2, :]; label="init", lw=3, c=:black)
-plot!(x_min[1, :], x_min[2, :]; label="MLP", lw=3, c=:red)
 plot!(string[1, :], string[2, :]; label="string", lw=3, c=:blue)
 
-@btime $sgmam($sys, $x_initial, iterations=100, ϵ=10e2, show_progress=false) # 25.803 ms (29024 allocations: 105.69 MiB)
-@profview sgmam(sys, x_initial, iterations=100, ϵ=10e2, show_progress=false)
+string = string_method(ds, x_initial; iterations=10_000, ϵ=0.5, show_progress=true)
+
+plot(x_initial[1, :], x_initial[2, :]; label="init", lw=3, c=:black)
+plot!(string[1, :], string[2, :]; label="string", lw=3, c=:blue)
+
+@btime $string_method($sys, $x_initial, iterations=100, ϵ=0.5, show_progress=false) # 7.397 ms (5350 allocations: 12.71 MiB)
+@btime $string_method($ds, $x_initial, iterations=100, ϵ=0.5, show_progress=false) # 16.277 ms (253050 allocations: 27.01 MiB)
+# @profview string_method(sys, x_initial, iterations=100, ϵ=0.5, show_progress=false)
 
 # The bottleneck is atm at the LinearSolve call to update the x in the new iteration. So the more improve, one needs to write it own LU factorization.

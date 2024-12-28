@@ -7,7 +7,7 @@ using StaticArrays: StaticArrays, SVector
 
 # Core
 using DiffEqNoiseProcess: DiffEqNoiseProcess
-using OrdinaryDiffEq: OrdinaryDiffEq, Tsit5
+using OrdinaryDiffEq: OrdinaryDiffEq, EnsembleThreads
 using StochasticDiffEq:
     StochasticDiffEq,
     DiscreteCallback,
@@ -50,10 +50,10 @@ using Reexport: @reexport
 include("extension_functions.jl")
 include("utils.jl")
 include("sde_utils.jl")
+
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
-include("trajectories/equib.jl")
-include("noiseprocesses/stochprocess.jl")
+
 include("largedeviations/action.jl")
 include("largedeviations/MinimumActionPath.jl")
 include("largedeviations/min_action_method.jl")
@@ -61,6 +61,7 @@ include("largedeviations/geometric_min_action_method.jl")
 
 include("largedeviations/sgMAM.jl")
 using .Sgmam: sgmam, SgmamSystem
+include("largedeviations/string_method.jl")
 
 include("../systems/CTLibrary.jl")
 using .CTLibrary
@@ -72,13 +73,14 @@ export dynamic_rule, current_state, set_state!, trajectory
 export sgmam, SgmamSystem
 
 # Methods
-export drift, div_drift
-export equilib, deterministic_orbit
+export drift, div_drift, solver
+export deterministic_orbit
 export transition, transitions
 export basins, basinboundary, basboundary
 export intervals_to_box
 export fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
+export string_method
 export covariance_matrix, diffusion_matrix
 # export edgetracking, bisect_to_edge, AttractorsViaProximity
 
