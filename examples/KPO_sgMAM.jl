@@ -58,15 +58,11 @@ xx = @. (xb[1] - xa[1]) * s + xa[1] + 4 * s * (1 - s) * xsaddle[1]
 yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
 x_initial = Matrix([xx yy]')
 
-MLP = sgmam(
-    sys, x_initial; iterations=100_000, ϵ=10e2, show_progress=true
-)
+MLP = sgmam(sys, x_initial; iterations=100_000, ϵ=10e2, show_progress=true)
 x_min = MLP.path
 S_min = MLP.action
 
-string = string_method(
-    sys, x_initial; iterations=100_000, ϵ=0.5, show_progress=true
-)
+string = string_method(sys, x_initial; iterations=100_000, ϵ=0.5, show_progress=true)
 
 @show S_min;
 plot(x_initial[1, :], x_initial[2, :]; label="init", lw=3, c=:black)

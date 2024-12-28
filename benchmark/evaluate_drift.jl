@@ -13,30 +13,30 @@ path = reduce(hcat, range(x_i, x_f; length=N))
 time = range(0.0, T; length=N)
 
 b(x) = drift(sys, x)
-b(x[:,2])
+b(x[:, 2])
 
 using DynamicalSystemsBase
 b.(StateSpaceSet(path'))
 x = deepcopy(path)
 function mod!(x)
     for i in 1:size(x)[2]
-        x[:,i] .= b(x[:,i])
+        x[:, i] .= b(x[:, i])
     end
 end
 x = deepcopy(path)
 function mod1!(sys, x)
     for i in 1:size(x)[2]
-        x[:,i] .= sys.integ.f(x[:,i], sys.p0, 0)
+        x[:, i] .= sys.integ.f(x[:, i], sys.p0, 0)
     end
 end
 function mod2!(sys, x)
     for i in 1:size(x)[2]
-        x[:,i] = sys.integ.f(x[:,i], sys.p0, 0)
+        x[:, i] = sys.integ.f(x[:, i], sys.p0, 0)
     end
 end
 x = deepcopy(path)
 @benchmark mod!($x)
 x = deepcopy(path)
-@benchmark mod1!($sys,$x)
+@benchmark mod1!($sys, $x)
 x = deepcopy(path)
-@benchmark mod2!($sys,$x)
+@benchmark mod2!($sys, $x)

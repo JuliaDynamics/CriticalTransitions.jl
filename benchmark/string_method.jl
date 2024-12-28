@@ -40,7 +40,7 @@ end
 
 sys = SgmamSystem(H_x, H_p)
 
-function KPO(x,p,t)
+function KPO(x, p, t)
     u, v = x
     return [fu(u, v), fv(u, v)]
 end
@@ -50,8 +50,7 @@ ds = CoupledSDEs(KPO, zeros(2), ())
 Nt = 500  # number of discrete time steps
 s = collect(range(0; stop=1, length=Nt))
 
-xa = [-0.02086931342925046,
-0.09908886921365058]
+xa = [-0.02086931342925046, 0.09908886921365058]
 xb = -xa
 xsaddle = [0.0, 0.0]
 
@@ -60,16 +59,12 @@ xx = @. (xb[1] - xa[1]) * s + xa[1] + 4 * s * (1 - s) * xsaddle[1]
 yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
 x_initial = Matrix([xx yy]')
 
-string = string_method(
-    sys, x_initial; iterations=10_000, ϵ=0.5, show_progress=true
-)
+string = string_method(sys, x_initial; iterations=10_000, ϵ=0.5, show_progress=true)
 
 plot(x_initial[1, :], x_initial[2, :]; label="init", lw=3, c=:black)
 plot!(string[1, :], string[2, :]; label="string", lw=3, c=:blue)
 
-string = string_method(
-    ds, x_initial; iterations=10_000, ϵ=0.5, show_progress=true
-)
+string = string_method(ds, x_initial; iterations=10_000, ϵ=0.5, show_progress=true)
 
 plot(x_initial[1, :], x_initial[2, :]; label="init", lw=3, c=:black)
 plot!(string[1, :], string[2, :]; label="string", lw=3, c=:blue)
