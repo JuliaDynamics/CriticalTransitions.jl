@@ -9,7 +9,7 @@ pages = [
     ],
     "Manual" => Any[
         "Define a CoupledSDEs system" => "man/CoupledSDEs.md",
-        #"Stability analysis" => "man/systemanalysis.md",
+        "Stability analysis" => "man/systemanalysis.md",
         "Simulating the system" => "man/simulation.md",
         "Sampling transitions" => "man/sampling.md",
         "Large deviation theory" => "man/largedeviations.md",

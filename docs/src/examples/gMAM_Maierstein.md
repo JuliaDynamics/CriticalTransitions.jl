@@ -16,7 +16,7 @@ Let us explore the features of [CriticalTransitions.jl](https://github.com/Julia
 
 ## Maier-stein model
 
-The [Maier-Stein model](https://link.springer.com/article/10.1007/BF02183736) (J. Stat. Phys 83, 3–4 (1996)) is commonly used in the field of nonlinear dynamics for benchmarking Large Deviation Theory (LDT) techniques, e.g., stoachastic transitions between different stable states. It is a simple model that describes the dynamics of a system with two degrees of freedom ``u`` and ``v``, and is given by the following set of ordinary differential equations:
+The [Maier-Stein model](https://doi.org/10.1007/BF02183736) (J. Stat. Phys 83, 3–4 (1996)) is commonly used in the field of nonlinear dynamics for benchmarking Large Deviation Theory (LDT) techniques, e.g., stoachastic transitions between different stable states. It is a simple model that describes the dynamics of a system with two degrees of freedom ``u`` and ``v``, and is given by the following set of ordinary differential equations:
 ```math
 \begin{aligned}
     \dot{u} &= u-u^3 - \beta*u*v^2\\
@@ -229,7 +229,7 @@ yy = 0.3 .* (-xx .^ 2 .+ 1)
 init = Matrix([xx yy]')
 ```
 
-`geometric_min_action_method` computes the minimizer of the Freidlin-Wentzell action using the geometric minimum action method (gMAM), to find the minimum action path (instanton) between an initial state x_i and final state x_f. The Minimum Action Method (MAM) is a more traditional approach, while the Geometric Minimum Action Method (gMAM) is a blend of the original MAM and the [string method](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.66.052301).
+`geometric_min_action_method` computes the minimizer of the Freidlin-Wentzell action using the geometric minimum action method (gMAM), to find the minimum action path (instanton) between an initial state x_i and final state x_f. The Minimum Action Method (MAM) is a more traditional approach, while the Geometric Minimum Action Method (gMAM) is a blend of the original MAM and the [string method](https://doi.org/10.1103/PhysRevB.66.052301).
 
 ```@example GMAM
 gm = geometric_min_action_method(sys, init, maxiter=500; show_progress=false)

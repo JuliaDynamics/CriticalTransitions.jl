@@ -69,21 +69,19 @@ using .CTLibrary
 # Core types
 export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
 export dynamic_rule, current_state, set_state!, trajectory
+export drift, div_drift, solver
 
 export sgmam, SgmamSystem
+export fw_action, om_action, action, geometric_action
+export min_action_method, geometric_min_action_method, string_method
+export MinimumActionPath
 
-# Methods
-export drift, div_drift, solver
 export deterministic_orbit
 export transition, transitions
+export TransitionEnsemble
+
 export basins, basinboundary, basboundary
 export intervals_to_box
-export fw_action, om_action, action, geometric_action
-export min_action_method, geometric_min_action_method
-export MinimumActionPath
-export string_method
-export covariance_matrix, diffusion_matrix
-# export edgetracking, bisect_to_edge, AttractorsViaProximity
 
 # Error hint for extensions stubs
 function __init__()

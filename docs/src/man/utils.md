@@ -3,12 +3,16 @@
 ## `CoupledSDEs` utility functions
 
 ```@docs
-covariance_matrix
-diffusion_matrix
-dynamic_rule
+solver
+StochasticSystemsBase.covariance_matrix
+StochasticSystemsBase.diffusion_matrix
 noise_process
-current_state
-set_state!
 drift
 div_drift
+```
+
+## More
+
+```@docs
+intervals_to_box
 ```
