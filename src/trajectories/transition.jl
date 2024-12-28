@@ -50,11 +50,12 @@ function transition(
     tmax=1e3,
     radius_directions=1:length(current_state(sys)),
     cut_start=true,
-    kwargs...
+    kwargs...,
 )
     rad_i, rad_f = radii
     prob, cb_ball = prepare_transition_problem(
-        sys, (x_i, x_f), radii, radius_directions, tmax)
+        sys, (x_i, x_f), radii, radius_directions, tmax
+    )
 
     sim = solve(prob, solver(sys); callback=cb_ball, kwargs...)
     success = sim.retcode == SciMLBase.ReturnCode.Terminated
@@ -135,7 +136,9 @@ function transitions(
     EnsembleAlg=EnsembleThreads()::SciMLBase.BasicEnsembleAlgorithm,
     kwargs...,
 )
-    prob, cb_ball = prepare_transition_problem(sys, (x_i, x_f), radii, radius_directions, tmax)
+    prob, cb_ball = prepare_transition_problem(
+        sys, (x_i, x_f), radii, radius_directions, tmax
+    )
 
     tries = 0
     success = 0
@@ -150,12 +153,7 @@ function transitions(
     end
     ensemble = EnsembleProblem(prob; output_func=output_func)
     sim = solve(
-        ensemble,
-        solver(sys),
-        EnsembleAlg;
-        callback=cb_ball,
-        trajectories=N,
-        kwargs...,
+        ensemble, solver(sys), EnsembleAlg; callback=cb_ball, trajectories=N, kwargs...
     )
 
     success_rate = success / tries
