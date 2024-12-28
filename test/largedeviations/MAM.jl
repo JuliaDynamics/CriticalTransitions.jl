@@ -30,5 +30,5 @@ end
     inst_sol =
         ((xT - x0 * exp(-T)) * exp.(t) .+ (x0 * exp(T) - xT) * exp.(-t)) /
         (exp(T) - exp(-T))
-    @test maximum(abs.(Matrix(inst_mam.path)' .- inst_sol)) < 0.1
+    @test maximum(abs.(inst_mam.path[:,1] .- inst_sol)) < 0.1
 end
