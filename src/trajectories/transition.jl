@@ -1,3 +1,15 @@
+"""
+$(TYPEDEF)
+
+Ensemble of transition paths between two points in a state space.
+
+# Fields
+$(TYPEDFIELDS)
+
+# Constructors
+$(METHODLIST)
+
+"""
 struct TransitionEnsemble{SSS,T,Tstat,ES}
     paths::Vector{SSS}
     times::Vector{T}
@@ -32,7 +44,7 @@ until entering a ball of given radius around `x_f`.
   `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
   insert a vector of indices of the dimensions to be included.
 * `cut_start=true`: if `false`, returns the whole trajectory up to the transition
-* `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#CommonSolve.solve-Tuple{SciMLBase.AbstractDEProblem,%20Vararg{Any}})
+* `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts)
 
 ## Output
 `[path, times, success]`
@@ -107,20 +119,12 @@ This function repeatedly calls the [`transition`](@ref) function to efficiently 
     insert a vector of indices of the dimensions to be included.
   - `cut_start=true`: if `false`, returns the whole trajectory up to the transition
   - `show_progress=true`: shows a progress bar with respect to `Nmax`
-  - `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#CommonSolve.solve-Tuple{SciMLBase.AbstractDEProblem,%20Vararg{Any}})
+  - `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts)
 
 See also [`transition`](@ref).
 
-## Output
+Returns a [`TransitionEnsemble`](@ref) object.
 
-`[samples, times, idx, N_fail]`
-
-  - `samples` (Array of Matrices): sample paths. Each path i has size (dim × N_i), where N_i is the number of path points
-  - `times` (Array of Vectors): time values (since simulation start) of path points for each path
-  - `idx` (Array): list of sample indices i that produced a transition
-  - `N_fail` (Int): number of samples that failed to produce a transition
-
-> An example script using `transitions` is available [here](https://github.com/juliadynamics/CriticalTransitions.jl/blob/main/examples/sample_transitions_h5.jl).
 """
 function transitions(
     sys::CoupledSDEs,
