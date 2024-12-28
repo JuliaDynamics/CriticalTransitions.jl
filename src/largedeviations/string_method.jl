@@ -68,7 +68,7 @@ function string_method(sys::CoupledSDEs, init; kwargs...)
 end
 
 function string_method(
-    b::Function,
+    b::Union{SgmamSystem,Function},
     x_initial::StateSpaceSet{D};
     ϵ::Float64=1e-1,
     iterations::Int64=1000,
@@ -93,6 +93,9 @@ end
 function update_x!(x::Matrix, sys::SgmamSystem, ϵ::Float64)
     return x += ϵ * sys.H_p(x, 0 * x) # euler integration
 end
+function update_x!(x::StateSpaceSet, sys::SgmamSystem, ϵ::Float64)
+    return x += ϵ .* vec(sys.H_p(x, 0 * Matrix(x))) # euler integration
+end
 function update_x!(x::StateSpaceSet, b::Function, ϵ::Float64)
     # do not touch the initial and final points to allow for string computation
     # between points that are not stable fixed points
@@ -114,37 +117,3 @@ function init_allocation_string(x_initial, Nt)
     alpha = zeros(Nt)
     return x, alpha
 end
-
-# """
-# `stepEuler!(u, b, Δt)`: Perform an in place Euler step
-
-# ### Fields
-# * `u` - Initial state
-# * `b` - Gradient of energy
-# * `Δt` - Time step
-# """
-# function stepEuler!(u, b, Δt)
-#     gradV = b(u)
-#     @. u = u - Δt * gradV
-
-#     return u
-# end
-
-# """
-# `stepRK4!(u, b, Δt)`: Perform an in place RK4 step
-
-# ### Fields
-# * `u` - Initial state
-# * `b` - Gradient of energy
-# * `Δt` - Time step
-# """
-# function stepRK4!(u, b, Δt)
-#     gradV1 = b(u)
-#     gradV2 = b(u - 0.5 * Δt * gradV1)
-#     gradV3 = b(u - 0.5 * Δt * gradV2)
-#     gradV4 = b(u - Δt * gradV3)
-
-#     @. u = u - Δt / 6 * (gradV1 + 2 * gradV2 + 2 * gradV3 + gradV4)
-
-#     return u
-# end
