@@ -22,7 +22,7 @@ function string_method(
 
         next!(progress; showvalues=[("iterations", i),])
     end
-    return StateSpaceSet(x)
+    return x
 end
 function init_allocation_string(x_initial, Nt)
     # preallocate
@@ -56,5 +56,5 @@ function string_method(
 
         next!(progress; showvalues=[("iterations", i),])
     end
-    return StateSpaceSet(x)
+    return x
 end
