@@ -19,12 +19,14 @@ using Test
     x_f = init[:, end]
 
     @testset "String method" begin
-        string = string_method(sys, init; iterations=10_000, ϵ=0.5, show_progress=false)
-        @test string[1] == x_i
-        @test string[end] == x_f
-        @test sum(string[:, 2]) ≈ 0 atol = 1e-6
-        @test sum(string[:, 1]) ≈ 0 atol = 1e-6
-        @test sum(diff(string[:, 1])) ≈ 2 atol = 1e-6
+        for x_init in [init, StateSpaceSet(init')]
+            string = string_method(sys, init; iterations=10_000, ϵ=0.5, show_progress=false)
+            @test string[1] == x_i
+            @test string[end] == x_f
+            @test sum(string[:, 2]) ≈ 0 atol = 1e-6
+            @test sum(string[:, 1]) ≈ 0 atol = 1e-6
+            @test sum(diff(string[:, 1])) ≈ 2 atol = 1e-6
+        end
     end
 
     @testset "Adam" begin

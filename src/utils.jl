@@ -62,3 +62,11 @@ end;
 function central2(f, idx, dz)
     return (f[idx + 1] - 2f[idx] + f[idx - 1]) / (dz^2)
 end;
+
+function Base.diff(a::StateSpaceSet)
+    r = length(a)
+    r0 = 1:(r - 1)
+    r1 = 2:r
+
+    return StateSpaceSet([a[r1[i]] - a[r0[i]] for i in 1:length(r0)])
+end
