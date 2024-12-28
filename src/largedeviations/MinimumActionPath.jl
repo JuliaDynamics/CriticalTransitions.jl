@@ -1,7 +1,7 @@
 """
-    MaximumLikelihoodPath{T,Phis,Ahis,Lambda,PV,GPV}
+    MinimumActionPath{T,Phis,Ahis,Lambda,PV,GPV}
 
-The maximum likelihood path between two points in phase space.
+The minimum action path between two points in phase space.
 
 # Fields
 - `path::Matrix{T}`: The path matrix.
@@ -11,10 +11,10 @@ The maximum likelihood path between two points in phase space.
 - `λ::Lambda`: The Lagrange multiplier parameter for the maximum likelihood path.
 - `generalized_momentum::GPV`: The generalized momentum of the phase space variables (optional).
 - `path_velocity::PV`: The path velocity (optional).
-
 """
-mutable struct MaximumLikelihoodPath{T,Phis,Ahis,Lambda,PV,GPV}
-    path::Matrix{T}
+
+mutable struct MinimumActionPath{D,T,V,Phis,Ahis,Lambda,PV,GPV}
+    path::StateSpaceSet{D,T,V}
     action::T
     path_history::Phis
     action_history::Ahis
@@ -22,17 +22,19 @@ mutable struct MaximumLikelihoodPath{T,Phis,Ahis,Lambda,PV,GPV}
     generalized_momentum::GPV
     path_velocity::PV
 
-    function MaximumLikelihoodPath(
-        path::Matrix{T},
+    function MinimumActionPath(
+        path::StateSpaceSet{D,T,V},
         action;
         path_history=nothing,
         action_history=nothing,
         λ=nothing,
         generalized_momentum=nothing,
         path_velocity=nothing,
-    ) where {T}
+    ) where {D,T,V}
         return new{
+            D,
             T,
+            V,
             typeof(path_history),
             typeof(action_history),
             typeof(λ),
@@ -50,8 +52,8 @@ mutable struct MaximumLikelihoodPath{T,Phis,Ahis,Lambda,PV,GPV}
     end
 end
 
-function prettyprint(mlp::MaximumLikelihoodPath)
-    return "Maximum Likelihood Path of size $(length(mlp.path[1,:])) in $(length(mlp.path[:,1])) dimensions"
+function prettyprint(mlp::MinimumActionPath{D}) where {D}
+    return "Minimum action Path of length $(length(mlp.path)) in $D dimensions"
 end
 
-Base.show(io::IO, mlp::MaximumLikelihoodPath) = print(io, prettyprint(mlp))
+Base.show(io::IO, mlp::MinimumActionPath) = print(io, prettyprint(mlp))

@@ -42,7 +42,7 @@ function string_method(
 
         next!(progress; showvalues=[("iterations", i)])
     end
-    return x
+    return StateSpaceSet(x')
 end
 
 """
@@ -89,7 +89,7 @@ function string_method(
 
         next!(progress; showvalues=[("iterations", i)])
     end
-    return x
+    return StateSpaceSet(x')
 end
 
 function init_allocation_string(x_initial, Nt)
