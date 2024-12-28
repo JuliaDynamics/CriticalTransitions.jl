@@ -9,7 +9,6 @@ StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSyst
 ChaosToolsExt = Base.get_extension(CriticalTransitions, :ChaosToolsExt)
 CoupledSDEsBasin = Base.get_extension(CriticalTransitions, :CoupledSDEsBasin)
 
-
 project_toml = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 package_version = project_toml["version"]
 name = project_toml["name"]
@@ -18,9 +17,9 @@ github = "https://github.com/juliadynamics/CriticalTransitions.jl"
 
 links = InterLinks(
     "DynamicalSystemsBase" => "https://juliadynamics.github.io/DynamicalSystemsBase.jl/dev/",
-# "DiffEqNoiseProcess" => "https://docs.sciml.ai/DiffEqNoiseProcess/stable/",
-# "DifferentialEquations" => "https://docs.sciml.ai/DiffEqDocs/stable/",
-# "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",
+    # "DiffEqNoiseProcess" => "https://docs.sciml.ai/DiffEqNoiseProcess/stable/",
+    # "DifferentialEquations" => "https://docs.sciml.ai/DiffEqDocs/stable/",
+    # "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",
 )
 
 bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style=:numeric)
