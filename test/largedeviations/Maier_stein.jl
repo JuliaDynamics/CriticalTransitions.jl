@@ -20,11 +20,11 @@ using Test
 
     @testset "String method" begin
         string = string_method(sys, init; iterations=10_000, ϵ=0.5, show_progress=false)
-        @test string[:, 1] == x_i
-        @test string[:, end] == x_f
-        @test sum(string[2, :]) ≈ 0 atol = 1e-6
-        @test sum(string[1, :]) ≈ 0 atol = 1e-6
-        @test sum(diff(string[1, :])) ≈ 2 atol = 1e-6
+        @test string[1] == x_i
+        @test string[end] == x_f
+        @test sum(string[:, 2]) ≈ 0 atol = 1e-6
+        @test sum(string[:, 1]) ≈ 0 atol = 1e-6
+        @test sum(diff(string[:, 1])) ≈ 2 atol = 1e-6
     end
 
     @testset "Adam" begin
@@ -35,7 +35,7 @@ using Test
             sys, init; maxiter=500, verbose=false, show_progress=false
         )
 
-        path = gm.path
+        path = Matrix(gm.path)'
         action_val = gm.action
         @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=0.01))
         @test all(isapprox.(action_val, 0.3375, atol=0.01))
@@ -49,6 +49,6 @@ using Test
             sys, init; maxiter=500, verbose=false, show_progress=false
         )
         string = string_method(sys, init; iterations=10_000, ϵ=0.5, show_progress=false)
-        @test S(string) > S(gm.path)
+        @test S(Matrix(Matrix(string)')) > S(Matrix(Matrix(gm.path)'))
     end
 end # gMAM Meier Stein

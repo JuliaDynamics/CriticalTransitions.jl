@@ -25,6 +25,8 @@ end
     include("largedeviations/action_fhn.jl")
     include("largedeviations/MAM.jl")
     include("largedeviations/gMAM.jl")
+    include("largedeviations/Maier_stein.jl")
+    include("largedeviations/interpolate.jl")
 end
 
 @testset "Utilities" begin
