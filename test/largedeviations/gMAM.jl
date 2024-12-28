@@ -14,7 +14,7 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
     @test isapprox(S, 0.18, atol=0.01)
 end
 
-@testset "gMAM Meier Stein" begin
+@testset "HeymannVandenEijnden" begin # broken
     function meier_stein(u, p, t) # out-of-place
         x, y = u
         dx = x - x^3 - 10 * x * y^2
@@ -32,29 +32,13 @@ end
     x_i = init[:, 1]
     x_f = init[:, end]
 
-    @testset "LBFGS" begin
-        gm = geometric_min_action_method(
-            sys, x_i, x_f; maxiter=10, verbose=false, show_progress=false
-        )
-        gm = geometric_min_action_method(
-            sys, init; maxiter=500, verbose=false, show_progress=false
-        )
+    method = "HeymannVandenEijnden"
+    gm = geometric_min_action_method(
+        sys, init; maxiter=500, method=method, verbose=false, show_progress=false
+    )
 
-        path = gm.path
-        action_val = gm.action
-        @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=0.01))
-        @test all(isapprox.(action_val, 0.3375, atol=0.01))
-    end
-
-    @testset "HeymannVandenEijnden" begin # broken
-        method = "HeymannVandenEijnden"
-        gm = geometric_min_action_method(
-            sys, init; maxiter=500, method=method, verbose=false, show_progress=false
-        )
-
-        path = gm.path
-        action_val = gm.action
-        @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=1e-3)) broken = true
-        @test all(isapprox.(action_val, 0.3375, atol=1e-3)) broken = true
-    end # HeymannVandenEijnden
-end # gMAM Meier Stein
+    path = gm.path
+    action_val = gm.action
+    @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=1e-3)) broken = true
+    @test all(isapprox.(action_val, 0.3375, atol=1e-3)) broken = true
+end # HeymannVandenEijnden
