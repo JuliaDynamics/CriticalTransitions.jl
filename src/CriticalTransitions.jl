@@ -54,6 +54,7 @@ include("sde_utils.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 
+include("largedeviations/utils.jl")
 include("largedeviations/action.jl")
 include("largedeviations/MinimumActionPath.jl")
 include("largedeviations/min_action_method.jl")
@@ -70,6 +71,7 @@ using .CTLibrary
 export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
 export dynamic_rule, current_state, set_state!, trajectory
 export drift, div_drift, solver
+export StateSpaceSet
 
 export sgmam, SgmamSystem
 export fw_action, om_action, action, geometric_action

@@ -18,20 +18,19 @@ This implementation allows for computation between arbitrary points, not just st
 - `x`: The final converged path representing the MEP
 """
 function string_method(
-    sys::SgmamSystem,
-    x_initial;
+    sys::Union{SgmamSystem,Function},
+    x_initial::Matrix;
     ϵ::Float64=1e-1,
     iterations::Int64=1000,
     show_progress::Bool=false,
 )
-    H_p, H_x = sys.H_p, sys.H_x
     Nx, Nt = size(x_initial)
     s = range(0; stop=1, length=Nt)
     x, alpha = init_allocation_string(x_initial, Nt)
 
     progress = Progress(iterations; dt=0.5, enabled=show_progress)
     for i in 1:iterations
-        x += ϵ * H_p(x, 0 * x) # euler integration
+        update_x!(x, sys, ϵ)
         # reset initial and final points to allow for string computation
         # between points that are not stable fixed points
         x[:, 1] = x_initial[:, 1]
@@ -44,7 +43,6 @@ function string_method(
     end
     return StateSpaceSet(x')
 end
-
 """
     $(TYPEDSIGNATURES)
 
@@ -64,32 +62,53 @@ This implementation allows for computation between arbitrary points, not just st
 # Returns
 - `x`: The final converged path representing the MEP
 """
+function string_method(sys::CoupledSDEs, init; kwargs...)
+    b(x) = drift(sys, x)
+    return string_method(b, init; kwargs...)
+end
+
 function string_method(
-    sys::CoupledSDEs,
-    x_initial;
+    b::Union{SgmamSystem,Function},
+    x_initial::StateSpaceSet{D};
     ϵ::Float64=1e-1,
     iterations::Int64=1000,
     show_progress::Bool=false,
-)
-    b(x) = drift(sys, x)
-    Nx, Nt = size(x_initial)
+) where {D}
+    Nt = length(x_initial)
     s = range(0; stop=1, length=Nt)
     x, alpha = init_allocation_string(x_initial, Nt)
 
     progress = Progress(iterations; dt=0.5, enabled=show_progress)
     for i in 1:iterations
-        # do not touch the initial and final points to allow for string computation
-        # between points that are not stable fixed points
-        for j in 2:(size(x)[2] - 1)
-            x[:, j] += ϵ * b(x[:, j]) # euler integration
-        end
+        update_x!(x, b, ϵ)
 
         # reparametrize to arclength
-        interpolate_path!(x, alpha, s)
+        x = interpolate_path(x, alpha, s)
 
         next!(progress; showvalues=[("iterations", i)])
     end
-    return StateSpaceSet(x')
+    return x
+end
+
+function update_x!(x::Matrix, sys::SgmamSystem, ϵ::Float64)
+    return x += ϵ * sys.H_p(x, 0 * x) # euler integration
+end
+function update_x!(x::StateSpaceSet, sys::SgmamSystem, ϵ::Float64)
+    return x += ϵ .* vec(sys.H_p(x, 0 * Matrix(x))) # euler integration
+end
+function update_x!(x::StateSpaceSet, b::Function, ϵ::Float64)
+    # do not touch the initial and final points to allow for string computation
+    # between points that are not stable fixed points
+    for j in 2:(length(x) - 1)
+        x[j] += ϵ * b(x[j]) # euler integration
+    end
+end
+function update_x!(x::Matrix, b::Function, ϵ::Float64)
+    # do not touch the initial and final points to allow for string computation
+    # between points that are not stable fixed points
+    for j in 2:(size(x)[2] - 1)
+        x[:, j] += ϵ * b(x[:, j]) # euler integration
+    end
 end
 
 function init_allocation_string(x_initial, Nt)
@@ -98,37 +117,3 @@ function init_allocation_string(x_initial, Nt)
     alpha = zeros(Nt)
     return x, alpha
 end
-
-# """
-# `stepEuler!(u, b, Δt)`: Perform an in place Euler step
-
-# ### Fields
-# * `u` - Initial state
-# * `b` - Gradient of energy
-# * `Δt` - Time step
-# """
-# function stepEuler!(u, b, Δt)
-#     gradV = b(u)
-#     @. u = u - Δt * gradV
-
-#     return u
-# end
-
-# """
-# `stepRK4!(u, b, Δt)`: Perform an in place RK4 step
-
-# ### Fields
-# * `u` - Initial state
-# * `b` - Gradient of energy
-# * `Δt` - Time step
-# """
-# function stepRK4!(u, b, Δt)
-#     gradV1 = b(u)
-#     gradV2 = b(u - 0.5 * Δt * gradV1)
-#     gradV3 = b(u - 0.5 * Δt * gradV2)
-#     gradV4 = b(u - Δt * gradV3)
-
-#     @. u = u - Δt / 6 * (gradV1 + 2 * gradV2 + 2 * gradV3 + gradV4)
-
-#     return u
-# end
