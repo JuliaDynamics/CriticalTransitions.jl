@@ -25,12 +25,12 @@ function interpolate_path!(path::Matrix, α, s)
     end
     return nothing
 end
-function interpolate_path(path::StateSpaceSet{D}, α, s) where D
+function interpolate_path(path::StateSpaceSet{D}, α, s) where {D}
     Matrix
     α[2:end] .= vec(sqrt.(sum.(map(x -> x .^ 2, diff(path)))))
     α .= cumsum(α; dims=1)
     α .= α ./ last(α)
-    return StateSpaceSet([linear_interpolation(α, path[:,dof])(s) for dof in 1:D]...)
+    return StateSpaceSet([linear_interpolation(α, path[:, dof])(s) for dof in 1:D]...)
 end
 
 """

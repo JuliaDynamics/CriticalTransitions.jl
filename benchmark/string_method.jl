@@ -2,7 +2,6 @@ using CriticalTransitions
 using Plots
 using BenchmarkTools
 
-
 const λ = 3 / 1.21 * 2 / 295
 const ω0 = 1.000
 const ω = 1.000
@@ -18,7 +17,7 @@ function fv(u, v)
     return (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
            (8 * ω)
 end
-stream(u,v) =  Point2f(fu(u, v), fv(u, v))
+stream(u, v) = Point2f(fu(u, v), fv(u, v))
 dfvdv(u, v) = (-4 * γ * ω + 6 * α * u * v) / (8 * ω)
 dfudu(u, v) = (-4 * γ * ω - 6 * α * u * v) / (8 * ω)
 dfvdu(u, v) = (-2 * λ + 4 * (ω0 - ω^2) + 9 * α * u^2 + 3 * α * v^2) / (8 * ω)
@@ -88,7 +87,6 @@ sys_m, x_init_m = m()
 
 @benchmark string_method($sys_sss, $x_init_sss)
 @benchmark string_method($sys_m, $x_init_m)
-
 
 function KPO_SA(x, p, t)
     u, v = x

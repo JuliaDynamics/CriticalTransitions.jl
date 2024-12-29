@@ -107,7 +107,7 @@ function update_x!(x::Matrix, b::Function, ϵ::Float64)
     # do not touch the initial and final points to allow for string computation
     # between points that are not stable fixed points
     for j in 2:(size(x)[2] - 1)
-        x[:,j] += ϵ * b(x[:,j]) # euler integration
+        x[:, j] += ϵ * b(x[:, j]) # euler integration
     end
 end
 

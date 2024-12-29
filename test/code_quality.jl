@@ -15,7 +15,7 @@
         piracies=(
             treat_as_own=[
                 CriticalTransitions.DynamicalSystemsBase.SciMLBase.AbstractSDEIntegrator,
-                CriticalTransitions.DynamicalSystemsBase.StateSpaceSets.StateSpaceSet
+                CriticalTransitions.DynamicalSystemsBase.StateSpaceSets.StateSpaceSet,
             ],
         ),
         ambiguities=false,

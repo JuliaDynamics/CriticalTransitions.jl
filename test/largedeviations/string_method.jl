@@ -15,7 +15,7 @@ function fv(u, v)
     return (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
            (8 * ω)
 end
-stream(u,v) =  Point2f(fu(u, v), fv(u, v))
+stream(u, v) = Point2f(fu(u, v), fv(u, v))
 dfvdv(u, v) = (-4 * γ * ω + 6 * α * u * v) / (8 * ω)
 dfudu(u, v) = (-4 * γ * ω - 6 * α * u * v) / (8 * ω)
 dfvdu(u, v) = (-2 * λ + 4 * (ω0 - ω^2) + 9 * α * u^2 + 3 * α * v^2) / (8 * ω)
@@ -54,7 +54,9 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
 
     x_init_sss = StateSpaceSet([xx yy])
 
-    string_sss = string_method(sys_sss, x_init_sss; iterations=10_000, ϵ=0.5, show_progress=false)
+    string_sss = string_method(
+        sys_sss, x_init_sss; iterations=10_000, ϵ=0.5, show_progress=false
+    )
 
     function H_x(x, p) # ℜ² → ℜ²
         u, v = eachrow(x)
