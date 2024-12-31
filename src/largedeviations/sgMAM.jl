@@ -8,7 +8,36 @@ form a 2n-dimensional extended phase space.
 struct SgmamSystem
     H_x::Function
     H_p::Function
+
+    function SgmamSystem(ds::ContinuousDynamicalSystem)
+        f = dynamic_rule(ds)
+        jac = jacobian(ds)
+
+        function H_x(x, p) # ℜ² → ℜ²
+            Hx = similar(x)
+
+            for idx in 1:size(x, 2)
+                jax = jac(x[:, idx], (), 0.0)
+                for idc in 1:size(x, 1)
+                    Hx[idc, idx] = dot(jax[:, idc], p[:, idx])
+                end
+            end
+            return Hx
+        end
+        function H_p(x, p) # ℜ² → ℜ²
+            Hp = similar(x)
+
+            for idx in 1:size(x, 2)
+                Hp[:, idx] = p[:, idx] + f(x[:, idx], ds.p0, 0.0)
+            end
+            return Hp
+        end
+        return new(H_x, H_p)
+    end
+    SgmamSystem(H_x::Function, H_p::Function) = new(H_x, H_p)
 end
+
+
 
 """
 $(TYPEDSIGNATURES)
