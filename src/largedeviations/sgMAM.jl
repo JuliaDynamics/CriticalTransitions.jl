@@ -30,7 +30,7 @@ based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staf
 """
 function sgmam(
     sys::SgmamSystem,
-    x_initial;
+    x_initial::Matrix{<:Real};
     ϵ::Float64=1e-1,
     iterations::Int64=1000,
     show_progress::Bool=false,
@@ -63,6 +63,9 @@ function sgmam(
     return MinimumActionPath(
         StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
     )
+end
+function sgmam(sys, x_initial::StateSpaceSet; kwargs...)
+    return sgmam(sys, Matrix(Matrix(x_initial)'); kwargs...)
 end
 
 function init_allocation(x_initial, Nt)
