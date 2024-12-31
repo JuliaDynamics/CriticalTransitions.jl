@@ -8,19 +8,8 @@ using SparseArrays: spdiagm
 using DataStructures: CircularBuffer
 
 # Core
-using DiffEqNoiseProcess: DiffEqNoiseProcess
-using OrdinaryDiffEq: OrdinaryDiffEq, EnsembleThreads
-using StochasticDiffEq:
-    StochasticDiffEq,
-    DiscreteCallback,
-    ODEProblem,
-    SDEFunction,
-    SOSRA,
-    remake,
-    solve,
-    step!,
-    terminate!,
-    u_modified!
+using SciMLBase: EnsembleThreads, DiscreteCallback, remake, terminate!
+using StochasticDiffEq: StochasticDiffEq
 using DynamicalSystemsBase:
     DynamicalSystemsBase,
     CoupledSDEs,
@@ -47,8 +36,7 @@ using ProgressMeter: Progress, next!
 # reexport
 using Reexport: @reexport
 @reexport using StaticArrays
-@reexport using StochasticDiffEq
-@reexport using DiffEqNoiseProcess
+@reexport using DynamicalSystemsBase
 
 include("extension_functions.jl")
 include("utils.jl")
@@ -71,7 +59,6 @@ using .CTLibrary
 
 # Core types
 export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
-export dynamic_rule, current_state, set_state!, trajectory
 export drift, div_drift, solver
 export StateSpaceSet
 

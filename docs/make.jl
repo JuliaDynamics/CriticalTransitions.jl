@@ -9,6 +9,8 @@ StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSyst
 ChaosToolsExt = Base.get_extension(CriticalTransitions, :ChaosToolsExt)
 CoupledSDEsBasin = Base.get_extension(CriticalTransitions, :CoupledSDEsBasin)
 
+using StochasticDiffEq, DiffEqNoiseProcess
+
 project_toml = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 package_version = project_toml["version"]
 name = project_toml["name"]

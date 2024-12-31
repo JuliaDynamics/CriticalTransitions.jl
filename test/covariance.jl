@@ -1,4 +1,5 @@
 using Test, DynamicalSystemsBase
+using StochasticDiffEq
 
 StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
 diffusion_matrix = StochasticSystemsBase.diffusion_matrix
