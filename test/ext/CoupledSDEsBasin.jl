@@ -6,11 +6,12 @@ end
 
 # Test for intervals_to_box
 @testset "intervals_to_box" begin
-    using IntervalArithmetic, ChaosTools
+    using ChaosTools.IntervalRootFinding.IntervalArithmetic, ChaosTools
     bmin = [-2, -1, 0]
     bmax = [2, 1, 1]
-    expected = (interval([-2, 2]...), interval([-1, 1]...), interval([0, 1]...))
-    @test CriticalTransitions.intervals_to_box(bmin, bmax).v.data == expected
+    expected = [interval([-2, 2]...), interval([-1, 1]...), interval([0, 1]...)]
+
+    @test all(isequal_interval.(CriticalTransitions.intervals_to_box(bmin, bmax), expected))
 end
 
 @testset "fitzhugh_nagumo" begin
