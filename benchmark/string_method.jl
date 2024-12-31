@@ -1,5 +1,4 @@
 using CriticalTransitions
-using Plots
 using BenchmarkTools
 
 const λ = 3 / 1.21 * 2 / 295
@@ -94,14 +93,14 @@ function KPO_SA(x, p, t)
 end
 function KPO(x, p, t)
     u, v = x
-    return SA[fu(u, v), fv(u, v)]
+    return [fu(u, v), fv(u, v)]
 end
 ds = CoupledSDEs(KPO, zeros(2), ())
 ds_sa = CoupledSDEs(KPO_SA, zeros(2), ())
 
-@btime string_method($ds, $x_init_sss) #  76.600 ms (48693 allocations: 86.62 MiB)
 @btime string_method($ds_sa, $x_init_sss) # 77.119 ms (48693 allocations: 86.62 MiB)
-@btime string_method($sys_m, $x_init_m) #  133.800 ms (51540 allocations: 127.86 MiB)
-@btime string_method($ds, $x_init_m) # 152.492 ms (1039716 allocations: 158.70 MiB)
+@btime string_method($ds, $x_init_sss) # 151.156 ms (1044693 allocations: 162.61 MiB)
+@btime string_method($sys_m, $x_init_m) # 150.201 ms (51540 allocations: 127.86 MiB)
 @btime string_method($ds_sa, $x_init_m) # 178.669 ms (1039716 allocations: 158.70 MiB)
 @btime string_method($sys_sss, $x_init_sss) #  206.504 ms (1087517 allocations: 186.73 MiB)
+@btime string_method($ds, $x_init_m) # 244.689 ms (2533716 allocations: 272.68 MiB)
