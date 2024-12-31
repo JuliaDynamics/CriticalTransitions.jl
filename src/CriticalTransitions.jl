@@ -4,6 +4,8 @@ module CriticalTransitions
 using Statistics: Statistics, mean
 using LinearAlgebra: LinearAlgebra, I, norm, dot, tr
 using StaticArrays: StaticArrays, SVector
+using SparseArrays: spdiagm
+using DataStructures: CircularBuffer
 
 # Core
 using DiffEqNoiseProcess: DiffEqNoiseProcess
@@ -34,6 +36,7 @@ using Interpolations: linear_interpolation
 using Optimization
 using OptimizationOptimisers: Optimisers
 using Symbolics: Symbolics
+using LinearSolve: LinearProblem, KLUFactorization, solve
 
 # io and documentation
 using Format: Format
@@ -61,7 +64,6 @@ include("largedeviations/min_action_method.jl")
 include("largedeviations/geometric_min_action_method.jl")
 
 include("largedeviations/sgMAM.jl")
-using .Sgmam: sgmam, SgmamSystem
 include("largedeviations/string_method.jl")
 
 include("../systems/CTLibrary.jl")

@@ -1,16 +1,3 @@
-module Sgmam
-
-export sgmam, SgmamSystem
-
-using DataStructures: CircularBuffer
-using ProgressMeter: Progress, next!
-using LinearSolve: LinearProblem, KLUFactorization, solve
-using CriticalTransitions: interpolate_path!, MinimumActionPath
-using DynamicalSystemsBase: StateSpaceSet
-using LinearAlgebra, SparseArrays
-
-using DocStringExtensions: TYPEDSIGNATURES
-
 """
 A structure representing a system with Hamiltonian functions H_x and H_p.
 
@@ -149,4 +136,3 @@ function central_diff!(xdot, x)
 end
 
 FW_action(xdot, p) = sum(sum(xdot .* p; dims=1)) / 2
-end # @stable
