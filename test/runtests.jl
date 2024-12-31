@@ -25,6 +25,7 @@ end
     include("largedeviations/action_fhn.jl")
     include("largedeviations/MAM.jl")
     include("largedeviations/gMAM.jl")
+    include("largedeviations/sgMAM.jl")
     include("largedeviations/string_method.jl")
     include("largedeviations/Maier_stein.jl")
     include("largedeviations/interpolate.jl")

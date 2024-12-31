@@ -57,7 +57,7 @@ function H_p(x, p) # ℜ² → ℜ²
     return Matrix([H_pu H_pv]')
 end
 
-sys = SgmamSystem(H_x, H_p)
+sys = SgmamSystem{false, 2}(H_x, H_p)
 ```
 We saved this function in the `SgmamSystem` struct. We want to find the optimal path between two attractors in the phase space. We define the initial trajectory as `wiggle` between the two attractors.
 ```@example GMAM

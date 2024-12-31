@@ -5,9 +5,9 @@ This system operates in an extended phase space where the Hamiltonian is assumed
 quadratic in the extended momentum. The phase space coordinates `x` are doubled to
 form a 2n-dimensional extended phase space.
 """
-struct SgmamSystem
-    H_x::Function
-    H_p::Function
+struct SgmamSystem{IIP,D,Hx, Hp}
+    H_x::Hx
+    H_p::Hp
 
     function SgmamSystem(ds::ContinuousDynamicalSystem)
         f = dynamic_rule(ds)
@@ -32,11 +32,19 @@ struct SgmamSystem
             end
             return Hp
         end
-        return new(H_x, H_p)
+        return new{isinplace(ds),dimension(ds), typeof(H_x), typeof(H_p)}(H_x, H_p)
     end
-    SgmamSystem(H_x::Function, H_p::Function) = new(H_x, H_p)
+    function SgmamSystem{IIP, D}(H_x::Function, H_p::Function) where {IIP, D}
+
+        new{IIP, D, typeof(H_x), typeof(H_p)}(H_x, H_p)
+    end
 end
 
+function prettyprint(mlp::SgmamSystem{IIP, D}) where {IIP,D}
+    return "Doubled $D-dimensional phase space containing $(IIP ? "in-place" : "out-of-place") functions"
+end
+
+Base.show(io::IO, mlp::SgmamSystem) = print(io, prettyprint(mlp))
 
 
 """

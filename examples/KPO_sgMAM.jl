@@ -43,7 +43,7 @@ function H_p(x, p) # ℜ² → ℜ²
     return Matrix([H_pu H_pv]')
 end
 
-sys = SgmamSystem(H_x, H_p)
+sys = SgmamSystem{false, 2}(H_x, H_p)
 
 # setup
 Nt = 500  # number of discrete time steps

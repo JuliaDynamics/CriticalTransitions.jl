@@ -1,14 +1,14 @@
 using CriticalTransitions
+using ModelingToolkit
 using Test
 
 @testset "SgmamSystem KPO" begin
-
-const λ = 3 / 1.21 * 2 / 295
-const ω0 = 1.000
-const ω = 1.000
-const γ = 1 / 295
-const η = 0
-const α = -1
+    λ = 3 / 1.21 * 2 / 295
+    ω0 = 1.000
+    ω = 1.000
+    γ = 1 / 295
+    η = 0
+    α = -1
 
 function fu(u, v)
     return (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
@@ -41,7 +41,7 @@ function H_p(x, p) # ℜ² → ℜ²
     return Matrix([H_pu H_pv]')
 end
 
-using ModelingToolkit
+
 @independent_variables t
 D = Differential(t)
 sts = @variables u(t) v(t)
@@ -55,7 +55,7 @@ sysMTK = structural_simplify(sysMTK)
 prob = ODEProblem(sysMTK, sts .=> zeros(2), (0.0, 100.0), (); jac=true)
 ds = CoupledODEs(prob)
 
-sys = SgmamSystem(H_x, H_p)
+sys = SgmamSystem{false, 2}(H_x, H_p)
 sys′ = SgmamSystem(ds);
 
 Nt = 500  # number of discrete time steps

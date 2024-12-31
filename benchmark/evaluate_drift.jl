@@ -51,7 +51,7 @@ function H_p(x, p) # ℜ² → ℜ²
     return Matrix([H_pu H_pv]')
 end
 
-sys_m = SgmamSystem(H_x, H_p)
+sys_m = SgmamSystem{false, 2}(H_x, H_p)
 
 x_init_m = Matrix([xx yy]')
 
@@ -82,8 +82,6 @@ prob = ODEProblem(sys1, sts .=> zeros(2), (0.0, 100.0), (); jac=true)
 ds = CoupledODEs(prob)
 jac = jacobian(ds)
 jac([1,1], (), 0.0)
-
-
 
 sgSys′ = SgmamSystem(ds);
 
