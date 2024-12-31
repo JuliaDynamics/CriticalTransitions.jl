@@ -24,7 +24,6 @@ using DynamicalSystemsBase:
 using Interpolations: linear_interpolation
 using Optimization
 using OptimizationOptimisers: Optimisers
-using Symbolics: Symbolics
 using LinearSolve: LinearProblem, KLUFactorization, solve
 
 # io and documentation
