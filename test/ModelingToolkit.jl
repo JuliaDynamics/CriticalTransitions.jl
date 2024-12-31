@@ -1,4 +1,5 @@
 using ModelingToolkit
+using StochasticDiffEq: LambaEulerHeun
 
 @testset begin
     @independent_variables t
