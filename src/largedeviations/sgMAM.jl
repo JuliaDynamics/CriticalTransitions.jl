@@ -96,6 +96,9 @@ end
 function sgmam(sys, x_initial::StateSpaceSet; kwargs...)
     return sgmam(sys, Matrix(Matrix(x_initial)'); kwargs...)
 end
+function sgmam(sys::ContinuousDynamicalSystem, x_initial::Matrix{<:Real}; kwargs...)
+    return sgmam(SgmamSystem(sys), Matrix(Matrix(x_initial)'); kwargs...)
+end
 
 function init_allocation(x_initial, Nt)
     # preallocate
