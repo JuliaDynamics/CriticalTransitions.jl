@@ -6,6 +6,7 @@ using LinearAlgebra: LinearAlgebra, I, norm, dot, tr
 using StaticArrays: StaticArrays, SVector
 using SparseArrays: spdiagm
 using DataStructures: CircularBuffer
+using Random: Random
 
 # Core
 using SciMLBase: EnsembleThreads, DiscreteCallback, remake, terminate!

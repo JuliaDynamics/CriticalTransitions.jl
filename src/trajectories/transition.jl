@@ -35,7 +35,8 @@ $(TYPEDSIGNATURES)
 Generates a sample transition from point `x_i` to point `x_f`.
 
 This function simulates `sys` in time, starting from initial condition `x_i`,
-until entering a ball of given radius around `x_f`.
+until entering a ball of given radius around `x_f`. If a seed was given to `sys` the solver
+is initialized with this seed. To change the seed you can pass a new seed to the `seed` keyword.
 
 ## Keyword arguments
 * `radii=(0.1, 0.1)`: radius of the ball around `x_i` and `x_f`, respectively
@@ -104,11 +105,13 @@ function remove_start(sol, x_i, rad_i)
 end
 
 """
-    function transitions(sys::CoupledSDEs, x_i, x_f, N=1; kwargs...)
+$(TYPEDSIGNATURES)
 
 Generates an ensemble of `N` transition samples of `sys` from point `x_i` to point `x_f`.
-
-This function repeatedly calls the [`transition`](@ref) function to efficiently generate an ensemble of transitions. Multi-threading is enabled.
+The transitions is by default simulated using threading. To sample the transitions in serial,
+GPU or Distrubuted enverionment, pass the desired
+[`SciMLBase.EnsembleAlgorithm`](https://docs.sciml.ai/DiffEqDocs/stable/features/ensemble/)
+to the EnsembleAlg algorithm.
 
 ## Keyword arguments
   - `radii=(0.1, 0.1)`: radius of the ball around `x_i` and `x_f`, respectively
@@ -119,7 +122,8 @@ This function repeatedly calls the [`transition`](@ref) function to efficiently 
     insert a vector of indices of the dimensions to be included.
   - `cut_start=true`: if `false`, returns the whole trajectory up to the transition
   - `show_progress=true`: shows a progress bar with respect to `Nmax`
-  - `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts)
+  - `kwargs...`: keyword arguments passed to
+    [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts)
 
 See also [`transition`](@ref).
 
@@ -137,7 +141,7 @@ function transitions(
     cut_start=true,
     radius_directions=1:length(current_state(sys)),
     show_progress::Bool=true,
-    EnsembleAlg=EnsembleThreads()::SciMLBase.BasicEnsembleAlgorithm,
+    EnsembleAlg=EnsembleThreads()::SciMLBase.EnsembleAlgorithm,
     kwargs...,
 )
     prob, cb_ball = prepare_transition_problem(
@@ -155,7 +159,11 @@ function transitions(
         end
         return (sol, rerun)
     end
-    ensemble = EnsembleProblem(prob; output_func=output_func)
+    seed = sys.integ.sol.prob.seed
+    function prob_func(prob, i, repeat)
+        return remake(prob; seed=rand(Random.MersenneTwister(seed + i + repeat), UInt32))
+    end
+    ensemble = EnsembleProblem(prob; output_func=output_func, prob_func=prob_func)
     sim = solve(
         ensemble, solver(sys), EnsembleAlg; callback=cb_ball, trajectories=N, kwargs...
     )
