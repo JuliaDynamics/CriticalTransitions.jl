@@ -20,8 +20,8 @@
     ensemble = transitions(sys, fp1, fp2, 10)
     @test isapprox(ensemble.success_rate, 0.833; atol=1e-2) ||
         isapprox(ensemble.success_rate, 0.909; atol=1e-2)
-    @test isapprox(ensemble.success_rate, 5.213; atol=1e-2) ||
-        isapprox(ensemble.success_rate, 5.6512; atol=1e-2)
+    @test isapprox(ensemble.transition_time, 5.213; atol=1e-2) ||
+        isapprox(ensemble.transition_time, 5.6512; atol=1e-2)
     # SEED is different on github
     # SEED doesn;t work on github
     @test length(ensemble.times) == 10
