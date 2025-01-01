@@ -14,7 +14,6 @@ struct TransitionStatistics{T}
     end
 end;
 
-
 """
 $(TYPEDEF)
 
@@ -27,7 +26,7 @@ $(TYPEDFIELDS)
 $(METHODLIST)
 
 """
-struct TransitionEnsemble{SSS, T, ES}
+struct TransitionEnsemble{SSS,T,ES}
     paths::Vector{SSS}
     times::Vector{Vector{T}}
     stats::TransitionStatistics{T}
@@ -39,7 +38,9 @@ struct TransitionEnsemble{SSS, T, ES}
         samples = [StateSpaceSet(sol.u) for sol in sim]
         times = [sol.t for sol in sim]
 
-        return new{eltype(samples),eltype(eltype(times)),typeof(sim)}(samples, times, stats, sim)
+        return new{eltype(samples),eltype(eltype(times)),typeof(sim)}(
+            samples, times, stats, sim
+        )
     end
 end;
 
