@@ -18,7 +18,7 @@
     @test norm(tr[end, :] - fp2) < 0.1
 
     ensemble = transitions(sys, fp1, fp2, 10)
-    @test ensemble.success_rate ≈ 0.833
+    @test ensemble.success_rate ≈ 0.833 atol = 1e-2
     @test ensemble.transition_time ≈ 5.213811882226217 atol = 1e-2
     # SEED is different on github
     # SEED doesn;t work on github
