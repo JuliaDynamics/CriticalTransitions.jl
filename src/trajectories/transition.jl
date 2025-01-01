@@ -157,7 +157,7 @@ function transitions(
     end
     seed = sys.integ.sol.prob.seed
     function prob_func(prob, i, repeat)
-        return remake(prob; seed=rand(Random.MersenneTwister(seed+ i + repeat), UInt32))
+        return remake(prob; seed=rand(Random.MersenneTwister(seed + i + repeat), UInt32))
     end
     ensemble = EnsembleProblem(prob; output_func=output_func, prob_func=prob_func)
     sim = solve(
