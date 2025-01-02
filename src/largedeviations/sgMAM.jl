@@ -9,7 +9,11 @@ struct SgmamSystem{IIP,D,Hx,Hp}
     H_x::Hx
     H_p::Hp
 
-    function SgmamSystem(ds::ContinuousDynamicalSystem)
+    function SgmamSystem(ds::ContinuousTimeDynamicalSystem)
+        if ds isa CoupledSDEs
+            proper_sgMAM_system(ds)
+        end
+
         f = dynamic_rule(ds)
         jac = jacobian(ds)
 
@@ -65,19 +69,19 @@ based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staf
 """
 function sgmam(
     sys::SgmamSystem,
-    x_initial::Matrix{<:Real};
-    ϵ::Float64=1e-1,
+    x_initial::Matrix{T};
+    ϵ::Real=1e-1,
     iterations::Int64=1000,
     show_progress::Bool=false,
-    reltol::Float64=NaN,
-)
+    reltol::Real=NaN,
+) where T
     H_p, H_x = sys.H_p, sys.H_x
 
     Nx, Nt = size(x_initial)
     s = range(0; stop=1, length=Nt)
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
 
-    S = CircularBuffer{Float64}(2)
+    S = CircularBuffer{T}(2)
     fill!(S, Inf)
 
     progress = Progress(iterations; dt=0.5, enabled=show_progress)
@@ -102,7 +106,7 @@ end
 function sgmam(sys, x_initial::StateSpaceSet; kwargs...)
     return sgmam(sys, Matrix(Matrix(x_initial)'); kwargs...)
 end
-function sgmam(sys::ContinuousDynamicalSystem, x_initial::Matrix{<:Real}; kwargs...)
+function sgmam(sys::ContinuousTimeDynamicalSystem, x_initial::Matrix{<:Real}; kwargs...)
     return sgmam(SgmamSystem(sys), Matrix(Matrix(x_initial)'); kwargs...)
 end
 
@@ -177,3 +181,26 @@ function central_diff!(xdot, x)
 end
 
 FW_action(xdot, p) = sum(sum(xdot .* p; dims=1)) / 2
+
+function proper_sgMAM_system(ds::CoupledSDEs)
+    if !ds.noise_type[:additive]
+        throw(
+            ArgumentError(
+                "Geometric action is only defined for additive noise. The noise type of the system is not additive.",
+            ),
+        )
+    end
+    if !ds.noise_type[:invertible]
+        throw(
+            ArgumentError(
+                "Geometric action is only defined for invertible noise. The noise type of the system is not invertible.",
+            ),
+        )
+    end
+    Σ = covariance_matrix(ds)
+    return isdiag(Σ) || throw(
+        ArgumentError(
+            "Simple geometric action is only defined for diagonal noise. The noise covariance matrix is not diagonal.",
+        ),
+    )
+end

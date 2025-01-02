@@ -66,3 +66,15 @@ function stepRK4!(u, b, Δt)
 
     return u
 end
+
+function proper_MAM_system(ds::CoupledSDEs)
+    for trait in (:additive, :invertible)
+        if !ds.noise_type[trait]
+            throw(
+                ArgumentError(
+                    "The minimal action method is only defined for invertible additive noise. The noise type of the system is not $trait.",
+                ),
+            )
+        end
+    end
+end

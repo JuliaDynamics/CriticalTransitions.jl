@@ -7,7 +7,7 @@ by Heymann and Vanden-Eijnden[^1]. Only Freidlin-Wentzell action has a geometric
 
 To set an initial path different from a straight line, see the multiple dispatch method
 
-  - `geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength::Float64; kwargs...)`.
+  - `geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength::Real; kwargs...)`.
 
 ## Keyword arguments
 
@@ -28,9 +28,9 @@ algorithm[^1].
 
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
-function geometric_min_action_method(sys::CoupledSDEs, x_i, x_f; N=100, kwargs...)
+function geometric_min_action_method(sys::ContinuousTimeDynamicalSystem, x_i, x_f; N=100, kwargs...)
     path = reduce(hcat, range(x_i, x_f; length=N))
-    return geometric_min_action_method(sys::CoupledSDEs, path; kwargs...)
+    return geometric_min_action_method(sys, path; kwargs...)
 end
 
 """
@@ -43,10 +43,10 @@ The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dime
 system and `N` is the number of path points.
 
 For more information see the main method,
-[`geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength::Float64; kwargs...)`](@ref).
+[`geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength::Real; kwargs...)`](@ref).
 """
 function geometric_min_action_method(
-    sys::CoupledSDEs,
+    sys::ContinuousTimeDynamicalSystem,
     init::Matrix;
     maxiter::Int=100,
     abstol=nothing,
@@ -57,6 +57,10 @@ function geometric_min_action_method(
     verbose=false,
     show_progress=true,
 )
+    if sys isa CoupledSDEs
+        proper_MAM_system(sys)
+    end
+
     path = deepcopy(init)
     N = length(init[1, :])
     alpha = zeros(N)
@@ -85,12 +89,7 @@ function geometric_min_action_method(
         end
 
         sol = solve(
-            prob,
-            Optimisers.Adam();
-            maxiters=maxiter,
-            callback=callback,
-            abstol=abstol,
-            reltol=reltol,
+            prob, method; maxiters=maxiter, callback=callback, abstol=abstol, reltol=reltol
         )
         path = sol.u
     end
@@ -112,7 +111,7 @@ Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `
 
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
-function heymann_vandeneijnden_step(sys::CoupledSDEs, path, N; tau=0.1, diff_order=4)
+function heymann_vandeneijnden_step(sys::ContinuousTimeDynamicalSystem, path, N; tau=0.1, diff_order=4)
     L = 1.0
     dx = L / (N - 1)
     update = zeros(size(path))
@@ -138,7 +137,7 @@ function heymann_vandeneijnden_step(sys::CoupledSDEs, path, N; tau=0.1, diff_ord
     # Solve linear system M*x = v for each system dimension
     #! might be made faster using LinearSolve.jl special solvers
     for j in 1:size(path, 1)
-        M = Matrix{Float64}(1 * I(N))
+        M = Matrix{Real}(1 * I(N))
         v = zeros(N)
 
         # Boundary conditions
