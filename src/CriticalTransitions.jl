@@ -45,14 +45,16 @@ include("sde_utils.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 
-include("largedeviations/utils.jl")
 include("largedeviations/action.jl")
+include("largedeviations/sgMAM.jl")
+include("largedeviations/string_method.jl")
+include("largedeviations/interpolate.jl")
+include("largedeviations/Integrators.jl")
 include("largedeviations/MinimumActionPath.jl")
 include("largedeviations/min_action_method.jl")
 include("largedeviations/geometric_min_action_method.jl")
 
-include("largedeviations/sgMAM.jl")
-include("largedeviations/string_method.jl")
+
 
 include("../systems/CTLibrary.jl")
 using .CTLibrary
