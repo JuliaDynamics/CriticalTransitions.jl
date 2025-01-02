@@ -30,7 +30,7 @@ function string_method(
 
     progress = Progress(iterations; dt=0.5, enabled=show_progress)
     for i in 1:iterations
-        update_x!(x, sys, ϵ)
+        updateEuler!(x, sys, ϵ)
         # reset initial and final points to allow for string computation
         # between points that are not stable fixed points
         x[:, 1] = x_initial[:, 1]
@@ -80,7 +80,7 @@ function string_method(
 
     progress = Progress(iterations; dt=0.5, enabled=show_progress)
     for i in 1:iterations
-        update_x!(x, b, ϵ)
+        updateEuler!(x, b, ϵ)
 
         # reparametrize to arclength
         x = interpolate_path(x, alpha, s)
@@ -88,27 +88,6 @@ function string_method(
         next!(progress; showvalues=[("iterations", i)])
     end
     return x
-end
-
-function update_x!(x::Matrix, sys::SgmamSystem, ϵ::Float64)
-    return x += ϵ * sys.H_p(x, 0 * x) # euler integration
-end
-function update_x!(x::StateSpaceSet, sys::SgmamSystem, ϵ::Float64)
-    return x += ϵ .* vec(sys.H_p(x, 0 * Matrix(x))) # euler integration
-end
-function update_x!(x::StateSpaceSet, b::Function, ϵ::Float64)
-    # do not touch the initial and final points to allow for string computation
-    # between points that are not stable fixed points
-    for j in 2:(length(x) - 1)
-        x[j] += ϵ * b(x[j]) # euler integration
-    end
-end
-function update_x!(x::Matrix, b::Function, ϵ::Float64)
-    # do not touch the initial and final points to allow for string computation
-    # between points that are not stable fixed points
-    for j in 2:(size(x)[2] - 1)
-        x[:, j] += ϵ * b(x[:, j]) # euler integration
-    end
 end
 
 function init_allocation_string(x_initial, Nt)
