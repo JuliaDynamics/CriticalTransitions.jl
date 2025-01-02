@@ -1,7 +1,8 @@
 # Sampling transitions
 
 ```@docs
-TransitionEnsemble
+CriticalTransitions.TransitionEnsemble
+CriticalTransitions.TransitionStatistics
 ```
 
 ## ... by direct simulation

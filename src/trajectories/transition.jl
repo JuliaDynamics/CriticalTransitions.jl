@@ -1,35 +1,4 @@
 """
-$(TYPEDEF)
-
-Ensemble of transition paths between two points in a state space.
-
-# Fields
-$(TYPEDFIELDS)
-
-# Constructors
-$(METHODLIST)
-
-"""
-struct TransitionEnsemble{SSS,T,Tstat,ES}
-    paths::Vector{SSS}
-    times::Vector{T}
-    success_rate::Tstat
-    residence_time::Tstat
-    transition_time::Tstat
-    sciml_ensemble::ES
-end;
-
-function prettyprint(te::TransitionEnsemble)
-    return "Transition path ensemble of $(length(te.times)) samples
-           - sampling success rate:      $(round(te.success_rate, digits=3))
-           - mean residence time:        $(round(te.residence_time, digits=3))
-           - mean transition time:       $(round(te.transition_time, digits=3))
-           - normalized transition rate: $(round(te.residence_time/te.transition_time, digits=1))"
-end
-
-Base.show(io::IO, te::TransitionEnsemble) = print(io, prettyprint(te))
-
-"""
 $(TYPEDSIGNATURES)
 
 Generates a sample transition from point `x_i` to point `x_f`.
@@ -159,23 +128,16 @@ function transitions(
         end
         return (sol, rerun)
     end
+
     seed = sys.integ.sol.prob.seed
     function prob_func(prob, i, repeat)
         return remake(prob; seed=rand(Random.MersenneTwister(seed + i + repeat), UInt32))
     end
+
     ensemble = EnsembleProblem(prob; output_func=output_func, prob_func=prob_func)
     sim = solve(
         ensemble, solver(sys), EnsembleAlg; callback=cb_ball, trajectories=N, kwargs...
     )
 
-    success_rate = success / tries
-    mean_res_time = mean([sol.t[1] for sol in sim])
-    mean_trans_time = mean([(sol.t[end] - sol.t[1]) for sol in sim])
-
-    samples = [StateSpaceSet(sol.u) for sol in sim]
-    times = [sol.t for sol in sim]
-
-    return TransitionEnsemble(
-        samples, times, success_rate, mean_res_time, mean_trans_time, sim
-    )
+    return TransitionEnsemble(sim, success / tries)
 end;

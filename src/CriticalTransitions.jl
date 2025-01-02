@@ -42,6 +42,7 @@ include("extension_functions.jl")
 include("utils.jl")
 include("sde_utils.jl")
 
+include("trajectories/TransitionEnsemble.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 
@@ -69,7 +70,6 @@ export MinimumActionPath
 
 export deterministic_orbit
 export transition, transitions
-export TransitionEnsemble
 
 export basins, basinboundary, basboundary
 export intervals_to_box
