@@ -53,7 +53,7 @@ generalized norm ``||a||_Q^2 := \\langle a, Q^{-1} b \\rangle`` (see `anorm`). H
 L1 matrix norm.
 """
 function om_action(sys::CoupledSDEs, path, time, noise_strength)
-    @assert all(diff(time) .≈ diff(time[1:2])) "Fw_action is only defined for equispaced time"
+    @assert all(diff(time) .≈ diff(time[1:2])) "Onsager-Machlup action is only defined for equispaced time"
 
     σ = noise_strength
     # Compute action integral

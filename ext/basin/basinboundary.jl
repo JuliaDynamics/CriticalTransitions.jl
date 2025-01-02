@@ -51,7 +51,7 @@ function CriticalTransitions.basboundary(
     sys::CoupledSDEs,
     xrange::Vector,
     yrange::Vector,
-    xspacing::Float64,
+    xspacing::Real,
     attractors::Vector;
     eps1=1e-4,
     ϵ_mapper=0.1,
