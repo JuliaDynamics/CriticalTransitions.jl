@@ -183,22 +183,9 @@ end
 FW_action(xdot, p) = sum(sum(xdot .* p; dims=1)) / 2
 
 function proper_sgMAM_system(ds::CoupledSDEs)
-    if !ds.noise_type[:additive]
-        throw(
-            ArgumentError(
-                "Geometric action is only defined for additive noise. The noise type of the system is not additive.",
-            ),
-        )
-    end
-    if !ds.noise_type[:invertible]
-        throw(
-            ArgumentError(
-                "Geometric action is only defined for invertible noise. The noise type of the system is not invertible.",
-            ),
-        )
-    end
+    proper_MAM_system(ds)
     Σ = covariance_matrix(ds)
-    return isdiag(Σ) || throw(
+    return LinearAlgebra.isdiag(Σ) || throw(
         ArgumentError(
             "Simple geometric action is only defined for diagonal noise. The noise covariance matrix is not diagonal.",
         ),

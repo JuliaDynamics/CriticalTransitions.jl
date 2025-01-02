@@ -67,7 +67,7 @@ function min_action_method(
     show_progress=true,
 )
     if sys isa CoupledSDEs
-        proper_MAM_system(ds)
+        proper_MAM_system(sys)
     end
     arc = range(0.0, T; length=size(init, 2))
     S(x) = action(sys, fix_ends(x, init[:, 1], init[:, end]), arc, functional)
