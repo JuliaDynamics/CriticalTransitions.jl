@@ -70,7 +70,6 @@ export MinimumActionPath
 
 export deterministic_orbit
 export transition, transitions
-export TransitionEnsemble
 
 export basins, basinboundary, basboundary
 export intervals_to_box
