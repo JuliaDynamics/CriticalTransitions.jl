@@ -74,7 +74,7 @@ function sgmam(
     iterations::Int64=1000,
     show_progress::Bool=false,
     reltol::Real=NaN,
-) where T
+) where {T}
     H_p, H_x = sys.H_p, sys.H_x
 
     Nx, Nt = size(x_initial)

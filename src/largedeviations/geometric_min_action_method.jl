@@ -28,7 +28,9 @@ algorithm[^1].
 
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
-function geometric_min_action_method(sys::ContinuousTimeDynamicalSystem, x_i, x_f; N=100, kwargs...)
+function geometric_min_action_method(
+    sys::ContinuousTimeDynamicalSystem, x_i, x_f; N=100, kwargs...
+)
     path = reduce(hcat, range(x_i, x_f; length=N))
     return geometric_min_action_method(sys, path; kwargs...)
 end
@@ -111,7 +113,9 @@ Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `
 
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
-function heymann_vandeneijnden_step(sys::ContinuousTimeDynamicalSystem, path, N; tau=0.1, diff_order=4)
+function heymann_vandeneijnden_step(
+    sys::ContinuousTimeDynamicalSystem, path, N; tau=0.1, diff_order=4
+)
     L = 1.0
     dx = L / (N - 1)
     update = zeros(size(path))
