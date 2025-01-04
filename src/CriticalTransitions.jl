@@ -46,7 +46,11 @@ include("trajectories/TransitionEnsemble.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 
-include("FEMTPT.jl")
+include("transition_path_theory/langevin.jl")
+include("transition_path_theory/committor.jl")
+include("transition_path_theory/invariant_pdf.jl")
+include("transition_path_theory/reactive_current.jl")
+include("transition_path_theory/probability.jl")
 
 include("largedeviations/utils.jl")
 include("largedeviations/action.jl")
@@ -79,6 +83,8 @@ export intervals_to_box
 export distmesh2D, dellipse, ddiff
 export get_ellipse, reparametrization
 export find_boundary, huniform, dunion
+
+export committor, invariant_pdf, reactive_current, probability_reactive, probability_last_A
 
 # Error hint for extensions stubs
 function __init__()

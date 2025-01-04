@@ -8,21 +8,20 @@ beta = 20.0
 gamma = 0.5
 
 function Hamiltonian(x, y)
-    0.5 .* y.^2 .+ 0.25 .* x.^4 .- 0.5 .* x.^2
+    return 0.5 .* y .^ 2 .+ 0.25 .* x .^ 4 .- 0.5 .* x .^ 2
 end
 
 function KE(x)
-    0.5 .* (x[:,2].^2)
+    return 0.5 .* (x[:, 2] .^ 2)
 end
 
 function divfree(x, y)
     f1 = y
-    f2 = .- x.^3 .+ x
+    f2 = .-x .^ 3 .+ x
     return f1, f2
 end
 
 sys = CriticalTransitions.Langevin(Hamiltonian, divfree, KE, gamma, beta)
-
 
 # pts = readdlm("test/Duffing_pts.csv", ',')
 # tri = Int.(readdlm("test/Duffing_tri.csv", ','))
@@ -41,13 +40,9 @@ sys = CriticalTransitions.Langevin(Hamiltonian, divfree, KE, gamma, beta)
 #     return length(ind), vec(ind)
 # end
 
-
 # _, Aind = find_boundary(pts, point_a, radii, density)
 # _, Bind = find_boundary(pts, point_b, radii, density)
 
-function Hamiltonian(x, y)
-    return 0.5 .* y .^ 2 .+ 0.25 .* x .^ 4 .- 0.5 .* x .^ 2
-end
 
 point_a = (-1.0, 0.0)
 point_b = (1.0, 0.0)
@@ -104,3 +99,24 @@ q = committor(sys, mesh, Aind, Bind)
 
 @test size(q, 1) == size(mesh.pts, 1)
 @test extrema(q) == (0, 1)
+
+function dfuncA(p)
+    return dellipse(p, point_a, radii)
+end
+
+function dfuncB(p)
+    return dellipse(p, point_b, radii)
+end
+
+xa, ya = (-1.0, 0.0)
+xb, yb = (1.0, 0.0)
+rx, ry = (0.3, 0.4)
+
+bboxA = [xa - rx, xa + rx, ya - ry, ya + ry]
+Amesh = distmesh2D(dfuncA, huniform, density, bboxA, ptsA)
+bboxB = [xb - rx, xb + rx, yb - ry, yb + ry]
+Bmesh = distmesh2D(dfuncB, huniform, density, bboxB, ptsB)
+
+Z = invariant_pdf(sys, mesh, Amesh, Bmesh)
+
+reactive_current(sys::Langevin, mesh::Mesh, q, qminus, Z)
