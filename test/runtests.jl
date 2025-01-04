@@ -31,6 +31,10 @@ end
     include("largedeviations/interpolate.jl")
 end
 
+@testset "Transition Path Theory" begin
+    include("tpt.jl")
+end
+
 @testset "Utilities" begin
     include("utils.jl")
 end

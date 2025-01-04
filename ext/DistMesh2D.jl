@@ -49,7 +49,7 @@ function triarea(pts, tri)
     return d12[:, 1] .* d13[:, 2] - d12[:, 2] .* d13[:, 1]
 end
 
-function find_boundary(pts, a, radii, h0)
+function CriticalTransitions.find_boundary(pts, a, radii, h0)
     xc, yc = a
     rx, ry = radii
     circle = @. sqrt((pts[:, 1] - xc)^2 / rx^2 + (pts[:, 2] - yc)^2 / ry^2)

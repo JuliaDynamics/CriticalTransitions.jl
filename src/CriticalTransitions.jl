@@ -2,7 +2,7 @@ module CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra: LinearAlgebra, I, norm, dot, tr
+using LinearAlgebra: LinearAlgebra, I, norm, dot, tr, det
 using StaticArrays: StaticArrays, SVector
 using SparseArrays: spdiagm
 using DataStructures: CircularBuffer
@@ -45,6 +45,8 @@ include("sde_utils.jl")
 include("trajectories/TransitionEnsemble.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
+
+include("FEMTPT.jl")
 
 include("largedeviations/utils.jl")
 include("largedeviations/action.jl")

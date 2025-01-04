@@ -1,7 +1,10 @@
-module FEMTPT
-
-using LinearAlgebra
-using SparseArrays
+struct Langevin{H, D, KE, T}
+    Hamiltonian::H
+    driftfree::D
+    kinetic::KE
+    gamma::T
+    beta::T
+end
 
 """
     stima_Langevin(verts)
@@ -66,7 +69,7 @@ function stimavbdv(verts, b1, b2)
 end
 
 """
-    FEM_committor_solver_Langevin(pts, tri, Aind, Bind, fpot, divfree, beta, gamma)
+    committor(pts, tri, Aind, Bind, Langevin)
 
 Solve the committor equation for a two-dimensional Langevin system using finite elements.
 
@@ -87,10 +90,10 @@ Solve the committor equation for a two-dimensional Langevin system using finite 
 This function assembles a global matrix `A` and right-hand-side vector `b` for the finite element discretization of the committor equation in Langevin dynamics. The code imposes Dirichlet boundary conditions on specified nodes (`Aind` set to 0, `Bind` set to 1). It computes elementwise contributions with `stima_Langevin` and `stimavbdv`, applying exponential factors involving `beta` and `gamma` to incorporate potential and damping effects. Finally, it solves the resulting linear system for the committor values on the free (non-boundary) nodes.
 """
 
-function FEM_committor_solver_Langevin(pts, tri, Aind, Bind, fpot, divfree, beta, gamma)
-    # solves for committor for
-    # dx = p*dt,
-    # dp = (-V_x - \gamma*p)dt + \sqrt{2\beta^{-1}\gamma}dW
+function committor(sys::Langevin, mesh::Mesh, Aind, Bind)
+    KE, divfree, beta, gamma = sys.kinetic, sys.driftfree, sys.beta, sys.gamma
+    pts, tri = mesh.pts, mesh.tri
+
     Npts = size(pts, 1)
     Ntri = size(tri, 1)
     Dir_bdry = vcat(Aind, Bind)
@@ -106,7 +109,7 @@ function FEM_committor_solver_Langevin(pts, tri, Aind, Bind, fpot, divfree, beta
         ind = tri[j, :]
         verts = pts[ind, :] # vertices of mesh triangle
         vmid = reshape(sum(verts; dims=1) / 3, 1, 2) # midpoint of mesh triangle
-        fac = exp.(-beta * fpot(vmid)[1])
+        fac = exp.(-beta * KE(vmid)[1])
         fac_gamma = gamma * fac
         fac_beta = beta * fac
         f1, f2 = divfree(vmid[1], vmid[2])
@@ -291,10 +294,8 @@ function probability_last_A_Langevin(pts, tri, pts_Amesh, tri_Amesh, fpot, beta,
     return prob
 end
 
-export FEM_committor_solver_Langevin,
+export committor,
     invariant_pdf,
     reactive_current_transition_rate_Langevin,
     probability_reactive_Langevin,
     probability_last_A_Langevin
-
-end
