@@ -54,15 +54,16 @@ function dfunc(p)
     return d
 end
 
-pts, tri = distmesh2D(dfunc, huniform, density, box, pfix)
+mesh = distmesh2D(dfunc, huniform, density, box, pfix)
 
-@test size(pts, 1) == 872
-@test size(tri, 1) == 1587
+@test size(mesh.pts, 1) == 872
+@test size(mesh.tri, 1) == 1587
 
-function triarea(pts, tri)
+function triarea(mesh)
+    pts, tri = mesh.pts, mesh.tri
     d12 = pts[tri[:, 2], :] - pts[tri[:, 1], :]
     d13 = pts[tri[:, 3], :] - pts[tri[:, 1], :]
     return d12[:, 1] .* d13[:, 2] - d12[:, 2] .* d13[:, 1]
 end
 
-@test all(triarea(pts, tri) .< density)
+@test all(triarea(mesh) .< density)

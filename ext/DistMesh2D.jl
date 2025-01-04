@@ -5,6 +5,8 @@ using DelaunayTriangulation
 using Interpolations
 using LinearAlgebra
 
+using CriticalTransitions: Mesh
+
 export distmesh2D, dellipse, ddiff
 export get_ellipse, reparametrization
 export find_boundary, huniform, dunion
@@ -244,7 +246,7 @@ function CriticalTransitions.distmesh2D(fd, fh, h0, bbox, pfix)
     # Final cleanup
     pts, tri = fixmesh(pts, tri)
 
-    return pts, tri
+    return Mesh(pts, tri)
 end
 
 # Helper functions

@@ -13,6 +13,11 @@ function distmesh2D end
 function get_ellipse end
 function reparametrization end
 
+struct Mesh
+    pts::Matrix{Float64}
+    tri::Matrix{Int}
+end
+
 # ## Method error handling
 # We also inject a method error handler, which
 # prints a suggestion if the Proj extension is not loaded.
