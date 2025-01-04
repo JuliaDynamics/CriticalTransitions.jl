@@ -10,7 +10,7 @@ This implementation allows for computation between arbitrary points, not just st
 # Arguments
 - `sys::SgmamSystem`: The doubled phase space system for which the string method is computed
 - `x_initial`: Initial path discretized as a matrix where each column represents a point on the path
-- `ϵ::Float64`: Step size for the evolution step
+- `ϵ::Real`: Step size for the evolution step
 - `iterations::Int64`: Maximum number of iterations for path convergence
 - `show_progress::Bool`: Whether to display a progress meter during computation
 
@@ -20,7 +20,7 @@ This implementation allows for computation between arbitrary points, not just st
 function string_method(
     sys::Union{SgmamSystem,Function},
     x_initial::Matrix;
-    ϵ::Float64=1e-1,
+    ϵ::Real=1e-1,
     iterations::Int64=1000,
     show_progress::Bool=false,
 )
@@ -55,14 +55,14 @@ This implementation allows for computation between arbitrary points, not just st
 # Arguments
 - `sys::CoupledSDEs`: The system for which the string method is computed
 - `x_initial`: Initial path discretized as a matrix where each column represents a point on the path
-- `ϵ::Float64`: Step size for the evolution step
+- `ϵ::Real`: Step size for the evolution step
 - `iterations::Int64`: Maximum number of iterations for path convergence
 - `show_progress::Bool`: Whether to display a progress meter during computation
 
 # Returns
 - `x`: The final converged path representing the MEP
 """
-function string_method(sys::CoupledSDEs, init; kwargs...)
+function string_method(sys::ContinuousTimeDynamicalSystem, init; kwargs...)
     b(x) = drift(sys, x)
     return string_method(b, init; kwargs...)
 end
@@ -70,7 +70,7 @@ end
 function string_method(
     b::Union{SgmamSystem,Function},
     x_initial::StateSpaceSet{D};
-    ϵ::Float64=1e-1,
+    ϵ::Real=1e-1,
     iterations::Int64=1000,
     show_progress::Bool=false,
 ) where {D}
@@ -90,20 +90,20 @@ function string_method(
     return x
 end
 
-function update_x!(x::Matrix, sys::SgmamSystem, ϵ::Float64)
+function update_x!(x::Matrix, sys::SgmamSystem, ϵ::Real)
     return x += ϵ * sys.H_p(x, 0 * x) # euler integration
 end
-function update_x!(x::StateSpaceSet, sys::SgmamSystem, ϵ::Float64)
+function update_x!(x::StateSpaceSet, sys::SgmamSystem, ϵ::Real)
     return x += ϵ .* vec(sys.H_p(x, 0 * Matrix(x))) # euler integration
 end
-function update_x!(x::StateSpaceSet, b::Function, ϵ::Float64)
+function update_x!(x::StateSpaceSet, b::Function, ϵ::Real)
     # do not touch the initial and final points to allow for string computation
     # between points that are not stable fixed points
     for j in 2:(length(x) - 1)
         x[j] += ϵ * b(x[j]) # euler integration
     end
 end
-function update_x!(x::Matrix, b::Function, ϵ::Float64)
+function update_x!(x::Matrix, b::Function, ϵ::Real)
     # do not touch the initial and final points to allow for string computation
     # between points that are not stable fixed points
     for j in 2:(size(x)[2] - 1)
