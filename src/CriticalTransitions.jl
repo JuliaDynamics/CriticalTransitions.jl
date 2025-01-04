@@ -74,6 +74,10 @@ export transition, transitions
 export basins, basinboundary, basboundary
 export intervals_to_box
 
+export distmesh2D, dellipse, ddiff
+export get_ellipse, reparametrization
+export find_boundary, huniform, dunion
+
 # Error hint for extensions stubs
 function __init__()
     Base.Experimental.register_error_hint(_basin_error_hinter(basins), MethodError)
