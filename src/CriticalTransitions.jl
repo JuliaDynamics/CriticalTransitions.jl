@@ -84,7 +84,8 @@ export distmesh2D, dellipse, ddiff
 export get_ellipse, reparametrization
 export find_boundary, huniform, dunion
 
-export committor, invariant_pdf, reactive_current, probability_reactive, probability_last_A, Langevin
+export committor,
+    invariant_pdf, reactive_current, probability_reactive, probability_last_A, Langevin
 
 # Error hint for extensions stubs
 function __init__()
