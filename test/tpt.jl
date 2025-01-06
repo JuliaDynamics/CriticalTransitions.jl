@@ -80,7 +80,7 @@ q = committor(sys, mesh, Aind, Bind)
 @test extrema(q) == (0, 1)
 
 qalt = committor(sys, mesh, Bind, Aind)
-@test (1 .-q) ≈ qalt atol = 1e-3
+@test (1 .- q) ≈ qalt atol = 1e-3
 
 function dfuncA(p)
     return dellipse(p, point_a, radii)
@@ -113,7 +113,7 @@ langevin_sys_reverse = CriticalTransitions.Langevin(Hamiltonian, divfree1, KE, g
 qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
 @test size(qminus, 1) == size(mesh.pts, 1)
 @test extrema(qminus) == (0, 1)
-@test (1 .-q) != qminus # duffing is not time-reversible between its minima
+@test (1 .- q) != qminus # duffing is not time-reversible between its minima
 
 for committor in [q, qminus]
     prob_lastA = probability_last_A(sys, mesh, Amesh, committor, Z)
