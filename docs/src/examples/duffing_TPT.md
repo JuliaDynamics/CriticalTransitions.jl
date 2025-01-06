@@ -1,4 +1,6 @@
-# Transition Path Theory (TPT) for the undriven Duffing oscillator
+# Transition Path Theory for the undriven Duffing oscillator
+
+In this example, we explore the application of Transition Path Theory to the undriven Duffing oscillator. We will compute various quantities of interest in Transition Path Theory (TPT), such as the Hamiltonian, committor functions, reactive currents, and reaction rates. These computations will be performed on a triangular mesh in the phase space, providing insights into the system's dynamics and transition paths between different states.
 
 ```@example TPT
 using CriticalTransitions
@@ -6,6 +8,14 @@ using CriticalTransitions
 using CairoMakie
 using OrdinaryDiffEq, DelaunayTriangulation, Contour
 ```
+The Duffing oscillator is a simple model for a nonlinear oscillator with a double-well potential. The equation of motion for the Duffing oscillator under additive Gaussian noise is given by:
+$$
+\begin{aligned}
+\dot{x} &= p, \\
+\dot{p} &= -\gamma p - \nabla U + \sqrt{\frac{2\gamma}{\beta}} \dot{W},
+\end{aligned}
+$$
+with the potential energy $U(x) = \frac{1}{4}x^4 - \frac{1}{2}x^2$ and the kinetic energy $K(p) = \frac{1}{2}p^2$. The parameters $\gamma$ and $\beta=\frac{1}{k_b T}$ control the strength of the dissipation and noise, respectively. $W$ is a Wiener process, and the noise term is scaled by $\sqrt{\frac{2\gamma}{\beta}}$ to ensure the correct temperature scaling for a Langevin type system defined by the Hamiltonian $H$. 
 
 ```@example TPT
 beta = 20.0
@@ -31,10 +41,10 @@ function duffing(x, y)
     return f1, f2
 end
 
-langevin_sys = CriticalTransitions.Langevin(Hamiltonian, divfree, KE, gamma, beta)
+langevin_sys = Langevin(Hamiltonian, divfree, KE, gamma, beta)
 ```
 
-We can easily evaluate the Hamiltonian and equally spaced grid in phase space.
+We can easily evaluate and visualise the Hamiltonian and equally spaced grid in phase space.
 
 ```@example TPT
 nx, ny = 41, 41
@@ -60,7 +70,37 @@ streamplot!(v, -2..2, -2..2, linewidth = 0.5, colormap = [:black, :black], grids
 fig
 ```
 
-We have two minima in the potential landscape, such that the system under the drift will dissipate to these corresponding attractors at close to $(-1.0, 0.0)$ and $(1.0, 0.0)$. We compute two ellipses around these minima:
+The overdamped undriven duffing oscillator, is autonomous and respect detailed balance. As such the maximum likelihood path is the path that is parallel to drift and can be computed with the string method. If one know the saddle point, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to the minima. As such, the maximum likelihood transition path from (-1,0) to (1,0) gives:
+
+```@example TPT
+# Generate and plot the maximum likelihood transition path from (-1,0) to (1,0)
+using OrdinaryDiffEq
+
+function reverse_drift!(du, u, p, t)
+    du[1] = -u[2]
+    du[2] = -u[2] + u[1]*(u[1]^2 - 1)
+end
+
+function drift!(du, u, p, t)
+    du[1] =  u[2]
+    du[2] = -u[2] - u[1]*(u[1]^2 - 1)
+end
+
+prob0 = ODEProblem(reverse_drift!, [-0.001, 0.0], (0.0, 100.0))
+sol0 = solve(prob0, Tsit5(); abstol=1e-12, reltol=1e-12)
+
+prob1 = ODEProblem(drift!, [0.001, 0.0], (0.0, 100.0))
+sol1 = solve(prob1, Tsit5(); abstol=1e-12, reltol=1e-12)
+
+fig = streamplot(v, -2..2, -2..2, linewidth = 0.5, colormap = [:gray, :gray], gridsize = (40, 40), arrow_size = 8)
+y = sol0
+lines!(y[1,:],y[2,:],linewidth = 2, color = :black)
+y = sol1
+lines!(y[1,:],y[2,:],linewidth = 2, color = :black)
+fig
+```
+
+We have two minima in the potential landscape, such that the system under the drift will dissipate to these corresponding attractors close to $(-1.0, 0.0)$ and $(1.0, 0.0)$. Transition path theory investigates the "reaction" between two sets in phase space A and B, as such we define the two sets to be an ellipse around these minima:
 
 ```@example TPT
 point_a = (-1.0, 0.0)
@@ -87,44 +127,10 @@ p_outer = [xc yc]
 pts_outer = reparametrization(p_outer,density);
 Nouter = size(pts_outer, 1)
 Nfix = Na+Nb+Nouter
-```
 
-We plot the computed boundaries, for which we compute a triangulation using the `distmesh2D` module.
-
-```@example TPT
 fig = scatter(ptsA[:,1], ptsA[:,2], label="A points")
 scatter!(ptsB[:,1], ptsB[:,2], label="B points")
 scatter!(pts_outer[:,1], pts_outer[:,2], label="Outer points")
-fig
-```
-
-The overdamped undriven duffing oscillator, is autonomous and respect detailed balance. As such the maximum likelihood path is the path that is parallel to drift and can easily be computed with the string method. If one know the saddle point, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to the minima. As such, the maximum likelihood transition path from (-1,0) to (1,0) gives:
-
-```@example TPT
-# Generate and plot the maximum likelihood transition path from (-1,0) to (1,0)
-using OrdinaryDiffEq
-
-function reverse_drift!(du, u, p, t)
-    du[1] = -u[2]
-    du[2] = -u[2] + u[1]*(u[1]^2 - 1)
-end
-
-function drift!(du, u, p, t)
-    du[1] =  u[2]
-    du[2] = -u[2] - u[1]*(u[1]^2 - 1)
-end
-
-prob0 = ODEProblem(reverse_drift!, [-0.001, 0.0], (0.0, 100.0))
-sol0 = solve(prob0, Tsit5(); abstol=1e-12, reltol=1e-12)
-
-prob1 = ODEProblem(drift!, [0.001, 0.0], (0.0, 100.0))
-sol1 = solve(prob1, Tsit5(); abstol=1e-12, reltol=1e-12)
-
-# plot!(legend=:topright, aspect_ratio=:equal)
-y = sol0
-lines!(y[1,:],y[2,:],linewidth = 2, color = :black)
-y = sol1
-lines!(y[1,:],y[2,:],linewidth = 2, color = :black)
 fig
 ```
 
@@ -158,7 +164,12 @@ end
 fig
 ```
 
-A committor measures the probability that a system, starting at a given point in phase space, will reach one designated region before another. Formally, for two disjoint sets A and B, the committor q(x) gives the likelihood that a trajectory initiated at x will reach B before A under the system’s dynamics.
+A committor measures the probability that a system, starting at a given point in phase space, will reach one designated region before another. Formally, for two disjoint sets A and B, the forward committor $q(x)$ from A to B gives the likelihood that a trajectory initiated at x will reach B before A under the system’s dynamics. The committor boundary-value problem for a Langevin system is given by: 
+$$
+ p \frac{\mathrm{d}q,\mathrm{d}x} - U'(x) \frac{\mathrm{d}q,\mathrm{d}p} + \gamma [-p \frac{\mathrm{d}q,\mathrm{d}p} + \beta^{-1} \frac{\mathrm{d}^2 q,\mathrm{d}p^2}] = 0, 
+$$
+for $ (x,p) \in (A\cup B)^c$, with boundary conditions $q(\partial A) = 0$, $q(\partial B) = 1$, and $\nable \nable q = 0$ on the outer boundary ${(x,p) : H(x,p) = Hbdry}$. The homogeneous Neumann boundary condition $\nable \nable q = 0$ means that the trajectory reflects from the outer boundary whenever it reaches it. We can compute the committor function for the Duffing oscillator using the `committor` function.
+
 ```@example TPT
 _, Aind = find_boundary(mesh.pts, point_a, radii, density)
 _, Bind = find_boundary(mesh.pts, point_b, radii, density)
@@ -169,20 +180,22 @@ q = committor(langevin_sys, mesh, Aind, Bind)
 
 tricontourf(Triangulation(mesh.pts', mesh.tri'), q)
 ```
-We can also compute the reverse committor, which is the probability that a trajectory initiated at x will reach A before B under the system’s dynamics. Hence, we must reverse the drift function in the Langevin system and swap the boundaries A and B in the committor function.
+
+We can also compute the backward committor from A to B, which is the probability that a trajectory initiated at x will reach A before B under the system’s dynamics. Hence, we must reverse the drift function in the Langevin system and swap the boundaries A and B in the committor function.
 ```@example TPT
 function divfree1(x,y)
     f1,f2 = divfree(x,y)
     return -f1,-f2
 end
 
-langevin_sys_reverse = CriticalTransitions.Langevin(Hamiltonian, divfree1, KE, gamma, beta)
+langevin_sys_reverse = CriticalTransitions.Langevin(Hamiltonian, divfree, KE, gamma, beta)
 
 qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
 
 @show extrema(qminus)
 
 tricontourf(Triangulation(mesh.pts', mesh.tri'), qminus)
+tricontourf(Triangulation(mesh.pts', mesh.tri'), 1 .- q)
 ```
 
 ```@example TPT
