@@ -60,13 +60,13 @@ streamplot!(v, -2..2, -2..2, linewidth = 0.5, colormap = [:black, :black], grids
 fig
 ```
 
-We have two minima in the potential landscapemsuch that the system under the drift will dissipate to these corresponding atractors at close to $(-1.0, 0.0)$ and $(1.0, 0.0)$. We compute two ellepses around these minima:
+We have two minima in the potential landscape, such that the system under the drift will dissipate to these corresponding atractors at close to $(-1.0, 0.0)$ and $(1.0, 0.0)$. We compute two ellepses around these minima:
 
 ```@example
 point_a = (-1.0, 0.0)
 point_b = (1.0, 0.0)
 radii = (0.3, 0.4)
-density = 0.04
+density = 0.1
 
 Na = round(Int, π * sum(radii) / density) # the number of points on the A-circle
 Nb = Na
@@ -168,7 +168,7 @@ q = committor(langevin_sys, mesh, Aind, Bind)
 
 tricontourf(Triangulation(mesh.pts', mesh.tri'), q)
 ```
-
+We can also compute the reverse committor, which is the probability that a trajectory initiated at x will reach A before B under the system’s dynamics. Hence, we must reverse the drift function in the Langevin system and swap the boundaries A and B in the committor function.
 ```@example
 function divfree1(x,y)
     f1,f2 = divfree(x,y)
@@ -177,12 +177,14 @@ end
 
 langevin_sys_reverse = CriticalTransitions.Langevin(Hamiltonian, divfree1, KE, gamma, beta)
 
-qminus = committor(langevin_sys_reverse, mesh, Aind, Bind)
+qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
 
 @show extrema(qminus)
 
 tricontourf(Triangulation(mesh.pts', mesh.tri'), qminus)
 ```
+
+
 
 ```@example
 
@@ -216,7 +218,7 @@ tricontourf(Triangulation(mesh.pts', mesh.tri'), muAB)
 ```
 
 ```@example
-Rcurrent, Rrate =  reactive_current(langevin_sys, mesh, q, qminus, Z)
+Rcurrent, Rrate = reactive_current(langevin_sys, mesh, q, qminus, Z)
 @show Rrate
 ```
 
@@ -228,8 +230,8 @@ tricontourf(Triangulation(mesh.pts', mesh.tri'), ARcurrent)
 ```
 
 ```@example
-c =ARcurrent
-arrows(pts[:,1], pts[:,2], Rcurrent[:,1], Rcurrent[:,2], arrowsize = c, arrowcolor = c)
+c =ARcurrent./maxima(ARcurrent)
+arrows(pts[:,1], pts[:,2], Rcurrent[:,1]./maxima(ARcurrent), Rcurrent[:,2]./maxima(ARcurrent), arrowsize = c*10, lengthscale = 0.1, arrowcolor = c, linecolor = c)
 ```
 
 ```@example
@@ -239,5 +241,5 @@ print("Probability that a trajectory is reactive at a randomly picked time: ",pr
 
 ```@example
 prob_lastA = probability_last_A(langevin_sys, mesh, Amesh, qminus, Z)
-print("Probability that a trajectory last visited A: ",prob_lastA)
+print("Probability that a trajectory last visited A: ", prob_lastA)
 ```

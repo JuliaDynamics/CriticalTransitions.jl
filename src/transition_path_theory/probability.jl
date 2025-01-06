@@ -27,9 +27,8 @@ end
 function probability_last_A(sys::Langevin, mesh::Mesh, Ames::Mesh, qminus, Z)
     ham, beta = sys.Hamiltonian, sys.beta
     pts, tri = mesh.pts, mesh.tri
-    Npts = size(pts, 1)
+    pts_Amesh, tri_Amesh = Ames.pts, Ames.tri
     Ntri = size(tri, 1)
-    Npts_Amesh = size(pts_Amesh, 1)
     Ntri_Amesh = size(tri_Amesh, 1)
 
     # find the reactive current and the transition rate

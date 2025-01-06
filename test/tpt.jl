@@ -69,7 +69,7 @@ y_grid = [yy for yy in y1, xx in x1]
 Hgrid = Hamiltonian(x_grid, y_grid)
 
 cont = Contour.contour(x1, y1, Hgrid, Hbdry)
-yc, xc = coordinates(lines(cont)[1])
+yc, xc = coordinates(Contour.lines(cont)[1])
 p_outer = [xc yc]
 
 pts_outer = reparametrization(p_outer, density);
@@ -119,4 +119,22 @@ Bmesh = distmesh2D(dfuncB, huniform, density, bboxB, ptsB)
 
 Z = invariant_pdf(sys, mesh, Amesh, Bmesh)
 
-reactive_current(sys::Langevin, mesh::Mesh, q, qminus, Z)
+@test Z ≈ 69.3829 atol=1e-3
+
+function divfree1(x,y)
+    f1,f2 = divfree(x,y)
+    return -f1,-f2
+end
+
+langevin_sys_reverse = CriticalTransitions.Langevin(Hamiltonian, divfree1, KE, gamma, beta)
+
+qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
+@test size(qminus, 1) == size(mesh.pts, 1)
+@test extrema(qminus) == (0, 1)
+
+for committor in [q, qminus]
+    prob_lastA = probability_last_A(langevin_sys, mesh, Amesh, committor, Z)
+    prob_lastB = probability_last_A(langevin_sys, mesh, Bmesh, committor, Z)
+    @test prob_lastA ≈ 0.5 atol=1e-3
+    @test prob_lastB ≈ 0.5 atol=1e-3
+end
