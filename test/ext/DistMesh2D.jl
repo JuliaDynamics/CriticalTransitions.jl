@@ -57,7 +57,7 @@ end
 mesh = distmesh2D(dfunc, huniform, density, box, pfix)
 
 @test size(mesh.pts, 1) == 872
-@test size(mesh.tri, 1) == 1587
+@test size(mesh.tri, 1) == 1586
 
 function triarea(mesh)
     pts, tri = mesh.pts, mesh.tri

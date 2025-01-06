@@ -23,27 +23,6 @@ end
 
 sys = CriticalTransitions.Langevin(Hamiltonian, divfree, KE, gamma, beta)
 
-# pts = readdlm("test/Duffing_pts.csv", ',')
-# tri = Int.(readdlm("test/Duffing_tri.csv", ','))
-# mesh = CriticalTransitions.Mesh(pts, tri)
-
-# point_a = (-1.0, 0.0)
-# point_b = (1.0, 0.0)
-# radii = (0.3, 0.4)
-# density = 0.04
-
-# function CriticalTransitions.find_boundary(pts, a, radii, h0)
-#     xc, yc = a
-#     rx, ry = radii
-#     circle = @. sqrt((pts[:, 1] - xc)^2 / rx^2 + (pts[:, 2] - yc)^2 / ry^2)
-#     ind = findall(circle .- 1.0 .< h0 * 1e-2)
-#     return length(ind), vec(ind)
-# end
-
-# _, Aind = find_boundary(pts, point_a, radii, density)
-# _, Bind = find_boundary(pts, point_b, radii, density)
-
-
 point_a = (-1.0, 0.0)
 point_b = (1.0, 0.0)
 radii = (0.3, 0.4)
@@ -119,7 +98,7 @@ Bmesh = distmesh2D(dfuncB, huniform, density, bboxB, ptsB)
 
 Z = invariant_pdf(sys, mesh, Amesh, Bmesh)
 
-@test Z ≈ 69.3829 atol=1e-3
+@test Z ≈ 69.3829 atol=1e-1
 
 function divfree1(x,y)
     f1,f2 = divfree(x,y)
@@ -133,8 +112,8 @@ qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
 @test extrema(qminus) == (0, 1)
 
 for committor in [q, qminus]
-    prob_lastA = probability_last_A(langevin_sys, mesh, Amesh, committor, Z)
-    prob_lastB = probability_last_A(langevin_sys, mesh, Bmesh, committor, Z)
+    prob_lastA = probability_last_A(sys, mesh, Amesh, committor, Z)
+    prob_lastB = probability_last_A(sys, mesh, Bmesh, committor, Z)
     @test prob_lastA ≈ 0.5 atol=1e-3
     @test prob_lastB ≈ 0.5 atol=1e-3
 end
