@@ -2,7 +2,9 @@
 Attractors = "f3fd9213-ca85-4dba-9dfd-7fc91308fec7"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 ChaosTools = "608a59af-f2a3-5ad4-90b4-758bdf3122a7"
+Contour = "d38c429a-6771-53c6-b99e-75d170b6e991"
 CriticalTransitions = "251e6cd3-3112-48a5-99dd-66efcfd18334"
+DelaunayTriangulation = "927a84f5-c5f4-47a5-9785-b46e178433df"
 DiffEqNoiseProcess = "77a26b50-5914-5dd7-bc55-306e6241c503"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterCitations = "daee34ce-89f3-4625-b898-19384cb65244"
@@ -19,4 +21,3 @@ StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
 
 [compat]
 Documenter = "^1.4.1"
-

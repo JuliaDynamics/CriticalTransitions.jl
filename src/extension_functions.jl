@@ -3,6 +3,21 @@ function basboundary end
 function basinboundary end
 function intervals_to_box end
 
+function get_boundary end
+function find_boundary end
+function huniform end
+function dellipse end
+function dunion end
+function ddiff end
+function distmesh2D end
+function get_ellipse end
+function reparametrization end
+
+struct Mesh
+    pts::Matrix{Float64}
+    tri::Matrix{Int}
+end
+
 # ## Method error handling
 # We also inject a method error handler, which
 # prints a suggestion if the Proj extension is not loaded.

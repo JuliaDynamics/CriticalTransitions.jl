@@ -31,6 +31,10 @@ end
     include("largedeviations/interpolate.jl")
 end
 
+@testset "Transition Path Theory" begin
+    include("tpt.jl")
+end
+
 @testset "Utilities" begin
     include("utils.jl")
 end
@@ -47,6 +51,10 @@ end
 
     @testset "CoupledSDEsBasin" begin
         include("ext/CoupledSDEsBasin.jl")
+    end
+
+    @testset "DistMesh2D" begin
+        include("ext/DistMesh2D.jl")
     end
 end
 
