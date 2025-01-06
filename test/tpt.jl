@@ -98,11 +98,11 @@ Bmesh = distmesh2D(dfuncB, huniform, density, bboxB, ptsB)
 
 Z = invariant_pdf(sys, mesh, Amesh, Bmesh)
 
-@test Z ≈ 69.3829 atol=1e-1
+@test Z ≈ 69.3829 atol = 1e-1
 
-function divfree1(x,y)
-    f1,f2 = divfree(x,y)
-    return -f1,-f2
+function divfree1(x, y)
+    f1, f2 = divfree(x, y)
+    return -f1, -f2
 end
 
 langevin_sys_reverse = CriticalTransitions.Langevin(Hamiltonian, divfree1, KE, gamma, beta)
@@ -114,6 +114,6 @@ qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
 for committor in [q, qminus]
     prob_lastA = probability_last_A(sys, mesh, Amesh, committor, Z)
     prob_lastB = probability_last_A(sys, mesh, Bmesh, committor, Z)
-    @test prob_lastA ≈ 0.5 atol=1e-3
-    @test prob_lastB ≈ 0.5 atol=1e-3
+    @test prob_lastA ≈ 0.5 atol = 1e-3
+    @test prob_lastB ≈ 0.5 atol = 1e-3
 end
