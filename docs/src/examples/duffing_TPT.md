@@ -1,13 +1,13 @@
 # Transition Path Theory (TPT) for the undriven Duffing oscillator
 
-```@example
+```@example TPT
 using CriticalTransitions
 
 using CairoMakie
 using OrdinaryDiffEq, DelaunayTriangulation, Contour
 ```
 
-```@example
+```@example TPT
 beta = 20.0
 gamma = 0.5
 
@@ -25,7 +25,7 @@ function divfree(x, y)
     return f1, f2
 end
 
-function drift(x, y)
+function duffing(x, y)
     f1 = y
     f2 = .- gamma .* y .- x.^3 .+ x
     return f1, f2
@@ -36,7 +36,7 @@ langevin_sys = CriticalTransitions.Langevin(Hamiltonian, divfree, KE, gamma, bet
 
 We can easily evaluate the Hamiltonian and equally spaced grid in phase space.
 
-```@example
+```@example TPT
 nx, ny = 41, 41
 nxy = nx * ny
 xmin, xmax = -2.0, 2.0
@@ -48,25 +48,25 @@ y1 = range(ymin, ymax, length=ny)
 x_grid = [xx for yy in y1, xx in x1]
 y_grid = [yy for yy in y1, xx in x1]
 
-drift1, drift2 = drift(x_grid, y_grid)
+drift1, drift2 = duffing(x_grid, y_grid)
 dnorm = sqrt.(drift1.^2 .+ drift2.^2 .+ 1e-12)
 Hgrid = Hamiltonian(x_grid, y_grid)
 ```
 
-```@example
+```@example TPT
 fig = CairoMakie.contour(x1, y1, Hgrid', colormap = :viridis, levels=-1:0.4:2, linewidth = 2)
-v(x::Point2) = Point2f(drift(x[1], x[2])...)
+v(x::Point2) = Point2f(duffing(x[1], x[2])...)
 streamplot!(v, -2..2, -2..2, linewidth = 0.5, colormap = [:black, :black], gridsize = (40, 40), arrow_size = 8)
 fig
 ```
 
 We have two minima in the potential landscape, such that the system under the drift will dissipate to these corresponding attractors at close to $(-1.0, 0.0)$ and $(1.0, 0.0)$. We compute two ellipses around these minima:
 
-```@example
+```@example TPT
 point_a = (-1.0, 0.0)
 point_b = (1.0, 0.0)
 radii = (0.3, 0.4)
-density = 0.1
+density = 0.04
 
 Na = round(Int, π * sum(radii) / density) # the number of points on the A-circle
 Nb = Na
@@ -77,10 +77,11 @@ ptsB = get_ellipse(point_b, radii, Na);
 
 We also compute an outer boundary of the phase space defined by the maximum value of the Hamiltonian: `Hbdry=0.5`. For this, we use the contour package to compute the contour at the level `Hbdry`. Just as the ellipse around the attractors, we also reparametrize the boundary to have a uniform grid spacing.
 
-```@example
+```@example TPT
+import Contour as CTR
 Hbdry = 0.5
-cont = Contour.contour(x1, y1, Hgrid, Hbdry)
-yc, xc = coordinates(Contour.lines(cont)[1])
+cont = CTR.contour(x1, y1, Hgrid, Hbdry)
+yc, xc = coordinates(CTR.lines(cont)[1])
 p_outer = [xc yc]
 
 pts_outer = reparametrization(p_outer,density);
@@ -90,7 +91,7 @@ Nfix = Na+Nb+Nouter
 
 We plot the computed boundaries, for which we compute a triangulation using the `distmesh2D` module.
 
-```@example
+```@example TPT
 fig = scatter(ptsA[:,1], ptsA[:,2], label="A points")
 scatter!(ptsB[:,1], ptsB[:,2], label="B points")
 scatter!(pts_outer[:,1], pts_outer[:,2], label="Outer points")
@@ -99,7 +100,7 @@ fig
 
 The overdamped undriven duffing oscillator, is autonomous and respect detailed balance. As such the maximum likelihood path is the path that is parallel to drift and can easily be computed with the string method. If one know the saddle point, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to the minima. As such, the maximum likelihood transition path from (-1,0) to (1,0) gives:
 
-```@example
+```@example TPT
 # Generate and plot the maximum likelihood transition path from (-1,0) to (1,0)
 using OrdinaryDiffEq
 
@@ -129,7 +130,7 @@ fig
 
 We would like to compute the committor, the reactive current, and the reaction rate for the overdamped Duffing oscillator with additive Gaussian noise. We compute these quantities on a triangular mesh between the before computed boundaries.
 
-```@example
+```@example TPT
 box = [xmin, xmax, ymin, ymax]
 pfix = zeros(Nfix, 2)
 pfix[1:Na, :] .= ptsA
@@ -158,7 +159,7 @@ fig
 ```
 
 A committor measures the probability that a system, starting at a given point in phase space, will reach one designated region before another. Formally, for two disjoint sets A and B, the committor q(x) gives the likelihood that a trajectory initiated at x will reach B before A under the system’s dynamics.
-```@example
+```@example TPT
 _, Aind = find_boundary(mesh.pts, point_a, radii, density)
 _, Bind = find_boundary(mesh.pts, point_b, radii, density)
 
@@ -169,7 +170,7 @@ q = committor(langevin_sys, mesh, Aind, Bind)
 tricontourf(Triangulation(mesh.pts', mesh.tri'), q)
 ```
 We can also compute the reverse committor, which is the probability that a trajectory initiated at x will reach A before B under the system’s dynamics. Hence, we must reverse the drift function in the Langevin system and swap the boundaries A and B in the committor function.
-```@example
+```@example TPT
 function divfree1(x,y)
     f1,f2 = divfree(x,y)
     return -f1,-f2
@@ -184,9 +185,7 @@ qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
 tricontourf(Triangulation(mesh.pts', mesh.tri'), qminus)
 ```
 
-
-
-```@example
+```@example TPT
 
 function dfuncA(p)
     return dellipse(p, point_a, radii)
@@ -209,7 +208,7 @@ Z = invariant_pdf(langevin_sys, mesh, Amesh, Bmesh)
 @show Z
 ```
 
-```@example
+```@example TPT
 # probability density of reactive trajectories
 mu = exp.(-beta * Hamiltonian(pts[:,1], pts[:,2])) / Z
 muAB = mu .* q .* qminus
@@ -217,29 +216,29 @@ muAB = mu .* q .* qminus
 tricontourf(Triangulation(mesh.pts', mesh.tri'), muAB)
 ```
 
-```@example
+```@example TPT
 Rcurrent, Rrate = reactive_current(langevin_sys, mesh, q, qminus, Z)
 @show Rrate
 ```
 
-```@example
+```@example TPT
 ARcurrent = vec(sqrt.(sum(Rcurrent.^2, dims=2)))
 ARCmax = maximum(ARcurrent)
 
 tricontourf(Triangulation(mesh.pts', mesh.tri'), ARcurrent)
 ```
 
-```@example
+```@example TPT
 c =ARcurrent./maxima(ARcurrent)
 arrows(pts[:,1], pts[:,2], Rcurrent[:,1]./maxima(ARcurrent), Rcurrent[:,2]./maxima(ARcurrent), arrowsize = c*10, lengthscale = 0.1, arrowcolor = c, linecolor = c)
 ```
 
-```@example
+```@example TPT
 prob_reactive = probability_reactive(langevin_sys, mesh, q, qminus, Z)
 print("Probability that a trajectory is reactive at a randomly picked time: ",prob_reactive)
 ```
 
-```@example
+```@example TPT
 prob_lastA = probability_last_A(langevin_sys, mesh, Amesh, qminus, Z)
 print("Probability that a trajectory last visited A: ", prob_lastA)
 ```

@@ -23,6 +23,12 @@ Langevin
 committor
 ```
 
+### Invariant Probability Density
+
+```@docs
+invariant_pdf
+```
+
 ### Reactive Current
 
 ```docs
