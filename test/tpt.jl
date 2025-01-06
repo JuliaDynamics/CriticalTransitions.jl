@@ -110,6 +110,7 @@ langevin_sys_reverse = CriticalTransitions.Langevin(Hamiltonian, divfree1, KE, g
 qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
 @test size(qminus, 1) == size(mesh.pts, 1)
 @test extrema(qminus) == (0, 1)
+@test (1 .-q) != qminus # duffing is not time-reversible between its minima
 
 for committor in [q, qminus]
     prob_lastA = probability_last_A(sys, mesh, Amesh, committor, Z)
