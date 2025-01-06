@@ -79,6 +79,9 @@ q = committor(sys, mesh, Aind, Bind)
 @test size(q, 1) == size(mesh.pts, 1)
 @test extrema(q) == (0, 1)
 
+qalt = committor(sys, mesh, Bind, Aind)
+@test (1 .-q) ≈ qalt atol = 1e-3
+
 function dfuncA(p)
     return dellipse(p, point_a, radii)
 end
