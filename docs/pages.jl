@@ -4,8 +4,9 @@ pages = [
     "Quickstart" => "quickstart.md",
     "Tutorial" => "examples/tutorial.md",
     "Examples" => Any[
-        "Anlyses for the Maier-Stein system" => "examples/gMAM_Maierstein.md",
+        "Anlyses of the Maier-Stein system" => "examples/gMAM_Maierstein.md",
         "sgMAM for the Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
+        "Transition Path Theory using finite element method" => "examples/duffing_TPT.md",
     ],
     "Manual" => Any[
         "Define a CoupledSDEs system" => "man/CoupledSDEs.md",
@@ -13,6 +14,7 @@ pages = [
         "Simulating the system" => "man/simulation.md",
         "Sampling transitions" => "man/sampling.md",
         "Large deviation theory" => "man/largedeviations.md",
+        "Transition path theory" => "man/tpt.md",
         "Utilities" => "man/utils.md",
 
     ],

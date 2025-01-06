@@ -1,11 +1,10 @@
-
 """
-    stima_Langevin(verts)
+$(TYPEDSIGNATURES)
 
 Compute a local stiffness-like matrix for the Langevin dynamics on a single triangular element.
 
 # Arguments
-- `verts::AbstractMatrix`: A 3×2 matrix whose rows represent the coordinates of the triangular element's vertices.
+- `verts::AbstractMatrix{T}`: A 3×2 matrix whose rows represent the coordinates of the triangular element's vertices.
 
 # Returns
 - A 3×3 matrix of type `Float64` constituting the local contribution of this triangle to the global stiffness operator.
@@ -28,14 +27,14 @@ function stima_Langevin(verts)
 end
 
 """
-    stimavbdv(verts, b1, b2)
+$(TYPEDSIGNATURES)
 
 Form a block of the stiffness matrix that accounts for drift or divergence-free vector fields in the Langevin PDE.
 
 # Arguments
-- `verts::AbstractMatrix`: A 3×2 matrix, with each row representing a vertex of a triangle.
-- `b1`: A scalar or array-like value representing the x-component of some drift or field at the midpoint.
-- `b2`: A scalar or array-like value representing the y-component of some drift or field at the midpoint.
+- `verts::AbstractMatrix{T}`: A 3×2 matrix, with each row representing a vertex of a triangle.
+- `b1::T`: A scalar or array-like value representing the x-component of some drift or field at the midpoint.
+- `b2::T`: A scalar or array-like value representing the y-component of some drift or field at the midpoint.
 
 # Returns
 - A 3×3 matrix that encodes how the specified vector field contributes to the finite element discretization.
@@ -62,19 +61,15 @@ function stimavbdv(verts, b1, b2)
 end
 
 """
-    committor(pts, tri, Aind, Bind, Langevin)
+$(TYPEDSIGNATURES)
 
 Solve the committor equation for a two-dimensional Langevin system using finite elements.
 
 # Arguments
-- `pts::AbstractMatrix`: An N×2 matrix containing the coordinates of the mesh points.
-- `tri::AbstractMatrix`: An M×3 matrix specifying the element connectivity by indexing into `pts`.
+- `sys::Langevin`: The Langevin system containing kinetic energy, drift-free function, beta, and gamma.
+- `mesh::Mesh`: The mesh containing points and triangles.
 - `Aind::Vector{Int}`: Indices of mesh points corresponding to set A (Dirichlet boundary condition = 0).
 - `Bind::Vector{Int}`: Indices of mesh points corresponding to set B (Dirichlet boundary condition = 1).
-- `fpot::Function`: A function that, given a point, returns the potential energy at that coordinate.
-- `divfree::Function`: A function representing the divergence-free part of the drift, returning (f1, f2) at a given point.
-- `beta::Real`: Inverse of temperature (related to noise intensity).
-- `gamma::Real`: Damping coefficient in the Langevin dynamics.
 
 # Returns
 - A vector of committor values of length `N`, where each entry corresponds to a mesh node.
@@ -82,7 +77,6 @@ Solve the committor equation for a two-dimensional Langevin system using finite 
 # Implementation Details
 This function assembles a global matrix `A` and right-hand-side vector `b` for the finite element discretization of the committor equation in Langevin dynamics. The code imposes Dirichlet boundary conditions on specified nodes (`Aind` set to 0, `Bind` set to 1). It computes elementwise contributions with `stima_Langevin` and `stimavbdv`, applying exponential factors involving `beta` and `gamma` to incorporate potential and damping effects. Finally, it solves the resulting linear system for the committor values on the free (non-boundary) nodes.
 """
-
 function committor(sys::Langevin, mesh::Mesh, Aind, Bind)
     KE, divfree, beta, gamma = sys.kinetic, sys.driftfree, sys.beta, sys.gamma
     pts, tri = mesh.pts, mesh.tri

@@ -60,7 +60,7 @@ streamplot!(v, -2..2, -2..2, linewidth = 0.5, colormap = [:black, :black], grids
 fig
 ```
 
-We have two minima in the potential landscape, such that the system under the drift will dissipate to these corresponding atractors at close to $(-1.0, 0.0)$ and $(1.0, 0.0)$. We compute two ellepses around these minima:
+We have two minima in the potential landscape, such that the system under the drift will dissipate to these corresponding attractors at close to $(-1.0, 0.0)$ and $(1.0, 0.0)$. We compute two ellipses around these minima:
 
 ```@example
 point_a = (-1.0, 0.0)
@@ -75,7 +75,7 @@ ptsA = get_ellipse(point_a, radii, Na)
 ptsB = get_ellipse(point_b, radii, Na);
 ```
 
-We also compute an outer boundary of the phase space defined by the maximum value of the Hamiltonian: `Hbdry=0.5`. For this, we us the contour package to comute the contour at the level `Hbdry`. Just as the ellipse around the attractors, we also reparmetrize the boundary to have a uniform grid spacing.
+We also compute an outer boundary of the phase space defined by the maximum value of the Hamiltonian: `Hbdry=0.5`. For this, we use the contour package to compute the contour at the level `Hbdry`. Just as the ellipse around the attractors, we also reparametrize the boundary to have a uniform grid spacing.
 
 ```@example
 Hbdry = 0.5
@@ -88,7 +88,7 @@ Nouter = size(pts_outer, 1)
 Nfix = Na+Nb+Nouter
 ```
 
-We plot the computed boundaries, for which we compute a triangulation using the distmesh module.
+We plot the computed boundaries, for which we compute a triangulation using the `distmesh2D` module.
 
 ```@example
 fig = scatter(ptsA[:,1], ptsA[:,2], label="A points")
@@ -97,7 +97,7 @@ scatter!(pts_outer[:,1], pts_outer[:,2], label="Outer points")
 fig
 ```
 
-The overdamped undriven duffing oscillator, is autonomous and respect detailed balance. As such the maximum likelihood path is the path that is parallel to drift and can easily be computed with the string method. If one know the sadde point, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to the minima. As such,  the maximum likelihood transition path from (-1,0) to (1,0) gives:
+The overdamped undriven duffing oscillator, is autonomous and respect detailed balance. As such the maximum likelihood path is the path that is parallel to drift and can easily be computed with the string method. If one know the saddle point, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to the minima. As such, the maximum likelihood transition path from (-1,0) to (1,0) gives:
 
 ```@example
 # Generate and plot the maximum likelihood transition path from (-1,0) to (1,0)
@@ -127,7 +127,7 @@ lines!(y[1,:],y[2,:],linewidth = 2, color = :black)
 fig
 ```
 
-We would like to compute the committor, the reactive current, and the reaction rate for the overdamped Duffing oscillator with additive gaussian noise. We compute this quantities on a triangular mesh between the before computed boundaries.
+We would like to compute the committor, the reactive current, and the reaction rate for the overdamped Duffing oscillator with additive Gaussian noise. We compute these quantities on a triangular mesh between the before computed boundaries.
 
 ```@example
 box = [xmin, xmax, ymin, ymax]

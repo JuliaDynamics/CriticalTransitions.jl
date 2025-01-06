@@ -1,4 +1,23 @@
+"""
+$(TYPEDSIGNATURES)
 
+Calculate the reactive current and transition rate for a Langevin system.
+
+The reactive current represents the probability flux of reactive trajectories
+that successfully transition from state A to state B.
+
+# Arguments
+- `sys::Langevin`: System containing Hamiltonian, drift-free component, inverse temperature (beta), and friction coefficient (gamma)
+- `mesh::Mesh`: Mesh structure containing points and triangulation
+- `q`: Forward committor function values
+- `qminus`: Backward committor function values
+- `Z`: Partition function value
+
+# Returns
+A tuple containing:
+- `Rcurrent_verts`: Array of reactive current vectors at mesh vertices
+- `Rrate`: Transition rate between states A and B
+"""
 function reactive_current(sys::Langevin, mesh::Mesh, q, qminus, Z)
     ham, divfree, beta, gamma = sys.Hamiltonian, sys.driftfree, sys.beta, sys.gamma
     pts, tri = mesh.pts, mesh.tri
