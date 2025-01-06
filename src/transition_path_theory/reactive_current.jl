@@ -79,3 +79,39 @@ function reactive_current(sys::Langevin, mesh::Mesh, q, qminus, Z)
 
     return Rcurrent_verts, Rrate
 end
+
+function reactive_rate(sys::Langevin, mesh::Mesh, q, Z)
+    ham, divfree, beta, gamma = sys.Hamiltonian, sys.driftfree, sys.beta, sys.gamma
+    pts, tri = mesh.pts, mesh.tri
+    Npts = size(pts, 1)
+    Ntri = size(tri, 1)
+    # find the reactive current and the transition rate
+    # reactive current at the centers of mesh triangles
+    Rcurrent = zeros(Float64, (Ntri, 2))
+    Rrate = 0.0
+
+    for j in 1:Ntri
+        ind = tri[j, :]
+        verts = pts[ind, :]
+        qtri = q[ind]
+
+        a = [
+            verts[2, 1]-verts[1, 1] verts[2, 2]-verts[1, 2]
+            verts[3, 1]-verts[1, 1] verts[3, 2]-verts[1, 2]
+        ]
+        b = [qtri[2] - qtri[1], qtri[3] - qtri[1]]
+
+        g = a \ b
+
+        Aux = ones(3, 3)
+        Aux[2:3, :] .= transpose(verts)
+        tri_area = 0.5 * abs(det(Aux))
+
+        mu = exp(-beta * ham(vmid[:, 1], vmid[:, 2])[1])
+        Rrate += g[1]^2 * mu * tri_area
+    end
+
+    Rrate = Rrate * gamma / (Z * beta)
+
+    return Rrate
+end
