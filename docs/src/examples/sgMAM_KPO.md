@@ -84,7 +84,7 @@ x_min = MLP.path;
 The function returns the optimal path `x_min`, the minmal action `S_min`, the Lagrange multipliers `lambda` associated with the optimal path, the optimal generalised momentum `p`, and the time derivative of the optimal path `xdot`. We can plot the initial trajectory and the optimal path:
 ```@example GMAM
 fig, ax, _ = lines(x_initial[1, :], x_initial[2, :]; label="init", linewidth=3, color=:black)
-lines!(x_min[1, :], x_min[2, :]; label="MLP", linewidth=3, color=:red)
+lines!(x_min[:, 1], x_min[:, 2]; label="MLP", linewidth=3, color=:red)
 streamplot!(ax, stream, (-0.08, 0.08), (-0.15, 0.15);
     gridsize=(20, 20), arrow_size=10, stepsize=0.001,
     colormap=[:gray, :gray]
