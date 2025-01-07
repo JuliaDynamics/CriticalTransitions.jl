@@ -38,6 +38,10 @@ function probability_reactive(sys::Langevin, mesh::Mesh, q, qminus, Z)
     return prob
 end
 
+function probability_reactive(sys::Langevin, q::Committor)
+    return probability_reactive(sys, q.mesh.mesh, q.forward, q.backward, q.Z)
+end
+
 """
 $(TYPEDSIGNATURES)
 
@@ -86,4 +90,8 @@ function probability_last_A(sys::Langevin, mesh::Mesh, Ames::Mesh, qminus, Z)
     end
     prob /= Z
     return prob
+end
+
+function probability_last_A(sys::Langevin, q::Committor)
+    return probability_last_A(sys, q.mesh.mesh, q.mesh.Amesh, q.backward, q.Z)
 end

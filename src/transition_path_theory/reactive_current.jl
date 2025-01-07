@@ -80,6 +80,10 @@ function reactive_current(sys::Langevin, mesh::Mesh, q, qminus, Z)
     return Rcurrent_verts, Rrate
 end
 
+function reactive_current(sys::Langevin, q::Committor)
+    return reactive_current(sys::Langevin, q.mesh.mesh::Mesh, q.forward, q.backward, q.Z)
+end
+
 function reactive_rate(sys::Langevin, mesh::Mesh, q, Z)
     ham, divfree, beta, gamma = sys.Hamiltonian, sys.driftfree, sys.beta, sys.gamma
     pts, tri = mesh.pts, mesh.tri
@@ -114,4 +118,8 @@ function reactive_rate(sys::Langevin, mesh::Mesh, q, Z)
     Rrate = Rrate * gamma / (Z * beta)
 
     return Rrate
+end
+
+function reactive_rate(sys::Langevin, q::Committor)
+    return reactive_rate(sys::Langevin, q.mesh.mesh::Mesh, q.forward, q.Z)
 end

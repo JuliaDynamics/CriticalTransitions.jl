@@ -84,9 +84,9 @@ end
 Z = q.Z
 @test Z ≈ 69.3829 atol = 1e-1
 
-# for committor in [q, qminus]
-#     prob_lastA = probability_last_A(sys, mesh, Amesh, committor, Z)
-#     prob_lastB = probability_last_A(sys, mesh, Bmesh, committor, Z)
-#     @test prob_lastA ≈ 0.5 atol = 1e-3
-#     @test prob_lastB ≈ 0.5 atol = 1e-3
-# end
+for committor in [q.forward, q.backward]
+    prob_lastA = probability_last_A(sys, q)
+    prob_lastB = probability_last_A(sys, q)
+    @test prob_lastA ≈ 0.5 atol = 1e-3
+    @test prob_lastB ≈ 0.5 atol = 1e-3
+end
