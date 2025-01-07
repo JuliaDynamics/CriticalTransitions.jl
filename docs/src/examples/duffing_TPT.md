@@ -12,10 +12,12 @@ using OrdinaryDiffEq, DelaunayTriangulation, Contour
 ## System
 
 The Duffing oscillator is a simple model for a nonlinear oscillator with a double-well potential. The equation of motion for the Duffing oscillator under additive Gaussian noise is given by:
-\begin{equation}
+
+```math
 \dot{x} = p, \\
 \dot{p} = -\gamma p - \nabla U + \sqrt{\frac{2\gamma}{\beta}} \dot{W},
-\end{equation}
+```
+
 with the potential energy $U(x) = \frac{1}{4}x^4 - \frac{1}{2}x^2$ and the kinetic energy $K(p) = p^2/2$. The parameters $\gamma$ and $\beta=1/k_b T$ control the strength of the dissipation and noise, respectively. $W$ is a Wiener process, and the noise term is scaled by $\sqrt{2\gamma/\beta}$ to ensure the correct temperature scaling for a Langevin type system defined by the Hamiltonian $H$.
 
 ```@example TPT
@@ -47,7 +49,7 @@ langevin_sys = Langevin(Hamiltonian, divfree, KE, gamma, beta)
 
 ## Phase space mesh
 
-We can easily evaluate and visualise the Hamiltonian and equally spaced grid in phase space.
+We can easily evaluate and visualize the Hamiltonian and equally spaced grid in phase space.
 
 ```@example TPT
 nx, ny = 41, 41
@@ -73,7 +75,7 @@ streamplot!(v, -2..2, -2..2, linewidth = 0.5, colormap = [:black, :black], grids
 fig
 ```
 
-The overdamped undriven duffing oscillator, is autonomous and respect detailed balance. As such the maximum likelihood path is the path that is parallel to drift and can be computed with the string method. If one know the saddle point, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to the minima. As such, the maximum likelihood transition path from (-1,0) to (1,0) gives:
+The undriven duffing oscillator, is autonomous and respect detailed balance. As such the maximum likelihood path is the path that is parallel to drift and can be computed with the string method. If one know the saddle point, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to the minima. As such, the maximum likelihood transition path from (-1,0) to (1,0) gives:
 
 ```@example TPT
 # Generate and plot the maximum likelihood transition path from (-1,0) to (1,0)
@@ -137,7 +139,7 @@ scatter!(pts_outer[:,1], pts_outer[:,2], label="Outer points")
 fig
 ```
 
-We would like to compute the committor, the reactive current, and the reaction rate for the overdamped Duffing oscillator with additive Gaussian noise. We compute these quantities on a triangular mesh between the before computed boundaries.
+We would like to compute the committor, the reactive current, and the reaction rate for the Duffing oscillator with additive Gaussian noise. We compute these quantities on a triangular mesh between the before computed boundaries.
 
 ```@example TPT
 box = [xmin, xmax, ymin, ymax]
@@ -170,9 +172,11 @@ fig
 ## Committor functions
 
 A committor measures the probability that a system, starting at a given point in phase space, will reach one designated region before another. Formally, for two disjoint sets A and B, the forward committor $q_+(x, p)$ from A to B gives the likelihood that a trajectory initiated at x will reach B before A under the system’s dynamics. The committor boundary-value problem for a Langevin system is given by:
-\begin{equation}
+
+```math
  p \frac{\mathrm{d}q}{\mathrm{d}x} - U'(x) \frac{\mathrm{d}q}{\mathrm{d}p} + \gamma [-p \frac{\mathrm{d}q}{\mathrm{d}p} + \beta^{-1} \frac{\mathrm{d}^2 q}{\mathrm{d}p^2}] = 0,
-\end{equation}
+```
+
 for $(x,p) \in (A\cup B)^c$, with boundary conditions $q(\partial A) = 0$, $q(\partial B) = 1$, and $\nabla \nabla q = 0$ on the outer boundary ${(x,p) : H(x,p) = \mathrm{Hbdry}}$. The homogeneous Neumann boundary condition $\nabla \nabla q = 0$ means that the trajectory reflects from the outer boundary whenever it reaches it. We can compute the committor function for the Duffing oscillator using the `committor` function.
 
 ```@example TPT
@@ -187,6 +191,7 @@ tricontourf(Triangulation(mesh.pts', mesh.tri'), q)
 ```
 
 We can also compute the backward committor $q_{-}(x, p)$ from A to B, which is the probability that a trajectory initiated at x will reach A before B under the system’s dynamics. Hence, we must reverse the drift function in the Langevin system and swap the boundaries A and B in the committor function
+
 ```@example TPT
 function divfree1(x,y)
     f1,f2 = divfree(x,y)
@@ -202,18 +207,22 @@ qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
 tricontourf(Triangulation(mesh.pts', mesh.tri'), qminus)
 ```
 
-For non-equilibrium processes, such as the transitions in the double-well of the Duffing, we have that the $q_{-}\neq 1-q_+$. In particular, for langevin systems of the form in the system above time reversal involves a momentum flip such that $q_{-}(x, p)= 1-q_+(x, -p)$.
+For non-equilibrium processes, such as the transitions in the double-well of the Duffing, we have that the $q_{-}\neq 1-q_+$. In particular, for Langevin systems of the form in the system above time reversal involves a momentum flip such that $q_{-}(x, p)= 1-q_+(x, -p)$.
 
 ## Probability Density of Reactive Trajectories
 
-In general, we are interested in reactive trajectories that start in A and end in B without going back to B. The probability density of finding a reactive trajectory at a point in phase space is given by:
+In general, we are interested in reactive trajectories that start in A and ends in B without going back to A. The probability density of finding a reactive trajectory at a point in phase space is given by:
+
 ```math
 \rho_R(x, p) = \rho(x, p) q₊(x, p) q₋(x, p),
 ```
-where $\rho(x, p)$ is the probability density of finding a trajectory at $(x,p)$, $\rho(x, p)$ is also called the invariant probability density of the system. For a overdamped langevin system the invariant probability density:
+
+where $\rho(x, p)$ is the probability density of finding a trajectory at $(x,p)$, $\rho(x, p)$ is also called the invariant probability density of the system. For an overdamped Langevin system the invariant probability density:
+
 ```math
 \rho(x, p) \approx exp(-\beta H(x,p))/Z
 ```
+
 with $Z=\int exp(-\beta H(x,p)) \mathrm{d}x \mathrm{d}p$ the normalization. We can compute the integrated invariant probability density `Z` for the mesh using the `invariant_pdf` function.
 
 ```@example TPT
