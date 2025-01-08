@@ -111,6 +111,7 @@ function reactive_rate(sys::Langevin, mesh::Mesh, q, Z)
         Aux[2:3, :] .= transpose(verts)
         tri_area = 0.5 * abs(det(Aux))
 
+        vmid = reshape(sum(verts; dims=1) / 3, 1, 2) # midpoint of mesh triangle
         mu = exp(-beta * ham(vmid[:, 1], vmid[:, 2])[1])
         Rrate += g[1]^2 * mu * tri_area
     end
