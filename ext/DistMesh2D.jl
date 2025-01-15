@@ -9,7 +9,7 @@ using CriticalTransitions: Mesh
 
 export distmesh2D, dellipse, ddiff
 export get_ellipse, reparametrization
-export find_boundary, huniform, dunion
+export huniform, dunion
 
 """
     huniform(p::AbstractMatrix)
@@ -47,14 +47,6 @@ function triarea(pts, tri)
     d12 = pts[tri[:, 2], :] - pts[tri[:, 1], :]
     d13 = pts[tri[:, 3], :] - pts[tri[:, 1], :]
     return d12[:, 1] .* d13[:, 2] - d12[:, 2] .* d13[:, 1]
-end
-
-function CriticalTransitions.find_boundary(pts, a, radii, h0)
-    xc, yc = a
-    rx, ry = radii
-    circle = @. sqrt((pts[:, 1] - xc)^2 / rx^2 + (pts[:, 2] - yc)^2 / ry^2)
-    ind = findall(circle .- 1.0 .< h0 * 1e-2)
-    return length(ind), vec(ind)
 end
 
 """
@@ -283,4 +275,33 @@ function CriticalTransitions.reparametrization(path, h)
     path_y = itp_y.(g1)
     return [path_x path_y]
 end
+
+function CriticalTransitions.TransitionPathMesh(
+    mesh::Mesh, point_a, point_b, radii, density
+)
+    Na = round(Int, π * sum(radii) / density) # the number of points on the A-circle
+    Nb = Na
+
+    ptsA = get_ellipse(point_a, radii, Na)
+    ptsB = get_ellipse(point_b, radii, Na)
+
+    function dfuncA(p)
+        return dellipse(p, point_a, radii)
+    end
+
+    function dfuncB(p)
+        return dellipse(p, point_b, radii)
+    end
+
+    xa, ya = point_a
+    xb, yb = point_b
+    rx, ry = radii
+
+    bboxA = [xa - rx, xa + rx, ya - ry, ya + ry]
+    Amesh = distmesh2D(dfuncA, huniform, density, bboxA, ptsA)
+    bboxB = [xb - rx, xb + rx, yb - ry, yb + ry]
+    Bmesh = distmesh2D(dfuncB, huniform, density, bboxB, ptsB)
+    return TransitionPathMesh(mesh, Amesh, Bmesh, point_a, point_b, radii, density)
+end
+
 end # module

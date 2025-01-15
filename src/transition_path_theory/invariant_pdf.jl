@@ -70,3 +70,7 @@ function invariant_pdf(sys::Langevin, mesh::Mesh, Amesh::Mesh, Bmesh::Mesh)
 
     return Z
 end
+
+function partition_function(sys::Langevin, mesh::TransitionPathMesh)
+    return invariant_pdf(sys, mesh.mesh, mesh.Amesh, mesh.Bmesh)
+end

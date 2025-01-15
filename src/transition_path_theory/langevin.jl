@@ -22,3 +22,14 @@ struct Langevin{H,D,KE,T}
     "Inverse temperature parameter (β = 1/kT) that sets the noise intensity."
     beta::T
 end
+
+function SciMLBase.remake(
+    sys::Langevin;
+    Hamiltonian=sys.Hamiltonian,
+    driftfree=sys.driftfree,
+    kinetic=sys.kinetic,
+    gamma=sys.gamma,
+    beta=sys.beta,
+)
+    return Langevin(Hamiltonian, driftfree, kinetic, gamma, beta)
+end
