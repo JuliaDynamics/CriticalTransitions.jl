@@ -7,7 +7,7 @@ pages = [
         "Anlyses of the Maier-Stein system" => "examples/gMAM_Maierstein.md",
         "sgMAM for the Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
         "Transition Path Theory using finite element method" => "examples/duffing_TPT.md",
-        "Minimal action path as an optimal control problem" => "examples/OC_gmam.md",
+        # "Minimal action path as an optimal control problem" => "examples/OC_gmam.md",
     ],
     "Manual" => Any[
         "Define a CoupledSDEs system" => "man/CoupledSDEs.md",
