@@ -31,13 +31,13 @@ The minimal action path minimizes the deviation from the deterministic dynamics:
 
 ```@example oc_mam
 @def action begin
-    t ∈ [0, tf], time
+    t ∈ [0, T], time
     x ∈ R², state
     u ∈ R², control
     x(0) == [-1, 0]    # Starting point (left well)
-    x(tf) == [1, 0]     # End point (right well)
+    x(T) == [1, 0]     # End point (right well)
     ẋ(t) == u(t)       # Path dynamics
-    ∫( sum((u(t) - f(x(t))).^2) ) + tf → min  # Minimize deviation from deterministic flow
+    ∫( sum((u(t) - f(x(t))).^2) ) → min  # Minimize deviation from deterministic flow
 end
 ```
 
