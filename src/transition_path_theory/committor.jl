@@ -1,3 +1,4 @@
+
 """
 $(TYPEDSIGNATURES)
 
@@ -111,4 +112,35 @@ function committor(sys::Langevin, mesh::Mesh, Aind, Bind)
     # solve for committor
     q[free_nodes] = A[free_nodes, free_nodes] \ b[free_nodes]
     return vec(q)
+end
+
+function _committor(sys::Langevin, TPmesh::TransitionPathMesh)
+    KE, divfree, beta, gamma = sys.kinetic, sys.driftfree, sys.beta, sys.gamma
+    pts, tri = TPmesh.mesh.pts, TPmesh.mesh.tri
+
+    _, Aind = find_boundary_A(TPmesh; set=:A)
+    _, Bind = find_boundary_A(TPmesh; set=:B)
+
+    return committor(sys, TPmesh.mesh, Aind, Bind)
+end
+
+struct Committor
+    mesh::TransitionPathMesh
+    forward::Vector{Float64}
+    backward::Vector{Float64}
+    Z::Float64
+
+    function Committor(sys::Langevin, mesh::TransitionPathMesh)
+        forwardsys = sys
+        backwardsys = remake(sys; driftfree=(x, p) -> -1 .* sys.driftfree(x, p))
+        forwardmesh = mesh
+        backwardmesh = reverse_AB(mesh)
+
+        forward = _committor(forwardsys, forwardmesh)
+        backward = _committor(backwardsys, backwardmesh)
+        return new(mesh, forward, backward, partition_function(sys, mesh))
+    end
+end
+function committor(sys::Langevin, mesh::TransitionPathMesh)
+    return Committor(sys, mesh)
 end

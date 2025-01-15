@@ -21,7 +21,7 @@ function divfree(x, y)
     return f1, f2
 end
 
-sys = CriticalTransitions.Langevin(Hamiltonian, divfree, KE, gamma, beta)
+sys = Langevin(Hamiltonian, divfree, KE, gamma, beta)
 
 point_a = (-1.0, 0.0)
 point_b = (1.0, 0.0)
@@ -71,53 +71,22 @@ end
 
 mesh = distmesh2D(dfunc, huniform, density, box, pfix)
 
-_, Aind = find_boundary(mesh.pts, point_a, radii, density)
-_, Bind = find_boundary(mesh.pts, point_b, radii, density)
+TPM = TransitionPathMesh(mesh, point_a, point_b, radii, density)
 
-q = committor(sys, mesh, Aind, Bind)
+q = committor(sys, TPM)
 
-@test size(q, 1) == size(mesh.pts, 1)
-@test extrema(q) == (0, 1)
-
-qalt = committor(sys, mesh, Bind, Aind)
-@test (1 .- q) ≈ qalt atol = 1e-3
-
-function dfuncA(p)
-    return dellipse(p, point_a, radii)
+for q′ in [q.forward, q.backward]
+    @test size(q′, 1) == size(mesh.pts, 1)
+    @test extrema(q′) == (0, 1)
 end
-
-function dfuncB(p)
-    return dellipse(p, point_b, radii)
-end
-
-xa, ya = (-1.0, 0.0)
-xb, yb = (1.0, 0.0)
-rx, ry = (0.3, 0.4)
-
-bboxA = [xa - rx, xa + rx, ya - ry, ya + ry]
-Amesh = distmesh2D(dfuncA, huniform, density, bboxA, ptsA)
-bboxB = [xb - rx, xb + rx, yb - ry, yb + ry]
-Bmesh = distmesh2D(dfuncB, huniform, density, bboxB, ptsB)
-
-Z = invariant_pdf(sys, mesh, Amesh, Bmesh)
-
+@test q.forward != q.backward
+@test (1 .- q.forward) != q.backward
+Z = q.Z
 @test Z ≈ 69.3829 atol = 1e-1
 
-function divfree1(x, y)
-    f1, f2 = divfree(x, y)
-    return -f1, -f2
-end
-
-langevin_sys_reverse = CriticalTransitions.Langevin(Hamiltonian, divfree1, KE, gamma, beta)
-
-qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
-@test size(qminus, 1) == size(mesh.pts, 1)
-@test extrema(qminus) == (0, 1)
-@test (1 .- q) != qminus # duffing is not time-reversible between its minima
-
-for committor in [q, qminus]
-    prob_lastA = probability_last_A(sys, mesh, Amesh, committor, Z)
-    prob_lastB = probability_last_A(sys, mesh, Bmesh, committor, Z)
+for committor in [q.forward, q.backward]
+    prob_lastA = probability_last_A(sys, q)
+    prob_lastB = probability_last_A(sys, q)
     @test prob_lastA ≈ 0.5 atol = 1e-3
     @test prob_lastB ≈ 0.5 atol = 1e-3
 end

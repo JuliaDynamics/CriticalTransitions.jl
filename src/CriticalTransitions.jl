@@ -46,6 +46,7 @@ include("trajectories/TransitionEnsemble.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 
+include("transition_path_theory/TransitionPathMesh.jl")
 include("transition_path_theory/langevin.jl")
 include("transition_path_theory/committor.jl")
 include("transition_path_theory/invariant_pdf.jl")
@@ -81,6 +82,7 @@ export basins, basinboundary, basboundary
 export intervals_to_box
 
 export distmesh2D, dellipse, ddiff
+export TransitionPathMesh, Committor
 export get_ellipse, reparametrization
 export find_boundary, huniform, dunion
 
