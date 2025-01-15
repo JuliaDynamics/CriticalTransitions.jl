@@ -7,7 +7,7 @@ This tutorial demonstrates how to implement MAM as an optimal control problem.
 ## Required Packages
 
 ```@example oc_mam
-using OptimalControl, LinearAlgebra
+using OptimalControl
 using NLPModelsIpopt
 using Plots, Printf
 ```
