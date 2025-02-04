@@ -13,3 +13,5 @@ docs/build/
 docs/Manifest.toml
 dev/levy.jl
 reyk_local/
+test/Manifest.toml
+benchmark/Manifest.toml

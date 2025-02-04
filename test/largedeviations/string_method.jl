@@ -1,5 +1,4 @@
 using CriticalTransitions
-using BenchmarkTools
 
 const λ = 3 / 1.21 * 2 / 295
 const ω0 = 1.000
@@ -33,7 +32,7 @@ xsaddle = [0.0, 0.0]
 xx = @. (xb[1] - xa[1]) * s + xa[1] + 4 * s * (1 - s) * xsaddle[1]
 yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
 
-function sss()
+@testset "StateSpaceSet vs Matrix" begin
     function H_x(x, p) # ℜ² → ℜ²
         u, v = eachcol(x)
         pu, pv = eachcol(p)
@@ -51,13 +50,14 @@ function sss()
         return StateSpaceSet([H_pu H_pv])
     end
 
-    sys_sss = SgmamSystem(H_x, H_p)
+    sys_sss = SgmamSystem{false,2}(H_x, H_p)
 
     x_init_sss = StateSpaceSet([xx yy])
-    return sys_sss, x_init_sss
-end
 
-function m()
+    string_sss = string_method(
+        sys_sss, x_init_sss; iterations=10_000, ϵ=0.5, show_progress=false
+    )
+
     function H_x(x, p) # ℜ² → ℜ²
         u, v = eachrow(x)
         pu, pv = eachrow(p)
@@ -75,32 +75,11 @@ function m()
         return Matrix([H_pu H_pv]')
     end
 
-    sys_m = SgmamSystem(H_x, H_p)
+    sys_m = SgmamSystem{false,2}(H_x, H_p)
 
     x_init_m = Matrix([xx yy]')
-    return sys_m, x_init_m
+
+    string_m = string_method(sys_m, x_init_m; iterations=10_000, ϵ=0.5, show_progress=false)
+
+    @test vec(string_m) ≈ vec(string_sss)
 end
-
-sys_sss, x_init_sss = sss()
-sys_m, x_init_m = m()
-
-@benchmark string_method($sys_sss, $x_init_sss)
-@benchmark string_method($sys_m, $x_init_m)
-
-function KPO_SA(x, p, t)
-    u, v = x
-    return SA[fu(u, v), fv(u, v)]
-end
-function KPO(x, p, t)
-    u, v = x
-    return [fu(u, v), fv(u, v)]
-end
-ds = CoupledSDEs(KPO, zeros(2), ())
-ds_sa = CoupledSDEs(KPO_SA, zeros(2), ())
-
-@btime string_method($ds_sa, $x_init_sss) # 77.119 ms (48693 allocations: 86.62 MiB)
-@btime string_method($ds, $x_init_sss) # 151.156 ms (1044693 allocations: 162.61 MiB)
-@btime string_method($sys_m, $x_init_m) # 150.201 ms (51540 allocations: 127.86 MiB)
-@btime string_method($ds_sa, $x_init_m) # 178.669 ms (1039716 allocations: 158.70 MiB)
-@btime string_method($sys_sss, $x_init_sss) #  206.504 ms (1087517 allocations: 186.73 MiB)
-@btime string_method($ds, $x_init_m) # 244.689 ms (2533716 allocations: 272.68 MiB)

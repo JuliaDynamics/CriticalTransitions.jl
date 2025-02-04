@@ -25,6 +25,14 @@ end
     include("largedeviations/action_fhn.jl")
     include("largedeviations/MAM.jl")
     include("largedeviations/gMAM.jl")
+    include("largedeviations/sgMAM.jl")
+    include("largedeviations/string_method.jl")
+    include("largedeviations/Maier_stein.jl")
+    include("largedeviations/interpolate.jl")
+end
+
+@testset "Transition Path Theory" begin
+    include("tpt.jl")
 end
 
 @testset "Utilities" begin
@@ -33,7 +41,7 @@ end
 
 @testset "Trajectories" begin
     include("trajectories/simulate.jl")
-    #   include("trajectories/transition.jl")
+    include("trajectories/transition.jl")
 end
 
 @testset "Extensions" begin
@@ -43,6 +51,10 @@ end
 
     @testset "CoupledSDEsBasin" begin
         include("ext/CoupledSDEsBasin.jl")
+    end
+
+    @testset "DistMesh2D" begin
+        include("ext/DistMesh2D.jl")
     end
 end
 

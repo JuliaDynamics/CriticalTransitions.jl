@@ -77,7 +77,7 @@ sim = trajectory(sys, 100, fp1)
 
 In the keyword arguments, we have specified at which interval the solution is saved. Further keyword arguments can be used to change the solver (the default is `SOSRA()` for stochastic integration) and other settings.
 
-The simulated trajectory is stored in `sim` in the usual output format of the [`solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#CommonSolve.solve-Tuple%7BSciMLBase.AbstractDEProblem,%20Vararg%7BAny%7D%7D) method of DifferentialEquations.jl, including the solution `sim.u` and the vector of time points `sim.t`. The solution can also be accessed as a matrix `sim[i, t]`, where `i` is the `i`-th component of `u` and `t` the time index.
+The simulated trajectory is stored in `sim` in the usual output format of the [`solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/) method of DifferentialEquations.jl, including the solution `sim.u` and the vector of time points `sim.t`. The solution can also be accessed as a matrix `sim[i, t]`, where `i` is the `i`-th component of `u` and `t` the time index.
 
 Let's plot the result. Did the trajectory transition to the other attractor?
 

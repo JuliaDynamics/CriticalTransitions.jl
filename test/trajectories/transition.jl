@@ -18,10 +18,14 @@
     @test norm(tr[end, :] - fp2) < 0.1
 
     ensemble = transitions(sys, fp1, fp2, 10)
-    @test ensemble.success_rate ≈ 1.0
-    @test ensemble.transition_time ≈ 4.493941793363376 atol = 1e-2
+    stats = ensemble.stats
+    @test isapprox(stats.success_rate, 0.833; atol=1e-2) ||
+        isapprox(stats.success_rate, 0.909; atol=1e-2)
+    @test isapprox(stats.transition_time, 5.213; atol=1e-2) ||
+        isapprox(stats.transition_time, 5.6512; atol=1e-2)
     # SEED is different on github
     # SEED doesn;t work on github
     @test length(ensemble.times) == 10
-    @test ensemble.residence_time ≈ 495.38809 atol = 1e-2
+    @test isapprox(stats.residence_time, 346.5424; atol=1e-2) ||
+        isapprox(stats.residence_time, 177.70; atol=1e-2)
 end

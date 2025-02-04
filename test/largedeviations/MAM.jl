@@ -12,7 +12,7 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
     N, T = 200, 2.0
     inst = min_action_method(fhn, x_i, x_f, N, T; maxiter=500, show_progress=false)
     # If you evolve for longer the path splits into two :/
-    S = fw_action(fhn, inst.path, range(0.0, T; length=N))
+    S = fw_action(fhn, Matrix(inst.path)', range(0.0, T; length=N))
     @test isapprox(S, 0.18, atol=0.01)
 end
 
@@ -30,5 +30,5 @@ end
     inst_sol =
         ((xT - x0 * exp(-T)) * exp.(t) .+ (x0 * exp(T) - xT) * exp.(-t)) /
         (exp(T) - exp(-T))
-    @test maximum(abs.(inst_mam.path' .- inst_sol)) < 0.1
+    @test maximum(abs.(inst_mam.path[:, 1] .- inst_sol)) < 0.1
 end

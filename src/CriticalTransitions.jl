@@ -2,23 +2,15 @@ module CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra: LinearAlgebra, I, norm, dot, tr
+using LinearAlgebra: LinearAlgebra, I, norm, dot, tr, det
 using StaticArrays: StaticArrays, SVector
+using SparseArrays: spdiagm
+using DataStructures: CircularBuffer
+using Random: Random
 
 # Core
-using DiffEqNoiseProcess: DiffEqNoiseProcess
-using OrdinaryDiffEq: OrdinaryDiffEq, EnsembleThreads
-using StochasticDiffEq:
-    StochasticDiffEq,
-    DiscreteCallback,
-    ODEProblem,
-    SDEFunction,
-    SOSRA,
-    remake,
-    solve,
-    step!,
-    terminate!,
-    u_modified!
+using SciMLBase: EnsembleThreads, DiscreteCallback, remake, terminate!
+using StochasticDiffEq: StochasticDiffEq
 using DynamicalSystemsBase:
     DynamicalSystemsBase,
     CoupledSDEs,
@@ -33,34 +25,41 @@ using DynamicalSystemsBase:
 using Interpolations: linear_interpolation
 using Optimization
 using OptimizationOptimisers: Optimisers
-using Symbolics: Symbolics
+using LinearSolve: LinearProblem, KLUFactorization, solve
 
 # io and documentation
 using Format: Format
 using Printf: Printf
-using DocStringExtensions: TYPEDSIGNATURES
+using DocStringExtensions: TYPEDSIGNATURES, TYPEDEF, TYPEDFIELDS, METHODLIST
 using ProgressMeter: Progress, next!
 
 # reexport
 using Reexport: @reexport
 @reexport using StaticArrays
-@reexport using StochasticDiffEq
-@reexport using DiffEqNoiseProcess
+@reexport using DynamicalSystemsBase
 
 include("extension_functions.jl")
 include("utils.jl")
 include("sde_utils.jl")
 
+include("trajectories/TransitionEnsemble.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 
+include("transition_path_theory/TransitionPathMesh.jl")
+include("transition_path_theory/langevin.jl")
+include("transition_path_theory/committor.jl")
+include("transition_path_theory/invariant_pdf.jl")
+include("transition_path_theory/reactive_current.jl")
+include("transition_path_theory/probability.jl")
+
+include("largedeviations/utils.jl")
 include("largedeviations/action.jl")
-include("largedeviations/MaximumLikelihoodPath.jl")
+include("largedeviations/MinimumActionPath.jl")
 include("largedeviations/min_action_method.jl")
 include("largedeviations/geometric_min_action_method.jl")
 
 include("largedeviations/sgMAM.jl")
-using .Sgmam: sgmam, SgmamSystem
 include("largedeviations/string_method.jl")
 
 include("../systems/CTLibrary.jl")
@@ -68,21 +67,27 @@ using .CTLibrary
 
 # Core types
 export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
-export dynamic_rule, current_state, set_state!, trajectory
+export drift, div_drift, solver
+export StateSpaceSet
 
 export sgmam, SgmamSystem
+export fw_action, om_action, action, geometric_action
+export min_action_method, geometric_min_action_method, string_method
+export MinimumActionPath
 
-# Methods
-export drift, div_drift, solver
 export deterministic_orbit
 export transition, transitions
+
 export basins, basinboundary, basboundary
 export intervals_to_box
-export fw_action, om_action, action, geometric_action
-export min_action_method, geometric_min_action_method
-export string_method
-export covariance_matrix, diffusion_matrix
-# export edgetracking, bisect_to_edge, AttractorsViaProximity
+
+export distmesh2D, dellipse, ddiff
+export TransitionPathMesh, Committor
+export get_ellipse, reparametrization
+export find_boundary, huniform, dunion
+
+export committor,
+    invariant_pdf, reactive_current, probability_reactive, probability_last_A, Langevin
 
 # Error hint for extensions stubs
 function __init__()

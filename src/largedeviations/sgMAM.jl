@@ -1,16 +1,3 @@
-module Sgmam
-
-export sgmam, SgmamSystem
-
-using DataStructures: CircularBuffer
-using ProgressMeter: Progress, next!
-using LinearSolve: LinearProblem, KLUFactorization, solve
-using CriticalTransitions: interpolate_path!, MaximumLikelihoodPath
-
-using LinearAlgebra, SparseArrays
-
-using DocStringExtensions: TYPEDSIGNATURES
-
 """
 A structure representing a system with Hamiltonian functions H_x and H_p.
 
@@ -18,10 +5,49 @@ This system operates in an extended phase space where the Hamiltonian is assumed
 quadratic in the extended momentum. The phase space coordinates `x` are doubled to
 form a 2n-dimensional extended phase space.
 """
-struct SgmamSystem
-    H_x::Function
-    H_p::Function
+struct SgmamSystem{IIP,D,Hx,Hp}
+    H_x::Hx
+    H_p::Hp
+
+    function SgmamSystem(ds::ContinuousTimeDynamicalSystem)
+        if ds isa CoupledSDEs
+            proper_sgMAM_system(ds)
+        end
+
+        f = dynamic_rule(ds)
+        jac = jacobian(ds)
+
+        function H_x(x, p) # ℜ² → ℜ²
+            Hx = similar(x)
+
+            for idx in 1:size(x, 2)
+                jax = jac(x[:, idx], (), 0.0)
+                for idc in 1:size(x, 1)
+                    Hx[idc, idx] = dot(jax[:, idc], p[:, idx])
+                end
+            end
+            return Hx
+        end
+        function H_p(x, p) # ℜ² → ℜ²
+            Hp = similar(x)
+
+            for idx in 1:size(x, 2)
+                Hp[:, idx] = p[:, idx] + f(x[:, idx], ds.p0, 0.0)
+            end
+            return Hp
+        end
+        return new{isinplace(ds),dimension(ds),typeof(H_x),typeof(H_p)}(H_x, H_p)
+    end
+    function SgmamSystem{IIP,D}(H_x::Function, H_p::Function) where {IIP,D}
+        return new{IIP,D,typeof(H_x),typeof(H_p)}(H_x, H_p)
+    end
 end
+
+function prettyprint(mlp::SgmamSystem{IIP,D}) where {IIP,D}
+    return "Doubled $D-dimensional phase space containing $(IIP ? "in-place" : "out-of-place") functions"
+end
+
+Base.show(io::IO, mlp::SgmamSystem) = print(io, prettyprint(mlp))
 
 """
 $(TYPEDSIGNATURES)
@@ -38,25 +64,24 @@ relative tolerance `reltol` is achieved.
 
 The function returns a tuple containing the final state, the action value,
 the Lagrange multipliers, the momentum, and the state derivatives. The implementation is
-based on the work of [Grafke et al. (2019)](
-https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html.
+based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html.
 ).
 """
 function sgmam(
     sys::SgmamSystem,
-    x_initial;
-    ϵ::Float64=1e-1,
+    x_initial::Matrix{T};
+    ϵ::Real=1e-1,
     iterations::Int64=1000,
     show_progress::Bool=false,
-    reltol::Float64=NaN,
-)
+    reltol::Real=NaN,
+) where {T}
     H_p, H_x = sys.H_p, sys.H_x
 
     Nx, Nt = size(x_initial)
     s = range(0; stop=1, length=Nt)
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
 
-    S = CircularBuffer{Float64}(2)
+    S = CircularBuffer{T}(2)
     fill!(S, Inf)
 
     progress = Progress(iterations; dt=0.5, enabled=show_progress)
@@ -74,9 +99,15 @@ function sgmam(
         end
         next!(progress; showvalues=[("iterations", i), ("Stol", round(tol; sigdigits=3))])
     end
-    return MaximumLikelihoodPath(
-        x, S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
+    return MinimumActionPath(
+        StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
     )
+end
+function sgmam(sys, x_initial::StateSpaceSet; kwargs...)
+    return sgmam(sys, Matrix(Matrix(x_initial)'); kwargs...)
+end
+function sgmam(sys::ContinuousTimeDynamicalSystem, x_initial::Matrix{<:Real}; kwargs...)
+    return sgmam(SgmamSystem(sys), Matrix(Matrix(x_initial)'); kwargs...)
 end
 
 function init_allocation(x_initial, Nt)
@@ -150,4 +181,13 @@ function central_diff!(xdot, x)
 end
 
 FW_action(xdot, p) = sum(sum(xdot .* p; dims=1)) / 2
-end # @stable
+
+function proper_sgMAM_system(ds::CoupledSDEs)
+    proper_MAM_system(ds)
+    Σ = covariance_matrix(ds)
+    return LinearAlgebra.isdiag(Σ) || throw(
+        ArgumentError(
+            "Simple geometric action is only defined for diagonal noise. The noise covariance matrix is not diagonal.",
+        ),
+    )
+end

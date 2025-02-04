@@ -32,9 +32,11 @@ The minimization can be performed in blocks to save intermediate results.
 If `save_iterations`, returns `Optim.OptimizationResults`. Else, returns only the optimizer (path).
 If `blocks > 1`, a vector of results/optimizers is returned.
 """
-function min_action_method(sys::CoupledSDEs, x_i, x_f, N::Int, T::Real; kwargs...)
+function min_action_method(
+    sys::ContinuousTimeDynamicalSystem, x_i, x_f, N::Int, T::Real; kwargs...
+)
     init = reduce(hcat, range(x_i, x_f; length=N))
-    return min_action_method(sys::CoupledSDEs, init, T; kwargs...)
+    return min_action_method(sys, init, T; kwargs...)
 end;
 
 """
@@ -52,8 +54,8 @@ For more information see the main method,
 [`min_action_method(sys::CoupledSDEs, x_i, x_f, N::Int, T::Real; kwargs...)`](@ref).
 """
 function min_action_method(
-    sys::CoupledSDEs,
-    init::Matrix,
+    sys::ContinuousTimeDynamicalSystem,
+    init::Matrix{<:Real},
     T::Real;
     functional="FW",
     maxiter::Int=100,
@@ -64,6 +66,9 @@ function min_action_method(
     verbose=false,
     show_progress=true,
 )
+    if sys isa CoupledSDEs
+        proper_MAM_system(sys)
+    end
     arc = range(0.0, T; length=size(init, 2))
     S(x) = action(sys, fix_ends(x, init[:, 1], init[:, end]), arc, functional)
 
@@ -85,7 +90,7 @@ function min_action_method(
         abstol=abstol,
         reltol=reltol,
     )
-    return MaximumLikelihoodPath(sol.u, sol.objective)
+    return MinimumActionPath(StateSpaceSet(sol.u'), sol.objective)
 end;
 
 """
