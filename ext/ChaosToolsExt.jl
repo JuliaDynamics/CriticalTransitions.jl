@@ -23,9 +23,7 @@ function CriticalTransitions.intervals_to_box(bmin::Vector, bmax::Vector)
     if length(bmin) != length(bmax)
         @warn "bmin and bmax must have the same length."
     end
-    return SVector{length(bmin)}(
-        [interval(bmin[i], bmax[i]) for i in 1:length(bmin)]
-    )
+    return SVector{length(bmin)}([interval(bmin[i], bmax[i]) for i in 1:length(bmin)])
 end
 
 """
