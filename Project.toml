@@ -26,9 +26,9 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
 
 [weakdeps]
-DelaunayTriangulation = "927a84f5-c5f4-47a5-9785-b46e178433df"
 Attractors = "f3fd9213-ca85-4dba-9dfd-7fc91308fec7"
 ChaosTools = "608a59af-f2a3-5ad4-90b4-758bdf3122a7"
+DelaunayTriangulation = "927a84f5-c5f4-47a5-9785-b46e178433df"
 StateSpaceSets = "40b095a5-5852-4c12-98c7-d43bf788e795"
 
 [extensions]
@@ -40,9 +40,9 @@ DistMesh2D = ["DelaunayTriangulation"]
 Attractors = "1.19.12"
 ChaosTools = "3.2.1"
 DataStructures = "0.18.20"
+DelaunayTriangulation = "1.6"
 DocStringExtensions = "0.9.3"
 DynamicalSystemsBase = "3.13"
-DelaunayTriangulation = "1.6"
 Format = "1"
 Interpolations = "0.15.1"
 IntervalArithmetic = "0.22"
