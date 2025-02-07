@@ -49,10 +49,6 @@ end
         include("ext/ChaosToolsExt.jl")
     end
 
-    @testset "CoupledSDEsBasin" begin
-        include("ext/CoupledSDEsBasin.jl")
-    end
-
     @testset "DistMesh2D" begin
         include("ext/DistMesh2D.jl")
     end

@@ -48,7 +48,7 @@ makedocs(;
     modules=[
         CriticalTransitions,
         Base.get_extension(CriticalTransitions, :ChaosToolsExt),
-        Base.get_extension(CriticalTransitions, :CoupledSDEsBasin),
+        Base.get_extension(CriticalTransitions, :AttractorsExt),
         Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
         # DynamicalSystemsBase
     ],

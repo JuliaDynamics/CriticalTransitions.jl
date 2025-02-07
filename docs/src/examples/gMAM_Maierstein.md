@@ -127,24 +127,6 @@ lines!(ax2, reduce(hcat, tr), linewidth=1, color=(:black, 0.2))
 fig
 ```
 
-## Basins of attraction
-
-Basins of attraction are the regions in the state space that lead to a particular attractor. We can find the basins of attraction using the function `basins`.
-
-```@example GMAM
-using Attractors
-
-ba = basins(sys, [0.0, 0], [0.0, 1], [1.0, 0], intervals_to_box([-2, -2], [2, 2]), bstep=[0.01, 0.01], ϵ_mapper=0.001, Ttr=100)
-Ur, Vr, atr, M = ba
-heatmap(Ur, Vr, M)
-```
-
-The basin boundaries can be quickly extracted using the function `basin_boundaries`.
-
-```@example GMAM
-bb = basinboundary(ba)
-```
-
 ## Transitions
 
 We can quickly find a path which computes a transition from one attractor to another using the function `transition.
