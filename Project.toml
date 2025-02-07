@@ -33,7 +33,7 @@ StateSpaceSets = "40b095a5-5852-4c12-98c7-d43bf788e795"
 
 [extensions]
 ChaosToolsExt = ["ChaosTools"]
-CoupledSDEsBasin = ["ChaosTools", "Attractors"]
+AttractorsExt = ["Attractors"]
 DistMesh2D = ["DelaunayTriangulation"]
 
 [compat]
