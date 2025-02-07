@@ -20,12 +20,12 @@ Generates a box from specifying the interval limits in each dimension.
 """
 function CriticalTransitions.intervals_to_box(bmin::Vector, bmax::Vector)
     # Generates a box from specifying the interval limits
-    intervals = []
-    dim = length(bmin)
-    for i in 1:dim
-        push!(intervals, interval(bmin[i], bmax[i]))
+    if length(bmin) != length(bmax)
+        @warn "bmin and bmax must have the same length."
     end
-    return intervals
+    return SVector{length(bmin)}(
+        [interval(bmin[i], bmax[i]) for i in 1:length(bmin)]
+    )
 end
 
 """
@@ -60,50 +60,5 @@ function ChaosTools.fixedpoints(sys::CoupledSDEs, box)
     ds = CoupledODEs(sys)
     return fixedpoints(CoupledODEs(sys), box, jacobian(ds))
 end
-
-# function saddles_idx(fps::Tuple)
-#     num = size(fps[1],1); # number of fixed points
-#     dim = size(fps[1],2); # dimension of the system
-#     eigenvalues = fps[2];
-#     idx = [false for i ∈ 1:num];
-#     for ii ∈ 1:num
-#         imag_parts = [imag(eigenvalues[ii][jj]) for jj ∈ 1:dim]
-#         if all(imag_parts.==0) # we have purely real eigenvalues
-#             real_parts = [real(eigenvalues[ii][jj]) for jj ∈ 1:dim];
-#             if prod(real_parts) < 0 # we have at least positive eigenvalue and at least one negative eigenvalue
-#                 idx[ii] = true;
-#             end
-#         end
-#     end
-#     idx
-# end
-
-# function repellers_idx(fps::Tuple)
-#     num = size(fps[1],1); # number of fixed points
-#     dim = size(fps[1],2); # dimension of the system
-#     eigenvalues = fps[2];
-#     idx = [false for i ∈ 1:num];
-#     for ii ∈ 1:num
-#         real_parts = [real(eigenvalues[ii][jj]) for jj ∈ 1:dim];
-#         if all(real_parts .> 0)
-#             idx[ii] = true;
-#         end
-#     end
-#     idx
-# end
-
-# function attractors_idx(fps::Tuple)
-#     num = size(fps[1],1); # number of fixed points
-#     dim = size(fps[1],2); # dimension of the system
-#     eigenvalues = fps[2];
-#     idx = [false for i ∈ 1:num];
-#     for ii ∈ 1:num
-#         real_parts = [real(eigenvalues[ii][jj]) for jj ∈ 1:dim];
-#         if all(real_parts .< 0)
-#             idx[ii] = true;
-#         end
-#     end
-#     idx
-# end
 
 end
