@@ -37,8 +37,8 @@ AttractorsExt = ["Attractors"]
 DistMesh2D = ["DelaunayTriangulation"]
 
 [compat]
-Attractors = "1.19.12"
-ChaosTools = "3.2.1"
+Attractors = "1.23.03"
+ChaosTools = "3.3.1"
 DataStructures = "0.18.20"
 DelaunayTriangulation = "1.6"
 DocStringExtensions = "0.9.3"
