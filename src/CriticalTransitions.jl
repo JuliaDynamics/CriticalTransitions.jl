@@ -55,7 +55,6 @@ include("extention_functions.jl")
 include("utils.jl")
 include("system_utils.jl")
 include("io.jl")
-include("RateSystem.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 include("trajectories/equib.jl")
@@ -70,7 +69,6 @@ using .CTLibrary
 # Core types
 export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
 export dynamic_rule, current_state, set_state!, trajectory
-export RateSystem
 
 # Methods
 export drift, div_drift
