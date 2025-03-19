@@ -1,55 +1,38 @@
 """
 $(TYPEDSIGNATURES)
 
-Computes the minimizer of the Freidlin-Wentzell action using the geometric minimum
-action method (gMAM). Beta version, to be further documented.
+Computes the minimizer of the geometric Freidlin-Wentzell action based on the geometric
+minimum action method (gMAM), using optimizers of OPtimization.jl or the original formulation
+by Heymann and Vanden-Eijnden[^1]. Only Freidlin-Wentzell action has a geometric formulation.
 
 To set an initial path different from a straight line, see the multiple dispatch method
 
-  - `geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength::Float64; kwargs...)`.
+  - `geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength::Real; kwargs...)`.
 
 ## Keyword arguments
 
-  - `N = 100`: number of discretized path points
-  - `maxiter = 100`: maximum number of iterations before the algorithm stops
-  - `converge = 1e-5`: convergence threshold for absolute change in action
-  - `method = LBFGS()`: choice of optimization algorithm (see below)
-  - `tau = 0.1`: step size (used only if `method = "HeymannVandenEijnden"`)
+  - `maxiter::Int=100`: maximum number of optimization iterations before the alogrithm stops
+  - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
+  - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
+  - `method = Adam()`: minimization algorithm (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
+  - `=0.1`: step size parameter in gradient descent HeymannVandenEijnden implementation.
+  - `verbose=false`: if true, print additional output
+  - `show_progress=true`: if true, display a progress bar
 
 ## Optimization algorithms
 
 The `method` keyword argument takes solver methods of the
-[`Optim.jl`](https://julianlsolvers.github.io/Optim.jl/stable/#) package; alternatively,
+[`Optimization.jl`](https://docs.sciml.ai/Optimization/) package; alternatively,
 the option `solver = "HeymannVandenEijnden"` uses the original gMAM
 algorithm[^1].
 
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
 function geometric_min_action_method(
-    sys::CoupledSDEs,
-    x_i,
-    x_f,
-    arclength=1.0;
-    N=100,
-    maxiter=100,
-    converge=1e-5,
-    method=LBFGS(),
-    tau=0.1,
-    verbose::Bool=true,
-    showprogress::Bool=false,
+    sys::ContinuousTimeDynamicalSystem, x_i, x_f; N=100, kwargs...
 )
     path = reduce(hcat, range(x_i, x_f; length=N))
-    return geometric_min_action_method(
-        sys::CoupledSDEs,
-        path,
-        arclength;
-        maxiter=maxiter,
-        converge=converge,
-        method=method,
-        tau=tau,
-        verbose=verbose,
-        showprogress=showprogress,
-    )
+    return geometric_min_action_method(sys, path; kwargs...)
 end
 
 """
@@ -62,65 +45,60 @@ The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dime
 system and `N` is the number of path points.
 
 For more information see the main method,
-[`geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength::Float64; kwargs...)`](@ref).
+[`geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength::Real; kwargs...)`](@ref).
 """
 function geometric_min_action_method(
-    sys::CoupledSDEs,
-    init::Matrix,
-    arclength=1.0;
+    sys::ContinuousTimeDynamicalSystem,
+    init::Matrix;
     maxiter::Int=100,
-    converge=1e-5,
-    method=LBFGS(),
-    tau=0.1,
-    verbose::Bool=true,
-    showprogress::Bool=false,
+    abstol=nothing,
+    reltol=nothing,
+    method=Optimisers.Adam(),
+    AD=Optimization.AutoFiniteDiff(),
+    ϵ=0.1,
+    verbose=false,
+    show_progress=true,
 )
-    verbose && println("=== Initializing gMAM action minimizer ===")
+    if sys isa CoupledSDEs
+        proper_MAM_system(sys)
+    end
 
-    path = init
-    x_i = init[:, 1]
-    x_f = init[:, end]
+    path = deepcopy(init)
     N = length(init[1, :])
+    alpha = zeros(N)
+    arc = range(0, 1.0; length=N)
 
-    S(x) = geometric_action(sys, fix_ends(x, x_i, x_f), arclength)
-    paths = [path]
-    action = [S(path)]
+    S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
 
-    iterator = showprogress ? tqdm(1:maxiter) : 1:maxiter
-    for i in iterator
-        if method == "HeymannVandenEijnden"
-            error("The HeymannVandenEijnden method is broken")
-            # update_path = heymann_vandeneijnden_step(sys, path, N, arclength;
-            # tau = tau)
-        else
-            update = Optim.optimize(S, path, method, Optim.Options(; iterations=1))
-            update_path = Optim.minimizer(update)
+    prog = Progress(maxiter; enabled=show_progress)
+    if method == "HeymannVandenEijnden"
+        # error("The HeymannVandenEijnden method is broken")
+        @warn("The HeymannVandenEijnden method currently does not work.")
+        # for i in 1:maxiter
+        #     update = heymann_vandeneijnden_step(sys, path, N; tau=tau)
+        #     path .= update
+        #     interpolate_path!(path, alpha, arc)
+        #     next!(prog)
+        # end
+    else
+        optf = OptimizationFunction((x, _) -> S(x), AD)
+        prob = OptimizationProblem(optf, init, ())
+
+        function callback(state, loss_val)
+            interpolate_path!(state.u, alpha, arc)
+            show_progress ? next!(prog) : nothing
+            return false
         end
 
-        # re-interpolate
-        path = interpolate_path(update_path, sys, N, arclength)
-        push!(paths, path)
-        push!(action, S(path))
-
-        if abs(action[end] - action[end - 1]) < converge
-            verbose && println("Converged after $(i) iterations.")
-            return paths, action
-            break
-        end
+        sol = solve(
+            prob, method; maxiters=maxiter, callback=callback, abstol=abstol, reltol=reltol
+        )
+        path = sol.u
     end
-    verbose && @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
-    return paths, action
-end
-
-function interpolate_path(path, sys, N, arclength)
-    s = zeros(N)
-    for j in 2:N
-        s[j] = s[j - 1] + anorm(path[:, j] - path[:, j - 1], covariance_matrix(sys))
-        #! anorm or norm?
-    end
-    s_length = s / s[end] * arclength
-    interp = ParametricSpline(s_length, path; k=3)
-    return reduce(hcat, [interp(x) for x in range(0, arclength; length=N)])
+    # if verbose && !converged
+    #     @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
+    # end
+    return MinimumActionPath(StateSpaceSet(path'), S(path))
 end
 
 """
@@ -135,7 +113,10 @@ Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `
 
 [^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
 """
-function heymann_vandeneijnden_step(sys::CoupledSDEs, path, N, L; tau=0.1, diff_order=4)
+function heymann_vandeneijnden_step(
+    sys::ContinuousTimeDynamicalSystem, path, N; tau=0.1, diff_order=4
+)
+    L = 1.0
     dx = L / (N - 1)
     update = zeros(size(path))
     lambdas, lambdas_prime = zeros(N), zeros(N)
@@ -151,15 +132,16 @@ function heymann_vandeneijnden_step(sys::CoupledSDEs, path, N, L; tau=0.1, diff_
     end
 
     b(x) = drift(sys, x)
+    jac(x) = jacobian(sys)(x, sys.p0)
 
-    J = [ForwardDiff.jacobian(b, path[:, i]) for i in 2:(N - 1)]
+    J = [jac(path[:, i]) for i in 2:(N - 1)]
     prod1 = [(J[i - 1] - J[i - 1]') * x_prime[:, i] for i in 2:(N - 1)]
     prod2 = [(J[i - 1]') * b(path[:, i]) for i in 2:(N - 1)]
 
     # Solve linear system M*x = v for each system dimension
     #! might be made faster using LinearSolve.jl special solvers
-    Threads.@threads for j in 1:size(path, 1)
-        M = Matrix(1 * I(N))
+    for j in 1:size(path, 1)
+        M = Matrix{Real}(1 * I(N))
         v = zeros(N)
 
         # Boundary conditions

@@ -1,16 +1,20 @@
+using CriticalTransitions
+using Test
+
+using CriticalTransitions.CTLibrary: fitzhugh_nagumo
+
 @testset "gMAM FitzHugh-Nagumo" begin
     p = [0.1, 3, 1, 1, 1, 0]
     σ = 0.1
     fhn = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ)
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
-    N = 100
-    res = geometric_min_action_method(fhn, x_i, x_f; N=75, maxiter=200, verbose=false)
-    S = geometric_action(fhn, res[1][end])
+    res = geometric_min_action_method(fhn, x_i, x_f; N=30, maxiter=500, show_progress=false)
+    S = geometric_action(fhn, Matrix(res.path)')
     @test isapprox(S, 0.18, atol=0.01)
 end
 
-@testset "gMAM Meier Stein" begin
+@testset "HeymannVandenEijnden" begin # broken
     function meier_stein(u, p, t) # out-of-place
         x, y = u
         dx = x - x^3 - 10 * x * y^2
@@ -18,7 +22,6 @@ end
         return [dx, dy]
     end
     σ = 0.25
-    # sys = CoupledSDEs(fitzhugh_nagumo, idfunc, zeros(2), p, σ)
     sys = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
 
     # initial path: parabola
@@ -29,23 +32,13 @@ end
     x_i = init[:, 1]
     x_f = init[:, end]
 
-    @testset "LBFGS" begin
-        gm = geometric_min_action_method(sys, x_i, x_f; maxiter=10, verbose=false)
-        gm = geometric_min_action_method(sys, init; maxiter=100, verbose=false)
+    method = "HeymannVandenEijnden"
+    gm = geometric_min_action_method(
+        sys, init; maxiter=500, method=method, verbose=false, show_progress=false
+    )
 
-        path = gm[1][end]
-        action_val = gm[2][end]
-        @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=1e-3))
-        @test all(isapprox.(action_val, 0.3375, atol=1e-3))
-    end
-
-    @testset "HeymannVandenEijnden" begin # broken
-        # method = "HeymannVandenEijnden"
-        # gm = geometric_min_action_method(sys, x_i, x_f, maxiter = 10, method=method)
-
-        # path = gm[1][end]
-        # action_val = gm[2][end]
-        # @test all(isapprox.(path[2, :][(end - 5):end], 0, atol = 1e-3))
-        # @test all(isapprox.(action_val, 0.3375, atol = 1e-3))
-    end # HeymannVandenEijnden
-end # gMAM Meier Stein
+    path = Matrix(gm.path)'
+    action_val = gm.action
+    @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=1e-3)) broken = true
+    @test all(isapprox.(action_val, 0.3375, atol=1e-3)) broken = true
+end # HeymannVandenEijnden

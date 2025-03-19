@@ -5,6 +5,11 @@ using Pkg
 
 using CriticalTransitions, ChaosTools, Attractors
 using DynamicalSystemsBase
+StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
+ChaosToolsExt = Base.get_extension(CriticalTransitions, :ChaosToolsExt)
+CoupledSDEsBasin = Base.get_extension(CriticalTransitions, :CoupledSDEsBasin)
+
+using StochasticDiffEq, DiffEqNoiseProcess
 
 project_toml = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 package_version = project_toml["version"]
@@ -13,9 +18,10 @@ authors = join(project_toml["authors"], ", ") * " and contributors"
 github = "https://github.com/juliadynamics/CriticalTransitions.jl"
 
 links = InterLinks(
-# "DiffEqNoiseProcess" => "https://docs.sciml.ai/DiffEqNoiseProcess/stable/",
-# "DifferentialEquations" => "https://docs.sciml.ai/DiffEqDocs/stable/",
-# "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",
+    "DynamicalSystemsBase" => "https://juliadynamics.github.io/DynamicalSystemsBase.jl/dev/",
+    # "DiffEqNoiseProcess" => "https://docs.sciml.ai/DiffEqNoiseProcess/stable/",
+    # "DifferentialEquations" => "https://docs.sciml.ai/DiffEqDocs/stable/",
+    # "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",
 )
 
 bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style=:numeric)
@@ -38,22 +44,24 @@ end
 makedocs(;
     authors=authors,
     sitename="CriticalTransitions.jl",
+    repo=Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
+    modules=[
+        CriticalTransitions,
+        Base.get_extension(CriticalTransitions, :ChaosToolsExt),
+        Base.get_extension(CriticalTransitions, :AttractorsExt),
+        Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
+        # DynamicalSystemsBase
+    ],
+    checkdocs_ignored_modules=[DynamicalSystemsBase, CriticalTransitions.CTLibrary],
+    pages=pages,
     linkcheck=true,
     pagesonly=true,
     checkdocs=:exports,
-    modules=[
-        CriticalTransitions,
-        CriticalTransitions.DiffEqNoiseProcess,
-        Base.get_extension(CriticalTransitions, :ChaosToolsExt),
-        Base.get_extension(CriticalTransitions, :CoupledSDEsBaisin),
-        DynamicalSystemsBase,
-        Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
-    ],
     doctest=false,
     format=Documenter.HTML(; html_options...),
     warnonly=[:missing_docs, :linkcheck, :cross_references],
-    pages=pages,
     plugins=[bib, links],
+    draft=false,
 )
 
-deploydocs(; repo="github.com/JuliaDynamics/CriticalTransitions.jl.git", push_preview=false)
+deploydocs(; repo="github.com/JuliaDynamics/CriticalTransitions.jl.git", push_preview=true)

@@ -2,11 +2,29 @@ module ChaosToolsExt
 
 using CriticalTransitions
 using DocStringExtensions
-using ForwardDiff
 using ChaosTools: ChaosTools, fixedpoints
-using DynamicalSystemsBase: CoupledODEs, StateSpaceSet
+using DynamicalSystemsBase: CoupledODEs, StateSpaceSet, jacobian
+using IntervalArithmetic: IntervalArithmetic, interval
 
-export fixedpoints
+export fixedpoints, intervals_to_box
+
+"""
+$(TYPEDSIGNATURES)
+
+Generates a box from specifying the interval limits in each dimension.
+* `bmin` (Vector): lower limit of the box in each dimension
+* `bmax` (Vector): upper limit
+
+## Example
+`intervals_to_box([-2,-1,0], [2,1,1])` returns a 3D box of dimensions `[-2,2] × [-1,1] × [0,1]`.
+"""
+function CriticalTransitions.intervals_to_box(bmin::Vector, bmax::Vector)
+    # Generates a box from specifying the interval limits
+    if length(bmin) != length(bmax)
+        @warn "bmin and bmax must have the same length."
+    end
+    return SVector{length(bmin)}([interval(bmin[i], bmax[i]) for i in 1:length(bmin)])
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -32,58 +50,13 @@ Returns fixed points, their eigenvalues and stability of the system `sys` within
 * `fixedpoints(sys::CoupedSDEs, box)`
 """
 function ChaosTools.fixedpoints(sys::CoupledSDEs, bmin::Vector, bmax::Vector)
-    box = intervals_to_box(bmin, bmax)
+    box = CriticalTransitions.intervals_to_box(bmin, bmax)
     return fixedpoints(sys::CoupledSDEs, box)
 end
 
 function ChaosTools.fixedpoints(sys::CoupledSDEs, box)
-    jac(u, p, t) = ForwardDiff.jacobian((x) -> sys.integ.f(x, p, t), u)
-    return fixedpoints(CoupledODEs(sys), box, jac)
+    ds = CoupledODEs(sys)
+    return fixedpoints(CoupledODEs(sys), box, jacobian(ds))
 end
-
-# function saddles_idx(fps::Tuple)
-#     num = size(fps[1],1); # number of fixed points
-#     dim = size(fps[1],2); # dimension of the system
-#     eigenvalues = fps[2];
-#     idx = [false for i ∈ 1:num];
-#     for ii ∈ 1:num
-#         imag_parts = [imag(eigenvalues[ii][jj]) for jj ∈ 1:dim]
-#         if all(imag_parts.==0) # we have purely real eigenvalues
-#             real_parts = [real(eigenvalues[ii][jj]) for jj ∈ 1:dim];
-#             if prod(real_parts) < 0 # we have at least positive eigenvalue and at least one negative eigenvalue
-#                 idx[ii] = true;
-#             end
-#         end
-#     end
-#     idx
-# end
-
-# function repellers_idx(fps::Tuple)
-#     num = size(fps[1],1); # number of fixed points
-#     dim = size(fps[1],2); # dimension of the system
-#     eigenvalues = fps[2];
-#     idx = [false for i ∈ 1:num];
-#     for ii ∈ 1:num
-#         real_parts = [real(eigenvalues[ii][jj]) for jj ∈ 1:dim];
-#         if all(real_parts .> 0)
-#             idx[ii] = true;
-#         end
-#     end
-#     idx
-# end
-
-# function attractors_idx(fps::Tuple)
-#     num = size(fps[1],1); # number of fixed points
-#     dim = size(fps[1],2); # dimension of the system
-#     eigenvalues = fps[2];
-#     idx = [false for i ∈ 1:num];
-#     for ii ∈ 1:num
-#         real_parts = [real(eigenvalues[ii][jj]) for jj ∈ 1:dim];
-#         if all(real_parts .< 0)
-#             idx[ii] = true;
-#         end
-#     end
-#     idx
-# end
 
 end

@@ -3,25 +3,16 @@
 ## `CoupledSDEs` utility functions
 
 ```@docs
-covariance_matrix
-diffusion_matrix
-dynamic_rule
-noise_process
-current_state
-set_state!
+solver
 drift
 div_drift
+StochasticSystemsBase.covariance_matrix
+StochasticSystemsBase.diffusion_matrix
+noise_process
 ```
 
-## Saving data
+## More
 
 ```@docs
-make_jld2(text::String, relpath::String="")
-make_h5(text::String, relpath::String="")
-```
-
-### `length(sys.u)`-dimensional box
-
-```@docs
-intervals_to_box(bmin::Vector, bmax::Vector)
+CriticalTransitions.intervals_to_box
 ```
