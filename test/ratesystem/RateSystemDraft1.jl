@@ -26,6 +26,3 @@ end;
 # Canard Trajectories
 
 # \dot(x) = f(x(t),λ(t))
-
-
-
