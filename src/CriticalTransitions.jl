@@ -62,6 +62,7 @@ include("noiseprocesses/stochprocess.jl")
 include("largedeviations/action.jl")
 include("largedeviations/min_action_method.jl")
 include("largedeviations/geometric_min_action_method.jl")
+include("RateSystem.jl")
 
 include("../systems/CTLibrary.jl")
 using .CTLibrary
@@ -79,6 +80,7 @@ export fw_action, om_action, action, geometric_action
 export min_action_method, geometric_min_action_method
 export make_jld2, make_h5, intervals_to_box
 export covariance_matrix, diffusion_matrix
+export RateSystem
 # export edgetracking, bisect_to_edge, AttractorsViaProximity
 # export fixedpoints
 # ^ extention tests needed
