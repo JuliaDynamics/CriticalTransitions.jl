@@ -65,6 +65,8 @@ include("largedeviations/string_method.jl")
 include("../systems/CTLibrary.jl")
 using .CTLibrary
 
+include("../test/ratesystem/RateSystemDraft2.jl")
+
 # Core types
 export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
 export drift, div_drift, solver
@@ -85,6 +87,8 @@ export find_boundary, huniform, dunion
 
 export committor,
     invariant_pdf, reactive_current, probability_reactive, probability_last_A, Langevin
+
+export RateProtocol, RateSystem
 
 # Error hint for extensions stubs
 function __init__()
