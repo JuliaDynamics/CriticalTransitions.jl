@@ -26,6 +26,7 @@ using Interpolations: linear_interpolation
 using Optimization
 using OptimizationOptimisers: Optimisers
 using LinearSolve: LinearProblem, KLUFactorization, solve
+using PolynomialRoots: roots
 
 # io and documentation
 using Format: Format
