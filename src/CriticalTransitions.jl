@@ -65,7 +65,7 @@ include("largedeviations/string_method.jl")
 include("../systems/CTLibrary.jl")
 using .CTLibrary
 
-include("../test/ratesystem/RateSystemDraft.jl")
+include("../test/ratesystem/RateSystemDraft1.jl")
 
 # Core types
 export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
