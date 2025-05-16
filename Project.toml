@@ -32,8 +32,8 @@ DelaunayTriangulation = "927a84f5-c5f4-47a5-9785-b46e178433df"
 StateSpaceSets = "40b095a5-5852-4c12-98c7-d43bf788e795"
 
 [extensions]
-ChaosToolsExt = ["ChaosTools"]
 AttractorsExt = ["Attractors"]
+ChaosToolsExt = ["ChaosTools"]
 DistMesh2D = ["DelaunayTriangulation"]
 
 [compat]
@@ -44,7 +44,7 @@ DelaunayTriangulation = "1.6"
 DocStringExtensions = "0.9.3"
 DynamicalSystemsBase = "3.13"
 Format = "1"
-Interpolations = "0.15.1"
+Interpolations = "0.15.1, 0.16"
 IntervalArithmetic = "0.22.22"
 LinearSolve = "2.37.0, 3"
 Optimization = "4"
