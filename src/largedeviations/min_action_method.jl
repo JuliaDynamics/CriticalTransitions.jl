@@ -35,8 +35,7 @@ value.
   - `show_progress = false`: whether to print a progress bar
 """
 function min_action_method(
-    sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real;
-    N=100, kwargs...
+    sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real; N=100, kwargs...
 )
     init = reduce(hcat, range(x_i, x_f; length=N))
     return min_action_method(sys, init, T; kwargs...)
@@ -71,8 +70,9 @@ function min_action_method(
         proper_MAM_system(sys)
     end
     times = range(0.0, T; length=size(init, 2))
-    S(x) = action(sys, fix_ends(x, init[:, 1], init[:, end]), times, functional;
-        noise_strength)
+    S(x) = action(
+        sys, fix_ends(x, init[:, 1], init[:, end]), times, functional; noise_strength
+    )
 
     optf = OptimizationFunction((x, _) -> S(x), ad_type)
     prob = OptimizationProblem(optf, init, ())
@@ -85,12 +85,7 @@ function min_action_method(
     end
 
     sol = solve(
-        prob,
-        method;
-        maxiters=maxiter,
-        callback=callback,
-        abstol=abstol,
-        reltol=reltol,
+        prob, method; maxiters=maxiter, callback=callback, abstol=abstol, reltol=reltol
     )
     return MinimumActionPath(StateSpaceSet(sol.u'), sol.objective)
 end;
