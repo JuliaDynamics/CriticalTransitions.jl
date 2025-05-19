@@ -33,7 +33,7 @@ end
     W = noise_process(lorenz_oop)
     int_cov = W.covariance
     # The internal covariance in the DiffEqNoiseProcess.NoiseProcess should be nothing
-    @test int_cov == nothing
+    @test isnothing(int_cov)
 end
 
 @testset "approximate cov" begin

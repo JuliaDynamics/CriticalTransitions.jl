@@ -79,11 +79,11 @@ Computes the action functional specified by `functional` for a given CoupledSDEs
 """
 function action(sys::CoupledSDEs, path::Matrix, time, functional; noise_strength=nothing)
     if functional == "FW"
-        action = fw_action(sys, path, time)
+        S = fw_action(sys, path, time)
     elseif functional == "OM"
-        action = om_action(sys, path, time, noise_strength)
+        S = om_action(sys, path, time, noise_strength)
     end
-    return action
+    return S
 end;
 
 """
@@ -139,7 +139,7 @@ function fw_integrand(sys::CoupledSDEs, path, time, A)
     v = path_velocity(path, time; order=4)
     sqnorm = zeros(size(path, 2))
     b(x) = drift(sys, x)
-    for i in 1:size(path, 2)
+    for i in axes(path, 2)
         # assumes the drift is time independent
         drift = b(path[:, i])
         sqnorm[i] = anorm(v[:, i] - drift, A; square=true)
