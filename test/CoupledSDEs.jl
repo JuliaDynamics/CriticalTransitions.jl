@@ -116,7 +116,7 @@ using CriticalTransitions, Test
 
             g!(du, u, p, t) = du .= u
             @test_throws ArgumentError CoupledSDEs(
-                f!, zeros(2); g=g!, covariance=[1 0.3; 0.3 1]
+                f!, zeros(2); g=(g!), covariance=[1 0.3; 0.3 1]
             )
 
             g(u, p, t) = u

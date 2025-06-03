@@ -2,8 +2,8 @@
     using ExplicitImports, Aqua
     ignore_deps = [:Random, :LinearAlgebra, :Printf, :Test, :Pkg]
 
-    @test check_no_stale_explicit_imports(CriticalTransitions) == nothing
-    @test check_all_explicit_imports_via_owners(CriticalTransitions) == nothing
+    @test isnothing(check_no_stale_explicit_imports(CriticalTransitions))
+    @test isnothing(check_all_explicit_imports_via_owners(CriticalTransitions))
     Aqua.test_ambiguities(CriticalTransitions)
     Aqua.test_all(
         CriticalTransitions;
