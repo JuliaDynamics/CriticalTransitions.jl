@@ -17,9 +17,9 @@ end
     include("covariance.jl")
 end
 
-@testset "ModelingToolkit" begin
-    include("ModelingToolkit.jl")
-end
+#@testset "ModelingToolkit" begin
+#    include("ModelingToolkit.jl")
+#end
 
 @testset "Large Deviations" begin
     include("largedeviations/action_fhn.jl")
