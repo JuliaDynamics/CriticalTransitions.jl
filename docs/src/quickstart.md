@@ -3,7 +3,7 @@
 ## Installation
 Although the package is not yet registered, you can install it from Github via the Julia package manager:
 ```julia
-using Pkg; Pkg.add('https://github.com/juliadynamics/CriticalTransitions.jl.git')
+using Pkg; Pkg.add(url="https://github.com/juliadynamics/CriticalTransitions.jl.git")
 ```
 
 The package is currently tested to be compatible with Julia versions `1.10` and `1.11`.
