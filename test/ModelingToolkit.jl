@@ -27,7 +27,7 @@ using StochasticDiffEq: LambaEulerHeun
         (s * x * z)-s * z 0
     ]
 
-    sys2 = SDESystem(drift_eqs, diffusion_eqs, t, sts, ps; name=:sys1)
+    sys2 = structural_simplify(SDESystem(drift_eqs, diffusion_eqs, t, sts, ps; name=:sys1))
     @test sys1 == sys2
 
     prob = SDEProblem(sys1, sts .=> [1.0, 0.0, 0.0], (0.0, 100.0), ps .=> (10.0, 26.0))
