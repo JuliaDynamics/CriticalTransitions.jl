@@ -72,7 +72,7 @@ export StateSpaceSet
 
 export sgmam, SgmamSystem
 export fw_action, om_action, action, geometric_action
-export min_action_method, geometric_min_action_method, string_method
+export min_action_method, action_minimizer, geometric_min_action_method, string_method
 export MinimumActionPath
 
 export deterministic_orbit
