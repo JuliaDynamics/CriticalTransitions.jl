@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliadynamics.github.io/CriticalTransitions.jl/dev/)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/CriticalTransitions.jl/stable/)
-[![Tests](https://github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/ci.yml/badge.svg)](github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/ci.yml)
+[![Tests](https://github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/Tests.yml/badge.svg)](github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/ci.yml)
 
 [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
@@ -21,16 +21,16 @@ using CriticalTransitions
 
 function fitzhugh_nagumo(u, p, t)
     x, y = u
-    ϵ, β, α, γ, κ, I = p
+    ϵ, β = p
 
-    dx = (-α * x^3 + γ * x - κ * y + I) / ϵ
-    dy = -β * y + x
+    dx = (-x^3 + x - y)/ϵ
+    dy = -β*y + x
 
     return SVector{2}([dx, dy])
 end
 
 # System parameters
-params = [1., 3., 1., 1., 1., 0.]
+params = [0.1, 3.0]
 noise_strength = 0.02
 initial_state = zeros(2)
 
@@ -52,4 +52,4 @@ Developers: Reyk Börner, Ryan Deeley, Raphael Römer and Orjan Ameye
 
 Thanks to Jeroen Wouters, Calvin Nesbitt, Tobias Grafke, George Datseris and Oliver Mehling
 
-This work is part of the [CriticalEarth](https://www.criticalearth.eu) project.
+This package was created as part of the [CriticalEarth](https://www.criticalearth.eu) project.

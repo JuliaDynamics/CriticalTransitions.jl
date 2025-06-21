@@ -1,20 +1,17 @@
 # Quickstart
 
 ## Installation
-As this module is not published yet, there are two ways to access it:
+Although the package is not yet registered, you can install it from Github via the Julia package manager:
+```julia
+using Pkg; Pkg.add('https://github.com/juliadynamics/CriticalTransitions.jl.git')
+```
 
-* **Option 1 (recommended): Install from GitHub**
-    1. Enter the Julia package manager by typing `]` in the REPL: `julia> ]`
-    2. type `add https://github.com/juliadynamics/CriticalTransitions.jl.git`
-* **Option 2: Load module locally**
-    1. Clone the repo: `git clone https://github.com/juliadynamics/CriticalTransitions.jl.git`
-    2. In Julia, include the module file: `include("PATH/src/CriticalTransitions.jl")`, where `PATH` is the relative path to the repo you just cloned
-    3. Load the module: `using .CriticalTransitions`
+The package is currently tested to be compatible with Julia versions `1.10` and `1.11`.
 
 ## Basic usage
 The general workflow of `CriticalTransitions` essentially follows two steps:
 
-1. Define your system (see [Define a CoupledSDEs system](@ref))
+1. Define your system as a `CoupledSDEs` (see [Define a CoupledSDEs system](@ref))
 2. Investigate the system by calling methods (see [Methods](@ref))
 
 !!! info "New system type: RateSystem"
@@ -26,5 +23,5 @@ Currently the following functions are implemented to analyze a [`CoupledSDEs`](@
 corresponding sample transition paths.
 
 ```@index
-Pages = ["man/simulation.md", "man/sampling.md", "man/largedeviations.md"]
+Pages = ["man/systemanalysis.md", "man/simulation.md", "man/sampling.md", "man/largedeviations.md", "man/utils.md"]
 ```

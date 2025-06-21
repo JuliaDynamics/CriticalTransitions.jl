@@ -1,3 +1,5 @@
+CI = get(ENV, "CI", nothing) == "true" || get(ENV, "GITHUB_TOKEN", nothing) !== nothing
+
 using Documenter
 using DocumenterCitations
 using DocumenterInterLinks
@@ -26,6 +28,12 @@ links = InterLinks(
 
 bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style=:numeric)
 
+if CI
+    include("make_md_examples.jl")
+else
+    nothing
+end
+
 include("pages.jl")
 
 html_options = Dict(
@@ -48,7 +56,7 @@ makedocs(;
     modules=[
         CriticalTransitions,
         Base.get_extension(CriticalTransitions, :ChaosToolsExt),
-        Base.get_extension(CriticalTransitions, :CoupledSDEsBasin),
+        Base.get_extension(CriticalTransitions, :AttractorsExt),
         Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
         # DynamicalSystemsBase
     ],

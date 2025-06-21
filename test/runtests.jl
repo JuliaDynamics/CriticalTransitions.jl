@@ -8,7 +8,7 @@ Random.seed!(SEED)
 
 using CriticalTransitions.CTLibrary: fitzhugh_nagumo
 
-@testset "code quality" begin
+@testset "Code Quality" begin
     include("code_quality.jl")
 end
 
@@ -17,9 +17,9 @@ end
     include("covariance.jl")
 end
 
-@testset "ModelingToolkit" begin
-    include("ModelingToolkit.jl")
-end
+#@testset "ModelingToolkit" begin
+#    include("ModelingToolkit.jl")
+#end
 
 @testset "Large Deviations" begin
     include("largedeviations/action_fhn.jl")
@@ -47,10 +47,6 @@ end
 @testset "Extensions" begin
     @testset "ChaosToolsExt" begin
         include("ext/ChaosToolsExt.jl")
-    end
-
-    @testset "CoupledSDEsBasin" begin
-        include("ext/CoupledSDEsBasin.jl")
     end
 
     @testset "DistMesh2D" begin

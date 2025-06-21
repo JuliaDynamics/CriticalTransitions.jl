@@ -72,18 +72,15 @@ export StateSpaceSet
 
 export sgmam, SgmamSystem
 export fw_action, om_action, action, geometric_action
-export min_action_method, geometric_min_action_method, string_method
+export min_action_method, action_minimizer, geometric_min_action_method, string_method
 export MinimumActionPath
 
 export deterministic_orbit
 export transition, transitions
 
-export basins, basinboundary, basboundary
-export intervals_to_box
-
 export distmesh2D, dellipse, ddiff
 export TransitionPathMesh, Committor
-export get_ellipse, reparametrization
+export get_ellipse, reparameterization
 export find_boundary, huniform, dunion
 
 export committor,
@@ -91,9 +88,6 @@ export committor,
 
 # Error hint for extensions stubs
 function __init__()
-    Base.Experimental.register_error_hint(_basin_error_hinter(basins), MethodError)
-    Base.Experimental.register_error_hint(_basin_error_hinter(basboundary), MethodError)
-    Base.Experimental.register_error_hint(_basin_error_hinter(basinboundary), MethodError)
     Base.Experimental.register_error_hint(
         _basin_error_hinter(intervals_to_box), MethodError
     )

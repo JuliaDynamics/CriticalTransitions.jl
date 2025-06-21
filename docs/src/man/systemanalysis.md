@@ -16,10 +16,3 @@ introduced by [Battelino et al. (1988)](https://doi.org/10.1016/0167-2789(88)900
 edgetracking
 bisect_to_edge
 ```
-
-## Baisin of attraction
-```@docs
-basinboundary
-basboundary
-basins
-```

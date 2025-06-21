@@ -1,7 +1,7 @@
-function basins end
-function basboundary end
-function basinboundary end
 function intervals_to_box end
+function fixedpoints end
+function edgetracking end
+function bisect_to_edge end
 
 function get_boundary end
 function find_boundary end
@@ -11,7 +11,7 @@ function dunion end
 function ddiff end
 function distmesh2D end
 function get_ellipse end
-function reparametrization end
+function reparameterization end
 
 # ## Method error handling
 # We also inject a method error handler, which
