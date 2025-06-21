@@ -136,7 +136,7 @@ cont = CTR.contour(x1, y1, Hgrid, Hbdry)
 yc, xc = coordinates(CTR.lines(cont)[1])
 p_outer = [xc yc]
 
-pts_outer = reparametrization(p_outer, density);
+pts_outer = reparameterization(p_outer, density);
 Nouter = size(pts_outer, 1)
 Nfix = Na + Nb + Nouter
 

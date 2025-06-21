@@ -173,7 +173,7 @@ We can quickly find a path which computes a transition from one attractor to ano
 
 ````@example gMAM_Maierstein
 paths_ends = (fp[stab][1], fp[stab][2])
-path, time, succes = transition(sys, paths_ends...);
+path, time, success = transition(sys, paths_ends...);
 nothing #hide
 ````
 

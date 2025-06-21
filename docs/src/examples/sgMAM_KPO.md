@@ -14,7 +14,7 @@ The KPO equation is a nonlinear ordinary differential equation that describes th
 ```
 where `f` is an autonemous drift function and and we have brownian noise `ξ` with intensity `σ`.
 
-Here we define the define the drift of each seperable variable `u` and `v`. In addition, we hard-code the Jacobian of the drift function.
+Here we define the define the drift of each separable variable `u` and `v`. In addition, we hard-code the Jacobian of the drift function.
 
 ````@example sgMAM_KPO
 const λ = 3 / 1.21 * 2 / 295
@@ -93,7 +93,7 @@ x_min = MLP.path;
 nothing #hide
 ````
 
-The function returns the optimal path `x_min`, the minmal action `S_min`, the Lagrange multipliers `lambda` associated with the optimal path, the optimal generalised momentum `p`, and the time derivative of the optimal path `xdot`. We can plot the initial trajectory and the optimal path:
+The function returns the optimal path `x_min`, the minimal action `S_min`, the Lagrange multipliers `lambda` associated with the optimal path, the optimal generalised momentum `p`, and the time derivative of the optimal path `xdot`. We can plot the initial trajectory and the optimal path:
 
 ````@example sgMAM_KPO
 fig, ax, _ = lines(

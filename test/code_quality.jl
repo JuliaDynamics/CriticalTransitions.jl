@@ -28,7 +28,6 @@ end
     # @test check_no_self_qualified_accesses(CriticalTransitions) == nothing
 end
 
-
 if isempty(VERSION.prerelease)
     @testset "Code linting" begin
         using JET
