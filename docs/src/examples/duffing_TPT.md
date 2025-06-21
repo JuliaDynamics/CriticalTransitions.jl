@@ -1,6 +1,6 @@
-# Transition Path Theory for the undriven Duffing oscillator
+# Transition Path Theory for the double well
 
-In this example, we explore the application of Transition Path Theory to the undriven Duffing oscillator. We will compute various quantities of interest in Transition Path Theory (TPT), such as the Hamiltonian, committor functions, reactive currents, and reaction rates. These computations will be performed on a triangular mesh in the phase space, providing insights into the system's dynamics and transition paths between different states.
+In this example, we explore the application of Transition Path Theory to a double well system. We will compute various quantities of interest in Transition Path Theory (TPT), such as the Hamiltonian, committor functions, reactive currents, and reaction rates. These computations will be performed on a triangular mesh in the phase space, providing insights into the system's dynamics and transition paths between different states.
 
 ```@example TPT
 using CriticalTransitions
@@ -11,7 +11,7 @@ using OrdinaryDiffEq, DelaunayTriangulation, Contour
 
 ## System
 
-The Duffing oscillator is a simple model for a nonlinear oscillator with a double-well potential. The equation of motion for the Duffing oscillator under additive Gaussian noise is given by:
+The double well is a simple model for particle with a double-well potential. The equation of motion under additive Gaussian noise is given by:
 
 ```math
 \dot{x} = p, \\
@@ -38,7 +38,7 @@ function divfree(x, y)
     return f1, f2
 end
 
-function duffing(x, y)
+function double_well(x, y)
     f1 = y
     f2 = .- gamma .* y .- x.^3 .+ x
     return f1, f2
@@ -63,19 +63,19 @@ y1 = range(ymin, ymax, length=ny)
 x_grid = [xx for yy in y1, xx in x1]
 y_grid = [yy for yy in y1, xx in x1]
 
-drift1, drift2 = duffing(x_grid, y_grid)
+drift1, drift2 = double_well(x_grid, y_grid)
 dnorm = sqrt.(drift1.^2 .+ drift2.^2 .+ 1e-12)
 Hgrid = Hamiltonian(x_grid, y_grid)
 ```
 
 ```@example TPT
 fig = CairoMakie.contour(x1, y1, Hgrid', colormap = :viridis, levels=-1:0.4:2, linewidth = 2)
-v(x::Point2) = Point2f(duffing(x[1], x[2])...)
+v(x::Point2) = Point2f(double_well(x[1], x[2])...)
 streamplot!(v, -2..2, -2..2, linewidth = 0.5, colormap = [:black, :black], gridsize = (40, 40), arrow_size = 8)
 fig
 ```
 
-The undriven duffing oscillator, is autonomous and respect detailed balance. As such the maximum likelihood path is the path that is parallel to drift and can be computed with the string method. If one know the saddle point, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to the minima. As such, the maximum likelihood transition path from (-1,0) to (1,0) gives:
+The double well, is autonomous and respect detailed balance. As such the maximum likelihood path is the path that is parallel to drift and can be computed with the string method. If one know the saddle point, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to the minima. As such, the maximum likelihood transition path from (-1,0) to (1,0) gives:
 
 ```@example TPT
 # Generate and plot the maximum likelihood transition path from (-1,0) to (1,0)
@@ -139,7 +139,7 @@ scatter!(pts_outer[:,1], pts_outer[:,2], label="Outer points")
 fig
 ```
 
-We would like to compute the committor, the reactive current, and the reaction rate for the Duffing oscillator with additive Gaussian noise. We compute these quantities on a triangular mesh between the before computed boundaries.
+We would like to compute the committor, the reactive current, and the reaction rate for the double well with additive Gaussian noise. We compute these quantities on a triangular mesh between the before computed boundaries.
 
 ```@example TPT
 box = [xmin, xmax, ymin, ymax]
@@ -177,7 +177,7 @@ A committor measures the probability that a system, starting at a given point in
  p \frac{\mathrm{d}q}{\mathrm{d}x} - U'(x) \frac{\mathrm{d}q}{\mathrm{d}p} + \gamma [-p \frac{\mathrm{d}q}{\mathrm{d}p} + \beta^{-1} \frac{\mathrm{d}^2 q}{\mathrm{d}p^2}] = 0,
 ```
 
-for $(x,p) \in (A\cup B)^c$, with boundary conditions $q(\partial A) = 0$, $q(\partial B) = 1$, and $\nabla \nabla q = 0$ on the outer boundary ${(x,p) : H(x,p) = \mathrm{Hbdry}}$. The homogeneous Neumann boundary condition $\nabla \nabla q = 0$ means that the trajectory reflects from the outer boundary whenever it reaches it. We can compute the committor function for the Duffing oscillator using the `committor` function.
+for $(x,p) \in (A\cup B)^c$, with boundary conditions $q(\partial A) = 0$, $q(\partial B) = 1$, and $\nabla \nabla q = 0$ on the outer boundary ${(x,p) : H(x,p) = \mathrm{Hbdry}}$. The homogeneous Neumann boundary condition $\nabla \nabla q = 0$ means that the trajectory reflects from the outer boundary whenever it reaches it. We can compute the committor function for the system using the `committor` function.
 
 ```@example TPT
 _, Aind = find_boundary(mesh.pts, point_a, radii, density)
@@ -207,7 +207,7 @@ qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
 tricontourf(Triangulation(mesh.pts', mesh.tri'), qminus)
 ```
 
-For non-equilibrium processes, such as the transitions in the double-well of the Duffing, we have that the $q_{-}\neq 1-q_+$. In particular, for Langevin systems of the form in the system above time reversal involves a momentum flip such that $q_{-}(x, p)= 1-q_+(x, -p)$.
+For non-equilibrium processes, such as the transitions in the double-well, we have that the $q_{-}\neq 1-q_+$. In particular, for Langevin systems of the form in the system above time reversal involves a momentum flip such that $q_{-}(x, p)= 1-q_+(x, -p)$.
 
 ## Probability Density of Reactive Trajectories
 
@@ -288,8 +288,8 @@ tricontourf(Triangulation(mesh.pts', mesh.tri'), ARcurrent)
 The transition current has a direction from A to B.
 
 ```@example TPT
-c =ARcurrent./ARCmax
-arrows(pts[:,1], pts[:,2], Rcurrent[:,1]./ARCmax, Rcurrent[:,2]./ARCmax, arrowsize = c*10, lengthscale = 0.1, arrowcolor = c, linecolor = c)
+c = ARcurrent./ARCmax
+arrows2d(pts[:,1], pts[:,2], Rcurrent[:,1]./ARCmax, Rcurrent[:,2]./ARCmax, color = c, lengthscale = 0.1)
 ```
 
 ```@example TPT
