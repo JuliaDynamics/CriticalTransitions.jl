@@ -1,12 +1,29 @@
-name: CI
+name: Tests
 
 on:
   push:
     branches:
       - 'main'
+    paths:
+      - '.github/workflows/Tests.yml'
+      - 'src/**'
+      - 'ext/**'
+      - 'test/**'
+      - 'Project.toml'
   pull_request:
     branches:
       - 'main'
+    paths:
+      - '.github/workflows/Tests.yml'
+      - 'src/**'
+      - 'ext/**'
+      - 'test/**'
+      - 'Project.toml'
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
 
 concurrency:
   # Skip intermediate builds: always.
@@ -14,34 +31,29 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
+env:
+  JULIA_NUM_THREADS: 11
+
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 300
     permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
       actions: write
       contents: read
     strategy:
+      fail-fast: false
       matrix:
         version:
-          - '1.10'
-          - '1.11'
-          #- 'pre'
-          # - '1.9'
-          # - 'nightly'
+          - 'pre'
+          - 'lts'
+          - '1'
         os:
           - ubuntu-latest
         arch:
           - x64
     steps:
-      # Cancel ongoing CI test runs if pushing to branch again before the previous tests
-      # have finished
-      # - name: Cancel ongoing test runs for previous commits
-      #   uses: styfle/cancel-workflow-action@0.12.1
-      #   with:
-      #     access_token: ${{ github.token }}
-       # Do tests
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -52,17 +64,12 @@ jobs:
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
-
-      - name: Instantiate Julia environment
-        run: julia --project=. -e 'using Pkg; Pkg.instantiate()'
-      
       - uses: julia-actions/julia-runtest@v1
-      # - uses: julia-actions/julia-processcoverage@v1
-      # - uses: codecov/codecov-action@v4
-      #   with:
-      #     files: lcov.info
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     fail_ci_if_error: false
-      # - uses: julia-actions/julia-uploadcoveralls@v1
-      #   env:
-      #     COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: lcov.info
+          name: codecov-umbrella
+          fail_ci_if_error: false
+        if: ${{ matrix.version == 'lts' }}
