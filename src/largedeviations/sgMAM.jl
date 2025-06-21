@@ -88,7 +88,7 @@ function sgmam(
     for i in 1:iterations
         update!(x, xdot, p, pdot, lambda, H_x, H_p, ϵ)
 
-        # reparametrize to arclength
+        # reparameterize to arclength
         interpolate_path!(x, alpha, s)
         push!(S, FW_action(xdot, p))
 

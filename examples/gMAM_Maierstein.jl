@@ -160,7 +160,7 @@ fig
 # We can quickly find a path which computes a transition from one attractor to another using the function `transition.
 
 paths_ends = (fp[stab][1], fp[stab][2])
-path, time, succes = transition(sys, paths_ends...);
+path, time, success = transition(sys, paths_ends...);
 
 #
 

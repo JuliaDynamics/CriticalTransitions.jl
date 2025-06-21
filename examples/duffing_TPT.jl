@@ -123,7 +123,7 @@ Nb = Na
 ptsA = get_ellipse(point_a, radii, Na)
 ptsB = get_ellipse(point_b, radii, Na);
 
-# We also compute an outer boundary of the phase space defined by the maximum value of the Hamiltonian: `Hbdry=0.5`. For this, we use the contour package to compute the contour at the level `Hbdry`. Just as the ellipse around the attractors, we also reparametrize the boundary to have a uniform grid spacing.
+# We also compute an outer boundary of the phase space defined by the maximum value of the Hamiltonian: `Hbdry=0.5`. For this, we use the contour package to compute the contour at the level `Hbdry`. Just as the ellipse around the attractors, we also reparameterize the boundary to have a uniform grid spacing.
 
 import Contour as CTR
 Hbdry = 0.5
@@ -131,7 +131,7 @@ cont = CTR.contour(x1, y1, Hgrid, Hbdry)
 yc, xc = coordinates(CTR.lines(cont)[1])
 p_outer = [xc yc]
 
-pts_outer = reparametrization(p_outer, density);
+pts_outer = reparameterization(p_outer, density);
 Nouter = size(pts_outer, 1)
 Nfix = Na + Nb + Nouter
 
