@@ -3,7 +3,6 @@
 **/devtest.jl
 *.mem
 *.ipynb
-!gMam_Maierstein.ipynb
 *.DS_Store
 /**/test.h5
 docs/build/
@@ -15,3 +14,4 @@ dev/levy.jl
 reyk_local/
 test/Manifest.toml
 benchmark/Manifest.toml
+examples/Manifest.toml
