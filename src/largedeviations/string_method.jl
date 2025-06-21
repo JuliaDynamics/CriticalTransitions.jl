@@ -36,7 +36,7 @@ function string_method(
         x[:, 1] = x_initial[:, 1]
         x[:, end] = x_initial[:, end]
 
-        # reparametrize to arclength
+        # reparameterize to arclength
         interpolate_path!(x, alpha, s)
 
         next!(progress; showvalues=[("iterations", i)])
@@ -82,7 +82,7 @@ function string_method(
     for i in 1:iterations
         update_x!(x, b, ϵ)
 
-        # reparametrize to arclength
+        # reparameterize to arclength
         x = interpolate_path(x, alpha, s)
 
         next!(progress; showvalues=[("iterations", i)])
