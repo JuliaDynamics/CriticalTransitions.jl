@@ -4,7 +4,7 @@
 
 Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystems.jl/stable/) and [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/), this package aims to provide a toolbox for dynamical systems under time-dependent forcing, with a focus on tipping phenomena and metastability.
 
-![CT.jl infographic](./assets/CTjl_structure_v0.3_small.jpeg)
+![CT.jl infographic](./figs/CTjl_structure_v0.3_small.jpeg)
 
 !!! info "Current features"
     * **Stochastic simulation** made easy: Gaussian noise, uncorrelated and correlated, additive and multiplicative
