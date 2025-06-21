@@ -1,3 +1,5 @@
+using CriticalTransitions, Test
+
 @testset "best practices" begin
     using Aqua
 
