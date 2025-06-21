@@ -8,7 +8,7 @@ using LinearAlgebra
 using CriticalTransitions: Mesh
 
 export distmesh2D, dellipse, ddiff
-export get_ellipse, reparametrization
+export get_ellipse, reparameterization
 export huniform, dunion
 
 """
@@ -260,7 +260,7 @@ function CriticalTransitions.get_ellipse(a, raddii, n)
     return pts
 end
 
-function CriticalTransitions.reparametrization(path, h)
+function CriticalTransitions.reparameterization(path, h)
     dp = path .- circshift(path, (1, 0))
     dp[1, :] .= 0
     dl = sqrt.(sum(dp .^ 2; dims=2))

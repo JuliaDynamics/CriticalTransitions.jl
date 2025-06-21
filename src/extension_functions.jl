@@ -11,7 +11,7 @@ function dunion end
 function ddiff end
 function distmesh2D end
 function get_ellipse end
-function reparametrization end
+function reparameterization end
 
 # ## Method error handling
 # We also inject a method error handler, which

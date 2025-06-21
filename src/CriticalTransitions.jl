@@ -80,7 +80,7 @@ export transition, transitions
 
 export distmesh2D, dellipse, ddiff
 export TransitionPathMesh, Committor
-export get_ellipse, reparametrization
+export get_ellipse, reparameterization
 export find_boundary, huniform, dunion
 
 export committor,

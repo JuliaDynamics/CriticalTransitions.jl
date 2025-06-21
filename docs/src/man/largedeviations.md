@@ -7,7 +7,7 @@ CriticalTransitions.MinimumActionPath
 ```
 
 ## String method
-The string method is a technique for finding transition paths between two states in a dynamical system. The method represents the path as a "string" of points that connects the states and evolves it to minimize the drift along the path. The resulating  tangent path is parrallel to the drift of the system, i.e., the string method computes the heteroclinic orbit. For non-gradient systems (detailed -balance is broken), the heteroclinic orbit differs from the transition path, it does correctly predict, it correctly captures the deterministic dynamics from the saddle point onward ("downhill" portion of the path).
+The string method is a technique for finding transition paths between two states in a dynamical system. The method represents the path as a "string" of points that connects the states and evolves it to minimize the drift along the path. The resulating  tangent path is parallel to the drift of the system, i.e., the string method computes the heteroclinic orbit. For non-gradient systems (detailed -balance is broken), the heteroclinic orbit differs from the transition path, it does correctly predict, it correctly captures the deterministic dynamics from the saddle point onward ("downhill" portion of the path).
 ```@docs
 string_method
 ```
@@ -25,7 +25,7 @@ min_action_method
 ### Geometric minimum action method (gMAM)
 Minimization of the geometric action following
 [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601).
-The gMAM reformulates MAM to avoid double optimisation of both the action and the transition time. It achieves this by using a geometric action functional that is independent of the time parametrization of the path. This reparametrization invariance makes the method more robust and computationally efficient, particularly for systems with metastable states separated by large barriers.
+The gMAM reformulates MAM to avoid double optimisation of both the action and the transition time. It achieves this by using a geometric action functional that is independent of the time parametrization of the path. This reparameterization invariance makes the method more robust and computationally efficient, particularly for systems with metastable states separated by large barriers.
 ```@docs
 geometric_min_action_method
 ```
