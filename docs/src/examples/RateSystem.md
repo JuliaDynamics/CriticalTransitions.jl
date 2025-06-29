@@ -1,7 +1,7 @@
 
 # RateSystem 
 
-```@example GMAM
+```@example RateSystem
 using CriticalTransitions
 
 using CairoMakie
@@ -14,9 +14,9 @@ font = (;
 
 Let us explore the features of [CriticalTransitions.jl](https://github.com/JuliaDynamics/CriticalTransitions.jl) with Maier-Stein model.
 
-## Maier-stein model
+## Prototypical model for R-tipping, with critical rate r = 4/3
 
-The [Maier-Stein model](https://doi.org/10.1007/BF02183736) (J. Stat. Phys 83, 3–4 (1996)) is commonly used in the field of nonlinear dynamics for benchmarking Large Deviation Theory (LDT) techniques, e.g., stoachastic transitions between different stable states. It is a simple model that describes the dynamics of a system with two degrees of freedom ``u`` and ``v``, and is given by the following set of ordinary differential equations:
+The following simple one-dimensional model with one attractor is given by the following ordinary differential equations:
 ```math
 \begin{aligned}
     \dot{u} &= u-u^3 - \beta*u*v^2\\
