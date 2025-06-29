@@ -1,3 +1,7 @@
+```@meta
+EditURL = "../../../examples/duffing_TPT.jl"
+```
+
 # Transition Path Theory for the double well
 
 In this example, we explore the application of Transition Path Theory to a double well system. We will compute various quantities of interest in Transition Path Theory (TPT), such as the Hamiltonian, committor functions, reactive currents, and reaction rates. These computations will be performed on a triangular mesh in the phase space, providing insights into the system's dynamics and transition paths between different states.
@@ -64,13 +68,20 @@ x_grid = [xx for yy in y1, xx in x1]
 y_grid = [yy for yy in y1, xx in x1]
 
 drift1, drift2 = double_well(x_grid, y_grid)
-dnorm = sqrt.(drift1.^2 .+ drift2.^2 .+ 1e-12)
+dnorm = sqrt.(drift1 .^ 2 .+ drift2 .^ 2 .+ 1e-12)
 Hgrid = Hamiltonian(x_grid, y_grid)
 
-```@example TPT
-fig = CairoMakie.contour(x1, y1, Hgrid', colormap = :viridis, levels=-1:0.4:2, linewidth = 2)
+fig = CairoMakie.contour(x1, y1, Hgrid'; colormap=:viridis, levels=-1:0.4:2, linewidth=2)
 v(x::Point2) = Point2f(double_well(x[1], x[2])...)
-streamplot!(v, -2..2, -2..2, linewidth = 0.5, colormap = [:black, :black], gridsize = (40, 40), arrow_size = 8)
+streamplot!(
+    v,
+    -2 .. 2,
+    -2 .. 2;
+    linewidth=0.5,
+    colormap=[:black, :black],
+    gridsize=(40, 40),
+    arrow_size=8,
+)
 fig
 ````
 
@@ -297,10 +308,17 @@ tricontourf(Triangulation(mesh.pts', mesh.tri'), ARcurrent)
 
 The transition current has a direction from A to B.
 
-```@example TPT
-c = ARcurrent./ARCmax
-arrows2d(pts[:,1], pts[:,2], Rcurrent[:,1]./ARCmax, Rcurrent[:,2]./ARCmax, color = c, lengthscale = 0.1)
-```
+````@example duffing_TPT
+c = ARcurrent ./ ARCmax
+arrows2d(
+    pts[:, 1],
+    pts[:, 2],
+    Rcurrent[:, 1] ./ ARCmax,
+    Rcurrent[:, 2] ./ ARCmax;
+    color=c,
+    lengthscale=0.1,
+)
+````
 
 ````@example duffing_TPT
 prob_reactive = probability_reactive(langevin_sys, mesh, q, qminus, Z)
