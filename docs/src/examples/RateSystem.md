@@ -19,11 +19,10 @@ Let us explore the features of [CriticalTransitions.jl](https://github.com/Julia
 The following simple one-dimensional model with one attractor is given by the following ordinary differential equations:
 ```math
 \begin{aligned}
-    \dot{u} &= u-u^3 - \beta*u*v^2\\
-    \dot{v} &= -\alpha (1+u^2)*v
+    \dot{x} &= (x+\lambda)^2 - 1
 \end{aligned}
 ```
-The parameter ``\alpha>0`` controls the strength of the drift field and ``\beta>0`` represents the softening of that drift field.
+The parameter ``\lambda`` shifts the location of the extrema of the drift field.
 
 ```@example GMAM
 function meier_stein!(du, u, p, t) # in-place
