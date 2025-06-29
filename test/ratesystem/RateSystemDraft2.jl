@@ -2,9 +2,11 @@
 # here λ = λ(t) ∈ Rᵐ is a function containing all the system parameters 
 
 # We ask the user to define: 
-#  1) a system that should be investigated and
+#  1) a ContinuousTimeDynamicalSystem that should be investigated and
 #  2) a protocol for the time-dependent forcing with the struct RateProtocol
 
+# Then we give back the ContinuousTimeDynamicalSystem with the parameter 
+# changing according to the rate protocol
 mutable struct RateProtocol 
 	λ::Function
 	p_lambda::Vector
