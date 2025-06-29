@@ -24,23 +24,39 @@ The following simple one-dimensional model with one attractor is given by the fo
 ```
 The parameter ``\lambda`` shifts the location of the extrema of the drift field.
 
-```@example GMAM
-function meier_stein!(du, u, p, t) # in-place
-    x, y = u
-    du[1] = x - x^3 - 10 * x * y^2
-    du[2] = -(1 + x^2) * y
+```@example RateSystem
+function f(u,p,t) # out-of-place
+    x = u[1]
+    λ = p[1]
+    dx = (x+λ)^2 - 1
+    return SVector{1}(dx)
 end
-function meier_stein(u, p, t) # out-of-place
-    x, y = u
-    dx = x - x^3 - 10 * x * y^2
-    dy = -(1 + x^2) * y
-    SA[dx, dy]
-end
-σ = 0.25
-sys = CoupledSDEs(meier_stein, zeros(2), (); noise_strength=σ)
+lambda = 0.0 
+p = [lambda]
+z₀ = [-1.]
+auto_sys = CoupledODEs(f,z₀,p)
 ```
 
-A good reference to read about the large deviations methods is [this](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html) or [this](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html) blog post by Tobias Grafke.
+## Non-autonomous case
+
+Now, we define the time-dependent parameter function ``\lambda(t)`` to make the system non-autonomous and investigate the system's behaviour under parameter rampings.
+
+```@example RateSystem
+function λ(p,t)
+    λ_max = p[1]
+    lambda = (λ_max/2)*(tanh(λ_max*t/2)+1)
+    return SVector{1}(lambda)
+end
+```
+We define the following parameters
+```
+r = 4/3-0.02
+λ_max = 3.
+p_lambda = [λ_max]
+t_start = -Inf
+t_end = Inf
+t0 = -10.
+```
 
 ## Attractors
 
