@@ -41,4 +41,4 @@ function RateSystem(auto_sys::ContinuousTimeDynamicalSystem, rp::RateProtocol, t
     prob = remake(auto_sys.integ.sol.prob;f,p=rp.p_lambda,tspan=(t0,Inf));
     nonauto_sys = CoupledODEs(prob,auto_sys.diffeq); 
     return nonauto_sys
-end;
+end
