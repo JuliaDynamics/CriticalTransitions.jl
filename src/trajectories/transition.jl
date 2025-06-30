@@ -20,7 +20,7 @@ is initialized with this seed. To change the seed you can pass a new seed to the
 `[path, times, success]`
 * `path` (Matrix): transition path (size [dim × N], where N is the number of time points)
 * `times` (Vector): time values (since start of simulation) of the path points (size N)
-* `success` (bool): if `true`, a transition occured (i.e. the ball around `x_f` has been reached), else `false`
+* `success` (bool): if `true`, a transition occurred (i.e. the ball around `x_f` has been reached), else `false`
 
 See also [`transitions`](@ref), [`trajectory`](@ref).
 """
@@ -67,7 +67,7 @@ function remove_start(sol, x_i, rad_i)
         idx -= 1
         dist = norm(sol[:, idx] - x_i)
         idx < 1 && error(
-            "Trajactory never left the initial state sphere. Increase `tmax` or decrease `rad`.",
+            "Trajectory never left the initial state sphere. Increase `tmax` or decrease `rad`.",
         )
     end
     return remove_start(sol, idx)
@@ -78,7 +78,7 @@ $(TYPEDSIGNATURES)
 
 Generates an ensemble of `N` transition samples of `sys` from point `x_i` to point `x_f`.
 The transitions is by default simulated using threading. To sample the transitions in serial,
-GPU or Distrubuted enverionment, pass the desired
+GPU or Distributed enverionment, pass the desired
 [`SciMLBase.EnsembleAlgorithm`](https://docs.sciml.ai/DiffEqDocs/stable/features/ensemble/)
 to the EnsembleAlg algorithm.
 

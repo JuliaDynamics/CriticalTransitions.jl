@@ -11,8 +11,8 @@
 
     fp1 = [0.816, 0.272]
     fp2 = [-0.816, -0.272]
-    tr, time, succes = CT.transition(sys, fp1, fp2)
-    @test succes
+    tr, time, success = CT.transition(sys, fp1, fp2)
+    @test success
     @test time[end] < 1e3
     @test norm(tr[1, :] - fp1) < 0.1
     @test norm(tr[end, :] - fp2) < 0.1

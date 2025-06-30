@@ -8,7 +8,7 @@ Random.seed!(SEED)
 
 using CriticalTransitions.CTLibrary: fitzhugh_nagumo
 
-@testset "code quality" begin
+@testset "Code Quality" begin
     include("code_quality.jl")
 end
 

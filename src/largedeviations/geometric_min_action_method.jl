@@ -11,7 +11,7 @@ To set an initial path different from a straight line, see the multiple dispatch
 
 ## Keyword arguments
 
-  - `maxiter::Int=100`: maximum number of optimization iterations before the alogrithm stops
+  - `maxiter::Int=100`: maximum number of optimization iterations before the algorithm stops
   - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
   - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
   - `method = Adam()`: minimization algorithm (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
