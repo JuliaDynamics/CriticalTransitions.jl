@@ -1,4 +1,6 @@
-
+```@meta
+EditURL = "../../../examples/RateSystem.jl"
+```
 # RateSystem 
 
 ```@example RateSystem
