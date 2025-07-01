@@ -11,9 +11,10 @@ The LMCMC
 ````@example LMCMC
 ````
 
-## Problem Setup
+## FitzHugh Nagumo System (FHN)
 
-We'll consider a 2D system with a double-well flow, called the Maier-Stein model. It is a famous benchmark problem as it exhibits non-gradient dynamics with two stable equilibrium points at (-1,0) and (1,0), connected by a non-trivial transition path.
+As an example, we consider a gradient 2D system that is driven by a two dimensional Wiener rpocess, the FitzHugh Nagumo System (FHN).
+
 The system's deterministic dynamics are given by:
 
 Define the vector field
