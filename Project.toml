@@ -5,6 +5,7 @@ repo = "https://github.com/juliadynamics/CriticalTransitions.jl.git"
 version = "0.6.0"
 
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 DynamicalSystemsBase = "6e36e845-645a-534a-86f2-f5d4aa5a06b4"
