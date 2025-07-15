@@ -18,7 +18,7 @@ font = (;
 nothing #hide
 ````
 
-Let us explore the features of [CriticalTransitions.jl](https://github.com/JuliaDynamics/CriticalTransitions.jl) with Maier-Stein model.
+Let us explore the features of [CriticalTransitions.jl](https://github.com/JuliaDynamics/CriticalTransitions.jl) with the Maier-Stein model.
 
 ## Maier-stein model
 
