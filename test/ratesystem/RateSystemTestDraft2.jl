@@ -38,7 +38,7 @@ t_end = Inf    # end time of non-autonomous part
 # And the initial time of the system
 t0 = -10.
 
-rp = RateProtocol(λ,p_lambda,r,t_start,t_end)
+rp = CriticalTransitions.RateProtocol(λ,p_lambda,r,t_start,t_end)
 nonauto_sys = RateSystem(auto_sys,rp,t0)
 
 T = 20. # final simulation time

@@ -37,8 +37,8 @@ function RateSystem(auto_sys::ContinuousTimeDynamicalSystem, rp::RateProtocol, t
     kwargs...)
     # we wish to return a continuous time dynamical system with modified drift field
 
-    f(u,p,t) = modified_drift(u,p,t,auto_sys,rp.λ,rp.t_start,rp.t_end,rp.r;kwargs...); 
-    prob = remake(auto_sys.integ.sol.prob;f,p=rp.p_lambda,tspan=(t0,Inf));
-    nonauto_sys = CoupledODEs(prob,auto_sys.diffeq); 
+    f(u,p,t) = modified_drift(u,p,t,auto_sys,rp.λ,rp.t_start,rp.t_end,rp.r;kwargs...)
+    prob = remake(auto_sys.integ.sol.prob;f,p=rp.p_lambda,tspan=(t0,Inf))
+    nonauto_sys = CoupledODEs(prob,auto_sys.diffeq)
     return nonauto_sys
 end
