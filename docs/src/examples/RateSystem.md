@@ -66,12 +66,15 @@ t_end = Inf    # end time of non-autonomous part
 rp = RateProtocol(λ,p_lambda,r,t_start,t_end)
 ```
 
-And use it to create the system with past and future autonomous systems and non-autonomous ramping in between:
+Now, we set up the combined system with autonomous past and future and non-autonomous ramping in between:
 
 ```@example RateSystem
 t0 = -10.      # initial time of the system
 nonauto_sys = RateSystem(auto_sys,rp,t0)
+```
 
+We can compute trajectories of this new system in the familiar way:
+```@example RateSystem
 T = 20.        # final simulation time
 auto_traj = trajectory(auto_sys,T,x0)
 nonauto_traj = trajectory(nonauto_sys,T,x0)
