@@ -41,26 +41,25 @@ auto_sys = CoupledODEs(f,x0,p)
 
 ## Non-autonomous case
 
-Now, we want to explore the system in a non-autonomous setting with a time-dependent parameter function ``\lambda(rt)``. Choosing different values of the parameter ``r`` allows us to vary the speed of the parameter ramping.
+Now, we want to explore a non-autonomous version of the system. 
+We consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period ``[t_start, t_end]`` with a time-dependent parameter ramping given by the function ``\lambda(rt)``. Choosing different values of the parameter ``r`` allows us to vary the speed of the parameter ramping.
 
+We start by defining the function ``\lambda(t)``:
 ```@example RateSystem
 function λ(p,t)
     λ_max = p[1]
     lambda = (λ_max/2)*(tanh(λ_max*t/2)+1)
     return SVector{1}(lambda)
 end
-```
-We define the following parameters
-```@example RateSystem
+
 λ_max = 3.
 p_lambda = [λ_max] # parameter of the function lambda
-r = 4/3-0.02 # r just below critical rate
 ```
 
-We define the RateProtocol
+Now, we define the RateProtocol that describes the non-autonomous period:
 
 ```@example RateSystem
-
+r = 4/3-0.02   # r just below critical rate
 t_start = -Inf # start time of non-autonomous part
 t_end = Inf    # end time of non-autonomous part
 
@@ -73,7 +72,7 @@ And use it to create the system with past and future autonomous systems and non-
 t0 = -10.      # initial time of the system
 nonauto_sys = RateSystem(auto_sys,rp,t0)
 
-T = 20. # final simulation time
+T = 20.        # final simulation time
 auto_traj = trajectory(auto_sys,T,x0)
 nonauto_traj = trajectory(nonauto_sys,T,x0)
 ```
