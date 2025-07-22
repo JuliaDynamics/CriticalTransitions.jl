@@ -77,7 +77,7 @@ t0 = -10.
 # ```@example RateSystem
 # rp = RateProtocol(λ,p_lambda,r,t_start,t_end)
 # ```
-rp = RateProtocol(λ,p_lambda,r,t_start,t_end)
+rp = CriticalTransitions.RateProtocol(λ,p_lambda,r,t_start,t_end)
 
 
 # We plot the two trajectories
