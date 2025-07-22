@@ -63,7 +63,7 @@ r = 4/3-0.02   # r just below critical rate
 t_start = -Inf # start time of non-autonomous part
 t_end = Inf    # end time of non-autonomous part
 
-rp = RateProtocol(λ,p_lambda,r,t_start,t_end)
+rp = CriticalTransitions.RateProtocol(λ,p_lambda,r,t_start,t_end)
 ```
 
 Now, we set up the combined system with autonomous past and future and non-autonomous ramping in between:
