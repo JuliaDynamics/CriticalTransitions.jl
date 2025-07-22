@@ -1,6 +1,3 @@
-```@meta
-EditURL = "../../../examples/RateSystem.jl"
-```
 # RateSystem 
 
 ```@example RateSystem
@@ -15,17 +12,18 @@ font = (;
 );
 ```
 
-Let us explore an example of the RateSystem setting of [CriticalTransitions.jl](https://github.com/JuliaDynamics/CriticalTransitions.jl).
+Let us explore an example of how to use the RateSystem setting of [CriticalTransitions.jl](https://github.com/JuliaDynamics/CriticalTransitions.jl).
 
 ## Prototypical model for R-tipping, with critical rate r = 4/3
 
-The following simple one-dimensional model with one attractor is given by the following ordinary differential equations:
+We first consider the following simple one-dimensional autonomous system with one attractor, given by the ordinary differential equation:
 ```math
 \begin{aligned}
     \dot{x} &= (x+\lambda)^2 - 1
 \end{aligned}
 ```
-The parameter ``\lambda`` shifts the location of the extrema of the drift field.
+The parameter ``\lambda`` shifts the location of the extrema of the drift field. 
+We implement this system as follows:
 
 ```@example RateSystem
 function f(u,p,t) # out-of-place
@@ -34,6 +32,7 @@ function f(u,p,t) # out-of-place
     dx = (x+λ)^2 - 1
     return SVector{1}(dx)
 end
+
 lambda = 0.0 
 p = [lambda]
 x0 = [-1.]
@@ -42,7 +41,7 @@ auto_sys = CoupledODEs(f,x0,p)
 
 ## Non-autonomous case
 
-Now, we define the time-dependent parameter function ``\lambda(t)`` to make the system non-autonomous and investigate the system's behaviour under parameter rampings.
+Now, we want to explore the system in a non-autonomous setting with a time-dependent parameter function ``\lambda(rt)``. Choosing different values of the parameter ``r`` allows us to vary the speed of the parameter ramping.
 
 ```@example RateSystem
 function λ(p,t)
@@ -56,21 +55,22 @@ We define the following parameters
 λ_max = 3.
 p_lambda = [λ_max] # parameter of the function lambda
 r = 4/3-0.02 # r just below critical rate
-t_start = -Inf # start time of non-autonomous part
-t_end = Inf    # end time of non-autonomous part
-# And the initial time of the system
-t0 = -10.
 ```
 
 We define the RateProtocol
 
 ```@example RateSystem
+
+t_start = -Inf # start time of non-autonomous part
+t_end = Inf    # end time of non-autonomous part
+
 rp = RateProtocol(λ,p_lambda,r,t_start,t_end)
 ```
 
 And use it to create the system with past and future autonomous systems and non-autonomous ramping in between:
 
 ```@example RateSystem
+t0 = -10.      # initial time of the system
 nonauto_sys = RateSystem(auto_sys,rp,t0)
 
 T = 20. # final simulation time
@@ -90,4 +90,4 @@ fig
 
 -----
 Author: Raphael Roemer
-Date: 30 Jun 202r
+Date: 30 Jun 2025
