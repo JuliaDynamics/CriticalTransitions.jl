@@ -62,10 +62,10 @@ include("largedeviations/geometric_min_action_method.jl")
 include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
 
+include("r_tipping/RateSystem.jl")
+
 include("../systems/CTLibrary.jl")
 using .CTLibrary
-
-include("../test/ratesystem/RateSystemDraft2.jl")
 
 # Core types
 export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
