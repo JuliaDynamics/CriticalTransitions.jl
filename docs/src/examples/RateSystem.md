@@ -1,9 +1,8 @@
-# RateSystem 
+# Setting up a `RateSystem`
+Let us explore an example of how to construct a `RateSystem` from an autonomous dynamical system (e.g. a `CoupledODEs`) and a time-dependent forcing protocol called `RateProtocol`.
 
 ```@example RateSystem
 using CriticalTransitions
-#using DifferentialEquations
-#using ModelingToolkit
 using CairoMakie
 using CairoMakie.Makie.MathTeXEngine: get_font
 font = (;
@@ -11,8 +10,6 @@ font = (;
     italic=get_font(:italic), bold_italic=get_font(:bolditalic)
 );
 ```
-
-Let us explore an example of how to use the RateSystem setting of [CriticalTransitions.jl](https://github.com/JuliaDynamics/CriticalTransitions.jl).
 
 ## Prototypical model for R-tipping, with critical rate r = 4/3
 
@@ -92,4 +89,5 @@ fig
 
 -----
 Author: Raphael Roemer
+
 Date: 30 Jun 2025

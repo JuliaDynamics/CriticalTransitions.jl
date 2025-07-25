@@ -7,6 +7,16 @@
 
 # Then we give back the ContinuousTimeDynamicalSystem with the parameter 
 # changing according to the rate protocol
+"""
+    RateProtocol
+
+Time-dependent forcing protocol specified by the following fields:
+- `λ::Function`: forcing function
+- `p_lambda::Vector`: parameters of forcing function
+- `r::Float64`: rate parameter
+- `t_start::Float64`: start time of protocol
+- `t_end::Float64`: end time of protocol
+"""
 mutable struct RateProtocol
     λ::Function
     p_lambda::Vector
@@ -49,8 +59,15 @@ function modified_drift(
     return ds.integ.f(u, p̃, t)
 end;
 
+"""
+    RateSystem(sys::ContinuousTimeDynamicalSystem, rp::RateProtocol, t0=0.0; kwargs...)
+
+Applies a time-dependent [`RateProtocol`](@def) to a given autonomous dynamical system
+`sys`, turning it into a non-autonomous dynamical system. Returns a [`CoupledODEs`](@ref)
+with the explicit parameter time-dependence incorporated.
+"""
 function RateSystem(
-    auto_sys::ContinuousTimeDynamicalSystem, rp::RateProtocol, t0::Float64; kwargs...
+    auto_sys::ContinuousTimeDynamicalSystem, rp::RateProtocol, t0=0.0; kwargs...
 )
     # we wish to return a continuous time dynamical system with modified drift field
 
