@@ -2,8 +2,8 @@
 
 ```@example RateSystem
 using CriticalTransitions
-using DifferentialEquations
-using ModelingToolkit
+#using DifferentialEquations
+#using ModelingToolkit
 using CairoMakie
 using CairoMakie.Makie.MathTeXEngine: get_font
 font = (;
