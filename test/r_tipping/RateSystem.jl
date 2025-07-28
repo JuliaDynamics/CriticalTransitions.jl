@@ -30,7 +30,7 @@ using Test
     rp = CriticalTransitions.RateProtocol(λ, p_lambda, r, t_start, t_end)
 
     t0 = -10.0      # initial time of the system
-    nonauto_sys = RateSystem(auto_sys, rp, t0)
+    nonauto_sys = apply_ramping(auto_sys, rp, t0)
 
     T = 20.0        # final simulation time
     auto_traj = trajectory(auto_sys, T, x0)
