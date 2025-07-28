@@ -88,7 +88,7 @@ export find_boundary, huniform, dunion
 export committor,
     invariant_pdf, reactive_current, probability_reactive, probability_last_A, Langevin
 
-export RateProtocol, RateSystem
+export RateProtocol, apply_ramping
 
 # Error hint for extensions stubs
 function __init__()

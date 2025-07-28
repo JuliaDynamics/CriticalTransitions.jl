@@ -67,7 +67,7 @@ We plot the function ``λ(p_lambda,t)``
 
 ```@example RateSystem
 figλ = Figure(); axsλ = Axis(figλ[1,1])
-lines!(axsλ,-10.:0.1:20.,λ(p_lambda,-10.:0.1:20.),linewidth=2,label=L"\text{λ(p_lambda,t)}")
+lines!(axsλ,-10.:0.1:20.,λ.(p_lambda,-10.:0.1:20.),linewidth=2,label=L"\lambda(p_{\lambda}, t)")
 axislegend(axsλ,position=:rc,labelsize=10)
 figλ
 ```
