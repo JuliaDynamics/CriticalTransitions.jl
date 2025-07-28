@@ -11,11 +11,20 @@
     RateProtocol
 
 Time-dependent forcing protocol specified by the following fields:
-- `λ::Function`: forcing function
+- `λ::Function`: forcing function of the form `λ(p, t_start; kwargs...)``
 - `p_lambda::Vector`: parameters of forcing function
 - `r::Float64`: rate parameter
 - `t_start::Float64`: start time of protocol
 - `t_end::Float64`: end time of protocol
+
+If `t_start` and `t_end` are not provided, they are set to `t_start=-Inf`, and `t_end=Inf`.
+If `p_lambda` is not provided, it is set to an empty array `[]`.
+
+The forcing protocol contains all the information that allows to take an ODE of the form 
+`dxₜ/dt = f(xₜ,λ)` 
+with `λ ∈ Rᵐ`` containing all the system parameters, and make it an ODE of the form 
+`dxₜ/dt = f(xₜ,λ(rt))``
+with `λ(t) ∈ Rᵐ`. 
 """
 mutable struct RateProtocol
     λ::Function
@@ -60,21 +69,22 @@ function modified_drift(
 end;
 
 """
-    RateSystem(sys::ContinuousTimeDynamicalSystem, rp::RateProtocol, t0=0.0; kwargs...)
+    apply_ramping!(sys::CoupledODEs, rp::RateProtocol, t0=0.0; kwargs...)
 
-Applies a time-dependent [`RateProtocol`](@def) to a given autonomous dynamical system
+Applies a time-dependent [`RateProtocol`](@def) to a given autonomous deterministic dynamical system
 `sys`, turning it into a non-autonomous dynamical system. Returns a [`CoupledODEs`](@ref)
 with the explicit parameter time-dependence incorporated.
 
-Then, the system is first autonomous, then non-autnonmous with the parameter shift given by the RateProtocol
-and again autonomous at the end:
+The returned [`CoupledODEs`](@ref) is autonomous from `t_0` to `t_start`, 
+then non-autnonmous from `t_start` to `t_end` with the parameter shift given by the [`RateProtocol`](@def),
+and again autonomous from `t_end` to the end of the simulation:
 
- |                    |                          |                    |
-t_i    autonomous    t_start   non-autonomous   t_end   autonomous   t_f
- |                    |                          |                    |
+  |                    |                           |                    |
+`t_0`  autonomous    `t_start`  non-autonomous   `t_end`  autonomous   `∞`
+  |                    |                           |                    |
 """
-function RateSystem(
-    auto_sys::ContinuousTimeDynamicalSystem, rp::RateProtocol, t0=0.0; kwargs...
+function apply_ramping!(
+    auto_sys::CoupledODEs, rp::RateProtocol, t0=0.0; kwargs...
 )
     # we wish to return a continuous time dynamical system with modified drift field
 
