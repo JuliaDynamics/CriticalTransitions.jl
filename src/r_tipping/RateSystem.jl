@@ -65,6 +65,13 @@ end;
 Applies a time-dependent [`RateProtocol`](@def) to a given autonomous dynamical system
 `sys`, turning it into a non-autonomous dynamical system. Returns a [`CoupledODEs`](@ref)
 with the explicit parameter time-dependence incorporated.
+
+Then, the system is first autonomous, then non-autnonmous with the parameter shift given by the RateProtocol
+and again autonomous at the end:
+
+ |                    |                          |                    |
+t_i    autonomous    t_start   non-autonomous   t_end   autonomous   t_f
+ |                    |                          |                    |
 """
 function RateSystem(
     auto_sys::ContinuousTimeDynamicalSystem, rp::RateProtocol, t0=0.0; kwargs...
