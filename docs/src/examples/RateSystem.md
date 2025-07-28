@@ -63,11 +63,21 @@ t_end = Inf    # end time of non-autonomous part
 rp = CriticalTransitions.RateProtocol(λ,p_lambda,r,t_start,t_end)
 ```
 
+We plot the function ``λ(p_lambda,t)``
+
+```@example RateSystem
+figλ = Figure(); axsλ = Axis(figλ[1,1])
+lines!(axsλ,-10.:0.1:20.,λ(p_lambda,-10.:0.1:20.),linewidth=2,label=L"\text{λ(p_lambda,t)}")
+axislegend(axsλ,position=:rc,labelsize=10)
+figλ
+```
+
+
 Now, we set up the combined system with autonomous past and future and non-autonomous ramping in between:
 
 ```@example RateSystem
 t0 = -10.      # initial time of the system
-nonauto_sys = RateSystem(auto_sys,rp,t0)
+nonauto_sys = apply_ramping!(auto_sys,rp,t0)
 ```
 
 We can compute trajectories of this new system in the familiar way:
