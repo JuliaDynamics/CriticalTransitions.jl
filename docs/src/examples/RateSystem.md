@@ -77,7 +77,7 @@ Now, we set up the combined system with autonomous past and future and non-auton
 
 ```@example RateSystem
 t0 = -10.      # initial time of the system
-nonauto_sys = apply_ramping!(auto_sys,rp,t0)
+nonauto_sys = apply_ramping(auto_sys,rp,t0)
 ```
 
 We can compute trajectories of this new system in the familiar way:
