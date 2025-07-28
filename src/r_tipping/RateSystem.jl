@@ -79,9 +79,7 @@ The returned [`CoupledODEs`](@ref) is autonomous from `t_0` to `t_start`,
 then non-autnonmous from `t_start` to `t_end` with the parameter shift given by the [`RateProtocol`](@def),
 and again autonomous from `t_end` to the end of the simulation:
 
-  |                    |                           |                    |
 `t_0`  autonomous    `t_start`  non-autonomous   `t_end`  autonomous   `∞`
-  |                    |                           |                    |
 """
 function apply_ramping(
     auto_sys::CoupledODEs, rp::RateProtocol, t0=0.0; kwargs...
