@@ -53,7 +53,20 @@ end
 p_lambda = [λ_max] # parameter of the function lambda
 ```
 
-Now, we define the RateProtocol that describes the non-autonomous period:
+
+We plot the function ``λ(p_lambda,t)``
+
+```@example RateSystem
+lambda_plotvals = [λ(p_lambda, t)[1] for t in -10.0:0.1:10.0]
+figλ = Figure(); axsλ = Axis(figλ[1,1],xlabel="t",ylabel=L"\lambda")
+lines!(axsλ,-10.0:0.1:10.0,lambda_plotvals,linewidth=2,label=L"\lambda(p_{\lambda}, t)")
+axislegend(axsλ,position=:rc,labelsize=10)
+figλ
+```
+
+
+Now, we define the RateProtocol that describes how and when the function ``λ(p_lambda,t)`` is used to
+make autonomous system non-autonomous:
 
 ```@example RateSystem
 r = 4/3-0.02   # r just below critical rate
@@ -82,7 +95,7 @@ nonauto_traj = trajectory(nonauto_sys,T,x0)
 We plot the two trajectories
 
 ```@example RateSystem
-fig = Figure(); axs = Axis(fig[1,1])
+fig = Figure(); axs = Axis(fig[1,1],xlabel="t",ylabel="x")
 lines!(axs,t0.+auto_traj[2],auto_traj[1][:,1],linewidth=2,label=L"\text{Autonomous system}")
 lines!(axs,nonauto_traj[2],nonauto_traj[1][:,1],linewidth=2,label=L"\text{Nonautonomous system}")
 axislegend(axs,position=:rc,labelsize=10)
