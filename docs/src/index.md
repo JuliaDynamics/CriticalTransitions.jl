@@ -26,9 +26,9 @@ The `DynamicalSystems.jl` ecosystem offers various functions to simulate and ana
     * **Symbolic** differentiation of action functionals
     * ...?
 
-## Developers
-Reyk Börner, Ryan Deeley, Raphael Römer and Orjan Ameye
+## People
+Main developers: Reyk Börner, Ryan Deeley, Raphael Römer and Orjan Ameye
 
 Thanks to George Datseris, Jeroen Wouters, Calvin Nesbitt, Tobias Grafke, and Oliver Mehling.
 
-This package was founded in the [CriticalEarth](https://www.criticalearth.eu) project.
+This package got started in the EU-funded [CriticalEarth](https://www.criticalearth.eu) project.

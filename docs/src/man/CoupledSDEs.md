@@ -1,10 +1,10 @@
-# Define a CoupledSDEs system
+# Defining a forced dynamical system
 
 A `CoupledSDEs` type allows you to extend the [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/dynamicalsystemsbase/stable/#CoupledODEs) type by adding stochastic dynamics. Both dynamical system types are provided by [`DynamicalSystemsBase.jl`](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/dynamicalsystemsbase/stable/).
 
 ```@docs
-DynamicalSystemsBase.CoupledSDEs
-CoupledSDEs(ds::CoupledODEs, p; kwargs...)
+CoupledSDEs
+CoupledSDEs(sys::CoupledODEs, p; kwargs...)
 ```
 
 !!! info
