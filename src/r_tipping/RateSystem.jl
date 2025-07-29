@@ -81,9 +81,7 @@ and again autonomous from `t_end` to the end of the simulation:
 
 `t_0`  autonomous    `t_start`  non-autonomous   `t_end`  autonomous   `∞`
 """
-function apply_ramping(
-    auto_sys::CoupledODEs, rp::RateProtocol, t0=0.0; kwargs...
-)
+function apply_ramping(auto_sys::CoupledODEs, rp::RateProtocol, t0=0.0; kwargs...)
     # we wish to return a continuous time dynamical system with modified drift field
 
     f(u, p, t) = modified_drift(

@@ -2,7 +2,7 @@ name = "CriticalTransitions"
 uuid = "251e6cd3-3112-48a5-99dd-66efcfd18334"
 authors = ["Reyk Börner, Orjan Ameye, Ryan Deeley, Raphael Römer"]
 repo = "https://github.com/juliadynamics/CriticalTransitions.jl.git"
-version = "0.6.0"
+version = "0.6.1"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
@@ -45,7 +45,7 @@ DocStringExtensions = "0.9.3"
 DynamicalSystemsBase = "3.13"
 Format = "1"
 Interpolations = "0.15.1, 0.16"
-IntervalArithmetic = "0.22.22"
+IntervalArithmetic = "0.22.22, 0.23"
 LinearAlgebra = "1.10"
 LinearSolve = "2.37.0, 3"
 Optimization = "4"
