@@ -46,7 +46,7 @@ p_lambda = [λ_max] # parameter of the function lambda
 ```
 
 
-We plot the function ``λ(p_lambda,t)``
+We plot the function ``λ(p_\lambda,t)``
 
 ```@example RateSystem
 lambda_plotvals = [λ(p_lambda, t)[1] for t in -10.0:0.1:10.0]
