@@ -1,17 +1,6 @@
-# Setting up a `RateSystem`
-Let us explore an example of how to construct a `RateSystem` from an autonomous dynamical system (e.g. a `CoupledODEs`) and a time-dependent forcing protocol called `RateProtocol`.
+# Setting up a `RateSystem`: a prototypical model for R-tipping
 
-```@example RateSystem
-using CriticalTransitions
-using CairoMakie
-using CairoMakie.Makie.MathTeXEngine: get_font
-font = (;
-    regular=get_font(:regular), bold=get_font(:bold),
-    italic=get_font(:italic), bold_italic=get_font(:bolditalic)
-);
-```
-
-## Prototypical model for R-tipping, with critical rate r = 4/3
+Let us explore an example of how to construct a `RateSystem` from an autonomous deterministic dynamical system (i.e. a `CoupledODEs`) and a time-dependent forcing protocol called `RateProtocol`.
 
 We first consider the following simple one-dimensional autonomous system with one attractor, given by the ordinary differential equation:
 ```math
@@ -23,6 +12,9 @@ The parameter ``\lambda`` shifts the location of the extrema of the drift field.
 We implement this system as follows:
 
 ```@example RateSystem
+using CriticalTransitions
+using CairoMakie
+
 function f(u,p,t) # out-of-place
     x = u[1]
     λ = p[1]
@@ -69,7 +61,7 @@ Now, we define the RateProtocol that describes how and when the function ``λ(p_
 make autonomous system non-autonomous:
 
 ```@example RateSystem
-r = 4/3-0.02   # r just below critical rate
+r = 4/3-0.02   # r just below critical rate 4/3
 t_start = -Inf # start time of non-autonomous part
 t_end = Inf    # end time of non-autonomous part
 
