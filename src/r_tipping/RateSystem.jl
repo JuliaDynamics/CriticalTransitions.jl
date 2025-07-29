@@ -22,8 +22,8 @@ If `p_lambda` is not provided, it is set to an empty array `[]`.
 
 The forcing protocol contains all the information that allows to take an ODE of the form 
 `dxₜ/dt = f(xₜ,λ)` 
-with `λ ∈ Rᵐ`` containing all the system parameters, and make it an ODE of the form 
-`dxₜ/dt = f(xₜ,λ(rt))``
+with `λ ∈ Rᵐ` containing all the system parameters, and make it an ODE of the form 
+`dxₜ/dt = f(xₜ,λ(rt))`
 with `λ(t) ∈ Rᵐ`. 
 """
 mutable struct RateProtocol
