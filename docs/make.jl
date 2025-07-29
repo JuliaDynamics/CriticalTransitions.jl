@@ -55,12 +55,13 @@ makedocs(;
     repo=Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
     modules=[
         CriticalTransitions,
+        DynamicalSystemsBase,
         Base.get_extension(CriticalTransitions, :ChaosToolsExt),
         Base.get_extension(CriticalTransitions, :AttractorsExt),
         Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
         # DynamicalSystemsBase
     ],
-    checkdocs_ignored_modules=[DynamicalSystemsBase, CriticalTransitions.CTLibrary],
+    checkdocs_ignored_modules=[CriticalTransitions.CTLibrary],
     pages=pages,
     linkcheck=true,
     pagesonly=true,
