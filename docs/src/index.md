@@ -10,7 +10,7 @@ Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSyste
 The `DynamicalSystems.jl` ecosystem offers various functions to simulate and analyze dynamical systems in continuous time, centered around the `CoupledODEs` type that interfaces with the powerful solvers of `DifferentialEquations.jl`. However, dedicated functionality for stochastic and/or explicitly time-dependent dynamics has largely been missing in this framework. `CriticalTransitions.jl` seeks to fill this gap: with this package, you can
 - easily construct stochastic and nonautonomous dynamical systems
 - efficiently generate trajectories, including paralellized ensemble simulation and transition path sampling
-- use a growing toolbox of tested and documented functions implementing conecpts of large deviation theory, transition path theory, and rate-induced tipping
+- use a growing toolbox of tested and documented functions implementing concepts of large deviation theory, transition path theory, and rate-induced tipping
 
 ## Features
 
