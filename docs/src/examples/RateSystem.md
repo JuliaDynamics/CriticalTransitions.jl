@@ -28,10 +28,10 @@ x0 = [-1.]
 auto_sys = CoupledODEs(f,x0,p)
 ```
 
-## Non-autonomous case
+## Applying the parameter ramping
 
-Now, we want to explore a non-autonomous version of the system. 
-We consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period ``[t_start, t_end]`` with a time-dependent parameter ramping given by the function ``\lambda(rt)``. Choosing different values of the parameter ``r`` allows us to vary the speed of the parameter ramping.
+Now, we want to explore a non-autonomous version of the system by applying the parameter ramping to it. 
+We consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period ``[t_{start}, t_{end}]`` with a time-dependent parameter ramping given by the function ``\lambda(rt)``. Choosing different values of the parameter ``r`` allows us to vary the speed of the parameter ramping.
 
 We start by defining the function ``\lambda(t)``:
 ```@example RateSystem
