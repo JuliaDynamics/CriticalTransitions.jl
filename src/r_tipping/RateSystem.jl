@@ -78,11 +78,12 @@ Applies a time-dependent [`RateProtocol`](@def) to a given autonomous determinis
 returning a non-autonomous dynamical system of type [`CoupledODEs`](@ref).
 
 The [`RateProtocol`](@def) replaces the parameters of `sys` by the function `λ(rt)` within the 
-time interval `[t_start, t_end]`. Thus, the returned [`CoupledODEs`](@ref) has the explicit parameter time-dependence incorporated.
+time interval `[t_start, t_end]`. 
 
-The returned [`CoupledODEs`](@ref) is autonomous from `t_0` to `t_start`, 
-then non-autnonmous from `t_start` to `t_end` with the parameter shift given by the [`RateProtocol`](@def),
-and again autonomous from `t_end` to the end of the simulation:
+Thus, the returned [`CoupledODEs`](@ref) has the explicit parameter time-dependence incorporated and is 
+autonomous from `t_0` to `t_start`, 
+non-autnonmous from `t_start` to `t_end` with the parameter shift given by the [`RateProtocol`](@def),
+autonomous from `t_end` to the end of the simulation:
 
 `t_0`  autonomous    `t_start`  non-autonomous   `t_end`  autonomous   `∞`
 """
