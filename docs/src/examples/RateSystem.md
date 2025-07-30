@@ -1,6 +1,8 @@
-# Setting up a `RateSystem`: a prototypical model for R-tipping
+# Studying R-Tipping
 
-Let us explore an example of how to construct a `RateSystem` from an autonomous deterministic dynamical system (i.e. a `CoupledODEs`) and a time-dependent forcing protocol called `RateProtocol`.
+Let us explore a simple prototypical example of how to use the R-tipping functionality of this package.
+We start with defining an autonomous deterministic dynamical system (i.e. a `CoupledODEs`) and a time-dependent forcing protocol called `RateProtocol`, and use these to set up a non-autonomous system that has an autonomous past and future limit. 
+This limitting behaviour is a widely used setting and convenient for studying R-tipping.
 
 We first consider the following simple one-dimensional autonomous system with one attractor, given by the ordinary differential equation:
 ```math
@@ -25,15 +27,15 @@ end
 lambda = 0.0 
 p = [lambda]
 x0 = [-1.]
-auto_sys = CoupledODEs(f,x0,p)
+auto_sys = CoupledODEs(f,x0,p);
 ```
 
 ## Applying the parameter ramping
 
-Now, we want to explore a non-autonomous version of the system by applying the parameter ramping to it. 
-We consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period ``[t_{start}, t_{end}]`` with a time-dependent parameter ramping given by the function ``\lambda(rt)``. Choosing different values of the parameter ``r`` allows us to vary the speed of the parameter ramping.
+Now, we want to explore a non-autonomous version of the system by applying a parameter ramping. 
+As discussed, we consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period ``[t_{start}, t_{end}]`` with a time-dependent parameter ramping given by the function ``\lambda(rt)``. Choosing different values of the parameter ``r`` allows us to vary the speed of the parameter ramping.
 
-We start by defining the function ``\lambda(t)``:
+We start by defining the function `λ(p_lambda, t)`:
 ```@example RateSystem
 function λ(p,t)
     λ_max = p[1]
@@ -42,12 +44,11 @@ function λ(p,t)
 end
 
 λ_max = 3.
-p_lambda = [λ_max] # parameter of the function lambda
+p_lambda = [λ_max]; # parameter of the function lambda
 ```
 
 
-We plot the function ``λ(p_\lambda,t)``
-
+We plot the function `λ(p_lambda, t)`
 ```@example RateSystem
 lambda_plotvals = [λ(p_lambda, t)[1] for t in -10.0:0.1:10.0]
 figλ = Figure(); axsλ = Axis(figλ[1,1],xlabel="t",ylabel=L"\lambda")
@@ -57,31 +58,30 @@ figλ
 ```
 
 
-Now, we define the RateProtocol that describes how and when the function ``λ(p_lambda,t)`` is used to
-make autonomous system non-autonomous:
+Now, we define a RateProtocol, which contains all the information to apply the parameter ramping given by 
+`λ(p_lambda,t)` to the `auto_sys` during ``[t_{start}, t_{end}]``, implementing the non-autonomous parameter shift:
 
 ```@example RateSystem
 r = 4/3-0.02   # r just below critical rate 4/3
 t_start = -Inf # start time of non-autonomous part
 t_end = Inf    # end time of non-autonomous part
 
-rp = CriticalTransitions.RateProtocol(λ,p_lambda,r,t_start,t_end)
+rp = CriticalTransitions.RateProtocol(λ,p_lambda,r,t_start,t_end);
 ```
 
 
-
-Now, we set up the combined system with autonomous past and future and non-autonomous ramping in between:
+Now, we set up the system with autonomous past and future and non-autonomous ramping in between:
 
 ```@example RateSystem
 t0 = -10.      # initial time of the system
-nonauto_sys = apply_ramping(auto_sys,rp,t0)
+nonauto_sys = apply_ramping(auto_sys,rp,t0);
 ```
 
 We can compute trajectories of this new system in the familiar way:
 ```@example RateSystem
 T = 20.        # final simulation time
 auto_traj = trajectory(auto_sys,T,x0)
-nonauto_traj = trajectory(nonauto_sys,T,x0)
+nonauto_traj = trajectory(nonauto_sys,T,x0);
 ```
 
 We plot the two trajectories
@@ -95,6 +95,4 @@ fig
 ```
 
 -----
-Author: Raphael Roemer
-
-Date: 30 Jun 2025
+Author: Raphael Roemer; Date: 30 Jun 2025
