@@ -59,7 +59,7 @@ figλ
 
 
 Now, we define a RateProtocol, which contains all the information to apply the parameter ramping given by 
-`λ(p_lambda,t)` to the `auto_sys` during ``[t_{start}, t_{end}]``, implementing the non-autonomous parameter shift:
+`λ(p_lambda,t)` to the `auto_sys` during ``[t_{start}, t_{end}]``:
 
 ```@example RateSystem
 r = 4/3-0.02   # r just below critical rate 4/3
@@ -70,7 +70,7 @@ rp = CriticalTransitions.RateProtocol(λ,p_lambda,r,t_start,t_end);
 ```
 
 
-Now, we set up the system with autonomous past and future and non-autonomous ramping in between:
+We set up the system with autonomous past and future and non-autonomous ramping in between:
 
 ```@example RateSystem
 t0 = -10.      # initial time of the system
@@ -85,7 +85,6 @@ nonauto_traj = trajectory(nonauto_sys,T,x0);
 ```
 
 We plot the two trajectories
-
 ```@example RateSystem
 fig = Figure(); axs = Axis(fig[1,1],xlabel="t",ylabel="x")
 lines!(axs,t0.+auto_traj[2],auto_traj[1][:,1],linewidth=2,label=L"\text{Autonomous system}")
