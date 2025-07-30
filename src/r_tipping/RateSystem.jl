@@ -71,9 +71,11 @@ end;
 """
     apply_ramping(sys::CoupledODEs, rp::RateProtocol, t0=0.0; kwargs...)
 
-Applies a time-dependent [`RateProtocol`](@def) to a given autonomous deterministic dynamical system
-`sys`, turning it into a non-autonomous dynamical system. The returned [`CoupledODEs`](@ref)
-has the explicit parameter time-dependence incorporated.
+Applies a time-dependent [`RateProtocol`](@def) to a given autonomous deterministic dynamical system `sys`, 
+returning a non-autonomous dynamical system of type [`CoupledODEs`](@ref).
+
+The [`RateProtocol`](@def) replaces the parameters of `sys` by the function `λ(rt)` within the 
+time interval `[t_start, t_end]`. Thus, the returned [`CoupledODEs`](@ref) has the explicit parameter time-dependence incorporated.
 
 The returned [`CoupledODEs`](@ref) is autonomous from `t_0` to `t_start`, 
 then non-autnonmous from `t_start` to `t_end` with the parameter shift given by the [`RateProtocol`](@def),
