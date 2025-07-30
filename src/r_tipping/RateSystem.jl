@@ -10,21 +10,24 @@
 """
     RateProtocol
 
-Time-dependent forcing protocol specified by the following fields:
+The RateProtocol contains all the fields (information) that allows to take an ODE of the form 
+    `dxₜ/dt = f(xₜ, λ)` 
+with `λ ∈ Rᵐ` containing all system parameters, and make it an ODE of the form 
+    `dxₜ/dt = f(xₜ, λ(rt))`
+with `λ(t) ∈ Rᵐ` constant before time `t_start` and also after time `t_end`. 
+
+RateProtocol contains the following fields:
 - `λ::Function`: forcing function of the form `λ(p, t_start; kwargs...)``
 - `p_lambda::Vector`: parameters of forcing function
 - `r::Float64`: rate parameter
 - `t_start::Float64`: start time of protocol
 - `t_end::Float64`: end time of protocol
 
+Default values 
+==============
+
 If `t_start` and `t_end` are not provided, they are set to `t_start=-Inf`, and `t_end=Inf`.
 If `p_lambda` is not provided, it is set to an empty array `[]`.
-
-The forcing protocol contains all the information that allows to take an ODE of the form 
-`dxₜ/dt = f(xₜ,λ)` 
-with `λ ∈ Rᵐ` containing all the system parameters, and make it an ODE of the form 
-`dxₜ/dt = f(xₜ,λ(rt))`
-with `λ(t) ∈ Rᵐ`. 
 """
 mutable struct RateProtocol
     λ::Function
