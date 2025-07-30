@@ -4,6 +4,7 @@ pages = [
     "Getting started" => "quickstart.md",
     "Tutorial" => "examples/tutorial.md",
     "Examples" => Any[
+        "Defining stochastic systems" => "examples/stochastic-dynamics.md",
         "Large deviations: Maier-Stein system" => "examples/gMAM_Maierstein.md",
         "Simple gMAM: Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
         "Transition Path Theory: Finite element method" => "examples/duffing_TPT.md",
