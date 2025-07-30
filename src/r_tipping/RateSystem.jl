@@ -83,6 +83,8 @@ autonomous from `t_0` to `t_start`, non-autnonmous from `t_start` to `t_end` wit
 and autonomous from `t_end` to the end of the simulation:
 
 `t_0`  autonomous    `t_start`  non-autonomous   `t_end`  autonomous   `∞`
+
+Computing trajectories of the returned [`CoupledODEs`](@ref) can then be done in the same way as for any other [`CoupledODEs`](@ref).
 """
 function apply_ramping(auto_sys::CoupledODEs, rp::RateProtocol, t0=0.0; kwargs...)
     # we wish to return a continuous time dynamical system with modified drift field
