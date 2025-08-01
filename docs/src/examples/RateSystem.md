@@ -2,7 +2,7 @@
 
 Let us explore a simple prototypical example of how to use the R-tipping functionality of this package.
 We start with defining an autonomous deterministic dynamical system (i.e. a `CoupledODEs`) and a time-dependent forcing protocol called `RateProtocol`, and use these to set up a non-autonomous system that has an autonomous past and future limit. 
-This limitting behaviour is a widely used setting and convenient for studying R-tipping.
+This limiting behaviour is a widely used setting and convenient for studying R-tipping.
 
 We first consider the following simple one-dimensional autonomous system with one attractor, given by the ordinary differential equation:
 ```math
