@@ -5,7 +5,8 @@ using DelaunayTriangulation
 using Contour
 
 using CriticalTransitions: Langevin, committor, probability_last_A, TransitionPathMesh
-using CriticalTransitions: dellipse, get_ellipse, ddiff, dunion, reparameterization, distmesh2D
+using CriticalTransitions:
+    dellipse, get_ellipse, ddiff, dunion, reparameterization, distmesh2D
 
 beta = 20.0
 gamma = 0.5

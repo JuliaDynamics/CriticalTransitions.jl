@@ -4,7 +4,8 @@ using CriticalTransitions
 using DelaunayTriangulation
 using Contour
 
-using CriticalTransitions: dellipse, get_ellipse, ddiff, dunion, reparameterization, distmesh2D
+using CriticalTransitions:
+    dellipse, get_ellipse, ddiff, dunion, reparameterization, distmesh2D
 
 function Hamiltonian(x, y)
     return 0.5 .* y .^ 2 .+ 0.25 .* x .^ 4 .- 0.5 .* x .^ 2
