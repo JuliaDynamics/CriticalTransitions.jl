@@ -64,6 +64,8 @@ include("largedeviations/geometric_min_action_method.jl")
 include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
 
+include("r_tipping/RateSystem.jl")
+
 include("../systems/CTLibrary.jl")
 using .CTLibrary
 
@@ -87,6 +89,8 @@ export find_boundary, huniform, dunion
 
 export committor,
     invariant_pdf, reactive_current, probability_reactive, probability_last_A, Langevin
+
+export RateProtocol, apply_ramping
 
 # Error hint for extensions stubs
 function __init__()

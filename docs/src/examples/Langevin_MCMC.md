@@ -13,7 +13,7 @@ The LMCMC
 
 ## FitzHugh Nagumo System (FHN)
 
-As an example, we consider a gradient 2D system that is driven by a two dimensional Wiener rpocess, the FitzHugh Nagumo System (FHN).
+As an example, we consider a gradient 2D system that is driven by a two dimensional Wiener process, the FitzHugh Nagumo System (FHN).
 
 The system's deterministic dynamics are given by:
 
