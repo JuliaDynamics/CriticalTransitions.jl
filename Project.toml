@@ -39,7 +39,7 @@ DistMesh2D = ["DelaunayTriangulation"]
 [compat]
 Attractors = "1.23.3"
 ChaosTools = "3.3.1"
-DataStructures = "0.18.20"
+DataStructures = "0.18.20, 0.19"
 DelaunayTriangulation = "1.6"
 DocStringExtensions = "0.9.3"
 DynamicalSystemsBase = "3.13"
