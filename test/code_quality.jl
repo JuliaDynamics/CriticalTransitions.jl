@@ -29,13 +29,13 @@ end
             CriticalTransitions;
             skip=(Base => Base.Experimental, Base => Core),
             ignore=(
-            :EnsembleAlgorithm,
-            :Terminated,
-            :covariance_matrix,
-            :diffusion_matrix,
-            :get_extension,
-            :register_error_hint,
-        ),
+                :EnsembleAlgorithm,
+                :Terminated,
+                :covariance_matrix,
+                :diffusion_matrix,
+                :get_extension,
+                :register_error_hint,
+            ),
         ),
     )
     @test check_no_self_qualified_accesses(CriticalTransitions) == nothing
