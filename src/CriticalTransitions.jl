@@ -9,8 +9,7 @@ using DataStructures: CircularBuffer
 using Random: Random
 
 # Core
-using SciMLBase: EnsembleThreads, DiscreteCallback, remake, terminate!
-using StochasticDiffEq: StochasticDiffEq
+using SciMLBase: SciMLBase, EnsembleThreads, DiscreteCallback, remake, terminate!, isinplace
 using DynamicalSystemsBase:
     DynamicalSystemsBase,
     CoupledSDEs,
@@ -20,10 +19,13 @@ using DynamicalSystemsBase:
     set_state!,
     trajectory,
     jacobian,
-    StateSpaceSet
+    ContinuousTimeDynamicalSystem
+using ConstructionBase: ConstructionBase
+using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
+using StochasticDiffEq: StochasticDiffEq
 
 using Interpolations: linear_interpolation
-using Optimization
+using Optimization: Optimization
 using OptimizationOptimisers: Optimisers
 using LinearSolve: LinearProblem, KLUFactorization, solve
 
