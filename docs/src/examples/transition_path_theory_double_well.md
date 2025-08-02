@@ -165,7 +165,7 @@ fig
 We would like to compute the committor, the reactive current, and the reaction rate for the double well with additive Gaussian noise. We compute these quantities on a triangular mesh between the before computed boundaries.
 
 ````@example transition_path_theory_double_well
-using CriticalTransitions: distmesh2D, dellipse, ddiff, dunion
+using CriticalTransitions: distmesh2D, dellipse, ddiff, dunion, huniform
 box = [xmin, xmax, ymin, ymax]
 pfix = zeros(Nfix, 2)
 pfix[1:Na, :] .= ptsA

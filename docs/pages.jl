@@ -17,7 +17,7 @@ pages = [
         "Large deviation theory" => "man/largedeviations.md",
         "Transition path theory" => "man/transition_path_theory.md",
         "Utilities" => "man/utils.md",
-
+        "Bibliography" => "man/bibliography.md",
     ],
     # "Predefined systems" => "man/systems.md",
     # "Development stage" => "man/dev.md",
