@@ -1,12 +1,14 @@
 ```@meta
-EditURL = "../../../examples/duffing_TPT.jl"
+EditURL = "../../../examples/transition_path_theory_double_well.jl"
 ```
 
 # Transition Path Theory for the double well
 
 In this example, we explore the application of Transition Path Theory to a double well system. We will compute various quantities of interest in Transition Path Theory (TPT), such as the Hamiltonian, committor functions, reactive currents, and reaction rates. These computations will be performed on a triangular mesh in the phase space, providing insights into the system's dynamics and transition paths between different states.
 
-````@example duffing_TPT
+As for now the code regarding transition path theory is regarded as experimental, and the API may change in the future.
+
+````@example transition_path_theory_double_well
 using CriticalTransitions
 
 using CairoMakie
@@ -24,7 +26,7 @@ The double well is a simple model for particle with a double-well potential. The
 
 with the potential energy $U(x) = \frac{1}{4}x^4 - \frac{1}{2}x^2$ and the kinetic energy $K(p) = p^2/2$. The parameters $\gamma$ and $\beta=1/k_b T$ control the strength of the dissipation and noise, respectively. $W$ is a Wiener process, and the noise term is scaled by $\sqrt{2\gamma/\beta}$ to ensure the correct temperature scaling for a Langevin type system defined by the Hamiltonian $H$.
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
 beta = 20.0
 gamma = 0.5
 
@@ -48,6 +50,7 @@ function double_well(x, y)
     return f1, f2
 end
 
+using CriticalTransitions: Langevin
 langevin_sys = Langevin(Hamiltonian, divfree, KE, gamma, beta)
 ````
 
@@ -55,7 +58,7 @@ langevin_sys = Langevin(Hamiltonian, divfree, KE, gamma, beta)
 
 We can easily evaluate and visualize the Hamiltonian and equally spaced grid in phase space.
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
 nx, ny = 41, 41
 nxy = nx * ny
 xmin, xmax = -2.0, 2.0
@@ -87,7 +90,7 @@ fig
 
 The double well, is autonomous and respect detailed balance. As such the maximum likelihood path is the path that is parallel to drift and can be computed with the string method. If one know the saddle point, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to the minima. As such, the maximum likelihood transition path from (-1,0) to (1,0) gives:
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
 using OrdinaryDiffEq
 
 function reverse_drift!(du, u, p, t)
@@ -124,7 +127,8 @@ fig
 
 We have two minima in the potential landscape, such that the system under the drift will dissipate to these corresponding attractors close to $(-1.0, 0.0)$ and $(1.0, 0.0)$. Transition path theory investigates the "reaction" between two sets in phase space A and B, as such we define the two sets to be an ellipse around these minima:
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
+using CriticalTransitions: get_ellipse
 point_a = (-1.0, 0.0)
 point_b = (1.0, 0.0)
 radii = (0.3, 0.4)
@@ -140,13 +144,14 @@ nothing #hide
 
 We also compute an outer boundary of the phase space defined by the maximum value of the Hamiltonian: `Hbdry=0.5`. For this, we use the contour package to compute the contour at the level `Hbdry`. Just as the ellipse around the attractors, we also reparameterize the boundary to have a uniform grid spacing.
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
 import Contour as CTR
 Hbdry = 0.5
 cont = CTR.contour(x1, y1, Hgrid, Hbdry)
 yc, xc = coordinates(CTR.lines(cont)[1])
 p_outer = [xc yc]
 
+using CriticalTransitions: reparameterization
 pts_outer = reparameterization(p_outer, density);
 Nouter = size(pts_outer, 1)
 Nfix = Na + Nb + Nouter
@@ -159,7 +164,8 @@ fig
 
 We would like to compute the committor, the reactive current, and the reaction rate for the double well with additive Gaussian noise. We compute these quantities on a triangular mesh between the before computed boundaries.
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
+using CriticalTransitions: distmesh2D, dellipse, ddiff, dunion
 box = [xmin, xmax, ymin, ymax]
 pfix = zeros(Nfix, 2)
 pfix[1:Na, :] .= ptsA
@@ -201,7 +207,8 @@ A committor measures the probability that a system, starting at a given point in
 
 for $(x,p) \in (A\cup B)^c$, with boundary conditions $q(\partial A) = 0$, $q(\partial B) = 1$, and $\nabla \nabla q = 0$ on the outer boundary ${(x,p) : H(x,p) = \mathrm{Hbdry}}$. The homogeneous Neumann boundary condition $\nabla \nabla q = 0$ means that the trajectory reflects from the outer boundary whenever it reaches it. We can compute the committor function for the system using the `committor` function.
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
+using CriticalTransitions: committor, find_boundary
 _, Aind = find_boundary(mesh.pts, point_a, radii, density)
 _, Bind = find_boundary(mesh.pts, point_b, radii, density)
 
@@ -214,13 +221,13 @@ tricontourf(Triangulation(mesh.pts', mesh.tri'), q)
 
 We can also compute the backward committor $q_{-}(x, p)$ from A to B, which is the probability that a trajectory initiated at x will reach A before B under the system’s dynamics. Hence, we must reverse the drift function in the Langevin system and swap the boundaries A and B in the committor function
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
 function divfree1(x, y)
     f1, f2 = divfree(x, y)
     return -f1, -f2
 end
 
-langevin_sys_reverse = CriticalTransitions.Langevin(Hamiltonian, divfree1, KE, gamma, beta)
+langevin_sys_reverse = Langevin(Hamiltonian, divfree1, KE, gamma, beta)
 
 qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
 
@@ -247,7 +254,7 @@ where $\rho(x, p)$ is the probability density of finding a trajectory at $(x,p)$
 
 with $Z=\int exp(-\beta H(x,p)) \mathrm{d}x \mathrm{d}p$ the normalization. We can compute the integrated invariant probability density `Z` for the mesh using the `invariant_pdf` function.
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
 function dfuncA(p)
     return dellipse(p, point_a, radii)
 end
@@ -264,6 +271,7 @@ Amesh = distmesh2D(dfuncA, huniform, density, bboxA, ptsA)
 bboxB = [xb - rx, xb + rx, yb - ry, yb + ry]
 Bmesh = distmesh2D(dfuncB, huniform, density, bboxB, ptsB)
 
+using CriticalTransitions: invariant_pdf
 Z = invariant_pdf(langevin_sys, mesh, Amesh, Bmesh)
 
 @show Z
@@ -271,7 +279,7 @@ Z = invariant_pdf(langevin_sys, mesh, Amesh, Bmesh)
 
 Hence, the probability density of a reactive trajectory is given by:
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
 mu = exp.(-beta * Hamiltonian(pts[:, 1], pts[:, 2])) / Z
 muAB = mu .* q .* qminus
 
@@ -292,14 +300,15 @@ v_R=k_B T \gamma Z_H^{-1} \int \sum_{i=1}^d m_i\left(\frac{\partial q_{+}}{\part
 
 These can be computed using the `reactive_current` function:
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
+using CriticalTransitions: reactive_current
 Rcurrent, Rrate = reactive_current(langevin_sys, mesh, q, qminus, Z)
 @show Rrate
 ````
 
 Plotting the current norm reveals that the current is the strongest around the saddle point.
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
 ARcurrent = vec(sqrt.(sum(Rcurrent .^ 2; dims=2)))
 ARCmax = maximum(ARcurrent)
 
@@ -308,7 +317,7 @@ tricontourf(Triangulation(mesh.pts', mesh.tri'), ARcurrent)
 
 The transition current has a direction from A to B.
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
 c = ARcurrent ./ ARCmax
 arrows2d(
     pts[:, 1],
@@ -320,14 +329,16 @@ arrows2d(
 )
 ````
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
+using CriticalTransitions: probability_reactive
 prob_reactive = probability_reactive(langevin_sys, mesh, q, qminus, Z)
 print(
     "Probability that a trajectory is reactive at a randomly picked time: ", prob_reactive
 )
 ````
 
-````@example duffing_TPT
+````@example transition_path_theory_double_well
+using CriticalTransitions: probability_last_A
 prob_lastA = probability_last_A(langevin_sys, mesh, Amesh, qminus, Z)
 print("Probability that a trajectory last visited A: ", prob_lastA)
 ````

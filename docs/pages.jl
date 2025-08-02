@@ -6,7 +6,7 @@ pages = [
     "Examples" => Any[
         "Anlyses of the Maier-Stein system" => "examples/gMAM_Maierstein.md",
         "sgMAM for the Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
-        "Transition Path Theory using finite element method" => "examples/duffing_TPT.md",
+        "Transition Path Theory using finite element method" => "examples/transition_path_theory_double_well.md",
         "Minimal action method as an Optimal Control problem" => "examples/OC_mam.md",
     ],
     "Manual" => Any[
@@ -15,7 +15,7 @@ pages = [
         "Simulating the system" => "man/simulation.md",
         "Sampling transitions" => "man/sampling.md",
         "Large deviation theory" => "man/largedeviations.md",
-        "Transition path theory" => "man/tpt.md",
+        "Transition path theory" => "man/transition_path_theory.md",
         "Utilities" => "man/utils.md",
 
     ],
