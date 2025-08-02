@@ -19,13 +19,26 @@ end
 @testset "ExplicitImports" begin
     using ExplicitImports
 
-    # @test check_no_implicit_imports(CriticalTransitions) == nothing
+    @test check_no_implicit_imports(CriticalTransitions) == nothing
     @test check_all_explicit_imports_via_owners(CriticalTransitions) == nothing
-    # @test check_all_explicit_imports_are_public(CriticalTransitions) == nothing
+    @test check_all_explicit_imports_are_public(CriticalTransitions) == nothing
     @test check_no_stale_explicit_imports(CriticalTransitions) == nothing
-    # @test check_all_qualified_accesses_via_owners(CriticalTransitions) == nothing
-    # @test check_all_qualified_accesses_are_public(KeldyshContraction) == nothing
-    # @test check_no_self_qualified_accesses(CriticalTransitions) == nothing
+    @test check_all_qualified_accesses_via_owners(CriticalTransitions) == nothing
+    @test isnothing(
+        check_all_qualified_accesses_are_public(
+            CriticalTransitions;
+            skip=(Base => Base.Experimental, Base => Core),
+            ignore=(
+                :EnsembleAlgorithm,
+                :Terminated,
+                :covariance_matrix,
+                :diffusion_matrix,
+                :get_extension,
+                :register_error_hint,
+            ),
+        ),
+    )
+    @test check_no_self_qualified_accesses(CriticalTransitions) == nothing
 end
 
 if isempty(VERSION.prerelease)
