@@ -44,6 +44,10 @@ end
     include("trajectories/transition.jl")
 end
 
+@testset "R-tipping" begin
+    include("r_tipping/RateSystem.jl")
+end
+
 @testset "Extensions" begin
     @testset "ChaosToolsExt" begin
         include("ext/ChaosToolsExt.jl")

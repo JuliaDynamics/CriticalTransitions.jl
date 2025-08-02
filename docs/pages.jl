@@ -8,6 +8,7 @@ pages = [
         "sgMAM for the Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
         "Transition Path Theory using finite element method" => "examples/duffing_TPT.md",
         "Minimal action method as an Optimal Control problem" => "examples/OC_mam.md",
+        "Setting up a RateSystem" => "examples/RateSystem.md"
     ],
     "Manual" => Any[
         "Define a CoupledSDEs system" => "man/CoupledSDEs.md",
