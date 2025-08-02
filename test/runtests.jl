@@ -32,7 +32,7 @@ end
 end
 
 @testset "Transition Path Theory" begin
-    include("tpt.jl")
+    include("transition_path_theory.jl")
 end
 
 @testset "Utilities" begin

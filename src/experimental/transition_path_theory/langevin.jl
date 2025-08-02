@@ -10,7 +10,7 @@ $(TYPEDFIELDS)
 $(METHODLIST)
 
 """
-struct Langevin{H,D,KE,T}
+struct LangevinSystem{H,D,KE,T}
     "Function that computes the total energy (kinetic + potential) of the system."
     Hamiltonian::H
     "Function representing the divergence-free part of the drift."
@@ -24,12 +24,12 @@ struct Langevin{H,D,KE,T}
 end
 
 function SciMLBase.remake(
-    sys::Langevin;
+    sys::LangevinSystem;
     Hamiltonian=sys.Hamiltonian,
     driftfree=sys.driftfree,
     kinetic=sys.kinetic,
     gamma=sys.gamma,
     beta=sys.beta,
 )
-    return Langevin(Hamiltonian, driftfree, kinetic, gamma, beta)
+    return LangevinSystem(Hamiltonian, driftfree, kinetic, gamma, beta)
 end
