@@ -59,7 +59,9 @@ function prepare_transition_problem(sys, x, radii, radius_directions, tmax)
     return prob, cb_ball
 end
 
-remove_start(sol, idx) = SciMLBase.setproperties(sol; u=sol.u[idx:end], t=sol.t[idx:end])
+function remove_start(sol, idx)
+    ConstructionBase.setproperties(sol; u=sol.u[idx:end], t=sol.t[idx:end])
+end
 function remove_start(sol, x_i, rad_i)
     idx = size(sol)[2]
     dist = norm(sol[:, idx] - x_i)
@@ -134,7 +136,7 @@ function transitions(
         return remake(prob; seed=rand(Random.MersenneTwister(seed + i + repeat), UInt32))
     end
 
-    ensemble = EnsembleProblem(prob; output_func=output_func, prob_func=prob_func)
+    ensemble = SciMLBase.EnsembleProblem(prob; output_func=output_func, prob_func=prob_func)
     sim = solve(
         ensemble, solver(sys), EnsembleAlg; callback=cb_ball, trajectories=N, kwargs...
     )

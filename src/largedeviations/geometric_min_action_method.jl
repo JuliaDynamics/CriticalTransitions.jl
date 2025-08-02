@@ -81,8 +81,8 @@ function geometric_min_action_method(
         #     next!(prog)
         # end
     else
-        optf = OptimizationFunction((x, _) -> S(x), AD)
-        prob = OptimizationProblem(optf, init, ())
+        optf = SciMLBase.OptimizationFunction((x, _) -> S(x), AD)
+        prob = SciMLBase.OptimizationProblem(optf, init, ())
 
         function callback(state, loss_val)
             interpolate_path!(state.u, alpha, arc)
