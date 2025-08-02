@@ -50,8 +50,8 @@ function double_well(x, y)
     return f1, f2
 end
 
-using CriticalTransitions: Langevin
-langevin_sys = Langevin(Hamiltonian, divfree, KE, gamma, beta)
+using CriticalTransitions: LangevinSystem
+langevin_sys = LangevinSystem(Hamiltonian, divfree, KE, gamma, beta)
 ````
 
 ## Phase space mesh
@@ -227,7 +227,7 @@ function divfree1(x, y)
     return -f1, -f2
 end
 
-langevin_sys_reverse = Langevin(Hamiltonian, divfree1, KE, gamma, beta)
+langevin_sys_reverse = LangevinSystem(Hamiltonian, divfree1, KE, gamma, beta)
 
 qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
 

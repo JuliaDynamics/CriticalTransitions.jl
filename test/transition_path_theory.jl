@@ -4,7 +4,7 @@ using CriticalTransitions
 using DelaunayTriangulation
 using Contour
 
-using CriticalTransitions: Langevin, committor, probability_last_A, TransitionPathMesh
+using CriticalTransitions: LangevinSystem, committor, probability_last_A, TransitionPathMesh
 using CriticalTransitions:
     dellipse, get_ellipse, ddiff, dunion, reparameterization, distmesh2D
 
@@ -25,7 +25,7 @@ function divfree(x, y)
     return f1, f2
 end
 
-sys = Langevin(Hamiltonian, divfree, KE, gamma, beta)
+sys = LangevinSystem(Hamiltonian, divfree, KE, gamma, beta)
 
 point_a = (-1.0, 0.0)
 point_b = (1.0, 0.0)

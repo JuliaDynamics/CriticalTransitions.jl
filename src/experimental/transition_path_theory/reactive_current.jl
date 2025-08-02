@@ -7,7 +7,7 @@ The reactive current represents the probability flux of reactive trajectories
 that successfully transition from state A to state B.
 
 # Arguments
-- `sys::Langevin`: System containing Hamiltonian, drift-free component, inverse temperature (beta), and friction coefficient (gamma)
+- `sys::LangevinSystem`: System containing Hamiltonian, drift-free component, inverse temperature (beta), and friction coefficient (gamma)
 - `mesh::Mesh`: Mesh structure containing points and triangulation
 - `q`: Forward committor function values
 - `qminus`: Backward committor function values
@@ -18,7 +18,7 @@ A tuple containing:
 - `Rcurrent_verts`: Array of reactive current vectors at mesh vertices
 - `Rrate`: Transition rate between states A and B
 """
-function reactive_current(sys::Langevin, mesh::Mesh, q, qminus, Z)
+function reactive_current(sys::LangevinSystem, mesh::Mesh, q, qminus, Z)
     ham, divfree, beta, gamma = sys.Hamiltonian, sys.driftfree, sys.beta, sys.gamma
     pts, tri = mesh.pts, mesh.tri
     Npts = size(pts, 1)
@@ -80,11 +80,13 @@ function reactive_current(sys::Langevin, mesh::Mesh, q, qminus, Z)
     return Rcurrent_verts, Rrate
 end
 
-function reactive_current(sys::Langevin, q::Committor)
-    return reactive_current(sys::Langevin, q.mesh.mesh::Mesh, q.forward, q.backward, q.Z)
+function reactive_current(sys::LangevinSystem, q::Committor)
+    return reactive_current(
+        sys::LangevinSystem, q.mesh.mesh::Mesh, q.forward, q.backward, q.Z
+    )
 end
 
-function reactive_rate(sys::Langevin, mesh::Mesh, q, Z)
+function reactive_rate(sys::LangevinSystem, mesh::Mesh, q, Z)
     ham, divfree, beta, gamma = sys.Hamiltonian, sys.driftfree, sys.beta, sys.gamma
     pts, tri = mesh.pts, mesh.tri
     Npts = size(pts, 1)
@@ -121,6 +123,6 @@ function reactive_rate(sys::Langevin, mesh::Mesh, q, Z)
     return Rrate
 end
 
-function reactive_rate(sys::Langevin, q::Committor)
-    return reactive_rate(sys::Langevin, q.mesh.mesh::Mesh, q.forward, q.Z)
+function reactive_rate(sys::LangevinSystem, q::Committor)
+    return reactive_rate(sys::LangevinSystem, q.mesh.mesh::Mesh, q.forward, q.Z)
 end

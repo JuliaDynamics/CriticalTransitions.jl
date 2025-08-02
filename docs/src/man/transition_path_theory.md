@@ -15,7 +15,7 @@ TPT characterizes transition pathways between two metastable states A and B by c
 The calculations are performed on a triangulated mesh representing the system's state space.
 
 ```@docs
-CriticalTransitions.Langevin
+CriticalTransitions.LangevinSystem
 ```
 
 ### Committor Functions
