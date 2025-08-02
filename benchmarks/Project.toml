@@ -1,0 +1,4 @@
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+CriticalTransitions = "251e6cd3-3112-48a5-99dd-66efcfd18334"
+NLsolve = "2774e3e8-f4cf-5e23-947b-6d7e65073b56"
