@@ -4,6 +4,8 @@ using CriticalTransitions
 using DelaunayTriangulation
 using Contour
 
+using CriticalTransitions: dellipse, get_ellipse, ddiff, dunion, reparameterization, distmesh2D
+
 function Hamiltonian(x, y)
     return 0.5 .* y .^ 2 .+ 0.25 .* x .^ 4 .- 0.5 .* x .^ 2
 end
@@ -54,7 +56,7 @@ function dfunc(p)
     return d
 end
 
-mesh = distmesh2D(dfunc, huniform, density, box, pfix)
+mesh = distmesh2D(dfunc, CriticalTransitions.huniform, density, box, pfix)
 
 @test size(mesh.pts, 1) == 872
 @test size(mesh.tri, 1) == 1586 || size(mesh.tri, 1) == 1587

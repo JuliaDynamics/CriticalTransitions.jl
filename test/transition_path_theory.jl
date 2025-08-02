@@ -4,6 +4,9 @@ using CriticalTransitions
 using DelaunayTriangulation
 using Contour
 
+using CriticalTransitions: Langevin, committor, probability_last_A, TransitionPathMesh
+using CriticalTransitions: dellipse, get_ellipse, ddiff, dunion, reparameterization, distmesh2D
+
 beta = 20.0
 gamma = 0.5
 
@@ -69,7 +72,7 @@ function dfunc(p)
     return d
 end
 
-mesh = distmesh2D(dfunc, huniform, density, box, pfix)
+mesh = distmesh2D(dfunc, CriticalTransitions.huniform, density, box, pfix)
 
 TPM = TransitionPathMesh(mesh, point_a, point_b, radii, density)
 

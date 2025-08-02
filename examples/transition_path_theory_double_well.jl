@@ -2,6 +2,8 @@
 
 # In this example, we explore the application of Transition Path Theory to a double well system. We will compute various quantities of interest in Transition Path Theory (TPT), such as the Hamiltonian, committor functions, reactive currents, and reaction rates. These computations will be performed on a triangular mesh in the phase space, providing insights into the system's dynamics and transition paths between different states.
 
+# As for now the code regarding transition path theory is regarded as experimental, and the API may change in the future.
+
 using CriticalTransitions
 
 using CairoMakie
@@ -41,6 +43,7 @@ function double_well(x, y)
     return f1, f2
 end
 
+using CriticalTransitions: Langevin
 langevin_sys = Langevin(Hamiltonian, divfree, KE, gamma, beta)
 
 # ## Phase space mesh
@@ -112,6 +115,7 @@ fig
 
 # We have two minima in the potential landscape, such that the system under the drift will dissipate to these corresponding attractors close to $(-1.0, 0.0)$ and $(1.0, 0.0)$. Transition path theory investigates the "reaction" between two sets in phase space A and B, as such we define the two sets to be an ellipse around these minima:
 
+using CriticalTransitions: get_ellipse
 point_a = (-1.0, 0.0)
 point_b = (1.0, 0.0)
 radii = (0.3, 0.4)
@@ -131,6 +135,7 @@ cont = CTR.contour(x1, y1, Hgrid, Hbdry)
 yc, xc = coordinates(CTR.lines(cont)[1])
 p_outer = [xc yc]
 
+using CriticalTransitions: reparameterization
 pts_outer = reparameterization(p_outer, density);
 Nouter = size(pts_outer, 1)
 Nfix = Na + Nb + Nouter
@@ -142,6 +147,7 @@ fig
 
 # We would like to compute the committor, the reactive current, and the reaction rate for the double well with additive Gaussian noise. We compute these quantities on a triangular mesh between the before computed boundaries.
 
+using CriticalTransitions: distmesh2D, dellipse, ddiff, dunion
 box = [xmin, xmax, ymin, ymax]
 pfix = zeros(Nfix, 2)
 pfix[1:Na, :] .= ptsA
@@ -182,6 +188,7 @@ fig
 
 # for $(x,p) \in (A\cup B)^c$, with boundary conditions $q(\partial A) = 0$, $q(\partial B) = 1$, and $\nabla \nabla q = 0$ on the outer boundary ${(x,p) : H(x,p) = \mathrm{Hbdry}}$. The homogeneous Neumann boundary condition $\nabla \nabla q = 0$ means that the trajectory reflects from the outer boundary whenever it reaches it. We can compute the committor function for the system using the `committor` function.
 
+using CriticalTransitions: committor, find_boundary
 _, Aind = find_boundary(mesh.pts, point_a, radii, density)
 _, Bind = find_boundary(mesh.pts, point_b, radii, density)
 
@@ -198,7 +205,7 @@ function divfree1(x, y)
     return -f1, -f2
 end
 
-langevin_sys_reverse = CriticalTransitions.Langevin(Hamiltonian, divfree1, KE, gamma, beta)
+langevin_sys_reverse = Langevin(Hamiltonian, divfree1, KE, gamma, beta)
 
 qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
 
@@ -240,6 +247,7 @@ Amesh = distmesh2D(dfuncA, huniform, density, bboxA, ptsA)
 bboxB = [xb - rx, xb + rx, yb - ry, yb + ry]
 Bmesh = distmesh2D(dfuncB, huniform, density, bboxB, ptsB)
 
+using CriticalTransitions: invariant_pdf
 Z = invariant_pdf(langevin_sys, mesh, Amesh, Bmesh)
 
 @show Z
@@ -265,6 +273,7 @@ tricontourf(Triangulation(mesh.pts', mesh.tri'), muAB)
 
 # These can be computed using the `reactive_current` function:
 
+using CriticalTransitions: reactive_current
 Rcurrent, Rrate = reactive_current(langevin_sys, mesh, q, qminus, Z)
 @show Rrate
 
@@ -289,12 +298,13 @@ arrows2d(
 
 #
 
+using CriticalTransitions: probability_reactive
 prob_reactive = probability_reactive(langevin_sys, mesh, q, qminus, Z)
 print(
     "Probability that a trajectory is reactive at a randomly picked time: ", prob_reactive
 )
 
 #
-
+using CriticalTransitions: probability_last_A
 prob_lastA = probability_last_A(langevin_sys, mesh, Amesh, qminus, Z)
 print("Probability that a trajectory last visited A: ", prob_lastA)
