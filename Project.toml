@@ -5,6 +5,7 @@ repo = "https://github.com/juliadynamics/CriticalTransitions.jl.git"
 version = "0.6.1"
 
 [deps]
+ConstructionBase = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 DynamicalSystemsBase = "6e36e845-645a-534a-86f2-f5d4aa5a06b4"
@@ -21,6 +22,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+StateSpaceSets = "40b095a5-5852-4c12-98c7-d43bf788e795"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
@@ -29,7 +31,6 @@ StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
 Attractors = "f3fd9213-ca85-4dba-9dfd-7fc91308fec7"
 ChaosTools = "608a59af-f2a3-5ad4-90b4-758bdf3122a7"
 DelaunayTriangulation = "927a84f5-c5f4-47a5-9785-b46e178433df"
-StateSpaceSets = "40b095a5-5852-4c12-98c7-d43bf788e795"
 
 [extensions]
 AttractorsExt = ["Attractors"]
@@ -39,7 +40,8 @@ DistMesh2D = ["DelaunayTriangulation"]
 [compat]
 Attractors = "1.23.3"
 ChaosTools = "3.3.1"
-DataStructures = "0.18.20"
+ConstructionBase = "1.6.0"
+DataStructures = "0.18.20, 0.19"
 DelaunayTriangulation = "1.6"
 DocStringExtensions = "0.9.3"
 DynamicalSystemsBase = "3.13"

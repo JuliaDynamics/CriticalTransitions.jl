@@ -4,7 +4,7 @@
 Minimizes an action functional to obtain a minimum action path (instanton) between an
 initial state `x_i` and final state `x_f` in phase space.
 
-This algorithm uses the 
+This algorithm uses the
 [`Optimization.jl`](https://github.com/SciML/Optimization.jl) package to minimize the
 specified action functional (either [`fw_action`](@ref) or [`om_action`](@ref))
 for the system `sys` over paths connecting `x_i` to `x_f` in time `T`.
@@ -74,8 +74,8 @@ function min_action_method(
         sys, fix_ends(x, init[:, 1], init[:, end]), times, functional; noise_strength
     )
 
-    optf = OptimizationFunction((x, _) -> S(x), ad_type)
-    prob = OptimizationProblem(optf, init, ())
+    optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)
+    prob = SciMLBase.OptimizationProblem(optf, init, ())
 
     prog = Progress(maxiter; enabled=show_progress)
     function callback(state, loss_val)
