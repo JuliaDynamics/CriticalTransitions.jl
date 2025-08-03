@@ -21,12 +21,30 @@ Returns a triple of vectors:
 
 The term "moving sinks" refers to Wieczorek et al. (2023).
 """
+# function moving_sinks(
+#     ds::ContinuousTimeDynamicalSystem, rp::RateProtocol, box; times=0:0.1:1
+# )
+#     fp, eig, stab = [], [], []
+#     for t in times
+#         rate_sys = apply_ramping(ds, rp, t)
+#         _fp, _eig, _stab = fixedpoints(rate_sys, box)
+#         push!(fp, _fp)
+#         push!(eig, _eig)
+#         push!(stab, _stab)
+#     end
+#     return fp, eig, stab
+# end
+
+# modified version
 function moving_sinks(
-    ds::ContinuousTimeDynamicalSystem, rp::RateProtocol, box; times=0:0.1:1
+    ds::ContinuousTimeDynamicalSystem, rp::RateProtocol, box; 
+    times=rp.t_start/rp.r:(rp.t_end/rp.r-rp.t_start/rp.r)/100:rp.t_end/rp.r
 )
     fp, eig, stab = [], [], []
+    λ_mod  = rp.λ
     for t in times
-        rate_sys = apply_ramping(ds, rp, t)
+        rp.λ = (p,τ) -> λ_mod(p,τ+t)
+        rate_sys = apply_ramping(ds, rp, rp.t_start)
         _fp, _eig, _stab = fixedpoints(rate_sys, box)
         push!(fp, _fp)
         push!(eig, _eig)
