@@ -1,3 +1,5 @@
+using LinearAlgebra: norm
+
 ## the following function integrates the nonautonomous system created by the ContinuousTimeDynamicalSystem ds and RateProtocol rp, with rate-parameter r 
 ## the initial condition is e_start at time t_start
 ## the system is integrated for T = t_end-t_start time units and the trajectory position at time T is then compared with the location of e_end 
@@ -12,10 +14,10 @@ function end_point_tracking(
 
     T = t_end - t_start
     rp.r = r # set the rate-parameter to the minimum value 
-    rate_sys_min_rate = apply_ramping(ds, rp, t_start) # create the nonautonomous system
-    traj_min_rate = trajectory(rate_sys_min_rate, T, e_start) # simulate the nonautonomous system
+    nonauto_sys = apply_ramping(ds, rp, t_start) # create the nonautonomous system
+    traj = trajectory(nonauto_sys, T, e_start) # simulate the nonautonomous system
 
-    return abs(traj_min_rate[1][end,:]-e_end) < rad 
+    return norm(traj[1][end,:]-e_end) < rad 
 
 end
 
@@ -60,7 +62,7 @@ end;
 ## the function ultimately passes the end_point_tracking function to the binary_bisection function to find a critical rate for end-point tracking
  
 
-function critical_end_point_tracking_rate(
+function critical_rate(
     ds::ContinuousTimeDynamicalSystem, rp::RateProtocol, e_start::Vector, t_start::Float64, e_end::Vector, t_end::Float64;  
     rmin::Float64 = 1.e-2, 
     rmax::Float64 = 1.e2,
@@ -75,11 +77,14 @@ function critical_end_point_tracking_rate(
 
     ## that e_start is a stable equilibrium of the frozen-in system attained at t = t_start
 
-    rate_sys_start = apply_ramping(ds, rp, t_start)
+    λ_mod  = rp.λ
+
+    rp.λ = (p,τ) -> λ_mod(p,τ+t_start)
+    rate_sys_start = apply_ramping(ds, rp, rp.t_start)
     box_start = [interval(x-0.1,x+0.1) for x ∈ e_start]
     fp_start, ~, stab_start = fixedpoints(rate_sys_start, box_start)
     if any(e -> isapprox(e,e_start;atol=1e-4),fp_start)
-        idx = findmin([abs(e-e_start) for e ∈ fp_start])[2] # the index in fp_start of the fixed point which is approximately equal to e_end
+        idx = findmin([norm(e-e_start) for e ∈ fp_start])[2] # the index in fp_start of the fixed point which is approximately equal to e_end
         stab_start[idx] || @warn("The vector e_start = $(e_start) does not describe a stable equilibrium of the frozen-in system attained at t = t_start = $(t_start).")
     else
         @warn("The vector e_start = $(e_start) does not describe a stable equilibrium of the frozen-in system attained at t = t_start = $(t_start).")
@@ -89,11 +94,12 @@ function critical_end_point_tracking_rate(
     
     ## that e_end is a stable equilibrium of the frozen-in system attained at t = t_end
 
-    rate_sys_end = apply_ramping(ds, rp, t_end)
+    rp.λ = (p,τ) -> λ_mod(p,τ+t_end)
+    rate_sys_end = apply_ramping(ds, rp, rp.t_start)
     box_end = [interval(x-0.1,x+0.1) for x ∈ e_end]
     fp_end, ~, stab_end = fixedpoints(rate_sys_end, box_end)
     if any(e -> isapprox(e,e_end;atol=1e-4),fp_end)
-        idx = findmin([abs(e-e_end) for e ∈ fp_end])[2] # the index in fp_end of the fixed point which is approximately equal to e_end
+        idx = findmin([norm(e-e_end) for e ∈ fp_end])[2] # the index in fp_end of the fixed point which is approximately equal to e_end
         stab_end[idx] || @warn("The vector e_end = $(e_end) does not describe a stable equilibrium of the frozen-in system attained at t = t_end = $(t_end).")
     else
         @warn("The vector e_end = $(e_end) does not describe a stable equilibrium of the frozen-in system attained at t = t_end = $(t_end).")
@@ -106,15 +112,17 @@ function critical_end_point_tracking_rate(
     ## or
     ## the system fails to end-point track for r = rmin and successfully end point tracks for r = rmax 
 
+    rp.λ = (p,τ) -> λ_mod(p,τ)
+
     min_rate_track = end_point_tracking(ds,rp,rmin,e_start,t_start,e_end,t_end,rad) # true if the system end-point tracks for that rate
 
     max_rate_track = end_point_tracking(ds,rp,rmax,e_start,t_start,e_end,t_end,rad) # true if the system end-point tracks for that rate
 
     if min_rate_track && max_rate_track 
         error("The system successfully end-point tracks for both r = rmin = $(rmin) and r = rmax = $(rmax).")
-    elseif ~min_rate_track && ~max_rate_track 
+    elseif !min_rate_track && !max_rate_track
         error("The system fails to end-point track for both r = rmin = $(rmin) and r = rmax = $(rmax).")
-    elseif ~min_rate_track && max_rate_track 
+    elseif !min_rate_track && max_rate_track
         @warn("The system fails to end-point track for r = rmin = $(rmin) but succesfully end-point tracks for r = rmax = $(rmax).")
     end
 
