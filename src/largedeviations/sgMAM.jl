@@ -5,11 +5,11 @@ This system operates in an extended phase space where the Hamiltonian is assumed
 quadratic in the extended momentum. The phase space coordinates `x` are doubled to
 form a 2n-dimensional extended phase space.
 """
-struct SgmamSystem{IIP,D,Hx,Hp}
+struct ExtendedHamiltonianSystem{IIP,D,Hx,Hp}
     H_x::Hx
     H_p::Hp
 
-    function SgmamSystem(ds::ContinuousTimeDynamicalSystem)
+    function ExtendedHamiltonianSystem(ds::ContinuousTimeDynamicalSystem)
         if ds isa CoupledSDEs
             proper_sgMAM_system(ds)
         end
@@ -38,16 +38,16 @@ struct SgmamSystem{IIP,D,Hx,Hp}
         end
         return new{isinplace(ds),dimension(ds),typeof(H_x),typeof(H_p)}(H_x, H_p)
     end
-    function SgmamSystem{IIP,D}(H_x::Function, H_p::Function) where {IIP,D}
+    function ExtendedHamiltonianSystem{IIP,D}(H_x::Function, H_p::Function) where {IIP,D}
         return new{IIP,D,typeof(H_x),typeof(H_p)}(H_x, H_p)
     end
 end
 
-function prettyprint(mlp::SgmamSystem{IIP,D}) where {IIP,D}
+function prettyprint(mlp::ExtendedHamiltonianSystem{IIP,D}) where {IIP,D}
     return "Doubled $D-dimensional phase space containing $(IIP ? "in-place" : "out-of-place") functions"
 end
 
-Base.show(io::IO, mlp::SgmamSystem) = print(io, prettyprint(mlp))
+Base.show(io::IO, mlp::ExtendedHamiltonianSystem) = print(io, prettyprint(mlp))
 
 """
 $(TYPEDSIGNATURES)
@@ -67,8 +67,8 @@ the Lagrange multipliers, the momentum, and the state derivatives. The implement
 based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html.
 ).
 """
-function sgmam(
-    sys::SgmamSystem,
+function simple_geometric_min_action_method(
+    sys::ExtendedHamiltonianSystem,
     x_initial::Matrix{T};
     ϵ::Real=1e-1,
     iterations::Int64=1000,
@@ -103,11 +103,11 @@ function sgmam(
         StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
     )
 end
-function sgmam(sys, x_initial::StateSpaceSet; kwargs...)
-    return sgmam(sys, Matrix(Matrix(x_initial)'); kwargs...)
+function simple_geometric_min_action_method(sys, x_initial::StateSpaceSet; kwargs...)
+    return simple_geometric_min_action_method(sys, Matrix(Matrix(x_initial)'); kwargs...)
 end
-function sgmam(sys::ContinuousTimeDynamicalSystem, x_initial::Matrix{<:Real}; kwargs...)
-    return sgmam(SgmamSystem(sys), Matrix(Matrix(x_initial)'); kwargs...)
+function simple_geometric_min_action_method(sys::ContinuousTimeDynamicalSystem, x_initial::Matrix{<:Real}; kwargs...)
+    return simple_geometric_min_action_method(ExtendedHamiltonianSystem(sys), Matrix(Matrix(x_initial)'); kwargs...)
 end
 
 function init_allocation(x_initial, Nt)

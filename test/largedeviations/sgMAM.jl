@@ -2,7 +2,7 @@ using CriticalTransitions
 using ModelingToolkit
 using Test
 
-@testset "SgmamSystem KPO" begin
+@testset "ExtendedHamiltonianSystem KPO" begin
     λ = 3 / 1.21 * 2 / 295
     ω0 = 1.000
     ω = 1.000
@@ -51,8 +51,8 @@ using Test
     prob = ODEProblem(sysMTK, sts .=> zeros(2), (0.0, 100.0), (); jac=true)
     ds = CoupledODEs(prob)
 
-    sys = SgmamSystem{false,2}(H_x, H_p)
-    sys′ = SgmamSystem(ds)
+    sys = ExtendedHamiltonianSystem{false,2}(H_x, H_p)
+    sys′ = ExtendedHamiltonianSystem(ds)
 
     Nt = 500  # number of discrete time steps
     p_r = rand(2, Nt)

@@ -51,7 +51,7 @@ function H_p(x, p) # ℜ² → ℜ²
     return Matrix([H_pu H_pv]')
 end
 
-sys_m = SgmamSystem{false,2}(H_x, H_p)
+sys_m = ExtendedHamiltonianSystem{false,2}(H_x, H_p)
 
 x_init_m = Matrix([xx yy]')
 
@@ -79,7 +79,7 @@ ds = CoupledODEs(prob)
 jac = jacobian(ds)
 jac([1, 1], (), 0.0)
 
-sgSys′ = SgmamSystem(ds);
+sgSys′ = ExtendedHamiltonianSystem(ds);
 
 p_r = rand(2, Nt)
 sgSys′.H_x(x_init_m, p_r) ≈ sys_m.H_x(x_init_m, p_r)
