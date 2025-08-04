@@ -1,7 +1,13 @@
 """
 $(TYPEDEF)
 
-A struct representing a Langevin dynamical system with damping rate `gamma`` and temperature `beta``.
+A stochastic dynamical system obeying Langevin dynamics of the form.
+```math
+\\dot x = p \\,, \\\\
+\\dot p = - \\gamma p - \\nabla U(x) + \\sqrt{2\\gamma\\beta^{-1}} \\dot W_t \\,,
+```
+with damping coefficient ``\\gamma`` and inverse temperature ``\\beta``. The Hamiltonian
+``H = U + K`` is given by the potential energy ``U`` and kinetic energy ``K = p^2/2``.
 
 # Fields
 $(TYPEDFIELDS)
@@ -15,7 +21,7 @@ struct LangevinSystem{H,D,KE,T}
     Hamiltonian::H
     "Function representing the divergence-free part of the drift."
     driftfree::D
-    "Function computing the kinetic energy of the system."
+    "Function giving the kinetic energy of the system."
     kinetic::KE
     "Damping coefficient that determines the strength of friction."
     gamma::T
