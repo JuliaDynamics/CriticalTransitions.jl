@@ -2,8 +2,10 @@
 
 Transition Path Theory (TPT) provides a framework for analyzing rare transition events between metastable states in complex systems. This module implements TPT calculations for two-dimensional Langevin systems. The work is base on the theory presented in [VandenEijndenTransition2006, VandenEijndenTransition2010, VandenEijndenTowards2006](@cite) and [this python github repo](https://github.com/mar1akc/transition_path_theory_FEM_distmesh).
 
-The functionality provided here is considered experimental and is currently restricted to two-dimensional Langevin dynamics of a particle exposed to a potential ``U``. Hence, the current API is not exported and should be loaded explicitly. We recommend checking out the [Transition Path Theory example](@ref TPT_example) for a demonstration of the available functionality.
+!!! warning "Experimental"
+    The functionality provided here is considered experimental and is currently restricted to two-dimensional Langevin dynamics of a particle exposed to a potential ``U``. Hence, the current API is not exported and should be loaded explicitly. We recommend checking out the [Transition Path Theory example](@ref TPT_example) for a demonstration of the available functionality.
 
+We consider a Langevin system described by the following stochastic differential equations (SDEs):
 ```math
 \begin{aligned}
 \dot x &= p \,, \\
