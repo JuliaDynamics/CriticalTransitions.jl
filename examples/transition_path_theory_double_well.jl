@@ -1,4 +1,4 @@
-# # Transition Path Theory for the double well
+# # [Transition Path Theory for the double well](@id TPT_example)
 
 # In this example, we explore the application of Transition Path Theory (TPT) to a double well system. We will compute various quantities of interest in TPT, such as the Hamiltonian, committor functions, reactive currents, and reaction rates. These computations will be performed on a triangular mesh in the phase space, providing insights into the system's dynamics and transition paths between different states.
 
@@ -80,7 +80,7 @@ streamplot!(
 )
 fig
 
-# The double well system is autonomous and respects detailed balance. In this case, the maximum likelihood path (MLP) follows parallel to a flowline of the drift field and can be computed via the string method. If he saddle point is known, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to each of the potential minima. The MLP from (-1,0) to (1,0) gives:
+# The double well system is autonomous and respects detailed balance. In this case, the maximum likelihood path (MLP) follows parallel to a flowline of the drift field and can be computed via the string method. If the saddle point is known, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to each of the potential minima. The MLP from (-1,0) to (1,0) gives:
 
 using OrdinaryDiffEq
 
