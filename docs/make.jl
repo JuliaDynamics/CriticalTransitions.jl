@@ -20,7 +20,8 @@ authors = join(project_toml["authors"], ", ") * " and contributors"
 github = "https://github.com/juliadynamics/CriticalTransitions.jl"
 
 links = InterLinks(
-    "DynamicalSystemsBase" => "https://juliadynamics.github.io/DynamicalSystemsBase.jl/dev/",
+    "DynamicalSystemsBase" => "https://juliadynamics.github.io/DynamicalSystemsBase.jl/stable/",
+    "Attractors" => "https://juliadynamics.github.io/Attractors.jl/stable/"
     # "DiffEqNoiseProcess" => "https://docs.sciml.ai/DiffEqNoiseProcess/stable/",
     # "DifferentialEquations" => "https://docs.sciml.ai/DiffEqDocs/stable/",
     # "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",
@@ -56,6 +57,7 @@ makedocs(;
     modules=[
         CriticalTransitions,
         DynamicalSystemsBase,
+        Attractors,
         Base.get_extension(CriticalTransitions, :ChaosToolsExt),
         Base.get_extension(CriticalTransitions, :AttractorsExt),
         Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
@@ -70,7 +72,7 @@ makedocs(;
     format=Documenter.HTML(; html_options...),
     warnonly=[:missing_docs, :linkcheck, :cross_references],
     plugins=[bib, links],
-    draft=false,
+    draft=CI ? false : true,
 )
 
 deploydocs(; repo="github.com/JuliaDynamics/CriticalTransitions.jl.git", push_preview=true)

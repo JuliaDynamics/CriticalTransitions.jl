@@ -31,12 +31,23 @@ CoupledSDEs
 !!! info
     Note that nonlinear mixings of the Noise Process $\mathcal{W}$ fall into the class of random ordinary differential equations (RODEs) which have a separate set of solvers. See [this example](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/rode_example/) of DifferentialEquations.jl.
 
-## Time-dependent parameter ramping
+### Accessing `CoupledSDEs` properties
+
+```@docs
+solver
+drift
+div_drift
+StochasticSystemsBase.covariance_matrix
+StochasticSystemsBase.diffusion_matrix
+noise_process
+```
+
+## Non-autonomous systems
 
 RateProtocol
 apply_ramping
 
-## System conversion
+## Converting between system types
 
 The deterministic part of a [`CoupledSDEs`](@ref) can be extracted as a 
 [`CoupledODEs`](@ref), making it compatible with functionality of `DynamicalSystems.jl`.

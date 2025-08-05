@@ -23,5 +23,6 @@ pages = [
     ],
     # "Predefined systems" => "man/systems.md",
     # "Development stage" => "man/dev.md",
+    "References" => "refs.md"
 ]
 #! format: on
