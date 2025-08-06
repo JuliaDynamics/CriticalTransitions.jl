@@ -269,8 +269,8 @@ function CriticalTransitions.reparameterization(path, h)
     lp ./= total_len
     npath = round(Int, total_len / h)
     g1 = range(0, 1; length=npath)
-    itp_x = LinearInterpolation(lp, path[:, 1])
-    itp_y = LinearInterpolation(lp, path[:, 2])
+    itp_x = linear_interpolation(lp, path[:, 1])
+    itp_y = linear_interpolation(lp, path[:, 2])
     path_x = itp_x.(g1)
     path_y = itp_y.(g1)
     return [path_x path_y]
@@ -282,15 +282,15 @@ function CriticalTransitions.TransitionPathMesh(
     Na = round(Int, π * sum(radii) / density) # the number of points on the A-circle
     Nb = Na
 
-    ptsA = get_ellipse(point_a, radii, Na)
-    ptsB = get_ellipse(point_b, radii, Na)
+    ptsA = CriticalTransitions.get_ellipse(point_a, radii, Na)
+    ptsB = CriticalTransitions.get_ellipse(point_b, radii, Na)
 
     function dfuncA(p)
-        return dellipse(p, point_a, radii)
+        return CriticalTransitions.dellipse(p, point_a, radii)
     end
 
     function dfuncB(p)
-        return dellipse(p, point_b, radii)
+        return CriticalTransitions.dellipse(p, point_b, radii)
     end
 
     xa, ya = point_a
@@ -298,10 +298,16 @@ function CriticalTransitions.TransitionPathMesh(
     rx, ry = radii
 
     bboxA = [xa - rx, xa + rx, ya - ry, ya + ry]
-    Amesh = distmesh2D(dfuncA, huniform, density, bboxA, ptsA)
+    Amesh = CriticalTransitions.distmesh2D(
+        dfuncA, CriticalTransitions.huniform, density, bboxA, ptsA
+    )
     bboxB = [xb - rx, xb + rx, yb - ry, yb + ry]
-    Bmesh = distmesh2D(dfuncB, huniform, density, bboxB, ptsB)
-    return TransitionPathMesh(mesh, Amesh, Bmesh, point_a, point_b, radii, density)
+    Bmesh = CriticalTransitions.distmesh2D(
+        dfuncB, CriticalTransitions.huniform, density, bboxB, ptsB
+    )
+    return CriticalTransitions.TransitionPathMesh(
+        mesh, Amesh, Bmesh, point_a, point_b, radii, density
+    )
 end
 
 end # module
