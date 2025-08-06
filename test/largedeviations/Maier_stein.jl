@@ -20,7 +20,9 @@ using Test
 
     @testset "String method" begin
         for x_init in [init, StateSpaceSet(init')]
-            string = string_method(sys, x_init; iterations=10_000, ϵ=0.5, show_progress=false)
+            string = string_method(
+                sys, x_init; iterations=10_000, ϵ=0.5, show_progress=false
+            )
             @test string[1] == x_i
             @test string[end] == x_f
             @test sum(string[:, 2]) ≈ 0 atol = 1e-6
