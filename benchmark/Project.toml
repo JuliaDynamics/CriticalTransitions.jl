@@ -1,6 +1,0 @@
-[deps]
-CriticalTransitions = "251e6cd3-3112-48a5-99dd-66efcfd18334"
-ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
-
-[compat]
-Documenter = "^1.4.1"

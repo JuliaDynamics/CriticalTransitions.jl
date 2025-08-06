@@ -67,7 +67,7 @@ $(TYPEDSIGNATURES)
 Solve the committor equation for a two-dimensional Langevin system using finite elements.
 
 # Arguments
-- `sys::Langevin`: The Langevin system containing kinetic energy, drift-free function, beta, and gamma.
+- `sys::LangevinSystem`: The Langevin system containing kinetic energy, drift-free function, beta, and gamma.
 - `mesh::Mesh`: The mesh containing points and triangles.
 - `Aind::Vector{Int}`: Indices of mesh points corresponding to set A (Dirichlet boundary condition = 0).
 - `Bind::Vector{Int}`: Indices of mesh points corresponding to set B (Dirichlet boundary condition = 1).
@@ -78,7 +78,7 @@ Solve the committor equation for a two-dimensional Langevin system using finite 
 # Implementation Details
 This function assembles a global matrix `A` and right-hand-side vector `b` for the finite element discretization of the committor equation in Langevin dynamics. The code imposes Dirichlet boundary conditions on specified nodes (`Aind` set to 0, `Bind` set to 1). It computes elementwise contributions with `stima_Langevin` and `stimavbdv`, applying exponential factors involving `beta` and `gamma` to incorporate potential and damping effects. Finally, it solves the resulting linear system for the committor values on the free (non-boundary) nodes.
 """
-function committor(sys::Langevin, mesh::Mesh, Aind, Bind)
+function committor(sys::LangevinSystem, mesh::Mesh, Aind, Bind)
     KE, divfree, beta, gamma = sys.kinetic, sys.driftfree, sys.beta, sys.gamma
     pts, tri = mesh.pts, mesh.tri
 
@@ -114,7 +114,7 @@ function committor(sys::Langevin, mesh::Mesh, Aind, Bind)
     return vec(q)
 end
 
-function _committor(sys::Langevin, TPmesh::TransitionPathMesh)
+function _committor(sys::LangevinSystem, TPmesh::TransitionPathMesh)
     KE, divfree, beta, gamma = sys.kinetic, sys.driftfree, sys.beta, sys.gamma
     pts, tri = TPmesh.mesh.pts, TPmesh.mesh.tri
 
@@ -130,7 +130,7 @@ struct Committor
     backward::Vector{Float64}
     Z::Float64
 
-    function Committor(sys::Langevin, mesh::TransitionPathMesh)
+    function Committor(sys::LangevinSystem, mesh::TransitionPathMesh)
         forwardsys = sys
         backwardsys = remake(sys; driftfree=(x, p) -> -1 .* sys.driftfree(x, p))
         forwardmesh = mesh
@@ -141,6 +141,6 @@ struct Committor
         return new(mesh, forward, backward, partition_function(sys, mesh))
     end
 end
-function committor(sys::Langevin, mesh::TransitionPathMesh)
+function committor(sys::LangevinSystem, mesh::TransitionPathMesh)
     return Committor(sys, mesh)
 end
