@@ -6,5 +6,6 @@ We provide two main functions to simulate a [`CoupledSDEs`](@ref) forward in tim
 
 
 ```@docs
+trajectory
 deterministic_orbit
 ```
