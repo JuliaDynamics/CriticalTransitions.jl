@@ -24,12 +24,12 @@ bibliography: paper.bib
 
 # Summary
 
-Bla bla
+Metastability and tipping phenomena are important features of nonlinear dynamical systems, occurring in various contexts in the natural and human world. A key element of metastable behavior are critical transitions between distinct dynamical regimes, often triggered by random perturbations or time-dependent external forcing. Alongside an expanding mathematical theory of complex nonlinear dynamics, Julia software has become a leading code base to study dynamical systems numerically. However, functionality for analyzing critical behavior in stochastic and non-autonomous systems has been missing. CriticalTransitions.jl offers a user-friendly, coherent, extendible and tested toolbox for critical transitions in forced dynamical systems. Built on an intuitive interface for defining systems with stochastic and/or time-dependent forcing, the package allows users to sample, quantify and understand noise- and rate-induced transitions. Available features include rare event sampling, computing most probable transition paths using large deviation theory, methods from transition path theory, and determining critical forcing rates. Both the source code and user interface are designed to fit seamlessly to DynamicalSystems.jl.
 
 # Statement of need
 
 
-# Another section
+# Concept
 
 Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
 
@@ -46,7 +46,7 @@ You can also use plain \LaTeX for equations
 \end{equation}
 and refer to \autoref{eq:fourier} from text.
 
-# Another section
+# Example
 
 Citations to entries in paper.bib should be in
 [rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
