@@ -24,26 +24,28 @@ bibliography: paper.bib
 
 # Summary
 
-Metastability and tipping phenomena are important features of nonlinear dynamical systems, occurring in various contexts in the natural and human world. A key element of metastable behavior are critical transitions between distinct dynamical regimes, often triggered by random perturbations or time-dependent external forcing. Alongside an expanding mathematical theory of complex nonlinear dynamics, Julia software has become a leading code base to study dynamical systems numerically. However, functionality for analyzing critical behavior in stochastic and non-autonomous systems has been missing. CriticalTransitions.jl offers a user-friendly, coherent, extendible and tested toolbox for critical transitions in forced dynamical systems. Built on an intuitive interface for defining systems with stochastic and/or time-dependent forcing, the package allows users to sample, quantify and understand noise- and rate-induced transitions. Available features include rare event sampling, computing most probable transition paths using large deviation theory, methods from transition path theory, and determining critical forcing rates. Both the source code and user interface are designed to fit seamlessly to DynamicalSystems.jl.
+Metastability and tipping phenomena are important features of nonlinear dynamical systems in the natural and human world. A key element of metastable behavior are critical transitions between distinct dynamical regimes, often triggered by random perturbations or time-dependent external forcing. Alongside an expanding mathematical theory of complex nonlinear dynamics, Julia software has become a leading code base to study dynamical systems numerically. However, functionality for analyzing critical behavior in stochastic and non-autonomous systems has been missing. CriticalTransitions.jl offers an intuitive, extendible and tested toolbox for critical transitions in forced dynamical systems. Built on a familiar interface for defining systems with stochastic and/or time-dependent forcing, the package allows users to sample, quantify and understand noise- and rate-induced transitions. Currently available features include: action minimization for computing most probable transition paths via large deviation theory, methods from transition path theory, and R-tipping concepts such as critical forcing rates.
 
 # Statement of need
 
+Critical transitions are a topic of growing scientific interest, given their relevance in diverse disciplines and applications. 
+
+Solvers for nonautonomous and stochastic differential equations exist, but they have not been incorporated in the DynamicalSystems.jl interface.
 
 # Concept
 
-Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
+CriticalTransitions.jl addresses dynamical systems of the general form
+$$ \text{d}\mathbf{x} = \mathbf{f}(\mathbf{x},\, p(t)) \,\text{d}t + \mathbf{g}(\mathbf{x},\, p(t))\, \text{d}\mathbf{\mathcal{N}}_t \,,$$
+where the state $\mathbf{x}(t) \in \mathbb{R}^D$ evolves under the deterministic drift $\mathbf{f}$ and stochastic forcing described by a noise function $\mathbf{g}$ and noise process $\mathbf{\mathcal{N}}_t$. Both the drift and noise functions may depend explicitly on time via parameters $p$. This setup corresponds to the `CoupledSDEs` system type in DynamicalSystems.jl, based on DifferentialEquation.jl's `SDEProblem`. In the absence of noise, this system reduces to the `CoupledODEs` type (based on `ODEProblem`).
 
-Double dollars make self-standing equations:
+A widely studied case is  the noise function $\mathbf{g(\mathbf{x})} = \sigma \mathbf\Sigma (\mathbf x)$, where
 
-$$\Theta(x) = \left\{\begin{array}{l}
-0\textrm{ if } x < 0\cr
-1\textrm{ else}
-\end{array}\right.$$
+The deterministic autonomous system $\dot{\mathbf{x}} = \mathbf{f}(\mathbf{x}, p)$ 
 
-You can also use plain \LaTeX for equations
-\begin{equation}\label{eq:fourier}
-\hat f(\omega) = \int_{-\infty}^{\infty} f(x) e^{i\omega x} dx
-\end{equation}
+Some problems are more conveniently described in a Hamiltonian formulation using generalized position and momentum coordinates. 
+
+# bla
+
 and refer to \autoref{eq:fourier} from text.
 
 # Example
@@ -71,6 +73,6 @@ Figure sizes can be customized by adding an optional second parameter:
 
 # Acknowledgements
 
-We acknowledge contributions from Tobias Grafke, Oliver Mehling, Calvin Nesbitt and Jeroen Wouters.
+We would like to thank Tobias Grafke, Oliver Mehling, Calvin Nesbitt and Jeroen Wouters for their input that helped develop CriticalTransitions.jl.
 
 # References
