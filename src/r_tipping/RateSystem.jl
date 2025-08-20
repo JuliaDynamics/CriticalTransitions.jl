@@ -18,15 +18,15 @@ with `λ(t) ∈ Rᵐ` constant before time `time_interval[1]` and also after tim
 
 RateProtocol contains the following fields:
 - `λ::Function`: forcing function of the form `λ(p, t_start; kwargs...)``
-- `p_lambda::Vector`: parameters of forcing function
+- `p_lambda::Vector`: parameters of the forcing function
 - `r::Float64`: rate parameter
 - `time_interval::Tuple`: start and end time of protocol
 
 Default values 
 ==============
 
-If `t_start` and `t_end` are not provided, they are set to `t_start=-Inf`, and `t_end=Inf`.
-If `p_lambda` is not provided, it is set to an empty array `[]`.
+time_interval = (-Inf, Inf)
+p_lambda = []
 """
 mutable struct RateProtocol
     λ::Function
