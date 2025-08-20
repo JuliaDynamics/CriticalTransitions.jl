@@ -65,7 +65,7 @@ function modified_drift(
     else
         λ(p, time_interval[2]; kwargs...) # the value(s) of λ(rt)
     end; # the value(s) of λ(rt)
-    return ds.integ.f(u, p̃, t)
+    return dynamic_rule(ds)(u, p̃, t)
 end;
 
 """
