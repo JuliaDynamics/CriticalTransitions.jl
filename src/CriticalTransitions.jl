@@ -19,7 +19,8 @@ using DynamicalSystemsBase:
     set_state!,
     trajectory,
     jacobian,
-    ContinuousTimeDynamicalSystem
+    ContinuousTimeDynamicalSystem,
+    referrenced_sciml_prob
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq
