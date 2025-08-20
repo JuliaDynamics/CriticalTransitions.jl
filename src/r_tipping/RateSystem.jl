@@ -14,14 +14,13 @@ The RateProtocol contains all the fields (information) that allows to take an OD
     `dxₜ/dt = f(xₜ, λ)` 
 with `λ ∈ Rᵐ` containing all system parameters, and make it an ODE of the form 
     `dxₜ/dt = f(xₜ, λ(rt))`
-with `λ(t) ∈ Rᵐ` constant before time `t_start` and also after time `t_end`. 
+with `λ(t) ∈ Rᵐ` constant before time `time_interval[1]` and also after time `time_interval[2]`. 
 
 RateProtocol contains the following fields:
 - `λ::Function`: forcing function of the form `λ(p, t_start; kwargs...)``
 - `p_lambda::Vector`: parameters of forcing function
 - `r::Float64`: rate parameter
-- `t_start::Float64`: start time of protocol
-- `t_end::Float64`: end time of protocol
+- `time_interval::Tuple`: start and end time of protocol
 
 Default values 
 ==============
@@ -33,16 +32,15 @@ mutable struct RateProtocol
     λ::Function
     p_lambda::Vector
     r::Float64
-    t_start::Float64
-    t_end::Float64
+    time_interval::Tupel
 end
 
 # convenience functions
 
 function RateProtocol(λ::Function, p_lambda::Vector, r::Float64)
-    RateProtocol(λ, p_lambda, r, -Inf, Inf)
+    RateProtocol(λ, p_lambda, r, (-Inf, Inf))
 end
-RateProtocol(λ::Function, r::Float64)=RateProtocol(λ, [], r, -Inf, Inf)
+RateProtocol(λ::Function, r::Float64)=RateProtocol(λ, [], r, (-Inf, Inf))
 #RateProtocol(λ::Function,p_lambda::Vector,r::Float64,t_start::Float64)=RateProtocol(λ,p_lambda,r,t_start,Inf)
 #RateProtocol(λ::Function,r::Float64,t_start::Float64)=RateProtocol(λ,[],r,t_start,Inf)	
 
@@ -52,21 +50,20 @@ function modified_drift(
     t,
     ds::ContinuousTimeDynamicalSystem,
     λ::Function,
-    t_start::Float64,
-    t_end::Float64,
+    time_interval::Tupel,
     r::Float64;
     kwargs...,
 )
-    if t_start > t_end
-        error("Please ensure that t_start ≤ t_end.")
+    if time_interval[1] > time_interval[2]
+        error("Please ensure that time_interval[1] ≤ time_interval[2].")
     end
 
-    p̃ = if r*t ≤ t_start
-        λ(p, t_start; kwargs...)
-    elseif t_start < r*t < t_end
+    p̃ = if r*t ≤ time_interval[1]
+        λ(p, time_interval[1]; kwargs...)
+    elseif time_interval[1] < r*t < time_interval[2]
         λ(p, r*t; kwargs...) # the value(s) of λ(rt)
     else
-        λ(p, t_end; kwargs...) # the value(s) of λ(rt)
+        λ(p, time_interval[2]; kwargs...) # the value(s) of λ(rt)
     end; # the value(s) of λ(rt)
     return ds.integ.f(u, p̃, t)
 end;
@@ -78,11 +75,11 @@ Applies a time-dependent [`RateProtocol`](@def) to a given autonomous determinis
 returning a non-autonomous dynamical system of type [`CoupledODEs`](@ref).
 
 The [`RateProtocol`](@def) replaces the parameters of `sys` by the function `λ(rt)` within the 
-time interval `[t_start, t_end]`. Thus, the returned [`CoupledODEs`](@ref) has the explicit parameter time-dependence incorporated and is 
-autonomous from `t_0` to `t_start`, non-autnonmous from `t_start` to `t_end` with the parameter shift given by the [`RateProtocol`](@def),
-and autonomous from `t_end` to the end of the simulation:
+time interval `time_interval`. Thus, the returned [`CoupledODEs`](@ref) has the explicit parameter time-dependence incorporated and is 
+autonomous from `t_0` to `time_interval[1]`, non-autnonmous from `time_interval[1]` to `time_interval[2]` with the parameter shift given by the [`RateProtocol`](@def),
+and autonomous from `time_interval[2]` to the end of the simulation:
 
-`t_0`  autonomous    `t_start`  non-autonomous   `t_end`  autonomous   `∞`
+`t_0`  autonomous    `time_interval[1]`  non-autonomous   `time_interval[2]`  autonomous   `∞`
 
 Computing trajectories of the returned [`CoupledODEs`](@ref) can then be done in the same way as for any other [`CoupledODEs`](@ref).
 """
@@ -90,7 +87,7 @@ function apply_ramping(auto_sys::CoupledODEs, rp::RateProtocol, t0=0.0; kwargs..
     # we wish to return a continuous time dynamical system with modified drift field
 
     f(u, p, t) = modified_drift(
-        u, p, t, auto_sys, rp.λ, rp.t_start, rp.t_end, rp.r; kwargs...
+        u, p, t, auto_sys, rp.λ, rp.time_interval, rp.r; kwargs...
     )
     prob = remake(auto_sys.integ.sol.prob; f, p=rp.p_lambda, tspan=(t0, Inf))
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
