@@ -32,7 +32,7 @@ mutable struct RateProtocol
     λ::Function
     p_lambda::Vector
     r::Float64
-    time_interval::Tupel
+    time_interval::Tuple
 end
 
 # convenience functions
@@ -50,7 +50,7 @@ function modified_drift(
     t,
     ds::ContinuousTimeDynamicalSystem,
     λ::Function,
-    time_interval::Tupel,
+    time_interval::Tuple,
     r::Float64;
     kwargs...,
 )
