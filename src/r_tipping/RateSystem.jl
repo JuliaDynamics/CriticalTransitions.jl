@@ -89,7 +89,7 @@ function apply_ramping(auto_sys::CoupledODEs, rp::RateProtocol, t0=0.0; kwargs..
     f(u, p, t) = modified_drift(
         u, p, t, auto_sys, rp.λ, rp.time_interval, rp.r; kwargs...
     )
-    prob = remake(auto_sys.integ.sol.prob; f, p=rp.p_lambda, tspan=(t0, Inf))
+    prob = remake(referrenced_sciml_prob(auto_sys); f, p=rp.p_lambda, tspan=(t0, Inf))
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
     return nonauto_sys
 end
