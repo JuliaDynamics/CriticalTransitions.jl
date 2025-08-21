@@ -28,7 +28,7 @@ Metastability and tipping phenomena are important features of nonlinear dynamica
 
 # Statement of need
 
-Critical transitions are a topic of growing scientific interest, given their relevance in diverse disciplines and applications -- from protein folding to climate tipping points. Research problems are often not tractable analytically, requiring numerical techniques for applying ideas from dynamical systems theory. Since transition events are typically rare, efficient numerics are essential.
+Critical transitions are a topic of growing scientific interest, given their relevance in diverse disciplines and applications -- from protein folding to climate tipping points. Research problems are often not tractable analytically, requiring numerical techniques for applying ideas from dynamical systems theory. Since transition events are typically rare, making Monte-Carlo-Simulations expensive, efficient numerics are essential.
 
 By combining speed and user-friendliness, Julia is a promising language for making these tools accessible. While SciML.jl and DifferentialEquations.jl provide fast, powerful solvers for nonautonomous and stochastic systems, DynamicalSystems.jl offers a user interface to construct the systems and study their autonomous, deterministic dynamics. However, a similar interface and functionality for forced dynamical systems had been missing. Specifically, various powerful algorithms have been proposed to sample and predict transition paths but, to our knowledge, had not been implemented in Julia (or, sometimes, in any common programming language) in a generic way. CriticalTransitions.jl fills this gap and is designed to grow with future contributions.
 
