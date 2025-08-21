@@ -24,8 +24,9 @@ using Test
     p_lambda = [λ_max] # parameter of the function lambda
 
     r = 4/3-0.02   # r just below critical rate
-    time_interval = (-Inf,Inf) # start and end time of non-autonomous part
-
+    t_start = -Inf # start time of non-autonomous part
+    t_end = Inf    # end time of non-autonomous part
+    
     rp = CriticalTransitions.RateProtocol(λ, p_lambda, r, time_interval)
 
     t0 = -10.0      # initial time of the system
