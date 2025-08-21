@@ -26,8 +26,8 @@ using Test
     r = 4/3-0.02   # r just below critical rate
     t_start = -Inf # start time of non-autonomous part
     t_end = Inf    # end time of non-autonomous part
-    
-    rp = CriticalTransitions.RateProtocol(λ, p_lambda, r, time_interval)
+
+    rp = CriticalTransitions.RateProtocol(λ, p_lambda, r, t_start,t_end)
 
     t0 = -10.0      # initial time of the system
     nonauto_sys = apply_ramping(auto_sys, rp, t0)
