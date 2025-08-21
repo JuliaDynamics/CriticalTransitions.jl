@@ -33,7 +33,7 @@ auto_sys = CoupledODEs(f,x0,p);
 ## Applying the parameter ramping
 
 Now, we want to explore a non-autonomous version of the system by applying a parameter ramping. 
-As discussed, we consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period ``time_interval`` with a time-dependent parameter ramping given by the function ``\lambda(rt)``. Choosing different values of the parameter ``r`` allows us to vary the speed of the parameter ramping.
+As discussed, we consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period ``[t_start,t_end]`` with a time-dependent parameter ramping given by the function ``\lambda(rt)``. Choosing different values of the parameter ``r`` allows us to vary the speed of the parameter ramping.
 
 We start by defining the function `λ(p_lambda, t)`:
 ```@example RateSystem
@@ -59,13 +59,14 @@ figλ
 
 
 Now, we define a RateProtocol, which contains all the information to apply the parameter ramping given by 
-`λ(p_lambda,t)` to the `auto_sys` during ``time_interval``:
+`λ(p_lambda,t)` to the `auto_sys` during ``[t_start,t_end]``:
 
 ```@example RateSystem
 r = 4/3-0.02   # r just below critical rate 4/3
-time_interval = (-Inf,Inf) # start time of non-autonomous part
+t_start = -Inf # start time of non-autonomous part
+t_end = Inf    # end time of non-autonomous part
 
-rp = CriticalTransitions.RateProtocol(λ,p_lambda,r,time_interval);
+rp = CriticalTransitions.RateProtocol(λ,p_lambda,r,t_start,t_end);
 ```
 
 
