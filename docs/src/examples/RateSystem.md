@@ -35,7 +35,7 @@ auto_sys = CoupledODEs(f,x0,p);
 Now, we want to explore a non-autonomous version of the system by applying a parameter ramping. 
 As discussed, we consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period ``[t_start,t_end]`` with a time-dependent parameter ramping given by the function ``\lambda(rt)``. Choosing different values of the parameter ``r`` allows us to vary the speed of the parameter ramping.
 
-We start by defining the function `λ(p_lambda, t)`:
+We start by defining the function `λ(p_parameter, t)`:
 ```@example RateSystem
 function λ(p,t)
     λ_max = p[1]
@@ -44,13 +44,13 @@ function λ(p,t)
 end
 
 λ_max = 3.
-p_lambda = [λ_max]; # parameter of the function lambda
+p_parameter = [λ_max]; # parameter of the function lambda
 ```
 
 
-We plot the function `λ(p_lambda, t)`
+We plot the function `λ(p_parameter, t)`
 ```@example RateSystem
-lambda_plotvals = [λ(p_lambda, t)[1] for t in -10.0:0.1:10.0]
+lambda_plotvals = [λ(p_parameter, t)[1] for t in -10.0:0.1:10.0]
 figλ = Figure(); axsλ = Axis(figλ[1,1],xlabel="t",ylabel=L"\lambda")
 lines!(axsλ,-10.0:0.1:10.0,lambda_plotvals,linewidth=2,label=L"\lambda(p_{\lambda}, t)")
 axislegend(axsλ,position=:rc,labelsize=10)
@@ -59,14 +59,14 @@ figλ
 
 
 Now, we define a `RateConfig`, which contains all the information to apply the parameter ramping given by 
-`λ(p_lambda,t)` to the `auto_sys` during ``[t_start,t_end]``:
+`λ(p_parameter,t)` to the `auto_sys` during ``[t_start,t_end]``:
 
 ```@example RateSystem
 r = 4/3-0.02   # r just below critical rate 4/3
 t_start = -Inf # start time of non-autonomous part
 t_end = Inf    # end time of non-autonomous part
 
-rp = CriticalTransitions.RateConfig(λ,p_lambda,r,t_start,t_end);
+rp = CriticalTransitions.RateConfig(λ,p_parameter,r,t_start,t_end);
 ```
 
 

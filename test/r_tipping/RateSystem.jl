@@ -21,13 +21,13 @@ using Test
     end
 
     λ_max = 3.0
-    p_lambda = [λ_max] # parameter of the function lambda
+    p_parameter = [λ_max] # parameter of the function lambda
 
     r = 4/3-0.02   # r just below critical rate
     t_start = -Inf # start time of non-autonomous part
     t_end = Inf    # end time of non-autonomous part
 
-    rp = CriticalTransitions.RateProtocol(λ, p_lambda, r, t_start,t_end)
+    rp = CriticalTransitions.RateConfig(λ, p_parameter, r, t_start,t_end)
 
     t0 = -10.0      # initial time of the system
     nonauto_sys = apply_ramping(auto_sys, rp, t0)

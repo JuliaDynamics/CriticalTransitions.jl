@@ -1,5 +1,5 @@
-# we consider the ODE dxₜ/dt = f(xₜ,λ(rt))
-# here λ = λ(t) ∈ Rᵐ is a function containing all the system parameters 
+# we consider the ODE dxₜ/dt = f(xₜ,p(rt))
+# here p = p(t) ∈ Rᵐ is a function containing all the system parameters 
 
 # We ask the user to define: 
 #  1) a ContinuousTimeDynamicalSystem that should be investigated and
@@ -11,8 +11,8 @@
     RateConfig
 
 Time-dependent forcing protocol specified by the following fields:
-- `λ::Function`: forcing function of the form `λ(p, t_start; kwargs...)``
-- `p_lambda::Vector`: parameters of the forcing function
+- `p::Function`: forcing function of the form `p(p, t_start; kwargs...)``
+- `p_parameter::Vector`: parameters of the forcing function p(t)
 - `r::Float64`: rate parameter
 - `t_start::Float64`: start time of protocol
 - `t_end::Float64`: end time of protocol
@@ -22,11 +22,11 @@ Default values
 
 t_start=-Inf
 t_end=Inf
-p_lambda = []
+p_parameter = []
 """
 mutable struct RateConfig
-    λ::Function
-    p_lambda::Vector
+    p::Function
+    p_parameters::Vector
     r::Float64
     t_start::Float64
     t_end::Float64
@@ -34,17 +34,17 @@ end
 
 # convenience functions
 
-function RateConfig(λ::Function, p_lambda::Vector, r::Float64)
-    RateConfig(λ, p_lambda, r, -Inf, Inf)
+function RateConfig(p::Function, p_parameter::Vector, r::Float64)
+    RateConfig(p, p_parameter, r, -Inf, Inf)
 end
-RateConfig(λ::Function, r::Float64)=RateConfig(λ, [], r, -Inf, Inf)
+RateConfig(p::Function, r::Float64)=RateConfig(p, [], r, -Inf, Inf)
 
 function modified_drift(
     u,
     p,
     t,
     ds::ContinuousTimeDynamicalSystem,
-    λ::Function,
+    p::Function,
     t_start::Float64,
     t_end::Float64,
     r::Float64;
@@ -55,12 +55,12 @@ function modified_drift(
     end
 
     p̃ = if r*t ≤ t_start
-        λ(p, t_start; kwargs...)
+        p(p, t_start; kwargs...)
     elseif t_start < r*t < t_end
-        λ(p, r*t; kwargs...) # the value(s) of λ(rt)
+        p(p, r*t; kwargs...) # the value(s) of p(rt)
     else
-        λ(p, t_end; kwargs...) # the value(s) of λ(rt)
-    end; # the value(s) of λ(rt)
+        p(p, t_end; kwargs...) # the value(s) of p(rt)
+    end; # the value(s) of p(rt)
     return dynamic_rule(ds)(u, p̃, t)
 end;
 
@@ -83,9 +83,9 @@ function apply_ramping(auto_sys::CoupledODEs, rp::RateConfig, t0=0.0; kwargs...)
     # we wish to return a continuous time dynamical system with modified drift field
 
     f(u, p, t) = modified_drift(
-        u, p, t, auto_sys, rp.λ, rp.t_start, rp.t_end, rp.r; kwargs...
+        u, p, t, auto_sys, rp.p, rp.t_start, rp.t_end, rp.r; kwargs...
     )
-    prob = remake(referrenced_sciml_prob(auto_sys); f, p=rp.p_lambda, tspan=(t0, Inf))
+    prob = remake(referrenced_sciml_prob(auto_sys); f, p=rp.p_parameter, tspan=(t0, Inf))
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
     return nonauto_sys
 end
