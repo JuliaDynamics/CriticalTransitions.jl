@@ -11,7 +11,7 @@
     RateConfig
 
 Time-dependent forcing protocol specified by the following fields:
-- `p::Function`: forcing function of the form `p(p, t_start; kwargs...)``
+- `p::Function`: forcing function of the form `p(p_parameters, t_start; kwargs...)``
 - `p_parameters::Vector`: parameters of the forcing function p(t)
 - `r::Float64`: rate parameter
 - `t_start::Float64`: start time of protocol
@@ -20,8 +20,8 @@ Time-dependent forcing protocol specified by the following fields:
 Default values 
 ==============
 
-t_start=-Inf
-t_end=Inf
+t_start = -Inf
+t_end = Inf
 p_parameters = []
 """
 mutable struct RateConfig

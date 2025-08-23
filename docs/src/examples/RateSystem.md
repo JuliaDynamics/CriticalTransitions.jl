@@ -7,10 +7,10 @@ This limiting behaviour is a widely used setting and convenient for studying R-t
 We first consider the following simple one-dimensional autonomous system with one attractor, given by the ordinary differential equation:
 ```math
 \begin{aligned}
-    \dot{x} &= (x+\lambda)^2 - 1
+    \dot{x} &= (x+p)^2 - 1
 \end{aligned}
 ```
-The parameter ``\lambda`` shifts the location of the extrema of the drift field. 
+The parameter ``p`` shifts the location of the extrema of the drift field. 
 We implement this system as follows:
 
 ```@example RateSystem
@@ -19,54 +19,51 @@ using CairoMakie
 
 function f(u,p,t) # out-of-place
     x = u[1]
-    λ = p[1]
-    dx = (x+λ)^2 - 1
+    dx = (x+p[1])^2 - 1
     return SVector{1}(dx)
 end
 
-lambda = 0.0 
-p = [lambda]
 x0 = [-1.]
-auto_sys = CoupledODEs(f,x0,p);
+auto_sys = CoupledODEs(f,x0,[0.0]);
 ```
 
 ## Applying the parameter ramping
 
 Now, we want to explore a non-autonomous version of the system by applying a parameter ramping. 
-As discussed, we consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period ``[t_start,t_end]`` with a time-dependent parameter ramping given by the function ``\lambda(rt)``. Choosing different values of the parameter ``r`` allows us to vary the speed of the parameter ramping.
+As discussed, we consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period ``[t_start,t_end]`` with a time-dependent parameter ramping given by the function ``p(rt)``. Choosing different values of the parameter ``r`` allows us to vary the speed of the parameter ramping.
 
-We start by defining the function `λ(p_parameters, t)`:
+We start by defining the function `p(p_parameters, t)`:
 ```@example RateSystem
-function λ(p,t)
-    λ_max = p[1]
-    lambda = (λ_max/2)*(tanh(λ_max*t/2)+1)
-    return SVector{1}(lambda)
-end
+function p(p_parameters, t)
+        p_max = p_parameters[1]
+        p_ = (p_max/2)*(tanh(p_max*t/2)+1)
+        return SVector{1}(p_)
+    end
 
-λ_max = 3.
-p_parameters = [λ_max]; # parameter of the function lambda
+    p_max = 3.0
+    p_parameters = [p_max] # parameter of the function p
 ```
 
 
-We plot the function `λ(p_parameters, t)`
+We plot the function `p(p_parameters, t)`
 ```@example RateSystem
-lambda_plotvals = [λ(p_parameters, t)[1] for t in -10.0:0.1:10.0]
-figλ = Figure(); axsλ = Axis(figλ[1,1],xlabel="t",ylabel=L"\lambda")
-lines!(axsλ,-10.0:0.1:10.0,lambda_plotvals,linewidth=2,label=L"\lambda(p_{\lambda}, t)")
-axislegend(axsλ,position=:rc,labelsize=10)
-figλ
+p_plotvals = [p(p_parameters, t)[1] for t in -10.0:0.1:10.0]
+figp = Figure(); axsp = Axis(figp[1,1],xlabel="t",ylabel=L"p")
+lines!(axsp,-10.0:0.1:10.0,p_plotvals,linewidth=2,label=L"p(p_{parameters}, t)")
+axislegend(axsp,position=:rc,labelsize=10)
+figp
 ```
 
 
 Now, we define a `RateConfig`, which contains all the information to apply the parameter ramping given by 
-`λ(p_parameters,t)` to the `auto_sys` during ``[t_start,t_end]``:
+`p(p_parameters,t)` to the `auto_sys` during ``[t_start,t_end]``:
 
 ```@example RateSystem
 r = 4/3-0.02   # r just below critical rate 4/3
 t_start = -Inf # start time of non-autonomous part
 t_end = Inf    # end time of non-autonomous part
 
-rp = CriticalTransitions.RateConfig(λ,p_parameters,r,t_start,t_end);
+rp = CriticalTransitions.RateConfig(p,p_parameters,r,t_start,t_end);
 ```
 
 

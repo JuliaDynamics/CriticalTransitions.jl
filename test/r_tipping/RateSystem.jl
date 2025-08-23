@@ -4,30 +4,27 @@ using Test
 @testset "RateSystem" begin
     function f(u, p, t) # out-of-place
         x = u[1]
-        λ = p[1]
-        dx = (x+λ)^2 - 1
+        dx = (x+p[1])^2 - 1
         return SVector{1}(dx)
     end
 
-    lambda = 0.0
-    p = [lambda]
     x0 = [-1.0]
-    auto_sys = CoupledODEs(f, x0, p)
+    auto_sys = CoupledODEs(f, x0, [0.0])
 
-    function λ(p, t)
-        λ_max = p[1]
-        lambda = (λ_max/2)*(tanh(λ_max*t/2)+1)
-        return SVector{1}(lambda)
+    function p(p_parameters, t)
+        p_max = p_parameters[1]
+        p_ = (p_max/2)*(tanh(p_max*t/2)+1)
+        return SVector{1}(p_)
     end
 
-    λ_max = 3.0
-    p_parameters = [λ_max] # parameter of the function lambda
+    p_max = 3.0
+    p_parameters = [p_max] # parameter of the function p
 
     r = 4/3-0.02   # r just below critical rate
     t_start = -Inf # start time of non-autonomous part
     t_end = Inf    # end time of non-autonomous part
 
-    rp = CriticalTransitions.RateConfig(λ, p_parameters, r, t_start,t_end)
+    rp = CriticalTransitions.RateConfig(p, p_parameters, r, t_start,t_end)
 
     t0 = -10.0      # initial time of the system
     nonauto_sys = apply_ramping(auto_sys, rp, t0)
