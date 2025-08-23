@@ -25,7 +25,7 @@ t_end = Inf
 p_parameters = []
 """
 mutable struct RateConfig
-    p::Function  # has to be a function that ramps from p(t=-100)=0 to p(t=100)=1
+    p::Function  # has to be a function that ramps from p(t=-10)=0 to p(t=10)=1
     p_parameters::Vector 
     t_start::Float64
     ramp_t_length::Float64
@@ -53,11 +53,11 @@ function modified_drift(
 )
 
     p̃ = if t ≤ t_start
-        dp*p(p_parameters, -100.0; kwargs...)
+        dp*p(p_parameters, -10.0; kwargs...)
     elseif t_start < t < t_start+ramp_t_length
-        dp*p(p_parameters, -100.0+(200/ramp_t_length)*(t-t_start); kwargs...)
+        dp*p(p_parameters, -10.0+(20/ramp_t_length)*(t-t_start); kwargs...)
     else
-        dp*p(p_parameters, 100.0; kwargs...) 
+        dp*p(p_parameters, 10.0; kwargs...) 
     end; 
     return dynamic_rule(ds)(u, p̃, t)
 end;
