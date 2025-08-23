@@ -1,7 +1,7 @@
 # Studying R-Tipping
 
 Let us explore a simple prototypical example of how to use the R-tipping functionality of this package.
-We start with defining an autonomous deterministic dynamical system (i.e. a `CoupledODEs`) and a time-dependent forcing protocol called `RateProtocol`, and use these to set up a non-autonomous system that has an autonomous past and future limit. 
+We start with defining an autonomous deterministic dynamical system (i.e. a `CoupledODEs`) and a time-dependent forcing protocol called `RateConfig`, and use these to set up a non-autonomous system that has an autonomous past and future limit. 
 This limiting behaviour is a widely used setting and convenient for studying R-tipping.
 
 We first consider the following simple one-dimensional autonomous system with one attractor, given by the ordinary differential equation:
@@ -58,7 +58,7 @@ figλ
 ```
 
 
-Now, we define a RateProtocol, which contains all the information to apply the parameter ramping given by 
+Now, we define a `RateConfig`, which contains all the information to apply the parameter ramping given by 
 `λ(p_lambda,t)` to the `auto_sys` during ``[t_start,t_end]``:
 
 ```@example RateSystem
@@ -66,7 +66,7 @@ r = 4/3-0.02   # r just below critical rate 4/3
 t_start = -Inf # start time of non-autonomous part
 t_end = Inf    # end time of non-autonomous part
 
-rp = CriticalTransitions.RateProtocol(λ,p_lambda,r,t_start,t_end);
+rp = CriticalTransitions.RateConfig(λ,p_lambda,r,t_start,t_end);
 ```
 
 
