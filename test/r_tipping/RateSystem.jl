@@ -17,11 +17,11 @@ using Test
         return SVector{1}(p_)
     end
 
-    p_max = 3.0
+    p_max = 1.0
     p_parameters = [p_max] # parameter of the function p
 
-    t_start = -Inf # start time of non-autonomous part
-    ramp_t_length = Inf    # end time of non-autonomous part
+    t_start = -10 # start time of non-autonomous part
+    ramp_t_length = 20    # end time of non-autonomous part
     dp=1
 
     rp = CriticalTransitions.RateConfig(p, p_parameters, t_start,ramp_t_length,dp)
