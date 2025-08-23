@@ -20,9 +20,9 @@ Time-dependent forcing protocol specified by the following fields:
 Default values 
 ==============
 
-t_start = -Inf
-t_end = Inf
-p_parameters = []
+- t_start = -10
+- ramp_t_length = 20
+- p_parameters = []
 """
 mutable struct RateConfig
     p::Function  # has to be a function that ramps from p(t=-10)=0 to p(t=10)=1
@@ -32,7 +32,7 @@ mutable struct RateConfig
     dp::Float64
 end
 # convenience functions
-RateConfig(p::Function, p_parameters::Vector, dp::Float64)=RateConfig(p, p_parameters, -10, 10, dp)
+RateConfig(p::Function, p_parameters::Vector, dp::Float64)=RateConfig(p, p_parameters, -10, 20, dp)
 RateConfig(p::Function, ramp_t_length::Float64)=RateConfig(p, [], -10, ramp_t_length, 1)
 
 
