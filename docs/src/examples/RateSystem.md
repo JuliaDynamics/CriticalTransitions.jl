@@ -65,12 +65,13 @@ Now, we define a `RateConfig`, which contains all the information to apply the p
 `p(p_parameters,t)` to the `auto_sys` during ``[t_start, t_start+ramp_t_length]``:
 
 ```@example RateSystem
-t_start = -10 # start time of non-autonomous part
-ramp_t_length = 5    # duration of non-autonomous part
-dp=3
+t_start = -10       # start time of non-autonomous part
+ramp_t_length = 5   # duration of non-autonomous part
+dp=3                # strength of the paramter ramping
 
 rc = CriticalTransitions.RateConfig(p, p_parameters, t_start,ramp_t_length,dp)
 ```
+Note that `dp` is defined as a prefactor of the function `p`. Thus, changing `dp` will change the amount of the parameter ramping. As we required that p(t=-10)& =0 and p(t=10)=1, setting `dp=10` would result in a parameter ramping from `0` to `10`.
 
 
 We set up the system with autonomous past and future and non-autonomous ramping in between:
