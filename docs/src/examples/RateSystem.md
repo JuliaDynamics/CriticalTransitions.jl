@@ -1,7 +1,7 @@
 # Studying R-Tipping
 
 Let us explore a simple prototypical example of how to use the R-tipping functionality of this package.
-We start with defining an autonomous deterministic dynamical system (i.e. a `CoupledODEs`). Then, we define a time-dependent forcing protocol called `RateConfig`, describing how the parameters of the previously defined autonomous system should be ramped. We set this up such that for times `t` smaller than the non-autonomous starting time `t_start`, the system is autonomous, and after the parameter ramping, i.e., after `t_start + ramp_t_length` the system is non-autonomous again. This setting is a widely used and convenient for studying R-tipping.
+We start with defining an autonomous deterministic dynamical system (i.e. a `CoupledODEs`). Then, we define a time-dependent forcing protocol called `RateConfig`, describing how the parameters of the previously defined autonomous `CoupledODEs` will be changed over time. For times `t` smaller than the time `t_start`, the system is autonomous, then non-autonomous for `t_start < t < t_start + ramp_t_length` with the paramter ramping given by the `RateConfig` and for `t > t_start + ramp_t_length` the system is autonomous again. This setting is a widely used and convenient for studying R-tipping.
 
 We first consider the following simple one-dimensional autonomous system with one attractor, given by the ordinary differential equation:
 ```math
@@ -29,7 +29,7 @@ auto_sys = CoupledODEs(f,x0,[0.0]);
 ## Applying the parameter ramping
 
 Now, we want to explore a non-autonomous version of the system by applying a parameter ramping. 
-As discussed, we consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period ``[t_start, t_start+ramp_t_length]`` with a time-dependent parameter ramping given by the function ``p(t)``. Choosing different values of the parameter ``ramp_t_length`` allows us to vary the speed of the parameter ramping.
+As discussed, we consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period `[t_start, t_start+ramp_t_length]` with a time-dependent parameter ramping given by the function ``p(t)``. Choosing different values of the parameter `ramp_t_length` allows us to vary the speed of the parameter ramping.
 
 We start by defining the function `p(p_parameters, t)`:
 ```@example RateSystem
@@ -62,7 +62,7 @@ We require these conditions to be fulfilled for any ramping function to use the 
 
 
 Now, we define a `RateConfig`, which contains all the information to apply the parameter ramping given by 
-`p(p_parameters,t)` to the `auto_sys` during ``[t_start, t_start+ramp_t_length]``:
+`p(p_parameters,t)` to the `auto_sys` during `[t_start, t_start+ramp_t_length]`:
 
 ```@example RateSystem
 t_start = -10       # start time of non-autonomous part
@@ -71,7 +71,7 @@ dp=3                # strength of the paramter ramping
 
 rc = CriticalTransitions.RateConfig(p, p_parameters, t_start,ramp_t_length,dp)
 ```
-Note that `dp` is defined as a prefactor of the function `p`. Thus, changing `dp` will change the amount of the parameter ramping. As we required that p(t=-10)& =0 and p(t=10)=1, setting `dp=10` would result in a parameter ramping from `0` to `10`.
+Note that `dp` is defined as a prefactor of the function `p`. Thus, changing `dp` will change the amount of the parameter ramping. As we required that ``p(t=-10) =0 and p(t=10)=1``, setting `dp=10` would result in a parameter ramping from ``p(t=-10) =0 and p(t=10)=10``.
 
 
 We set up the system with autonomous past and future and non-autonomous ramping in between:
