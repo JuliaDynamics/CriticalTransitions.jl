@@ -84,7 +84,7 @@ export MinimumActionPath
 export deterministic_orbit
 export transition, transitions
 
-export RateProtocol, apply_ramping
+export RateConfig, apply_ramping
 
 # Error hint for extensions stubs
 function __init__()
