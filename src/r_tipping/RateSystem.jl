@@ -31,14 +31,11 @@ mutable struct RateConfig
     ramp_t_length::Float64
     dp::Float64
 end
-
-
 # convenience functions
+RateConfig(p::Function, p_parameters::Vector, dp::Float64)=RateConfig(p, p_parameters, -10, 10, dp)
+RateConfig(p::Function, ramp_t_length::Float64)=RateConfig(p, [], -10, ramp_t_length, 1)
 
-#function RateConfig(p::Function, p_parameters::Vector, r::Float64)
-#    RateConfig(p, p_parameters, r, -Inf, Inf)
-#end
-#RateConfig(p::Function, r::Float64)=RateConfig(p, [], r, -Inf, Inf)
+
 
 function modified_drift(
     u,
@@ -63,7 +60,7 @@ function modified_drift(
 end;
 
 """
-    apply_ramping(sys::CoupledODEs, rp::RateConfig, t0=0.0; kwargs...)
+    apply_ramping(sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
 
 Applies a time-dependent [`RateConfig`](@def) to a given autonomous deterministic dynamical system
 `sys`, turning it into a non-autonomous dynamical system. The returned [`CoupledODEs`](@ref)
@@ -77,13 +74,13 @@ and again autonomous from `t_end` to the end of the simulation:
 
 Computing trajectories of the returned [`CoupledODEs`](@ref) can then be done in the same way as for any other [`CoupledODEs`](@ref).
 """
-function apply_ramping(auto_sys::CoupledODEs, rp::RateConfig, t0=0.0; kwargs...)
+function apply_ramping(auto_sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
     # we wish to return a continuous time dynamical system with modified drift field
 
     f(u, p_parameters, t) = modified_drift(
-        u, p_parameters, t, auto_sys, rp.p, rp.t_start, rp.ramp_t_length, rp.dp; kwargs...
+        u, p_parameters, t, auto_sys, rc.p, rc.t_start, rc.ramp_t_length, rc.dp; kwargs...
     )
-    prob = remake(referrenced_sciml_prob(auto_sys); f, p=rp.p_parameters, tspan=(t0, Inf))
+    prob = remake(referrenced_sciml_prob(auto_sys); f, p=rc.p_parameters, tspan=(t0, Inf))
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
     return nonauto_sys
 end

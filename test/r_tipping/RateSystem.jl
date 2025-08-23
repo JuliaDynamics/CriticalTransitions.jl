@@ -24,10 +24,10 @@ using Test
     ramp_t_length = 5    # duration of non-autonomous part
     dp=3
 
-    rp = CriticalTransitions.RateConfig(p, p_parameters, t_start,ramp_t_length,dp)
+    rc = CriticalTransitions.RateConfig(p, p_parameters, t_start,ramp_t_length,dp)
 
     t0 = -10.0      # initial time of the system
-    nonauto_sys = apply_ramping(auto_sys, rp, t0)
+    nonauto_sys = apply_ramping(auto_sys, rc, t0)
 
     T = 50.0        # final simulation time
     auto_traj = trajectory(auto_sys, T, x0)

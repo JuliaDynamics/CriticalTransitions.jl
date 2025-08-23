@@ -63,7 +63,7 @@ r = 4/3-0.02   # r just below critical rate 4/3
 t_start = -Inf # start time of non-autonomous part
 t_end = Inf    # end time of non-autonomous part
 
-rp = CriticalTransitions.RateConfig(p,p_parameters,r,t_start,t_end);
+rc = CriticalTransitions.RateConfig(p,p_parameters,r,t_start,t_end);
 ```
 
 
@@ -71,7 +71,7 @@ We set up the system with autonomous past and future and non-autonomous ramping 
 
 ```@example RateSystem
 t0 = -10.      # initial time of the system
-nonauto_sys = apply_ramping(auto_sys,rp,t0);
+nonauto_sys = apply_ramping(auto_sys,rc,t0);
 ```
 
 We can compute trajectories of this new system in the familiar way:
