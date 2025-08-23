@@ -12,7 +12,7 @@
 
 Time-dependent forcing protocol specified by the following fields:
 - `p::Function`: forcing function of the form `p(p, t_start; kwargs...)``
-- `p_parameter::Vector`: parameters of the forcing function p(t)
+- `p_parameters::Vector`: parameters of the forcing function p(t)
 - `r::Float64`: rate parameter
 - `t_start::Float64`: start time of protocol
 - `t_end::Float64`: end time of protocol
@@ -22,11 +22,11 @@ Default values
 
 t_start=-Inf
 t_end=Inf
-p_parameter = []
+p_parameters = []
 """
 mutable struct RateConfig
     p::Function
-    p_parameter::Vector
+    p_parameters::Vector
     r::Float64
     t_start::Float64
     t_end::Float64
@@ -34,8 +34,8 @@ end
 
 # convenience functions
 
-function RateConfig(p::Function, p_parameter::Vector, r::Float64)
-    RateConfig(p, p_parameter, r, -Inf, Inf)
+function RateConfig(p::Function, p_parameters::Vector, r::Float64)
+    RateConfig(p, p_parameters, r, -Inf, Inf)
 end
 RateConfig(p::Function, r::Float64)=RateConfig(p, [], r, -Inf, Inf)
 
@@ -85,7 +85,7 @@ function apply_ramping(auto_sys::CoupledODEs, rp::RateConfig, t0=0.0; kwargs...)
     f(u, par, t) = modified_drift(
         u, par, t, auto_sys, rp.p, rp.t_start, rp.t_end, rp.r; kwargs...
     )
-    prob = remake(referrenced_sciml_prob(auto_sys); f, p=rp.p_parameter, tspan=(t0, Inf))
+    prob = remake(referrenced_sciml_prob(auto_sys); f, p=rp.p_parameters, tspan=(t0, Inf))
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
     return nonauto_sys
 end
