@@ -22,6 +22,7 @@ using Test
 
     t_start = -Inf # start time of non-autonomous part
     ramp_t_length = Inf    # end time of non-autonomous part
+    dp=1
 
     rp = CriticalTransitions.RateConfig(p, p_parameters, t_start,ramp_t_length,dp)
 
