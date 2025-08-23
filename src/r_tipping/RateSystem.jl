@@ -41,7 +41,7 @@ RateConfig(p::Function, r::Float64)=RateConfig(p, [], r, -Inf, Inf)
 
 function modified_drift(
     u,
-    p,
+    par,
     t,
     ds::ContinuousTimeDynamicalSystem,
     p::Function,
@@ -55,11 +55,11 @@ function modified_drift(
     end
 
     p̃ = if r*t ≤ t_start
-        p(p, t_start; kwargs...)
+        p(par, t_start; kwargs...)
     elseif t_start < r*t < t_end
-        p(p, r*t; kwargs...) # the value(s) of p(rt)
+        p(par, r*t; kwargs...) # the value(s) of p(rt)
     else
-        p(p, t_end; kwargs...) # the value(s) of p(rt)
+        p(par, t_end; kwargs...) # the value(s) of p(rt)
     end; # the value(s) of p(rt)
     return dynamic_rule(ds)(u, p̃, t)
 end;
@@ -82,8 +82,8 @@ Computing trajectories of the returned [`CoupledODEs`](@ref) can then be done in
 function apply_ramping(auto_sys::CoupledODEs, rp::RateConfig, t0=0.0; kwargs...)
     # we wish to return a continuous time dynamical system with modified drift field
 
-    f(u, p, t) = modified_drift(
-        u, p, t, auto_sys, rp.p, rp.t_start, rp.t_end, rp.r; kwargs...
+    f(u, par, t) = modified_drift(
+        u, par, t, auto_sys, rp.p, rp.t_start, rp.t_end, rp.r; kwargs...
     )
     prob = remake(referrenced_sciml_prob(auto_sys); f, p=rp.p_parameter, tspan=(t0, Inf))
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
