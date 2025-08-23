@@ -35,13 +35,13 @@ As discussed, we consider a setting where in the past and in the future the syst
 We start by defining the function `p(p_parameters, t)`:
 ```@example RateSystem
 function p(p_parameters, t)
-        p_max = p_parameters[1]
-        p_ = (p_max/2)*(tanh(p_max*t/2)+1)
-        return SVector{1}(p_)
-    end
+    p_max = p_parameters[1]
+    p_ = (p_max/2)*(tanh(p_max*t/2)+1)
+    return SVector{1}(p_)
+end
 
-    p_max = 3.0
-    p_parameters = [p_max] # parameter of the function p
+p_max = 3.0
+p_parameters = [p_max] # parameter of the function p
 ```
 
 
