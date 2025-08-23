@@ -20,11 +20,10 @@ using Test
     p_max = 3.0
     p_parameters = [p_max] # parameter of the function p
 
-    r = 4/3-0.02   # r just below critical rate
     t_start = -Inf # start time of non-autonomous part
-    t_end = Inf    # end time of non-autonomous part
+    ramp_t_length = Inf    # end time of non-autonomous part
 
-    rp = CriticalTransitions.RateConfig(p, p_parameters, r, t_start,t_end)
+    rp = CriticalTransitions.RateConfig(p, p_parameters, t_start,ramp_t_length,dp)
 
     t0 = -10.0      # initial time of the system
     nonauto_sys = apply_ramping(auto_sys, rp, t0)

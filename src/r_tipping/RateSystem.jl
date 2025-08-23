@@ -25,42 +25,40 @@ t_end = Inf
 p_parameters = []
 """
 mutable struct RateConfig
-    p::Function
-    p_parameters::Vector
-    r::Float64
+    p::Function  # has to be a function that ramps from p(t_start)=0 to p(t_start+ramp_t_length)=1
+    p_parameters::Vector 
     t_start::Float64
-    t_end::Float64
+    ramp_t_length::Float64
+    dp::Float64
 end
+
 
 # convenience functions
 
-function RateConfig(p::Function, p_parameters::Vector, r::Float64)
-    RateConfig(p, p_parameters, r, -Inf, Inf)
-end
-RateConfig(p::Function, r::Float64)=RateConfig(p, [], r, -Inf, Inf)
+#function RateConfig(p::Function, p_parameters::Vector, r::Float64)
+#    RateConfig(p, p_parameters, r, -Inf, Inf)
+#end
+#RateConfig(p::Function, r::Float64)=RateConfig(p, [], r, -Inf, Inf)
 
 function modified_drift(
     u,
-    par,
+    p_parameters,
     t,
     ds::ContinuousTimeDynamicalSystem,
     p::Function,
     t_start::Float64,
-    t_end::Float64,
-    r::Float64;
+    ramp_t_length::Float64,
+    dp::Float64;
     kwargs...,
 )
-    if t_start > t_end
-        error("Please ensure that t_start ≤ t_end.")
-    end
 
-    p̃ = if r*t ≤ t_start
-        p(par, t_start; kwargs...)
-    elseif t_start < r*t < t_end
-        p(par, r*t; kwargs...) # the value(s) of p(rt)
+    p̃ = if t ≤ t_start
+        dp*p(p_parameters, t_start; kwargs...)
+    elseif t_start < t < t_start+ramp_t_length
+        dp*p(p_parameters, t; kwargs...)
     else
-        p(par, t_end; kwargs...) # the value(s) of p(rt)
-    end; # the value(s) of p(rt)
+        dp*p(p_parameters, t_start+ramp_t_length; kwargs...) 
+    end; 
     return dynamic_rule(ds)(u, p̃, t)
 end;
 
@@ -82,11 +80,12 @@ Computing trajectories of the returned [`CoupledODEs`](@ref) can then be done in
 function apply_ramping(auto_sys::CoupledODEs, rp::RateConfig, t0=0.0; kwargs...)
     # we wish to return a continuous time dynamical system with modified drift field
 
-    f(u, par, t) = modified_drift(
-        u, par, t, auto_sys, rp.p, rp.t_start, rp.t_end, rp.r; kwargs...
+    f(u, p_parameters, t) = modified_drift(
+        u, p_parameters, t, auto_sys, rp.p, rp.t_start, rp.ramp_t_length, rp.dp; kwargs...
     )
     prob = remake(referrenced_sciml_prob(auto_sys); f, p=rp.p_parameters, tspan=(t0, Inf))
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
     return nonauto_sys
 end
+
 
