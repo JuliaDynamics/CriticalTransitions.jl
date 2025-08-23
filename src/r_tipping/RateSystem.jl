@@ -26,7 +26,7 @@ p_parameter = []
 """
 mutable struct RateConfig
     p::Function
-    p_parameters::Vector
+    p_parameter::Vector
     r::Float64
     t_start::Float64
     t_end::Float64
