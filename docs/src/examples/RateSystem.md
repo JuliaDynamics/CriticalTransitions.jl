@@ -58,7 +58,7 @@ Note that this function fulfills
         p(t=-10)& =0 \ and \ p(t=10)=1.
     \end{aligned}
 ```
-We require these conditions to be fulfilled for any ramping function to use the functionality of this package. For more general ramping functions, see below.
+We recommend this to be fulfilled for any ramping function to use the functionality of this package.
 
 
 Now, we define a `RateConfig`, which contains all the information to apply the parameter ramping given by 
@@ -71,7 +71,7 @@ dp=3                # strength of the paramter ramping
 
 rc = CriticalTransitions.RateConfig(p, p_parameters, t_start,ramp_t_length,dp)
 ```
-Note that `dp` is defined as a prefactor of the function `p`. Thus, changing `dp` will change the amount of the parameter ramping. As we required that ``p(t=-10) =0 and p(t=10)=1``, setting `dp=10` would result in a parameter ramping from ``p(t=-10) =0 and p(t=10)=10``.
+Note that `dp` is defined as a prefactor of the function `p`. Thus, changing `dp` will change the amount of the parameter ramping. If the user provides a function fulfilling ``p(t=-10) =0 and p(t=10)=1``, setting `dp=10` would result in a parameter ramping from ``p(t=-10) = 0 and p(t=10) = 10``.
 
 
 We set up the system with autonomous past and future and non-autonomous ramping in between:

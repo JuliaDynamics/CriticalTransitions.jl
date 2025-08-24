@@ -25,7 +25,7 @@ Default values
 - p_parameters = []
 """
 mutable struct RateConfig
-    p::Function  # has to be a function that ramps from p(t=-10)=0 to p(t=10)=1
+    p::Function  # convenient if the function ramps from p(t=-10)=0 to p(t=10)=1
     p_parameters::Vector 
     t_start::Float64
     ramp_t_length::Float64
