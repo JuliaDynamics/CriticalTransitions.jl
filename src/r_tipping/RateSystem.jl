@@ -10,12 +10,7 @@
 """
     RateConfig
 
-Time-dependent forcing protocol specified by the following fields:
-- `p::Function`: forcing function of the form `p(p_parameters, t_start)``
-- `p_parameters::Vector`: parameters of the forcing function p(t)
-- `r::Float64`: rate parameter
-- `t_start::Float64`: start time of protocol
-- `t_end::Float64`: end time of protocol
+Time-dependent forcing protocol containing the information to apply a parameter shift to an autonomous system.
 
 Default values 
 ==============
@@ -67,10 +62,10 @@ Applies a time-dependent [`RateConfig`](@def) to a given autonomous deterministi
 has the explicit parameter time-dependence incorporated.
 
 The returned [`CoupledODEs`](@ref) is autonomous from `t_0` to `t_start`, 
-then non-autnonmous from `t_start` to `t_end` with the parameter shift given by the [`RateConfig`](@def),
-and again autonomous from `t_end` to the end of the simulation:
+then non-autnonmous from `t_start` to `t_start+ramp_t_length` with the parameter shift given by the [`RateConfig`](@def),
+and again autonomous from `t_start+ramp_t_length` to the end of the simulation:
 
-`t_0`  autonomous    `t_start`  non-autonomous   `t_end`  autonomous   `∞`
+`t_0`  autonomous    `t_start`  non-autonomous   `t_start+ramp_t_length`  autonomous   `∞`
 
 Computing trajectories of the returned [`CoupledODEs`](@ref) can then be done in the same way as for any other [`CoupledODEs`](@ref).
 """
