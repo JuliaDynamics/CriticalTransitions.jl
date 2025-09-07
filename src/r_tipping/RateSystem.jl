@@ -94,9 +94,9 @@ function apply_ramping(auto_sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
     function f_new(u, p, t)
         pvalue = p_modified(auto_sys,rc,t)
         if p isa Union{AbstractArray, AbstractDict}
-            setindex!(p, pvalue, rc.idx)
+            setindex!(p, pvalue, rc.pidx)
         else
-            setproperty!(p, rc.idx, pvalue)
+            setproperty!(p, rc.pidx, pvalue)
         end
         return dynamic_rule(ds)(u, p, t)
     end
