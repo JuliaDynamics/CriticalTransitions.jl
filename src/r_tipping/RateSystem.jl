@@ -53,24 +53,24 @@ function p_modified(auto_sys::CoupledODEs,rc::RateConfig,t::Float64)
     pidx,p,section_start,section_end,window_start,window_length,dp = rc.pidx,rc.p,rc.section_start,rc.section_end,rc.window_length,rc.window_length,rc.dp
 
     # making the function piecewise constant with range [0,dp]    
-    q(t) = if t ≤ section_start
+    q(t) = if t ≤ window_start
         return 0
     else
-        if t < section_end
-            return dp*(p(t)-p(section_start))/(p(section_end)-p(section_start))
+        if t < window_start+window_length
+            # performing the time shift corresponding to stretching/squeezing 
+            time_shift = ((section_end-section_start)/window_length)*(t-window_start)+section_start 
+            return dp*(p(time_shift)-p(section_start))/(p(section_end)-p(section_start))
         else 
             return dp
         end
     end
-    # performing the time shift corresponding to stretching/squeezing 
-    time_shift = ((section_end-section_start)/window_length)*(t-window_start)+section_start 
 
     # extracting the parameter value of interest
     psys = current_parameters(auto_sys)
     p0 = psys[pidx]
 
     # vertically realigning the function to start at the original parameter value
-    return p0 + q(time_shift)
+    return p0 + q(t)
 end
 
 """
