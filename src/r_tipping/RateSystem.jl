@@ -92,7 +92,7 @@ function apply_ramping(auto_sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
     # we wish to return a continuous time dynamical system with modified drift field
 
     function f_new(u, p, t)
-        pvalue = p_modified(rc,t)
+        pvalue = p_modified(auto_sys,rc,t)
         if p isa Union{AbstractArray, AbstractDict}
             setindex!(p, pvalue, index)
         else
