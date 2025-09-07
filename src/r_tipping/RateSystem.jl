@@ -50,7 +50,7 @@ RateConfig(pidx::Int64,p::Function,section_start::Float64,section_end::Float64,w
 function p_modified(auto_sys::CoupledODEs,rc::RateConfig,t::Float64)
 
     # extracting the entries of rc
-    pidx,p,section_start,section_end,window_start,window_length,dp = rc.pidx,rc.p,rc.section_start,rc.section_end,rc.window_length,rc.window_end,rc.dp
+    pidx,p,section_start,section_end,window_start,window_length,dp = rc.pidx,rc.p,rc.section_start,rc.section_end,rc.window_length,rc.window_length,rc.dp
 
     # making the function piecewise constant with range [0,dp]    
     q(t) = if t ≤ section_start
