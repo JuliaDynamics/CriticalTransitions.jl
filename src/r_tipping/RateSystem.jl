@@ -98,7 +98,7 @@ function apply_ramping(auto_sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
         else
             setproperty!(p, rc.pidx, pvalue)
         end
-        return dynamic_rule(ds)(u, p, t)
+        return dynamic_rule(auto_sys)(u, p, t)
     end
 
     prob = remake(referrenced_sciml_prob(auto_sys); f=f_new, p=current_parameters(auto_sys), tspan=(t0, Inf))
