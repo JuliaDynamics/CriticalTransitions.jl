@@ -47,30 +47,31 @@ RateConfig(pidx::Int64,p::Function,section_start::Float64,section_end::Float64,w
 RateConfig(pidx::Int64,p::Function,section_start::Float64,section_end::Float64,window_start::Float64,window_length::Float64) = RateConfig(pidx,p,section_start,section_end,-window_length/2,window_length,1.0)
 
 ## the following function creates a piecewise constant function in alignment with the entries of the RateConfig and the parameter value of the underlying autonomous system
-function p_modified(auto_sys::CoupledODEs,rc::RateConfig,t::Float64)
+function p_modified(p0::Float64,rc::RateConfig,t::Float64)
 
     # extracting the entries of rc
-    pidx,p,section_start,section_end,window_start,window_length,dp = rc.pidx,rc.p,rc.section_start,rc.section_end,rc.window_length,rc.window_length,rc.dp
+    pidx = rc.pidx
+    p = rc.p
+    section_start = rc.section_start
+    section_end = rc.section_end
+    window_start = rc.window_start 
+    window_length = rc.window_length 
+    dp = rc.dp
 
-    # making the function piecewise constant with range [0,dp]    
-    q(t) = if t ≤ window_start
-        return 0
-    else
-        if t < window_start+window_length
-            # performing the time shift corresponding to stretching/squeezing 
-            time_shift = ((section_end-section_start)/window_length)*(t-window_start)+section_start 
-            return dp*(p(time_shift)-p(section_start))/(p(section_end)-p(section_start))
-        else 
-            return dp
+    # making the function piecewise constant with range [p0,p0+dp]    
+    q = if t ≤ window_start
+            return p0
+        else
+            if t < window_start+window_length
+                # performing the time shift corresponding to stretching/squeezing 
+                time_shift = ((section_end-section_start)/window_length)*(t-window_start)+section_start 
+                return p0 + dp*(p(time_shift)-p(section_start))/(p(section_end)-p(section_start))
+            else 
+                return p0 + dp
+            end
         end
-    end
 
-    # extracting the parameter value of interest
-    psys = current_parameters(auto_sys)
-    p0 = psys[pidx]
-
-    # vertically realigning the function to start at the original parameter value
-    return p0 + q(t)
+    return q
 end
 
 """
@@ -91,17 +92,22 @@ Computing trajectories of the returned [`CoupledODEs`](@ref) can then be done in
 function apply_ramping(auto_sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
     # we wish to return a continuous time dynamical system with modified drift field
 
+    f = dynamic_rule(auto_sys)
+
+    params = current_parameters(auto_sys)
+    p0 = params[rc.pidx]
+
     function f_new(u, p, t)
-        pvalue = p_modified(auto_sys,rc,t)
+        pvalue = p_modified(p0,rc,t)
         if p isa Union{AbstractArray, AbstractDict}
             setindex!(p, pvalue, rc.pidx)
         else
             setproperty!(p, rc.pidx, pvalue)
         end
-        return dynamic_rule(auto_sys)(u, p, t)
+        return f(u, p, t)
     end
 
-    prob = remake(referrenced_sciml_prob(auto_sys); f=f_new, p=current_parameters(auto_sys), tspan=(t0, Inf))
+    prob = remake(referrenced_sciml_prob(auto_sys); f=f_new, p=params, tspan=(t0, Inf))
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
     return nonauto_sys
 end
