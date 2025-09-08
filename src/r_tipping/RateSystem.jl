@@ -93,7 +93,6 @@ function apply_ramping(auto_sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
     # we wish to return a continuous time dynamical system with modified drift field
 
     f = dynamic_rule(auto_sys)
-
     params = current_parameters(auto_sys)
     p0 = params[rc.pidx]
 

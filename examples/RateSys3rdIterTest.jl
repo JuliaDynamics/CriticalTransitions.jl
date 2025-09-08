@@ -1,9 +1,9 @@
-using Pkg
-Pkg.activate(homedir()*"/PhD/Software/CriticalTransitions.jl/");
-Pkg.develop;
+# using Pkg
+# Pkg.activate(homedir()*"/PhD/Software/CriticalTransitions.jl/");
+# Pkg.develop;
 
 using CriticalTransitions
-using GLMakie
+using CairoMakie
 
 function f(u,p,t) # out-of-place
     x = u[1]
@@ -13,7 +13,7 @@ function f(u,p,t) # out-of-place
 end;
 
 x0 = [-1.0];
-p_auto = [0.];
+p_auto = [0.];  # p_auto somehow needs to be redefined every time.
 auto_sys = CoupledODEs(f,x0,p_auto);
 
 p(t) = tanh(t);
@@ -34,26 +34,26 @@ dp=3;                    # strength of the paramter ramping
 # hence when choosing a window_length (roughly) less than 100, the pullback attractor should tip in forward time to +∞
 # and when choosing a window_length (roughly) greater than 100, the pullback attractor should track in forward time to -4
 
-window_start = -47.5;
-window_length = 95; # tips!
+#window_start = -50.;
+#window_length = 95; # tips!
 
-# window_start = -52.5;
-# window_length = 105; # tracks!
+window_start = -50.;
+window_length = 105; # tracks!
 
-rc = CriticalTransitions.RateConfig(pidx,p,section_start, section_end,window_start, window_length, dp);
+rc = CriticalTransitions.RateConfig(pidx,p,section_start, section_end, window_start, window_length, dp);
 
 t0 = window_start - 20.0;      # initial time of the system
 nonauto_sys = apply_ramping(auto_sys, rc, t0);
 
 T = window_length + 40.0;        # total simulation time
-auto_traj = trajectory(auto_sys, T, x0);
+#auto_traj = trajectory(auto_sys, T, x0);
 nonauto_traj = trajectory(nonauto_sys, T, x0);
 
 fig = Figure(); 
 axs = Axis(fig[1,1],xlabel="t",ylabel="x");
-lines!(axs,t0.+auto_traj[2],auto_traj[1][:,1],linewidth=2,label=L"\text{Autonomous system}");
+#lines!(axs,t0.+auto_traj[2],auto_traj[1][:,1],linewidth=2,label=L"\text{Autonomous system}");
 lines!(axs,nonauto_traj[2],nonauto_traj[1][:,1],linewidth=2,label=L"\text{Nonautonomous system}");
 axislegend(axs,position=:rc,labelsize=10);
-ylims!(axs,-2.0,10.0)
+#ylims!(axs,-2.0,10.0)
 fig
 
