@@ -26,7 +26,7 @@ auto_sys = CoupledODEs(f,x0,p_auto);
 #       - a monotonic function p(t) describing the shape of the shift
 #       - an interval [section_start, section_end] over which p(t) should be considered
 #
-# 2) Specify how you would like to use this section p([section_start, section_end]) to shift the pidx'th parameter 
+# 3) Specify how you would like to use this section p([section_start, section_end]) to shift the pidx'th parameter 
 #    of the autonomous system. This is done by specifying:
 #       - a window_start, i.e. the time when the parameter shift should start (before this, the system is autonomous)
 #       - a window_length over which p([section_start, section_end]) is 
@@ -77,6 +77,11 @@ lines!(axs,t0.+auto_traj[2],auto_traj[1][:,1],linewidth=2,label=L"\text{Autonomo
 lines!(axs,nonauto_traj[2],nonauto_traj[1][:,1],linewidth=2,label=L"\text{Nonautonomous system}");
 axislegend(axs,position=:rc,labelsize=10);
 fig
+
+
+
+
+
 
 
 

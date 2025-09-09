@@ -16,7 +16,7 @@ Fields
 ==============
 
 - `pidx`: index of the parameter vector from the underlying autonomous system which is made to be time-dependent
-- `p`: monotonic function from ```R \rightarrow R``` which describes the time-dependent parametric forcing
+- `p`: monotonic function from ``R \rightarrow R`` which describes the time-dependent parametric forcing
 - `section_start`: time from which the parameter ramping function `p` is considered
 - `section_end`:  time until which the parameter ramping function `p` is considered
 - `window_start`: the time at which the nonautonomous dynamics starts for the resulting system  
