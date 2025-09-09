@@ -35,8 +35,8 @@ We want to apply a parameter ramping to a given autonomous system and make it ea
 1) First specify 
       - the index `pidx` of the parameter of the autonomous system that you would like to apply the shift to
 2) Then the shape of the parameter shift you would like to consider by giving
-      - a monotonic function `p(t)` describing the shape of the shift
-      - an interval `[section_start, section_end]` over which `p(t)` should be considered
+      - a monotonic function `p` describing the shape of the shift
+      - an interval `[section_start, section_end]` over which `p` should be considered
 
 2) Specify how you would like to use this section `p([section_start, section_end])` to shift the `pidx`'th parameter 
    of the autonomous system by specifying:
@@ -44,7 +44,7 @@ We want to apply a parameter ramping to a given autonomous system and make it ea
       - a `window_length` over which `p([section_start, section_end])` is 
             spread out `(for window_length > section_end - section_start)` or 
             squeezed into (for `window_length < section_end - section_start`)
-      - an amplitude `dp`. Then `p(t)` is automatically scaled s.t. `p(section_end) - p(section_start) = dp`
+      - an amplitude `dp`. Then `p` is automatically scaled s.t. `dp` gives the amount of the shift.
 """
 mutable struct RateConfig
     pidx::Int64
