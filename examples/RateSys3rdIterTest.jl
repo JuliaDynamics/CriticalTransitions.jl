@@ -5,6 +5,8 @@
 using CriticalTransitions
 using CairoMakie
 
+
+# First define an autonomous system of which we later want to make one parameter time-dependent
 function f(u,p,t) # out-of-place
     x = u[1]
     λ = p[1]
@@ -32,8 +34,7 @@ auto_sys = CoupledODEs(f,x0,p_auto);
 #           squeezed into (for window_length < section_end - section_start)
 #       - an amplitude dp. Then p(t) is automatically scaled s.t. p(section_end) - p(section_start) = dp
 
-
-pidx=1;                 # Index of the parameter that is made nonautonomous 
+pidx=1;                 # Index of the parameter that is shifted 
 p(t) = tanh(t);         # Function that describes the parameter shift
 
 # plot p(t) to see which part of it we would like to consider
@@ -50,15 +51,14 @@ section_end = 100;       # start time of the section of the tanh we want to cons
 
 window_start = -50.;    # time when the parameter shift should start (before this, the system is autonomous)
 
-# for this section of the tanh the critical window_length is approximately 100 for p0 = 0 and dp = 3
-# hence for window_length < 100, the trajectory tips
-# and for window_length > 100, the trajectory tracks to -4
-# So choose one of the following two lines:
+# For the section p([-100, 100]) the critical window_length is approximately 100 for p0 = 0 and dp = 3
+# Hence for window_length < 100, the trajectory tips
+# and   for window_length > 100, the trajectory tracks to -4
+# Thus, choose one of the following 2 lines:
 # window_length = 95; # tips!
 window_length = 105; # tracks!
 
-# Now set the amplitude of the parameter ramping (i.e. it will go from p0 to p0+dp)
-dp=3;                   
+dp=3;         # amplitude of the parameter ramping (i.e. it will go from p0 to p0+dp)
 
 # set up the nonauto_sys by combining all this information in a RateConfig
 rc = CriticalTransitions.RateConfig(pidx,p,section_start, section_end, window_start, window_length, dp);
@@ -96,20 +96,21 @@ end;
 x0 = [-1.0];
 p_auto = [0.];  # p_auto somehow needs to be redefined every time.
 auto_sys = CoupledODEs(f,x0,p_auto);
-p(t) = tanh(t);
+
 pidx=1;
-section_start = -100;    # start time of non-autonomous part
-section_end = 100;       # start time of non-autonomous part
-dp=1;                    # strength of the paramter ramping
+p(t) = tanh(t);
+section_start = -100;   # start time of non-autonomous part
+section_end = 100;      # start time of non-autonomous part
 window_start = -100.;
-window_length = 200; # tracks!
+window_length = 200;    # tracks!
+dp=1;                   # strength of the paramter ramping
 rc = CriticalTransitions.RateConfig(pidx,p,section_start, section_end, window_start, window_length, dp);
+
 t0 = window_start;      # initial time of the system
 nonauto_sys = apply_ramping(auto_sys, rc, t0);
 T = window_length;        # total simulation time
 #auto_traj = trajectory(auto_sys, T, x0);
 @time nonauto_traj = trajectory(nonauto_sys, T, x0)
-
 
 
 
