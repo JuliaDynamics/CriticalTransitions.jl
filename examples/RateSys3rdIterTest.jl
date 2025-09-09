@@ -3,7 +3,7 @@
 # Pkg.develop;
 
 using CriticalTransitions
-#using CairoMakie
+using CairoMakie
 
 function f(u,p,t) # out-of-place
     x = u[1]
@@ -13,26 +13,31 @@ function f(u,p,t) # out-of-place
 end;
 
 x0 = [-1.0];
-p_auto = [0.];  # p_auto somehow needs to be redefined every time.
+p_auto = [0.];  
 auto_sys = CoupledODEs(f,x0,p_auto);
 
-p(t) = tanh(t);
 
-# p_plotvals = [p(t) for t in -10.0:0.1:10.0];
-# figp = Figure(); 
-# axsp = Axis(figp[1,1],xlabel="t",ylabel=L"p");
-# lines!(axsp,-10.0:0.1:10.0,p_plotvals,linewidth=2,label=L"p(t)");
-# axislegend(axsp,position=:rc,labelsize=10);
-# figp
+# Setting up the parameter ramping:
+pidx=1;                 # Index of the parameter that is made nonautonomous 
+p(t) = tanh(t);         # Function that describes the parameter shift
+# plot the function to see which part of it we would like to consider for the parameter shift
+p_plotvals = [p(t) for t in -10.0:0.1:10.0];
+figp = Figure(); 
+axsp = Axis(figp[1,1],xlabel="t",ylabel=L"p");
+lines!(axsp,-10.0:0.1:10.0,p_plotvals,linewidth=2,label=L"p(t)");
+axislegend(axsp,position=:rc,labelsize=10);
+figp
 
-pidx=1;
-section_start = -100;    # start time of non-autonomous part
-section_end = 100;       # start time of non-autonomous part
-dp=3;                    # strength of the paramter ramping
+# define which section of the function we would like to consider for the parameter shift
+section_start = -100;    # start time of the section of the tanh we want to consider
+section_end = 100;       # start time of the section of the tanh we want to consider
 
-# for this nearly full section of the tanh function the critical window_length is approximately 100 for p0 = 0 and dp = 3 :)
-# hence when choosing a window_length (roughly) less than 100, the pullback attractor should tip in forward time to +∞
-# and when choosing a window_length (roughly) greater than 100, the pullback attractor should track in forward time to -4
+# Now set the amplitude of the parameter ramping (i.e. it will go from p0 to )
+dp=3;                    # amplitude of the paramter ramping
+
+# for this section of the tanh the critical window_length is approximately 100 for p0 = 0 and dp = 3
+# hence for window_length < 100, the trajectory tips for large enough simulation time
+# hence for window_length > 100, the trajectory track to -4 for large enough simulation time
 
 window_start = -50.;
 window_length = 95; # tips!
