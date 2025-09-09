@@ -90,10 +90,10 @@ and again autonomous from `t_start+t_ramp_length` to the end of the simulation:
 Computing trajectories of the returned [`CoupledODEs`](@ref) can then be done in the same way as for any other [`CoupledODEs`](@ref).
 """
 function apply_ramping(auto_sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
-    # we wish to return a continuous time dynamical system with modified drift field
+    # returns a continuous time dynamical system with modified drift field
 
-    f = dynamic_rule(auto_sys)
-    params = current_parameters(auto_sys)
+    f = deepcopy(dynamic_rule(auto_sys))
+    params = deepcopy(current_parameters(auto_sys))
     p0 = params[rc.pidx]
 
     function f_new(u, p, t)
@@ -106,7 +106,7 @@ function apply_ramping(auto_sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
         return f(u, p, t)
     end
 
-    prob = remake(referrenced_sciml_prob(auto_sys); f=f_new, p=params, tspan=(t0, Inf))
+    prob = remake(deepcopy(referrenced_sciml_prob(auto_sys)); f=f_new, p=params, tspan=(t0, Inf))
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
     return nonauto_sys
 end
