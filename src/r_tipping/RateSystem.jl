@@ -16,7 +16,7 @@ Fields
 ==============
 
 - `pidx`: index of the parameter vector from the underlying autonomous system which is made to be time-dependent
-- `p`: monotonic function from `R \rightarrow R` which describes the time-dependent parametric forcing
+- `p`: monotonic function from ```R \rightarrow R``` which describes the time-dependent parametric forcing
 - `section_start`: time from which the parameter ramping function `p` is considered
 - `section_end`:  time until which the parameter ramping function `p` is considered
 - `window_start`: the time at which the nonautonomous dynamics starts for the resulting system  
@@ -43,7 +43,7 @@ We want to apply a parameter ramping to a given autonomous system and make it ea
       - a `window_start`, i.e. the time when the parameter shift should start (before this, the system is autonomous)
       - a `window_length` over which `p([section_start, section_end])` is 
             spread out `(for window_length > section_end - section_start)` or 
-            squeezed into `(for window_length < section_end - section_start`
+            squeezed into `(for window_length < section_end - section_start`)
       - an amplitude `dp`. Then `p(t)` is automatically scaled s.t. `p(section_end) - p(section_start) = dp`
 """
 mutable struct RateConfig
