@@ -10,57 +10,57 @@
 """
     RateConfig
 
-Time-dependent forcing protocol containing the information to apply a parameter shift to an autonomous system.
+Time-dependent forcing protocol ``p(t)`` describing the evolution of a parameter over a
+time interval `[section_start, section_end]`.
+Used to construct a non-autonomous `RateSystem`.
 
-Fields
-==============
+## Fields
+- `pfunc`: function from ``R \rightarrow R`` describing the parameter time dependence
+- `section_start`: start of the time interval over which `pfunc` is considered
+- `section_end`: end of the time interval over which `pfunc` is considered
 
-- `pidx`: index of the parameter vector from the underlying autonomous system which is made to be time-dependent
-- `p`: monotonic function from ``R \rightarrow R`` which describes the time-dependent parametric forcing
-- `section_start`: time from which the parameter ramping function `p` is considered
-- `section_end`:  time until which the parameter ramping function `p` is considered
-- `window_start`: the time at which the nonautonomous dynamics starts for the resulting system  
-- `window_length`: the duration of the nonautonomous dynamics within the resulting system [i.e. nonautonomous within `(window_start,window_start+window_length)`] 
-- `dp`: the amplitude of the ramping of the explicitly time-dependent parameter (gets scaled automatically)
-
-Default values 
-==============
-
-- `t_start = -window_length/2`
-- `dp = 1`
-
-Explanation of setup
-==============
-We want to apply a parameter ramping to a given autonomous system and make it easy to change the speed and amplitude of the parameter shift while maintaining its 'shape'
-1) First specify 
-      - the index `pidx` of the parameter of the autonomous system that you would like to apply the shift to
-2) Then the shape of the parameter shift you would like to consider by giving
-      - a monotonic function `p` describing the shape of the shift
-      - an interval `[section_start, section_end]` over which `p` should be considered
-
-2) Specify how you would like to use this section `p([section_start, section_end])` to shift the `pidx`'th parameter 
-   of the autonomous system by specifying:
-      - a `window_start`, i.e. the time when the parameter shift should start (before this, the system is autonomous)
-      - a `window_length` over which `p([section_start, section_end])` is 
-            spread out `(for window_length > section_end - section_start)` or 
-            squeezed into (for `window_length < section_end - section_start`)
-      - an amplitude `dp`. Then `p` is automatically scaled s.t. `dp` gives the amount of the shift.
+## Description
+The `RateConfig` type allows to specify the functional form of a parametric
+forcing over a time interval. This forcing protocol can then be applied to the parameter
+of a dynamical system using the `RateSystem` constructor, which also allows to modify
+the rate and magnitude of the forcing.
 """
 mutable struct RateConfig
-    pidx::Int64
-    p::Function  
+    pfunc::Function  
     section_start::Float64
     section_end::Float64  
-    window_start::Float64
-    window_length::Float64
-    dp::Float64
 end
 
-## convenience functions
+"""
+    RateSystem
+"""
+struct RateSystem
+    system
+    forcing
+    pidx
+end
 
-RateConfig(pidx::Int64,p::Function,section_start::Float64,section_end::Float64,window_length::Float64,dp::Float64) = RateConfig(pidx,p,section_start,section_end,-window_length/2,window_length,dp)
-RateConfig(pidx::Int64,p::Function,section_start::Float64,section_end::Float64,window_start::Float64,window_length::Float64) = RateConfig(pidx,p,section_start,section_end,window_start,window_length,1.0)
-RateConfig(pidx::Int64,p::Function,section_start::Float64,section_end::Float64,window_start::Float64,window_length::Float64) = RateConfig(pidx,p,section_start,section_end,-window_length/2,window_length,1.0)
+"""
+    RateSystem(sys::ContinuousDynamicalSystem, rc::RateConfig, pidx; kwargs...)
+
+Creates a `RateSystem` type from an autonomous dynamical system `sys` and time-dependent
+parametric forcing protocol of `RateConfig` type.
+"""
+function RateSystem(sys::ContinuousDynamicalSystem, rc::RateConfig, pidx;
+    forcing_start=rc.section_start,
+    forcing_length=rc.section_end - rc.section_end,
+    forcing_scale=1.0,
+    t0=0.0)
+
+    if forcing_start < t0
+        @warn "The forcing starts before the system initial time t0=$(t0)."
+    end
+
+    system = apply_ramping(sys, rc; pidx, forcing_start, forcing_length, forcing_scale, t0)
+    forcing = p_modified(sys, rc; pidx, forcing_length, forcing_scale)
+
+    return RateSystem(system, forcing, pidx)
+end
 
 ## the following function creates a piecewise constant function in alignment with the entries of the RateConfig and the parameter value of the underlying autonomous system
 function p_modified(p0::Float64,rc::RateConfig,t::Float64)
