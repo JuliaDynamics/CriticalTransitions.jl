@@ -34,10 +34,10 @@ end
 """
     RateSystem
 """
-struct RateSystem
-    system
-    forcing
-    pidx
+struct RateSystem{IID, D, T::ContinuousDynamicalSystem, U, V}
+    system::T
+    forcing::U
+    pidx::V
 end
 
 """
