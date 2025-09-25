@@ -10,7 +10,7 @@ fixedpoints
 ## Edge tracking
 The edge tracking algorithm is a simple numerical method to find the *edge state* or
 (possibly chaotic) saddle on the boundary between two basins of attraction. It is first
-introduced by [Battelino1988](@citet) and further described by [Skufca2006, Mehling2023](@citet).
+introduced by [Battelino1988](@citet) and further described by [Skufca2006, Mehling2024](@citet).
 
 ```@docs
 Attractors.edgetracking
