@@ -20,7 +20,7 @@ CriticalTransitions.TransitionStatistics
 
 ## Pathspace sampling
 
-!!! todo "System-independent implementation of pathspace samping"
+!!! todo "System-independent implementation of pathspace sampling"
     We are planning to add a general implementation of pathspace sampling as described
     in [borner2024saddle](@citet) (see article's Supplemental Material), where transition
     paths are sampled as stochastic bridges between a fixed start and end point in state
