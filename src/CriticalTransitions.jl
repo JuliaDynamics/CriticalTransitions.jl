@@ -57,6 +57,8 @@ include("largedeviations/geometric_min_action_method.jl")
 include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
 
+include("r_tipping/RateSystem.jl")
+
 # Experimental features
 include("experimental/transition_path_theory/TransitionPathMesh.jl")
 include("experimental/transition_path_theory/langevin.jl")
@@ -80,6 +82,8 @@ export MinimumActionPath
 
 export deterministic_orbit
 export transition, transitions
+
+export RateProtocol, apply_ramping
 
 # Error hint for extensions stubs
 function __init__()
