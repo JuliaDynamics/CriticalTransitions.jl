@@ -48,7 +48,7 @@ parametric forcing protocol of `RateConfig` type.
 """
 function RateSystem(auto_sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pidx;
     forcing_start=rc.section_start,
-    forcing_length=rc.section_end - rc.section_end,
+    forcing_length=rc.section_end - rc.section_start,
     forcing_scale=1.0,
     t0=0.0)
 
@@ -60,7 +60,7 @@ function RateSystem(auto_sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pid
     end
 
     system = apply_ramping(   auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0)
-    forcing(t) = p_modified(t, rc, p0, forcing_start, forcing_length, forcing_scale)
+    forcing = t -> p_modified(t, rc, p0, forcing_start, forcing_length, forcing_scale)
 
     return RateSystem(system, forcing, pidx)
 end
