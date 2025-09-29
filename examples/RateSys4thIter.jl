@@ -1,7 +1,3 @@
-# using Pkg
-# Pkg.activate(homedir()*"/PhD/Software/CriticalTransitions.jl/");
-# Pkg.develop;
-
 using CriticalTransitions
 
 # First define an autonomous system of which we later want to make one parameter time-dependent
@@ -22,30 +18,23 @@ auto_sys = CoupledODEs(f,x0,p_auto);
 
 # 1) First specify a section of a function p(t) that you would like to use to ramp a parameter of auto_sys:
 p(t) = tanh(t);         # A monotonic function that describes the parameter shift
-section_start = -100;   # start of the section of p(t) we want to consider
-section_end = 100;      # end   of the section of p(t) we want to consider
+section_start = -5;   # start of the section of p(t) we want to consider
+section_end = 5;      # end   of the section of p(t) we want to consider
 rc = RateConfig(p, section_start, section_end)
 
 # 2) Then specify how you would like to use the RateConfig to ramp the pidx'th parameter of auto_sys:
-pidx = 1
+pidx = 1                # Index of the parameter-container of auto_sys that you want to ramp
 forcing_start = -50.    # time when the parameter shift should start (before this, the final system will be autonomous)
 forcing_length = 105.   # time over which p([section_start, section_end]) is spread out (for window_length > section_end - section_start) or squeezed into (for window_length < section_end - section_start)
-forcing_scale = 3.0    # amplitude of the ramping. `p` is then automatically rescaled (it will go from p0 to p0+dp with p0 being the value of the pidx'th parameter of the auto_sys)
+forcing_scale = 3.0     # amplitude of the ramping. `p` is then automatically rescaled (it will go from p0 to p0+dp with p0 being the value of the pidx'th parameter of the auto_sys)
 t0 = -70.0              # initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 
-# Note: for the given section p([-100, 100]) the critical forcing_length is approximately 100 for p0 = 0 and dp = 3
-# Hence, for window_length < 100 the trajectory tips, and for window_length > 100 the trajectory tracks to -4.
-
-nonauto_sys = RateSystem(auto_sys, rc, pidx;
-    forcing_start=forcing_start,
-    forcing_length=forcing_length,
-    forcing_scale=forcing_scale,
-    t0=t0)
+RateSys = RateSystem(auto_sys, rc, pidx; forcing_start=forcing_start, forcing_length=forcing_length, forcing_scale=forcing_scale, t0=t0)
 
 # Compute trajectories
-T = forcing_length + 40.0;        # simulation time
+T = forcing_length + 40.0;                      # length of the trajectory that we want to compute
 auto_traj = trajectory(auto_sys, T, x0);   
-nonauto_traj = trajectory(nonauto_sys.system, T, x0);
+nonauto_traj = trajectory(RateSys.system, T, x0);
 
 # Plot trajectories
 using CairoMakie
@@ -56,6 +45,14 @@ lines!(axs,nonauto_traj[2],nonauto_traj[1][:,1],linewidth=2,label=L"\text{Nonaut
 axislegend(axs,position=:rc,labelsize=10);
 fig
 
+# Plot ramped parameter
+figPar = Figure(); 
+axsPar = Axis(figPar[1,1],xlabel="t",ylabel="p(t)");
+lines!(axsPar,range(t0,t0+T,length=Int(T+1)), RateSys.forcing.(range(t0,t0+T,length=Int(T+1))),linewidth=2);
+figPar
+
+# Note: for the given section p([-100, 100]) the critical forcing_length is approximately 100 for p0 = 0 and forcing_scale = 3
+# Hence, for window_length < 100 the trajectory tips, and for window_length > 100 the trajectory tracks to -4.
 
 
 
