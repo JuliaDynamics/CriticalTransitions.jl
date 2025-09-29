@@ -32,11 +32,7 @@ end
 
 """
     RateSystem
-
-## Fields
-- `system`: Nonautonomous system constructed from an autonomous system `sys` and a `RateConfig`
-- `forcing`: Function giving the value of the ramped parameter for each time.
-- `pidx`: Index of the ramped parameter within the parameter container of the autonomous system 
+ 
 """
 struct RateSystem
     system
@@ -47,8 +43,19 @@ end
 """
     RateSystem(sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pidx; kwargs...)
 
-Creates a `RateSystem` from an autonomous dynamical system `sys` and time-dependent
+Creates a `RateSystem` type from an autonomous dynamical system `sys` and a time-dependent
 parametric forcing protocol of `RateConfig` type.
+
+## Keyword arguments
+- `forcing_start = RateConfig.section_start`: Time when parameter shift starts (before this, the resulting system will be autonomous)
+- `forcing_length = RateConfig.section_end - RateConfig.section_start`: Time-interval over which RateConfig.pfunc([RateConfig.section_start, RateConfig.section_end]) is spread out (for window_length > RateConfig.section_end - RateConfig.section_start) or squeezed into (for window_length < RateConfig.section_end - RateConfig.section_start)
+- `forcing_scale = 1.0`: Amplitude of the ramping. The ramping is then automatically rescaled 
+- `t0 = 0.0`: Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
+
+## Fields of resulting `RateSystem`
+- `system`: Nonautonomous system constructed from an autonomous system `sys` and a `RateConfig`
+- `forcing`: Function giving the value of the ramped parameter for each time.
+- `pidx`: Index of the ramped parameter within the parameter container of the autonomous system
 
 The returned `RateSystem.system` is a [`CoupledODEs`](@ref) that is 
 autonomous before `forcing_start`, 
@@ -59,12 +66,6 @@ autonomous after `forcing_start+forcing_length`:
 
 Trajectories of the returned `RateSystem.system` can be computed in the same way as for any other [`CoupledODEs`](@ref).
 
-Keyword arguments
-=================
-- `forcing_start = RateConfig.section_start`: Time when parameter shift starts (before this, the resulting system will be autonomous)
-- `forcing_length = RateConfig.section_end - RateConfig.section_start`: Time-interval over which p([RateConfig.section_start, RateConfig.section_end]) is spread out (for window_length > RateConfig.section_end - RateConfig.section_start) or squeezed into (for window_length < RateConfig.section_end - RateConfig.section_start)
-- `forcing_scale = 1.0`: Amplitude of the ramping. The ramping is then automatically rescaled 
-- `t0 = 0.0`: Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 """
 function RateSystem(auto_sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pidx;
     forcing_start = rc.section_start,
