@@ -34,7 +34,7 @@ end
 """
     RateSystem
 """
-struct RateSystem{IID, D, T::ContinuousTimeDynamicalSystem, U, V}
+struct RateSystem{IID, D, T, U, V} where T <: ContinuousTimeDynamicalSystem
     system::T
     forcing::U
     pidx::V
