@@ -57,7 +57,7 @@ autonomous after `forcing_start+forcing_length`:
 
 `-∞`  autonomous    `forcing_start`  non-autonomous   `forcing_start+forcing_length`  autonomous   `∞`
 
-Computing trajectories of the returned `RateSystem.system` can then be done in the same way as for any other [`CoupledODEs`](@ref).
+Trajectories of the returned `RateSystem.system` can be computed in the same way as for any other [`CoupledODEs`](@ref).
 
 Keyword arguments
 =================
