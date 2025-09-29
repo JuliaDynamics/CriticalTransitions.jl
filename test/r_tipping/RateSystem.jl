@@ -12,22 +12,24 @@ using Test
     p_auto = [0.];  
     auto_sys = CoupledODEs(f,x0,p_auto);
     
-
-    pidx=1;                 # Index of the parameter that is made nonautonomous 
-    p(t) = tanh(t);         # Function that describes the parameter shift
-    section_start = -100;   # start time of the section of the tanh we want to consider
-    section_end = 100;      # start time of the section of the tanh we want to consider
-    window_start = -50.;    # time when the parameter shift should start (before this, the system is autonomous)
-    window_length = 105;    # tracks!
-    dp=3;                   # amplitude of the parameter shift
-
-    rc = CriticalTransitions.RateConfig(pidx,p,section_start, section_end, window_start, window_length, dp);
-    t0 = window_start - 20.0;      # initial time of the system
-    nonauto_sys = apply_ramping(auto_sys, rc, t0);
+    p(t) = tanh(t);         # A monotonic function that describes the parameter shift
+    section_start = -5;   # start of the section of p(t) we want to consider
+    section_end = 5;      # end   of the section of p(t) we want to consider
+    rc = RateConfig(p, section_start, section_end)
     
-    T = window_length + 40.0;        # simulation time
-    auto_traj = trajectory(auto_sys, T, x0)   
-    nonauto_traj = trajectory(nonauto_sys, T, x0)
+    # 2) Then specify how you would like to use the RateConfig to ramp the pidx'th parameter of auto_sys:
+    pidx = 1                # Index of the parameter-container of auto_sys that you want to ramp
+    forcing_start = -50.    # Time when the parameter shift should start (before this, the final system will be autonomous)
+    forcing_length = 105.   # Time-interval over which p([section_start, section_end]) is spread out (for window_length > section_end - section_start) or squeezed into (for window_length < section_end - section_start)
+    forcing_scale = 3.0     # Amplitude of the ramping. `p` is then automatically rescaled 
+    t0 = -70.0              # Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
+    
+    RateSys = RateSystem(auto_sys, rc, pidx; forcing_start=forcing_start, forcing_length=forcing_length, forcing_scale=forcing_scale, t0=t0)
+    
+    # Compute trajectories
+    T = forcing_length + 40.0;                      # length of the trajectory that we want to compute
+    auto_traj = trajectory(auto_sys, T, x0);   
+    nonauto_traj = trajectory(RateSys.system, T, x0);
 
     @test isapprox(auto_traj[1][end, 1], -1; atol=1e-2)
     @test isapprox(nonauto_traj[1][end, 1], -4; atol=1e-2)

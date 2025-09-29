@@ -1,11 +1,4 @@
 # Consider the ODE dxₜ/dt = f(xₜ,p). We want to ramp one parameter of this ODE.
-
-# We ask the user to define: 
-#  1) an autonomous ContinuousTimeDynamicalSystem
-#  2) a protocol for the time-dependent forcing via the struct RateConfig
-
-# Then we give back the ContinuousTimeDynamicalSystem with the parameter 
-# changing according to the rate protocol 'RateConfig'
 """
     RateConfig
 
@@ -83,7 +76,7 @@ function RateSystem(auto_sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pid
     return RateSystem(system, forcing, pidx)
 end
 
-## the following function creates a piecewise constant function in alignment with the entries of the RateConfig and the parameter value of the underlying autonomous system
+## Creates a piecewise constant function in alignment with the entries of the RateConfig and the parameter value of the underlying autonomous system
 function p_modified(t::Real, rc::RateConfig, p0, forcing_start, forcing_length, forcing_scale)
 
     p = rc.pfunc
@@ -106,8 +99,8 @@ function p_modified(t::Real, rc::RateConfig, p0, forcing_start, forcing_length, 
     return q
 end
 
+# returns a continuous time dynamical system with modified drift field
 function apply_ramping(auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0)
-    # returns a continuous time dynamical system with modified drift field
 
     f = deepcopy(dynamic_rule(auto_sys))
 
