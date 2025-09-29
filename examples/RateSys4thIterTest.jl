@@ -24,10 +24,10 @@ rc = RateConfig(p, section_start, section_end)
 
 # 2) Then specify how you would like to use the RateConfig to ramp the pidx'th parameter of auto_sys:
 pidx = 1                # Index of the parameter-container of auto_sys that you want to ramp
-forcing_start = -50.    # time when the parameter shift should start (before this, the final system will be autonomous)
-forcing_length = 105.   # time over which p([section_start, section_end]) is spread out (for window_length > section_end - section_start) or squeezed into (for window_length < section_end - section_start)
-forcing_scale = 3.0     # amplitude of the ramping. `p` is then automatically rescaled (it will go from p0 to p0+dp with p0 being the value of the pidx'th parameter of the auto_sys)
-t0 = -70.0              # initial time of the resulting non-autonomous system (relevant to later compute trajectories)
+forcing_start = -50.    # Time when the parameter shift should start (before this, the final system will be autonomous)
+forcing_length = 105.   # Time-interval over which p([section_start, section_end]) is spread out (for window_length > section_end - section_start) or squeezed into (for window_length < section_end - section_start)
+forcing_scale = 3.0     # Amplitude of the ramping. `p` is then automatically rescaled 
+t0 = -70.0              # Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 
 RateSys = RateSystem(auto_sys, rc, pidx; forcing_start=forcing_start, forcing_length=forcing_length, forcing_scale=forcing_scale, t0=t0)
 

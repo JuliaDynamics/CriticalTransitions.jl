@@ -1,8 +1,7 @@
-# we consider the ODE dxₜ/dt = f(xₜ,p(rt))
-# here p = p(t) ∈ Rᵐ is a function containing all the system parameters 
+# Consider the ODE dxₜ/dt = f(xₜ,p). We want to ramp one parameter of this ODE.
 
 # We ask the user to define: 
-#  1) a ContinuousTimeDynamicalSystem that should be investigated and
+#  1) an autonomous ContinuousTimeDynamicalSystem
 #  2) a protocol for the time-dependent forcing via the struct RateConfig
 
 # Then we give back the ContinuousTimeDynamicalSystem with the parameter 
@@ -33,6 +32,11 @@ end
 
 """
     RateSystem
+
+## Fields
+- `system`: Nonautonomous system constructed from an autonomous system `sys` and a `RateConfig`
+- `forcing`: Function giving the value of the ramped parameter for each time.
+- `pidx`: Index of the ramped parameter within the parameter container of the autonomous system 
 """
 struct RateSystem
     system
@@ -41,16 +45,32 @@ struct RateSystem
 end
 
 """
-    RateSystem(sys::ContinuousDynamicalSystem, rc::RateConfig, pidx; kwargs...)
+    RateSystem(sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pidx; kwargs...)
 
-Creates a `RateSystem` type from an autonomous dynamical system `sys` and time-dependent
+Creates a `RateSystem` from an autonomous dynamical system `sys` and time-dependent
 parametric forcing protocol of `RateConfig` type.
+
+The returned [`CoupledODEs`](@ref) `RateSystem.system` is 
+autonomous before `forcing_start`, 
+non-autnonmous from `forcing_start` to `forcing_start+forcing_length` with the parameter shift given by the [`RateConfig`](@def), and again 
+autonomous after `forcing_start+forcing_length`:
+
+`t_0`  autonomous    `forcing_start`  non-autonomous   `forcing_start+forcing_length`  autonomous   `∞`
+
+Computing trajectories of the returned `RateSystem.system` can then be done in the same way as for any other [`CoupledODEs`](@ref).
+
+Keyword arguments
+=================
+- `forcing_start = RateConfig.section_start`: Time when parameter shift starts (before this, the resulting system will be autonomous)
+- `forcing_length = RateConfig.section_end - RateConfig.section_start`: Time-interval over which p([RateConfig.section_start, RateConfig.section_end]) is spread out (for window_length > RateConfig.section_end - RateConfig.section_start) or squeezed into (for window_length < RateConfig.section_end - RateConfig.section_start)
+- `forcing_scale = 1.0`: Amplitude of the ramping. The ramping is then automatically rescaled 
+- `t0 = 0.0`: Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 """
 function RateSystem(auto_sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pidx;
-    forcing_start=rc.section_start,
-    forcing_length=rc.section_end - rc.section_start,
-    forcing_scale=1.0,
-    t0=0.0)
+    forcing_start = rc.section_start,
+    forcing_length = rc.section_end - rc.section_start,
+    forcing_scale = 1.0,
+    t0 = 0.0)
 
     params = deepcopy(current_parameters(auto_sys))
     p0 = params[pidx]
@@ -88,21 +108,6 @@ function p_modified(t::Real, rc::RateConfig, p0, forcing_start, forcing_length, 
     return q
 end
 
-"""
-    apply_ramping(sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
-
-Applies a time-dependent [`RateConfig`](@def) to a given autonomous deterministic dynamical system
-`sys`, turning it into a non-autonomous dynamical system. The returned [`CoupledODEs`](@ref)
-has the explicit parameter time-dependence incorporated.
-
-The returned [`CoupledODEs`](@ref) is autonomous from `t_0` to `window_start`, 
-then non-autnonmous from `window_start` to `window_start+window_length` with the parameter shift given by the [`RateConfig`](@def),
-and again autonomous from `window_start+window_length` to the end of the simulation:
-
-`t_0`  autonomous    `window_start`  non-autonomous   `window_start+window_length`  autonomous   `∞`
-
-Computing trajectories of the returned [`CoupledODEs`](@ref) can then be done in the same way as for any other [`CoupledODEs`](@ref).
-"""
 function apply_ramping(auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0)
     # returns a continuous time dynamical system with modified drift field
 
