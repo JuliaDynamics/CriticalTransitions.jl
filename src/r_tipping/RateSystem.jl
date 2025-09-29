@@ -14,7 +14,7 @@ time interval `[section_start, section_end]`.
 Used to construct a non-autonomous `RateSystem`.
 
 ## Fields
-- `pfunc`: function from ``R \rightarrow R`` describing the parameter time dependence
+- `pfunc`: function ``p(t)`` from ``R → R`` describing the parameter time dependence
 - `section_start`: start of the time interval over which `pfunc` is considered
 - `section_end`: end of the time interval over which `pfunc` is considered
 
@@ -50,12 +50,12 @@ end
 Creates a `RateSystem` from an autonomous dynamical system `sys` and time-dependent
 parametric forcing protocol of `RateConfig` type.
 
-The returned [`CoupledODEs`](@ref) `RateSystem.system` is 
+The returned `RateSystem.system` is a [`CoupledODEs`](@ref) that is 
 autonomous before `forcing_start`, 
 non-autnonmous from `forcing_start` to `forcing_start+forcing_length` with the parameter shift given by the [`RateConfig`](@def), and again 
 autonomous after `forcing_start+forcing_length`:
 
-`t_0`  autonomous    `forcing_start`  non-autonomous   `forcing_start+forcing_length`  autonomous   `∞`
+`-∞`  autonomous    `forcing_start`  non-autonomous   `forcing_start+forcing_length`  autonomous   `∞`
 
 Computing trajectories of the returned `RateSystem.system` can then be done in the same way as for any other [`CoupledODEs`](@ref).
 
