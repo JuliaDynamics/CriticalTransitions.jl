@@ -46,44 +46,42 @@ end
 Creates a `RateSystem` type from an autonomous dynamical system `sys` and time-dependent
 parametric forcing protocol of `RateConfig` type.
 """
-function RateSystem(sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pidx;
+function RateSystem(auto_sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pidx;
     forcing_start=rc.section_start,
     forcing_length=rc.section_end - rc.section_end,
     forcing_scale=1.0,
     t0=0.0)
 
+    params = deepcopy(current_parameters(auto_sys))
+    p0 = params[pidx]
+
     if forcing_start < t0
         @warn "The forcing starts before the system initial time t0=$(t0)."
     end
 
-    system = apply_ramping(sys, rc; pidx, forcing_start, forcing_length, forcing_scale, t0)
-    forcing = p_modified(sys, rc; pidx, forcing_length, forcing_scale)
+    system = apply_ramping(   auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0)
+    forcing(t) = p_modified(t, rc, p0, forcing_start, forcing_length, forcing_scale)
 
     return RateSystem(system, forcing, pidx)
 end
 
 ## the following function creates a piecewise constant function in alignment with the entries of the RateConfig and the parameter value of the underlying autonomous system
-function p_modified(p0::Float64,rc::RateConfig,t::Float64)
+function p_modified(t::Float64, rc::RateConfig, p0, forcing_start, forcing_length, forcing_scale)
 
-    # extracting the entries of rc
-    pidx = rc.pidx
-    p = rc.p
+    p = rc.pfunc
     section_start = rc.section_start
     section_end = rc.section_end
-    window_start = rc.window_start 
-    window_length = rc.window_length 
-    dp = rc.dp
-
-    # making the function piecewise constant with range [p0,p0+dp]    
-    q = if t ≤ window_start
+    
+    # making the function piecewise constant with range [p0,p0+forcing_scale]    
+    q = if t ≤ forcing_start
             return p0
         else
-            if t < window_start+window_length
+            if t < forcing_start+forcing_length
                 # performing the time shift corresponding to stretching/squeezing 
-                time_shift = ((section_end-section_start)/window_length)*(t-window_start)+section_start 
-                return p0 + dp*(p(time_shift)-p(section_start))/(p(section_end)-p(section_start))
+                time_shift = ((section_end-section_start)/forcing_length)*(t-forcing_start)+section_start 
+                return p0 + forcing_scale*(p(time_shift)-p(section_start))/(p(section_end)-p(section_start))
             else 
-                return p0 + dp
+                return p0 + forcing_scale
             end
         end
 
@@ -105,19 +103,17 @@ and again autonomous from `window_start+window_length` to the end of the simulat
 
 Computing trajectories of the returned [`CoupledODEs`](@ref) can then be done in the same way as for any other [`CoupledODEs`](@ref).
 """
-function apply_ramping(auto_sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
+function apply_ramping(auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0)
     # returns a continuous time dynamical system with modified drift field
 
     f = deepcopy(dynamic_rule(auto_sys))
-    params = deepcopy(current_parameters(auto_sys))
-    p0 = params[rc.pidx]
 
     function f_new(u, p, t)
-        pvalue = p_modified(p0,rc,t)
+        pvalue = p_modified(t, rc, p0, forcing_start, forcing_length, forcing_scale)
         if p isa Union{AbstractArray, AbstractDict}
-            setindex!(p, pvalue, rc.pidx)
+            setindex!(p, pvalue, pidx)
         else
-            setproperty!(p, rc.pidx, pvalue)
+            setproperty!(p, pidx, pvalue)
         end
         return f(u, p, t)
     end
@@ -127,8 +123,4 @@ function apply_ramping(auto_sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
     return nonauto_sys
 end
 
-## unresolved comments
-## window_start initial comment: the parameter values of the past limit system are given by p0 + dp* p(p_parameteters,window_start)
-## window_end initial comment: the parameter values of the future limit system are given by p(p_parameters,window_end) 
-## - p_parameters: the vector of length mp giving parameters which are associated with p
 
