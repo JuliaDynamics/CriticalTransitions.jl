@@ -66,7 +66,7 @@ function RateSystem(auto_sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pid
 end
 
 ## the following function creates a piecewise constant function in alignment with the entries of the RateConfig and the parameter value of the underlying autonomous system
-function p_modified(t::Float64, rc::RateConfig, p0, forcing_start, forcing_length, forcing_scale)
+function p_modified(t::Real, rc::RateConfig, p0, forcing_start, forcing_length, forcing_scale)
 
     p = rc.pfunc
     section_start = rc.section_start
