@@ -34,7 +34,7 @@ end
 """
     RateSystem
 """
-struct RateSystem{IID, D, T::ContinuousDynamicalSystem, U, V}
+struct RateSystem{IID, D, T::ContinuousTimeDynamicalSystem, U, V}
     system::T
     forcing::U
     pidx::V
@@ -46,7 +46,7 @@ end
 Creates a `RateSystem` type from an autonomous dynamical system `sys` and time-dependent
 parametric forcing protocol of `RateConfig` type.
 """
-function RateSystem(sys::ContinuousDynamicalSystem, rc::RateConfig, pidx;
+function RateSystem(sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pidx;
     forcing_start=rc.section_start,
     forcing_length=rc.section_end - rc.section_end,
     forcing_scale=1.0,
