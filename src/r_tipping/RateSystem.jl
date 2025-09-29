@@ -52,15 +52,17 @@ parametric forcing protocol of `RateConfig` type.
 - `forcing_scale = 1.0`: Amplitude of the ramping. The ramping is then automatically rescaled 
 - `t0 = 0.0`: Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 
-## Fields of the resulting `RateSystem` type
-- `system`: Nonautonomous [`CoupledODEs`](@ref) constructed from an autonomous system `sys` and a `RateConfig`
-- `forcing`: Function giving the value of the ramped parameter for each time.
-- `pidx`: Index of the ramped parameter within the parameter container of the autonomous system
-
+## Description
 The returned `RateSystem.system` is is 
 autonomous before `forcing_start`, 
 non-autnonmous from `forcing_start` to `forcing_start+forcing_length` with the parameter shift given by the [`RateConfig`](@def), and again 
 autonomous after `forcing_start+forcing_length`.
+
+## Fields of the resulting `RateSystem` type
+- `system`: Nonautonomous [`CoupledODEs`](@ref) constructed from an autonomous system `sys` and a `RateConfig`
+- `forcing`: Function giving the value of the ramped parameter for every time.
+- `pidx`: Index of the ramped parameter within the parameter container of the autonomous system `sys`.
+
 """
 function RateSystem(auto_sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pidx;
     forcing_start = rc.section_start,
