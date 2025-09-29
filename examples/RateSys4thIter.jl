@@ -21,43 +21,28 @@ auto_sys = CoupledODEs(f,x0,p_auto);
 
 # Now, we want to apply a parameter shift to auto_sys s.t. speed and amplitude of the parameter shift are easily modifiable 
 # but the 'shape' of it is always the same - just linearly stretched or squeezed. This can be achieved as follows:
-# 1) First specify 
-#       - the index pidx of the parameter of the autonomous system that you would like to apply the shift to
-# 2) Then the shape of the parameter shift you would like to consider by giving
-#       - a monotonic function p describing the shape of the shift
-#       - an interval [section_start, section_end] over which p should be considered
-#
-# 3) Specify how you would like to use this section p([section_start, section_end]) to shift the pidx'th parameter 
-#    of the autonomous system. This is done by specifying:
-#       - a window_start, i.e. the time when the parameter shift should start (before this, the final system will be autonomous)
-#       - a window_length over which p([section_start, section_end]) is 
-#           spread out (for window_length > section_end - section_start) or 
-#           squeezed into (for window_length < section_end - section_start)
-#       - an amplitude dp. Then `p` is automatically scaled s.t. `dp` gives the amount of the shift.
 
-pidx=1;                 # Index of the parameter that is shifted 
-p(t) = tanh(t);         # Function that describes the parameter shift
+# 1) First specify a section of a function p(t) that you would like to use to ramp a parameter of auto_sys:
+p(t) = tanh(t);         # A monotonic function that describes the parameter shift
+section_start = -100;   # start of the section of p(t) we want to consider
+section_end = 100;      # end   of the section of p(t) we want to consider
+rc = RateConfig(p, section_start, section_end)
 
-# plot p to see which part of p we would like to consider
-p_plotvals = [p(t) for t in -10.0:0.1:10.0];
-figp = Figure(); 
-axsp = Axis(figp[1,1],xlabel="t",ylabel=L"p");
-lines!(axsp,-10.0:0.1:10.0,p_plotvals,linewidth=2,label=L"p(t)");
-axislegend(axsp,position=:rc,labelsize=10);
-figp
+# 2) Then specify how you would like to use the RateConfig to ramp the pidx'th parameter of auto_sys:
+pidx = 1
+forcing_start = -50.    # time when the parameter shift should start (before this, the final system will be autonomous)
+forcing_length = 105.   # time over which p([section_start, section_end]) is spread out (for window_length > section_end - section_start) or squeezed into (for window_length < section_end - section_start)
+forcing_scale = 3.0,    # amplitude of the ramping. `p` is then automatically rescaled (it will go from p0 to p0+dp with p0 being the value of the pidx'th parameter of the auto_sys)
+t0 = -70.0              # initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 
-section_start = -100;   # start time of the section of the tanh we want to consider
-section_end = 100;      # start time of the section of the tanh we want to consider
-window_start = -50.;    # time when the parameter shift should start (before this, the system is autonomous)
+nonauto_sys = RateSystem(auto_sys, rc, pidx;
+    forcing_start=forcing_start,
+    forcing_length=forcing_length,
+    forcing_scale=forcing_scale,
+    t0=t0)
 
-# For the section p([-100, 100]) the critical window_length is approximately 100 for p0 = 0 and dp = 3
-# Hence for window_length < 100, the trajectory tips
-# and   for window_length > 100, the trajectory tracks to -4
-# Thus, choose one of the following 2 lines:
-# window_length = 95;   # tips!
-window_length = 105;    # tracks!
-
-dp=3;                   # amplitude of the parameter ramping (i.e. it will go from p0 to p0+dp with p0 the value of the pidx'th parameter of the auto_sys)
+# Note: for the given section p([-100, 100]) the critical forcing_length is approximately 100 for p0 = 0 and dp = 3
+# Hence, for window_length < 100 the trajectory tips, and for window_length > 100 the trajectory tracks to -4.
 
 # set up the nonauto_sys by combining all this information in a RateConfig
 rc = CriticalTransitions.RateConfig(pidx,p,section_start, section_end, window_start, window_length, dp);
