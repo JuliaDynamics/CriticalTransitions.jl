@@ -33,10 +33,10 @@ Default values
 - dp = 1
 """
 mutable struct RateConfig
-    p::Function  
+    p::Function
     p_parameters::Vector
     t_pstart::Float64
-    t_pend::Float64  
+    t_pend::Float64
     t_start::Float64
     t_ramp_length::Float64
     dp::Float64
@@ -44,27 +44,44 @@ end
 
 ## convenience functions
 
-RateConfig(p::Function, t_ramp_length::Float64) = RateConfig(p, [], -100.0, 100.0, -t_ramp_length/2, t_ramp_length, 1.0)
-RateConfig(p::Function, t_ramp_length::Float64, dp::Float64) = RateConfig(p, [], -100.0, 100.0, -t_ramp_length/2, t_ramp_length, dp)
+function RateConfig(p::Function, t_ramp_length::Float64)
+    RateConfig(p, [], -100.0, 100.0, -t_ramp_length/2, t_ramp_length, 1.0)
+end
+function RateConfig(p::Function, t_ramp_length::Float64, dp::Float64)
+    RateConfig(p, [], -100.0, 100.0, -t_ramp_length/2, t_ramp_length, dp)
+end
 
-RateConfig(p::Function, p_parameters::Vector, t_ramp_length::Float64) = RateConfig(p, p_parameters, -100.0, 100.0, -t_ramp_length/2, t_ramp_length, 1.0)
-RateConfig(p::Function, p_parameters::Vector, t_ramp_length::Float64, dp::Float64) = RateConfig(p, p_parameters, -100.0, 100.0, -t_ramp_length/2, t_ramp_length, dp)
+function RateConfig(p::Function, p_parameters::Vector, t_ramp_length::Float64)
+    RateConfig(p, p_parameters, -100.0, 100.0, -t_ramp_length/2, t_ramp_length, 1.0)
+end
+function RateConfig(p::Function, p_parameters::Vector, t_ramp_length::Float64, dp::Float64)
+    RateConfig(p, p_parameters, -100.0, 100.0, -t_ramp_length/2, t_ramp_length, dp)
+end
 
 ## the following function creates a piecewise constant function with respect to t_pstart and t_pend...
 ## ...which is written such that p̃(t_pend)-p̃(t_pstart) = dp, for the time-dependent entries (otherwise p̃(t_pend)-p̃(t_pstart) = 0 as p̃(t)≡c)
 
-function p_piecewise_scaled(p::Function,p_parameters::Vector,t_pstart::Float64,t_pend::Float64,dp::Float64,t::Float64)
+function p_piecewise_scaled(
+    p::Function,
+    p_parameters::Vector,
+    t_pstart::Float64,
+    t_pend::Float64,
+    dp::Float64,
+    t::Float64,
+)
     if t ≤ t_pstart
-        return p(p_parameters,t_pstart)
+        return p(p_parameters, t_pstart)
     else
-        np = length(p(p_parameters,t_pstart)) # the number of system parameters 
-        differences = p(p_parameters,t_pend) .- p(p_parameters,t_pstart)
-        nonautonomous_inds = [ii for ii ∈ 1:np if differences[ii] != 0]
-        inds = [ii ∈ nonautonomous_inds ? 1/abs(differences[ii]) : 0 for ii ∈ 1:np] # takes value 1/|p(...,t_pend)-p(...,t_start)| when p(...,t_pend)=/=p(...,t_start); zero otherwise
+        np = length(p(p_parameters, t_pstart)) # the number of system parameters 
+        differences = p(p_parameters, t_pend) .- p(p_parameters, t_pstart)
+        nonautonomous_inds = [ii for ii in 1:np if differences[ii] != 0]
+        inds = [ii ∈ nonautonomous_inds ? 1/abs(differences[ii]) : 0 for ii in 1:np] # takes value 1/|p(...,t_pend)-p(...,t_start)| when p(...,t_pend)=/=p(...,t_start); zero otherwise
         if t < t_pend
-            return p(p_parameters,t_pstart) .+ dp .* inds .* (p(p_parameters,t) .- p(p_parameters,t_pstart))
-        else 
-            return p(p_parameters,t_pstart) .+ dp .* inds .* (p(p_parameters,t_pend) .- p(p_parameters,t_pstart))
+            return p(p_parameters, t_pstart) .+
+                   dp .* inds .* (p(p_parameters, t) .- p(p_parameters, t_pstart))
+        else
+            return p(p_parameters, t_pstart) .+
+                   dp .* inds .* (p(p_parameters, t_pend) .- p(p_parameters, t_pstart))
         end
     end
 end
@@ -82,8 +99,7 @@ function modified_drift(
     dp::Float64;
     kwargs...,
 )
-
-    q(t) = p_piecewise_scaled(p,p_parameters,t_pstart,t_pend,dp,t)
+    q(t) = p_piecewise_scaled(p, p_parameters, t_pstart, t_pend, dp, t)
 
     time_shift = ((t_pend-t_pstart)/t_ramp_length)*(t-t_start)+t_pstart # such that [t_start,t_start+t_ramp_length] is shifted into [t_pstart,t_pend]
 
@@ -111,12 +127,19 @@ function apply_ramping(auto_sys::CoupledODEs, rc::RateConfig, t0=0.0; kwargs...)
     # we wish to return a continuous time dynamical system with modified drift field
 
     f(u, p_parameters, t) = modified_drift(
-        u, p_parameters, t, auto_sys, rc.p, rc.t_pstart, rc.t_pend, rc.t_start, rc.t_ramp_length, rc.dp; kwargs...
+        u,
+        p_parameters,
+        t,
+        auto_sys,
+        rc.p,
+        rc.t_pstart,
+        rc.t_pend,
+        rc.t_start,
+        rc.t_ramp_length,
+        rc.dp;
+        kwargs...,
     )
     prob = remake(referrenced_sciml_prob(auto_sys); f, p=rc.p_parameters, tspan=(t0, Inf))
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
     return nonauto_sys
 end
-
-
-

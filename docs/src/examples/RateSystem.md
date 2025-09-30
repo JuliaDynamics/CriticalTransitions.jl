@@ -6,7 +6,7 @@ Applying this parameter ramping is here implemented as a two-step process:
 1) Specify a section `p([section_start, section_end])` of a function `p(t)` describing the shape of the parameter ramping you would like to consider. This is done by defining a `RateConfig` type.
 2) Specify how you would like use this section of `p(t)` to ramp one parameter of the `auto_sys`. This is done by defining a `RateSystem` type which then returns a non-autonomous system `RateSystem.system` (i.e. a `CoupledODEs`) with the parameter ramping incorporated.
 
-For times `t < forcing_start`, the returned system `RateSystem.system` is autonomous, for `forcing_start < t < forcing_start + forcing_length` it is non-autonomous with the paramter ramping given by the `RateConfig` and for `forcing_start + forcing_length < t` the system is autonomous again. This setting is a widely used and convenient for studying R-tipping.
+For times `t < forcing_start`, the returned system `RateSystem.system` is autonomous, for `forcing_start < t < forcing_start + forcing_length` it is non-autonomous with the parameter ramping given by the `RateConfig` and for `forcing_start + forcing_length < t` the system is autonomous again. This setting is a widely used and convenient for studying R-tipping.
 
 
 ## Example

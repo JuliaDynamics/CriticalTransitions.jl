@@ -86,9 +86,7 @@ Computing trajectories of the returned [`CoupledODEs`](@ref) can then be done in
 function apply_ramping(auto_sys::CoupledODEs, rp::RateProtocol, t0=0.0; kwargs...)
     # we wish to return a continuous time dynamical system with modified drift field
 
-    f(u, p, t) = modified_drift(
-        u, p, t, auto_sys, rp.λ, rp.time_interval, rp.r; kwargs...
-    )
+    f(u, p, t) = modified_drift(u, p, t, auto_sys, rp.λ, rp.time_interval, rp.r; kwargs...)
     prob = remake(referrenced_sciml_prob(auto_sys); f, p=rp.p_lambda, tspan=(t0, Inf))
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
     return nonauto_sys

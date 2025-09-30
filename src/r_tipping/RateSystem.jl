@@ -18,9 +18,9 @@ of a dynamical system using the `RateSystem` constructor, which also allows to m
 the rate and magnitude of the forcing.
 """
 mutable struct RateConfig
-    pfunc::Function  
+    pfunc::Function
     section_start::Float64
-    section_end::Float64  
+    section_end::Float64
 end
 
 """
@@ -57,12 +57,15 @@ autonomous after `forcing_start+forcing_length`.
 - `pidx`: Index of the ramped parameter within the parameter container of the autonomous system `sys`.
 
 """
-function RateSystem(auto_sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pidx;
-    forcing_start = rc.section_start,
-    forcing_length = rc.section_end - rc.section_start,
-    forcing_scale = 1.0,
-    t0 = 0.0)
-
+function RateSystem(
+    auto_sys::ContinuousTimeDynamicalSystem,
+    rc::RateConfig,
+    pidx;
+    forcing_start=rc.section_start,
+    forcing_length=(rc.section_end - rc.section_start),
+    forcing_scale=1.0,
+    t0=0.0,
+)
     params = deepcopy(current_parameters(auto_sys))
     p0 = params[pidx]
 
@@ -70,43 +73,51 @@ function RateSystem(auto_sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pid
         @warn "The forcing starts before the system initial time t0=$(t0)."
     end
 
-    system = apply_ramping(   auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0)
+    system = apply_ramping(
+        auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0
+    )
     forcing = t -> p_modified(t, rc, p0, forcing_start, forcing_length, forcing_scale)
 
     return RateSystem(system, forcing, pidx)
 end
 
 ## Creates a piecewise constant function in alignment with the entries of the RateConfig and the parameter value of the underlying autonomous system
-function p_modified(t::Real, rc::RateConfig, p0, forcing_start, forcing_length, forcing_scale)
-
+function p_modified(
+    t::Real, rc::RateConfig, p0, forcing_start, forcing_length, forcing_scale
+)
     p = rc.pfunc
     section_start = rc.section_start
     section_end = rc.section_end
-    
+
     # making the function piecewise constant with range [p0,p0+forcing_scale]    
     q = if t ≤ forcing_start
-            return p0
+        return p0
+    else
+        if t < forcing_start+forcing_length
+            # performing the time shift corresponding to stretching/squeezing 
+            time_shift =
+                ((section_end-section_start)/forcing_length)*(t-forcing_start)+section_start
+            return p0 +
+                   forcing_scale*(
+                p(time_shift)-p(section_start)
+            )/(p(section_end)-p(section_start))
         else
-            if t < forcing_start+forcing_length
-                # performing the time shift corresponding to stretching/squeezing 
-                time_shift = ((section_end-section_start)/forcing_length)*(t-forcing_start)+section_start 
-                return p0 + forcing_scale*(p(time_shift)-p(section_start))/(p(section_end)-p(section_start))
-            else 
-                return p0 + forcing_scale
-            end
+            return p0 + forcing_scale
         end
+    end
 
     return q
 end
 
 # returns a continuous time dynamical system with modified drift field
-function apply_ramping(auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0)
-
+function apply_ramping(
+    auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0
+)
     f = deepcopy(dynamic_rule(auto_sys))
 
     function f_new(u, p, t)
         pvalue = p_modified(t, rc, p0, forcing_start, forcing_length, forcing_scale)
-        if p isa Union{AbstractArray, AbstractDict}
+        if p isa Union{AbstractArray,AbstractDict}
             setindex!(p, pvalue, pidx)
         else
             setproperty!(p, pidx, pvalue)
@@ -114,9 +125,9 @@ function apply_ramping(auto_sys, rc, pidx, p0, params, forcing_start, forcing_le
         return f(u, p, t)
     end
 
-    prob = remake(deepcopy(referrenced_sciml_prob(auto_sys)); f=f_new, p=params, tspan=(t0, Inf))
+    prob = remake(
+        deepcopy(referrenced_sciml_prob(auto_sys)); f=f_new, p=params, tspan=(t0, Inf)
+    )
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
     return nonauto_sys
 end
-
-
