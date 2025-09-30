@@ -51,6 +51,7 @@ if Documenter.DOCUMENTER_VERSION >= v"1.3.0"
 end
 
 makedocs(;
+    debug=true,
     authors=authors,
     sitename="CriticalTransitions.jl",
     repo=Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
@@ -66,12 +67,14 @@ makedocs(;
     checkdocs_ignored_modules=[CriticalTransitions.CTLibrary],
     pages=pages,
     linkcheck=true,
+    #linkcheck_ignore = [r"http://docs\.juliadiffeq\.org/.*"],
     pagesonly=true,
     checkdocs=:exports,
     doctest=false,
     format=Documenter.HTML(; html_options...),
     warnonly=[:missing_docs, :linkcheck, :cross_references],
     plugins=[bib, links],
+    # plugins=[links],
     draft=CI ? false : true,
 )
 
