@@ -51,6 +51,7 @@ if Documenter.DOCUMENTER_VERSION >= v"1.3.0"
 end
 
 makedocs(;
+    debug=true,
     authors=authors,
     sitename="CriticalTransitions.jl",
     repo=Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
@@ -72,7 +73,8 @@ makedocs(;
     doctest=false,
     format=Documenter.HTML(; html_options...),
     warnonly=[:missing_docs, :linkcheck, :cross_references],
-    plugins=[bib, links],
+    #plugins=[bib, links],
+    plugins=[links],
     draft=CI ? false : true,
 )
 
