@@ -73,8 +73,8 @@ makedocs(;
     doctest=false,
     format=Documenter.HTML(; html_options...),
     warnonly=[:missing_docs, :linkcheck, :cross_references],
-    #plugins=[bib, links],
-    plugins=[links],
+    plugins=[bib, links],
+    # plugins=[links],
     draft=CI ? false : true,
 )
 
