@@ -3,17 +3,17 @@
 Consider an autonomous deterministic dynamical system `auto_sys` (i.e. a `CoupledODEs`) of which you want to ramp one parameter, i.e. change the parameter's value over time. 
 
 Applying this parameter ramping is here implemented as a two-step process:
-1) Specify a section ``p([section_start, section_end])`` of a function ``p(t)`` describing the shape of the parameter ramping you would like to consider. This is done by defining a `RateConfig` type.
-2) Specify how you would like use this section of ``p(t)`` to ramp one parameter of `auto_sys`. This is done by defining a `RateSystem` type which then returns a non-autonomous system `RateSystem.system` (i.e. a `CoupledODEs`) with the parameter ramping incorporated.
+1) Specify a section `p([section_start, section_end])` of a function `p(t)` describing the shape of the parameter ramping you would like to consider. This is done by defining a `RateConfig` type.
+2) Specify how you would like use this section of `p(t)` to ramp one parameter of the `auto_sys`. This is done by defining a `RateSystem` type which then returns a non-autonomous system `RateSystem.system` (i.e. a `CoupledODEs`) with the parameter ramping incorporated.
 
 For times `t < forcing_start`, the returned system `RateSystem.system` is autonomous, for `forcing_start < t < forcing_start + forcing_length` it is non-autonomous with the paramter ramping given by the `RateConfig` and for `forcing_start + forcing_length < t` the system is autonomous again. This setting is a widely used and convenient for studying R-tipping.
 
 
 ## Example
 
-Let us explore a simple prototypical example of how to use the R-tipping functionality of this package.
+Let us explore a simple prototypical example.
 
-We consider the following simple one-dimensional autonomous system with one attractor, given by the ordinary differential equation:
+We consider the following one-dimensional autonomous system with one attractor, given by the ordinary differential equation:
 ```math
 \begin{aligned}
     \dot{x} &= (x+p)^2 - 1
@@ -40,9 +40,8 @@ auto_sys = CoupledODEs(f,x0,[0.0]);
 
 Now, we want to explore a non-autonomous version of this system by applying a parameter shift s.t. speed and amplitude of the parameter shift are easily modifiable but the 'shape' of it is always the same - just linearly stretched or squeezed.
 
-1) First specify a section of a function p(t) that you would like to use to ramp a parameter of auto_sys:
+First specify a section of a function `p(t)` that you would like to use to ramp a parameter of `auto_sys`:
 
-We define the function `p(t)`:
 ```@example RateSystem
 p(t) = tanh(t);       # A monotonic function that describes the parameter shift
 section_start = -5;   # start of the section of p(t) we want to consider
@@ -50,7 +49,7 @@ section_end = 5;      # end   of the section of p(t) we want to consider
 rc = RateConfig(p, section_start, section_end)
 ```
 
-2) Then specify how you would like to use the `RateConfig` to shift the `pidx`'th parameter of auto_sys:
+Then specify how you would like to use the `RateConfig` to shift the `pidx`'th parameter of auto_sys:
 ```@example RateSystem
 pidx = 1                # Index of the parameter within the parameter-container of auto_sys
 forcing_start = -50.    # Time when the parameter shift should start
@@ -63,7 +62,7 @@ RateSys = RateSystem(auto_sys, rc, pidx; forcing_start=forcing_start, forcing_le
 Note: Choosing different values of the `forcing_length` allows us to vary the speed of the parameter ramping, while its shape remains the same, and it only gets stretched or squeezed.
 Note: If `p(t)` within the `RateConfig` is a monotonic function, the `forcing_scale` will give the total amplitude of the parameter ramping. For non-monotonic `p(t)`, the `forcing_scale` will only linearly scale the amplitude of the parameter ramping, but does not equal the total amplitude.
 
-Now, we can compute trajectories of this new system `RateSys.system` in the familiar way:
+Now, we can compute trajectories of this new system `RateSys.system` and of the previous autonomous system `auto_sys` in the familiar way:
 ```@example RateSystem
 T = forcing_length + 40.0;                      # length of the trajectory that we want to compute
 auto_traj = trajectory(auto_sys, T, x0);   
