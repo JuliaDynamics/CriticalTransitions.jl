@@ -67,7 +67,7 @@ makedocs(;
     checkdocs_ignored_modules=[CriticalTransitions.CTLibrary],
     pages=pages,
     linkcheck=true,
-    linkcheck_ignore = [r"http://docs\.juliadiffeq\.org/.*"],
+    #linkcheck_ignore = [r"http://docs\.juliadiffeq\.org/.*"],
     pagesonly=true,
     checkdocs=:exports,
     doctest=false,
