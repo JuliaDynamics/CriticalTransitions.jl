@@ -1,9 +1,19 @@
 # Studying R-Tipping
 
-Let us explore a simple prototypical example of how to use the R-tipping functionality of this package.
-We start with defining an autonomous deterministic dynamical system (i.e. a `CoupledODEs`). Then, we define a time-dependent forcing protocol called `RateConfig`, describing how the parameters of the previously defined autonomous `CoupledODEs` will be changed over time. For times `t` smaller than the time `t_start`, the system is autonomous, then non-autonomous for `t_start < t < t_start + ramp_t_length` with the paramter ramping given by the `RateConfig` and for `t > t_start + ramp_t_length` the system is autonomous again. This setting is a widely used and convenient for studying R-tipping.
+Consider an autonomous deterministic dynamical system `auto_sys` (i.e. a `CoupledODEs`) of which you want to ramp one parameter, i.e. change the parameter's value over time. 
 
-We first consider the following simple one-dimensional autonomous system with one attractor, given by the ordinary differential equation:
+Applying this parameter ramping is here implemented as a two-step process:
+1) Specify a section ``p([section_start, section_end])`` of a function ``p(t)`` describing the shape of the parameter ramping you would like to consider. This is done by defining a `RateConfig` type.
+2) Specify how you would like use this section of ``p(t)`` to ramp one parameter of `auto_sys`. This is done by defining a `RateSystem` type which then returns a non-autonomous system `RateSystem.system` (i.e. a `CoupledODEs`) with the parameter ramping incorporated.
+
+For times `t < forcing_start`, the returned system `RateSystem.system` is autonomous, for `forcing_start < t < forcing_start + forcing_length` it is non-autonomous with the paramter ramping given by the `RateConfig` and for `forcing_start + forcing_length < t` the system is autonomous again. This setting is a widely used and convenient for studying R-tipping.
+
+
+## Example
+
+Let us explore a simple prototypical example of how to use the R-tipping functionality of this package.
+
+We consider the following simple one-dimensional autonomous system with one attractor, given by the ordinary differential equation:
 ```math
 \begin{aligned}
     \dot{x} &= (x+p)^2 - 1
@@ -28,73 +38,54 @@ auto_sys = CoupledODEs(f,x0,[0.0]);
 
 ## Applying the parameter ramping
 
-Now, we want to explore a non-autonomous version of the system by applying a parameter ramping. 
-As discussed, we consider a setting where in the past and in the future the system is autnonomous and in between there is a non-autonomous period `[t_start, t_start+ramp_t_length]` with a time-dependent parameter ramping given by the function ``p(t)``. Choosing different values of the parameter `ramp_t_length` allows us to vary the speed of the parameter ramping.
+Now, we want to explore a non-autonomous version of this system by applying a parameter shift s.t. speed and amplitude of the parameter shift are easily modifiable but the 'shape' of it is always the same - just linearly stretched or squeezed.
 
-We start by defining the function `p(p_parameters, t)`:
+1) First specify a section of a function p(t) that you would like to use to ramp a parameter of auto_sys:
+
+We define the function `p(t)`:
 ```@example RateSystem
-function p(p_parameters, t)
-    p_max = p_parameters[1]
-    p_ = (p_max/2)*(tanh(p_max*t/2)+1)
-    return SVector{1}(p_)
-end
-
-p_max = 1.0
-p_parameters = [p_max] # parameter of the function p
+p(t) = tanh(t);       # A monotonic function that describes the parameter shift
+section_start = -5;   # start of the section of p(t) we want to consider
+section_end = 5;      # end   of the section of p(t) we want to consider
+rc = RateConfig(p, section_start, section_end)
 ```
 
-
-We plot the function `p(p_parameters, t)`
+2) Then specify how you would like to use the `RateConfig` to shift the `pidx`'th parameter of auto_sys:
 ```@example RateSystem
-p_plotvals = [p(p_parameters, t)[1] for t in -10.0:0.1:10.0]
-figp = Figure(); axsp = Axis(figp[1,1],xlabel="t",ylabel=L"p")
-lines!(axsp,-10.0:0.1:10.0,p_plotvals,linewidth=2,label=L"p(p_{parameters}, t)")
-axislegend(axsp,position=:rc,labelsize=10)
-figp
+pidx = 1                # Index of the parameter within the parameter-container of auto_sys
+forcing_start = -50.    # Time when the parameter shift should start
+forcing_length = 105.   # Time-interval over which p([section_start, section_end]) is spread out (for window_length > section_end - section_start) or squeezed into (for window_length < section_end - section_start)
+forcing_scale = 3.0     # Amplitude of the ramping. `p` is then automatically rescaled 
+t0 = -70.0              # Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
+
+RateSys = RateSystem(auto_sys, rc, pidx; forcing_start=forcing_start, forcing_length=forcing_length, forcing_scale=forcing_scale, t0=t0)
 ```
-Note that this function fulfills 
-```math
-    \begin{aligned}
-        p(t=-10)& =0 \ and \ p(t=10)=1.
-    \end{aligned}
-```
-We recommend this to be fulfilled for any ramping function to use the functionality of this package.
+Note: Choosing different values of the `forcing_length` allows us to vary the speed of the parameter ramping, while its shape remains the same, and it only gets stretched or squeezed.
+Note: If `p(t)` within the `RateConfig` is a monotonic function, the `forcing_scale` will give the total amplitude of the parameter ramping. For non-monotonic `p(t)`, the `forcing_scale` will only linearly scale the amplitude of the parameter ramping, but does not equal the total amplitude.
 
-
-Now, we define a `RateConfig`, which contains all the information to apply the parameter ramping given by 
-`p(p_parameters,t)` to the `auto_sys` during `[t_start, t_start+ramp_t_length]`:
-
+Now, we can compute trajectories of this new system `RateSys.system` in the familiar way:
 ```@example RateSystem
-t_start = -10       # start time of non-autonomous part
-ramp_t_length = 5   # duration of non-autonomous part
-dp=3                # strength of the paramter ramping
-
-rc = CriticalTransitions.RateConfig(p, p_parameters, t_start,ramp_t_length,dp)
-```
-Note that `dp` is defined as a prefactor of the function `p`. Thus, changing `dp` will change the amount of the parameter ramping. If the user provides a function fulfilling ``p(t=-10) =0 and p(t=10)=1``, setting `dp=10` would result in a parameter ramping from ``p(t=-10) = 0 and p(t=10) = 10``.
-
-
-We set up the system with autonomous past and future and non-autonomous ramping in between:
-
-```@example RateSystem
-t0 = -10.0      # initial time of the system
-nonauto_sys = apply_ramping(auto_sys, rc, t0);
+T = forcing_length + 40.0;                      # length of the trajectory that we want to compute
+auto_traj = trajectory(auto_sys, T, x0);   
+nonauto_traj = trajectory(RateSys.system, T, x0);
 ```
 
-We can compute trajectories of this new system in the familiar way:
+We plot the two trajectories:
 ```@example RateSystem
-T = 50.0        # final simulation time
-auto_traj = trajectory(auto_sys, T, x0)
-nonauto_traj = trajectory(nonauto_sys, T, x0);
-```
-
-We plot the two trajectories
-```@example RateSystem
-fig = Figure(); axs = Axis(fig[1,1],xlabel="t",ylabel="x")
-lines!(axs,t0.+auto_traj[2],auto_traj[1][:,1],linewidth=2,label=L"\text{Autonomous system}")
-lines!(axs,nonauto_traj[2],nonauto_traj[1][:,1],linewidth=2,label=L"\text{Nonautonomous system}")
-axislegend(axs,position=:rc,labelsize=10)
+fig = Figure(); 
+axs = Axis(fig[1,1],xlabel="t",ylabel="x");
+lines!(axs,t0.+auto_traj[2],auto_traj[1][:,1],linewidth=2,label=L"\text{Autonomous system}");
+lines!(axs,nonauto_traj[2],nonauto_traj[1][:,1],linewidth=2,label=L"\text{Nonautonomous system}");
+axislegend(axs,position=:rc,labelsize=10);
 fig
+```
+
+We can also plot the shifted parameter `p(t)`:
+```@example RateSystem
+figPar = Figure(); 
+axsPar = Axis(figPar[1,1],xlabel="t",ylabel="p(t)");
+lines!(axsPar,range(t0,t0+T,length=Int(T+1)), RateSys.forcing.(range(t0,t0+T,length=Int(T+1))),linewidth=2);
+figPar
 ```
 
 -----

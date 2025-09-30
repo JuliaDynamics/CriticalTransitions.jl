@@ -7,7 +7,7 @@ time interval `[section_start, section_end]`.
 Used to construct a non-autonomous `RateSystem`.
 
 ## Fields
-- `pfunc`: function ``p(t)`` from ``R → R`` describing the parameter time dependence
+- `pfunc`: function ``p(t)`` from ``ℝ → ℝ`` describing the parameter time dependence
 - `section_start`: start of the time interval over which `pfunc` is considered
 - `section_end`: end of the time interval over which `pfunc` is considered
 
