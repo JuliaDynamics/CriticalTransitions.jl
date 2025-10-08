@@ -2,7 +2,7 @@
     RateSystem
  
 """
-struct RateSystem{IIP, D, I, P, F, T} <: ContinuousTimeDynamicalSystem
+struct RateSystem{IIP,D,I,P,F,T} <: ContinuousTimeDynamicalSystem
     integ::I
     # things we can't recover from `integ`
     p0::P
@@ -48,21 +48,28 @@ function RateSystem(
 
     prob = ODEProblem(system)
 
-    return RateSystem(prob, system.diffeq;
-        rc, pidx, forcing_start, forcing_length, forcing_scale, t0)
+    return RateSystem(
+        prob, system.diffeq; rc, pidx, forcing_start, forcing_length, forcing_scale, t0
+    )
 end
 
-function RateSystem(prob::ODEProblem, diffeq = DEFAULT_DIFFEQ;
+function RateSystem(
+    prob::ODEProblem,
+    diffeq=DEFAULT_DIFFEQ;
     rc=RateConfig(:linear),
     pidx=1,
     forcing_start=rc.interval[1],
     forcing_length=(rc.interval[2] - rc.interval[1]),
     forcing_scale=0.0,
     t0=0.0,
-    special_kwargs...
+    special_kwargs...,
 )
     if haskey(special_kwargs, :diffeq)
-        throw(ArgumentError("`diffeq` is given as positional argument when an ODEProblem is provided."))
+        throw(
+            ArgumentError(
+                "`diffeq` is given as positional argument when an ODEProblem is provided."
+            ),
+        )
     end
     IIP = isinplace(prob)
     D = length(prob.u0)
@@ -70,19 +77,25 @@ function RateSystem(prob::ODEProblem, diffeq = DEFAULT_DIFFEQ;
     if prob.tspan === (nothing, nothing)
         # If the problem was made via MTK, it is possible to not have a default timespan.
         U = eltype(prob.u0)
-        prob = SciMLBase.remake(prob; tspan = (U(t0), U(Inf)))
+        prob = SciMLBase.remake(prob; tspan=(U(t0), U(Inf)))
     end
     solver, remaining = _decompose_into_solver_and_remaining(diffeq)
-    integ = __init(prob, solver; remaining..., special_kwargs...,
+    integ = __init(
+        prob,
+        solver;
+        remaining...,
+        special_kwargs...,
         # Integrators are used exclusively iteratively. There is no reason to save anything.
-        save_start = false, save_end = false, save_everystep = false,
+        save_start=false,
+        save_end=false,
+        save_everystep=false,
         # DynamicalSystems.jl operates on integrators and `step!` exclusively,
         # so there is no reason to limit the maximum time evolution
-        maxiters = Inf,
+        maxiters=Inf,
     )
     forcing = (pidx, rc, forcing_start, forcing_length, forcing_scale)
-    return RateSystem{IIP, D, typeof(integ), P, typeof(forcing)}(integ, deepcopy(prob.p),
-        diffeq, forcing
+    return RateSystem{IIP,D,typeof(integ),P,typeof(forcing)}(
+        integ, deepcopy(prob.p), diffeq, forcing
     )
 end
 

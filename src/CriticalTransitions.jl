@@ -10,8 +10,8 @@ using DataStructures: CircularBuffer
 using Random: Random
 
 # Core
-using SciMLBase: SciMLBase, EnsembleThreads, DiscreteCallback,
-    remake, terminate!, isinplace, ODEProblem
+using SciMLBase:
+    SciMLBase, EnsembleThreads, DiscreteCallback, remake, terminate!, isinplace, ODEProblem
 using DynamicalSystemsBase:
     DynamicalSystemsBase,
     CoupledSDEs,
