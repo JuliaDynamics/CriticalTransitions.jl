@@ -13,14 +13,13 @@ using Test
     auto_sys = CoupledODEs(f, x0, p_auto);
 
     p(t) = tanh(t);         # A monotonic function that describes the parameter shift
-    section_start = -5;   # start of the section of p(t) we want to consider
-    section_end = 5;      # end   of the section of p(t) we want to consider
-    rc = RateConfig(p, section_start, section_end)
+    interval = (-5,5)
+    rc = RateConfig(p, interval)
 
     # 2) Then specify how you would like to use the RateConfig to ramp the pidx'th parameter of auto_sys:
     pidx = 1                # Index of the parameter-container of auto_sys that you want to ramp
     forcing_start = -50.0    # Time when the parameter shift should start (before this, the final system will be autonomous)
-    forcing_length = 105.0   # Time-interval over which p([section_start, section_end]) is spread out (for window_length > section_end - section_start) or squeezed into (for window_length < section_end - section_start)
+    forcing_length = 105.0   # Time-interval over which p(interval) is spread out or squeezed
     forcing_scale = 3.0     # Amplitude of the ramping. `p` is then automatically rescaled 
     t0 = -70.0              # Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 

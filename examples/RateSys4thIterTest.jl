@@ -17,14 +17,13 @@ auto_sys = CoupledODEs(f, x0, p_auto);
 
 # 1) First specify a section of a function p(t) that you would like to use to ramp a parameter of auto_sys:
 p(t) = tanh(t);         # A monotonic function that describes the parameter shift
-section_start = -5;   # start of the section of p(t) we want to consider
-section_end = 5;      # end   of the section of p(t) we want to consider
-rc = RateConfig(p, section_start, section_end)
+interval = (-5, 5)
+rc = RateConfig(p, interval)
 
 # 2) Then specify how you would like to use the RateConfig to ramp the pidx'th parameter of auto_sys:
 pidx = 1                # Index of the parameter-container of auto_sys that you want to ramp
 forcing_start = -50.0    # Time when the parameter shift should start (before this, the final system will be autonomous)
-forcing_length = 105.0   # Time-interval over which p([section_start, section_end]) is spread out (for window_length > section_end - section_start) or squeezed into (for window_length < section_end - section_start)
+forcing_length = 105.0   # Time-interval over which p(interval) is spread out or squeezed
 forcing_scale = 3.0     # Amplitude of the ramping. `p` is then automatically rescaled
 t0 = -70.0              # Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 
@@ -96,14 +95,13 @@ p_auto = [0.0];
 auto_sys = CoupledODEs(f, x0, p_auto);
 
 p(t) = tanh(t);         # A monotonic function that describes the parameter shift
-section_start = -100;   # start of the section of p(t) we want to consider
-section_end = 100;      # end   of the section of p(t) we want to consider
-rc = RateConfig(p, section_start, section_end)
+interval = (-100,100)
+rc = RateConfig(p, interval)
 
 # 2) Then specify how you would like to use the RateConfig to ramp the pidx'th parameter of auto_sys:
 pidx = 1
 forcing_start = -100.0    # time when the parameter shift should start (before this, the final system will be autonomous)
-forcing_length = 200.0   # time over which p([section_start, section_end]) is spread out (for window_length > section_end - section_start) or squeezed into (for window_length < section_end - section_start)
+forcing_length = 200.0   # time over which p(interval) is spread out or squeezed
 forcing_scale = 1.0    # amplitude of the ramping. `p` is then automatically rescaled (it will go from p0 to p0+dp with p0 being the value of the pidx'th parameter of the auto_sys)
 t0 = forcing_start             # initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 

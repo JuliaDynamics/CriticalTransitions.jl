@@ -1,15 +1,14 @@
 # Consider the ODE dxₜ/dt = f(xₜ,p). We want to ramp one parameter of this ODE.
 """
-    RateConfig
+    RateConfig(pfunc::Function, interval)
 
 Time-dependent forcing protocol ``p(t)`` describing the evolution of a parameter over a
-time interval `[section_start, section_end]`.
+time interval `interval = (start, end)`.
 Used to construct a non-autonomous `RateSystem`.
 
-## Fields
+## Arguments
 - `pfunc`: function ``p(t)`` from ``ℝ → ℝ`` describing the parameter time dependence
-- `section_start`: start of the time interval over which `pfunc` is considered
-- `section_end`: end of the time interval over which `pfunc` is considered
+- `interval`: domain interval over which `pfunc` is considered
 
 ## Description
 The `RateConfig` type allows to specify the functional form of a parametric
@@ -17,10 +16,9 @@ forcing over a time interval. This forcing protocol can then be applied to the p
 of a dynamical system using the `RateSystem` constructor, which also allows to modify
 the rate and magnitude of the forcing.
 """
-mutable struct RateConfig
+@kwdef mutable struct RateConfig
     pfunc::Function
-    section_start::Float64
-    section_end::Float64
+    interval::Tuple{Real}
 end
 
 """
@@ -40,8 +38,8 @@ Creates a `RateSystem` type from an autonomous dynamical system `sys` and a time
 parametric forcing protocol of `RateConfig` type.
 
 ## Keyword arguments
-- `forcing_start = RateConfig.section_start`: Time when parameter shift starts (before this, the resulting system will be autonomous)
-- `forcing_length = RateConfig.section_end - RateConfig.section_start`: Time-interval over which RateConfig.pfunc([RateConfig.section_start, RateConfig.section_end]) is spread out (for window_length > RateConfig.section_end - RateConfig.section_start) or squeezed into (for window_length < RateConfig.section_end - RateConfig.section_start)
+- `forcing_start = RateConfig.interval[1]`: Time when parameter shift starts (before this, the resulting system will be autonomous)
+- `forcing_length = RateConfig.interval[2] - RateConfig.interval[1]`: Time-interval over which RateConfig.pfunc([RateConfig.interval[1], RateConfig.interval[2]]) is spread out (for window_length > RateConfig.interval[2] - RateConfig.interval[1]) or squeezed into (for window_length < RateConfig.interval[2] - RateConfig.interval[1])
 - `forcing_scale = 1.0`: Amplitude of the ramping. The ramping is then automatically rescaled 
 - `t0 = 0.0`: Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 
@@ -61,8 +59,8 @@ function RateSystem(
     auto_sys::ContinuousTimeDynamicalSystem,
     rc::RateConfig,
     pidx;
-    forcing_start=rc.section_start,
-    forcing_length=(rc.section_end - rc.section_start),
+    forcing_start=rc.interval[1],
+    forcing_length=(rc.interval[2] - rc.interval[1]),
     forcing_scale=1.0,
     t0=0.0,
 )
@@ -86,8 +84,8 @@ function p_modified(
     t::Real, rc::RateConfig, p0, forcing_start, forcing_length, forcing_scale
 )
     p = rc.pfunc
-    section_start = rc.section_start
-    section_end = rc.section_end
+    section_start = rc.interval[1]
+    section_end = rc.interval[2]
 
     # making the function piecewise constant with range [p0,p0+forcing_scale]    
     q = if t ≤ forcing_start
