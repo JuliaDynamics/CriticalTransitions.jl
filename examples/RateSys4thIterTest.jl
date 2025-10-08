@@ -12,7 +12,7 @@ x0 = [-1.0];
 p_auto = [0.0];
 auto_sys = CoupledODEs(f, x0, p_auto);
 
-# Now, we want to apply a parameter shift to auto_sys s.t. speed and amplitude of the parameter shift are easily modifiable 
+# Now, we want to apply a parameter shift to auto_sys s.t. speed and amplitude of the parameter shift are easily modifiable
 # but the 'shape' of it is always the same - just linearly stretched or squeezed. This can be achieved as follows:
 
 # 1) First specify a section of a function p(t) that you would like to use to ramp a parameter of auto_sys:
@@ -25,7 +25,7 @@ rc = RateConfig(p, section_start, section_end)
 pidx = 1                # Index of the parameter-container of auto_sys that you want to ramp
 forcing_start = -50.0    # Time when the parameter shift should start (before this, the final system will be autonomous)
 forcing_length = 105.0   # Time-interval over which p([section_start, section_end]) is spread out (for window_length > section_end - section_start) or squeezed into (for window_length < section_end - section_start)
-forcing_scale = 3.0     # Amplitude of the ramping. `p` is then automatically rescaled 
+forcing_scale = 3.0     # Amplitude of the ramping. `p` is then automatically rescaled
 t0 = -70.0              # Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 
 RateSys = RateSystem(
@@ -78,6 +78,8 @@ figPar
 # Note: for the given section p([-100, 100]) the critical forcing_length is approximately 100 for p0 = 0 and forcing_scale = 3
 # Hence, for window_length < 100 the trajectory tips, and for window_length > 100 the trajectory tracks to -4.
 
+# %%
+using BenchmarkTools
 ####################
 ### BENCHMARKING ###
 ####################
@@ -117,7 +119,7 @@ nonauto_sys = RateSystem(
 
 # Compute trajectory
 T = forcing_length + 40.0;        # simulation time
-@time nonauto_traj = trajectory(nonauto_sys.system, T, x0);
+@btime nonauto_traj = trajectory($(nonauto_sys.system), T, x0);
 
 ## Version 2) hardcoded
 function fexpl(u, p, t) # out-of-place
@@ -130,6 +132,7 @@ x0 = [-1.0];
 p_auto = [0.0];  # p_auto somehow needs to be redefined every time.
 t0 = -100
 nonauto_sysexpl = CoupledODEs(fexpl, x0, p_auto; t0=t0);
+@btime nonautoExpl_traj = trajectory($nonauto_sysexpl, T, x0);
 
 ### plot for comparison
 fig = Figure();
