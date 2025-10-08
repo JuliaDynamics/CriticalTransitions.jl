@@ -1,6 +1,7 @@
 module CriticalTransitions
 
 # Base
+import Base: show
 using Statistics: Statistics, mean
 using LinearAlgebra: LinearAlgebra, I, norm, dot, tr, det
 using StaticArrays: StaticArrays, SVector
@@ -9,7 +10,8 @@ using DataStructures: CircularBuffer
 using Random: Random
 
 # Core
-using SciMLBase: SciMLBase, EnsembleThreads, DiscreteCallback, remake, terminate!, isinplace
+using SciMLBase: SciMLBase, EnsembleThreads, DiscreteCallback,
+    remake, terminate!, isinplace, ODEProblem
 using DynamicalSystemsBase:
     DynamicalSystemsBase,
     CoupledSDEs,
@@ -21,7 +23,9 @@ using DynamicalSystemsBase:
     jacobian,
     ContinuousTimeDynamicalSystem,
     referrenced_sciml_prob,
-    current_parameters
+    current_parameters,
+    DEFAULT_DIFFEQ,
+    _decompose_into_solver_and_remaining
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq
@@ -59,6 +63,7 @@ include("largedeviations/geometric_min_action_method.jl")
 include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
 
+include("r_tipping/RateConfig.jl")
 include("r_tipping/RateSystem.jl")
 
 # Experimental features
@@ -86,6 +91,8 @@ export deterministic_orbit
 export transition, transitions
 
 export RateConfig, RateSystem
+export set_forcing_length!, set_forcing_scale!, set_forcing_start!
+export show
 
 # Error hint for extensions stubs
 function __init__()

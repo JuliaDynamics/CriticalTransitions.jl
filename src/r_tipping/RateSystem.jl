@@ -1,34 +1,13 @@
-# Consider the ODE dxₜ/dt = f(xₜ,p). We want to ramp one parameter of this ODE.
-"""
-    RateConfig(pfunc::Function, interval)
-
-Time-dependent forcing protocol ``p(t)`` describing the evolution of a parameter over a
-time interval `interval = (start, end)`.
-Used to construct a non-autonomous `RateSystem`.
-
-## Arguments
-- `pfunc`: function ``p(t)`` from ``ℝ → ℝ`` describing the parameter time dependence
-- `interval`: domain interval over which `pfunc` is considered
-
-## Description
-The `RateConfig` type allows to specify the functional form of a parametric
-forcing over a time interval. This forcing protocol can then be applied to the parameter
-of a dynamical system using the `RateSystem` constructor, which also allows to modify
-the rate and magnitude of the forcing.
-"""
-@kwdef mutable struct RateConfig
-    pfunc::Function
-    interval::Tuple{Real}
-end
-
 """
     RateSystem
  
 """
-struct RateSystem
-    system
-    forcing
-    pidx
+struct RateSystem{IIP, D, I, P, F, T} <: ContinuousTimeDynamicalSystem
+    integ::I
+    # things we can't recover from `integ`
+    p0::P
+    diffeq # isn't parameterized because it is only used for display
+    forcing::F
 end
 
 """
@@ -44,16 +23,10 @@ parametric forcing protocol of `RateConfig` type.
 - `t0 = 0.0`: Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 
 ## Description
-The returned `RateSystem.system` is is 
+The returned `RateSystem` is 
 autonomous before `forcing_start`, 
 non-autnonmous from `forcing_start` to `forcing_start+forcing_length` with the parameter shift given by the [`RateConfig`](@def), and again 
 autonomous after `forcing_start+forcing_length`.
-
-## Fields of the resulting `RateSystem` type
-- `system`: Nonautonomous [`CoupledODEs`](@ref) constructed from an autonomous system `sys` and a `RateConfig`
-- `forcing`: Function giving the value of the ramped parameter for every time.
-- `pidx`: Index of the ramped parameter within the parameter container of the autonomous system `sys`.
-
 """
 function RateSystem(
     auto_sys::ContinuousTimeDynamicalSystem,
@@ -67,16 +40,54 @@ function RateSystem(
     params = deepcopy(current_parameters(auto_sys))
     p0 = params[pidx]
 
-    if forcing_start < t0
-        @warn "The forcing starts before the system initial time t0=$(t0)."
-    end
+    @assert (forcing_start >= t0) "The forcing cannot start before the system start time t0, but your forcing_start ($(forcing_start)) < t0 ($(t0))."
 
     system = apply_ramping(
         auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0
     )
-    forcing = t -> p_modified(t, rc, p0, forcing_start, forcing_length, forcing_scale)
 
-    return RateSystem(system, forcing, pidx)
+    prob = ODEProblem(system)
+
+    return RateSystem(prob, system.diffeq;
+        rc, pidx, forcing_start, forcing_length, forcing_scale, t0)
+end
+
+function RateSystem(prob::ODEProblem, diffeq = DEFAULT_DIFFEQ;
+    rc=RateConfig(:linear),
+    pidx=1,
+    forcing_start=rc.interval[1],
+    forcing_length=(rc.interval[2] - rc.interval[1]),
+    forcing_scale=0.0,
+    t0=0.0,
+    special_kwargs...
+)
+    if haskey(special_kwargs, :diffeq)
+        throw(ArgumentError("`diffeq` is given as positional argument when an ODEProblem is provided."))
+    end
+    IIP = isinplace(prob)
+    D = length(prob.u0)
+    P = typeof(prob.p)
+    if prob.tspan === (nothing, nothing)
+        # If the problem was made via MTK, it is possible to not have a default timespan.
+        U = eltype(prob.u0)
+        prob = SciMLBase.remake(prob; tspan = (U(t0), U(Inf)))
+    end
+    solver, remaining = _decompose_into_solver_and_remaining(diffeq)
+    integ = __init(prob, solver; remaining..., special_kwargs...,
+        # Integrators are used exclusively iteratively. There is no reason to save anything.
+        save_start = false, save_end = false, save_everystep = false,
+        # DynamicalSystems.jl operates on integrators and `step!` exclusively,
+        # so there is no reason to limit the maximum time evolution
+        maxiters = Inf,
+    )
+    forcing = (pidx, rc, forcing_start, forcing_length, forcing_scale)
+    return RateSystem{IIP, D, typeof(integ), P, typeof(forcing)}(integ, deepcopy(prob.p),
+        diffeq, forcing
+    )
+end
+
+function forcing(sys::RateSystem, t)
+    return p_modified(t, sys.forcing, prob.p, forcing_start, forcing_length, forcing_scale)
 end
 
 ## Creates a piecewise constant function in alignment with the entries of the RateConfig and the parameter value of the underlying autonomous system
@@ -129,3 +140,9 @@ function apply_ramping(
     nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
     return nonauto_sys
 end
+
+function set_forcing_scale!(rs::RateSystem, scale) end
+
+function set_forcing_length!(rs::RateSystem, length) end
+
+function set_forcing_start!(rs::RateSystem, start) end

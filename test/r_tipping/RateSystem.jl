@@ -13,7 +13,7 @@ using Test
     auto_sys = CoupledODEs(f, x0, p_auto);
 
     p(t) = tanh(t);         # A monotonic function that describes the parameter shift
-    interval = (-5,5)
+    interval = (-5, 5)
     rc = RateConfig(p, interval)
 
     # 2) Then specify how you would like to use the RateConfig to ramp the pidx'th parameter of auto_sys:
@@ -40,4 +40,11 @@ using Test
 
     @test isapprox(auto_traj[1][end, 1], -1; atol=1e-2)
     @test isapprox(nonauto_traj[1][end, 1], -4; atol=1e-2)
+end
+
+@testset "Rate system utils" begin
+    rc = RateConfig(:linear)
+    data = show(rc)
+    @test data[1][1] == 0.0
+    @test data[2][end] == 1.0
 end

@@ -44,10 +44,11 @@ end
             skip=(Base => Base.Experimental, Base => Core),
             ignore=(
                 :referrenced_sciml_prob,
+                :DEFAULT_DIFFEQ,
+                :_decompose_into_solver_and_remaining,
             ),
         ),
     )
-
 end
 
 if isempty(VERSION.prerelease)

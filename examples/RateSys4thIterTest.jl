@@ -95,7 +95,7 @@ p_auto = [0.0];
 auto_sys = CoupledODEs(f, x0, p_auto);
 
 p(t) = tanh(t);         # A monotonic function that describes the parameter shift
-interval = (-100,100)
+interval = (-100, 100)
 rc = RateConfig(p, interval)
 
 # 2) Then specify how you would like to use the RateConfig to ramp the pidx'th parameter of auto_sys:
