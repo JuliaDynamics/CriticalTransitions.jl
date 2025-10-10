@@ -10,8 +10,7 @@ using DataStructures: CircularBuffer
 using Random: Random
 
 # Core
-using SciMLBase:
-    SciMLBase, EnsembleThreads, DiscreteCallback, remake, terminate!, isinplace, ODEProblem
+using SciMLBase: SciMLBase, EnsembleThreads, DiscreteCallback, remake, terminate!, isinplace
 using DynamicalSystemsBase:
     DynamicalSystemsBase,
     CoupledSDEs,
@@ -23,9 +22,7 @@ using DynamicalSystemsBase:
     jacobian,
     ContinuousTimeDynamicalSystem,
     referrenced_sciml_prob,
-    current_parameters,
-    DEFAULT_DIFFEQ,
-    _decompose_into_solver_and_remaining
+    current_parameters
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq

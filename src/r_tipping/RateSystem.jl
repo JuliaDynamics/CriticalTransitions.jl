@@ -1,12 +1,18 @@
+@kwdef mutable struct RateSystemForcing
+    pidx::Int
+    rc::RateConfig
+    t0::Real
+    forcing_start::Real
+    forcing_length::Real
+    forcing_scale::Real
+end
+
 """
     RateSystem
  
 """
-struct RateSystem{IIP,D,I,P,F,T} <: ContinuousTimeDynamicalSystem
-    integ::I
-    # things we can't recover from `integ`
-    p0::P
-    diffeq # isn't parameterized because it is only used for display
+@kwdef struct RateSystem{S,F} <: ContinuousTimeDynamicalSystem
+    system::S
     forcing::F
 end
 
@@ -23,10 +29,9 @@ parametric forcing protocol of `RateConfig` type.
 - `t0 = 0.0`: Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 
 ## Description
-The returned `RateSystem` is 
-autonomous before `forcing_start`, 
-non-autnonmous from `forcing_start` to `forcing_start+forcing_length` with the parameter shift given by the [`RateConfig`](@def), and again 
-autonomous after `forcing_start+forcing_length`.
+The returned `RateSystem` is autonomous before `forcing_start`, non-autnonmous from
+`forcing_start` to `forcing_start+forcing_length` with the parameter shift given by the
+[`RateConfig`](@def), and again autonomous after `forcing_start+forcing_length`.
 """
 function RateSystem(
     auto_sys::ContinuousTimeDynamicalSystem,
@@ -46,61 +51,8 @@ function RateSystem(
         auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0
     )
 
-    prob = ODEProblem(system)
-
-    return RateSystem(
-        prob, system.diffeq; rc, pidx, forcing_start, forcing_length, forcing_scale, t0
-    )
-end
-
-function RateSystem(
-    prob::ODEProblem,
-    diffeq=DEFAULT_DIFFEQ;
-    rc=RateConfig(:linear),
-    pidx=1,
-    forcing_start=rc.interval[1],
-    forcing_length=(rc.interval[2] - rc.interval[1]),
-    forcing_scale=0.0,
-    t0=0.0,
-    special_kwargs...,
-)
-    if haskey(special_kwargs, :diffeq)
-        throw(
-            ArgumentError(
-                "`diffeq` is given as positional argument when an ODEProblem is provided."
-            ),
-        )
-    end
-    IIP = isinplace(prob)
-    D = length(prob.u0)
-    P = typeof(prob.p)
-    if prob.tspan === (nothing, nothing)
-        # If the problem was made via MTK, it is possible to not have a default timespan.
-        U = eltype(prob.u0)
-        prob = SciMLBase.remake(prob; tspan=(U(t0), U(Inf)))
-    end
-    solver, remaining = _decompose_into_solver_and_remaining(diffeq)
-    integ = __init(
-        prob,
-        solver;
-        remaining...,
-        special_kwargs...,
-        # Integrators are used exclusively iteratively. There is no reason to save anything.
-        save_start=false,
-        save_end=false,
-        save_everystep=false,
-        # DynamicalSystems.jl operates on integrators and `step!` exclusively,
-        # so there is no reason to limit the maximum time evolution
-        maxiters=Inf,
-    )
-    forcing = (pidx, rc, forcing_start, forcing_length, forcing_scale)
-    return RateSystem{IIP,D,typeof(integ),P,typeof(forcing)}(
-        integ, deepcopy(prob.p), diffeq, forcing
-    )
-end
-
-function forcing(sys::RateSystem, t)
-    return p_modified(t, sys.forcing, prob.p, forcing_start, forcing_length, forcing_scale)
+    forcing = RateSystemForcing(pidx, rc, t0, forcing_start, forcing_length, forcing_scale)
+    return RateSystem(system, forcing)
 end
 
 ## Creates a piecewise constant function in alignment with the entries of the RateConfig and the parameter value of the underlying autonomous system
