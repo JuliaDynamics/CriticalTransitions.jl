@@ -50,9 +50,16 @@ if Documenter.DOCUMENTER_VERSION >= v"1.3.0"
     html_options[:inventory_version] = package_version
 end
 
+remote_pairs = map(["DynamicalSystemsBase", "Attractors"]) do pkg_name
+    status = sprint(io -> Pkg.status(pkg_name; io=io))
+    version = match(r"(v[0-9].[0-9]+.[0-9]+)", status)[1]
+    gh_moi = Documenter.Remotes.GitHub("JuliaDynamics", string(pkg_name, ".jl"))
+    (pkgdir(eval(Symbol(pkg_name))) => (gh_moi, version))
+end
+remotes = Dict(remote_pairs)
+
 makedocs(;
-    debug=true,
-    authors=authors,
+    authors,
     sitename="CriticalTransitions.jl",
     repo=Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
     modules=[
@@ -62,19 +69,17 @@ makedocs(;
         Base.get_extension(CriticalTransitions, :ChaosToolsExt),
         Base.get_extension(CriticalTransitions, :AttractorsExt),
         Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
-        # DynamicalSystemsBase
     ],
+    remotes,
     checkdocs_ignored_modules=[CriticalTransitions.CTLibrary],
-    pages=pages,
+    pages,
     linkcheck=true,
-    #linkcheck_ignore = [r"http://docs\.juliadiffeq\.org/.*"],
     pagesonly=true,
     checkdocs=:exports,
     doctest=false,
     format=Documenter.HTML(; html_options...),
     warnonly=[:missing_docs, :linkcheck, :cross_references],
     plugins=[bib, links],
-    # plugins=[links],
     draft=CI ? false : true,
 )
 

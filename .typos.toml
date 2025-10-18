@@ -1,4 +1,4 @@
 [default.extend-words]
 nd = "nd"
 Lamba = "Lamba"
-referrenced_sciml_prob = "referrenced_sciml_prob" # until https://github.com/JuliaDynamics/DynamicalSystemsBase.jl/pull/236 is merged and released
+referrenced = "referrenced" # until https://github.com/JuliaDynamics/DynamicalSystemsBase.jl/pull/236 is merged and released
