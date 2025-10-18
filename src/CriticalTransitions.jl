@@ -35,7 +35,8 @@ using LinearSolve: LinearProblem, KLUFactorization, solve
 # io and documentation
 using Format: Format
 using Printf: Printf
-using DocStringExtensions: TYPEDSIGNATURES, TYPEDEF, TYPEDFIELDS, METHODLIST
+using DocStringExtensions:
+    TYPEDSIGNATURES, TYPEDEF, TYPEDFIELDS, METHODLIST, DocStringExtensions
 using ProgressMeter: Progress, next!
 
 # reexport

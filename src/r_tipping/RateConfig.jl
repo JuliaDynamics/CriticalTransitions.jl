@@ -21,7 +21,7 @@ the rate and magnitude of the forcing.
 
 Use `show(::RateConfig)` to display ``t`` and ``p(t)``.
 """
-@kwdef struct RateConfig{F,T<:Real}
+struct RateConfig{F,T<:Real}
     pfunc::F
     interval::Tuple{T,T}
 end

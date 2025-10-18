@@ -1,19 +1,27 @@
-@kwdef mutable struct RateSystemForcing
-    pidx::Int
-    rc::RateConfig
-    t0::Real
-    forcing_start::Real
-    forcing_length::Real
-    forcing_scale::Real
+struct RateSystemForcing{F,T<:Real,S<:Real}
+    pidx::Int64
+    rc::RateConfig{F,T}
+    t0::S
+    forcing_start::S
+    forcing_length::S
+    forcing_scale::S
 end
 
 """
-    RateSystem
+$(DocStringExtensions.TYPEDEF)
+
+Struct defining a non-autonomous dynamical system obtained by applying a time-dependent parametric
+forcing protocol to an underlying autonomous continuous-time dynamical system.
+
+# Fields
+$(DocStringExtensions.FIELDS)
 
 """
-@kwdef struct RateSystem{S,F} <: ContinuousTimeDynamicalSystem
+struct RateSystem{S,F,T} <: ContinuousTimeDynamicalSystem
+    "Underlying continuous-time dynamical system"
     system::S
-    forcing::F
+    "Time-dependent parametric forcing protocol"
+    forcing::RateSystemForcing{F,T}
 end
 
 """
