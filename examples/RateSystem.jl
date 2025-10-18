@@ -85,14 +85,9 @@ axislegend(axs; position=:rc, labelsize=10);
 fig
 
 # We can also plot the shifted parameter `p(t)`:
-time_range = range(t0, t0+T, length=Int(T+1));
+time_range = range(t0, t0+T; length=Int(T+1));
 
 fig = Figure();
 ax = Axis(fig[1, 1]; xlabel="t", ylabel="p(t)");
-lines!(
-    ax,
-    time_range,
-    rate_system.forcing.rc.pfunc.(time_range);
-    linewidth=2,
-);
+lines!(ax, time_range, rate_system.forcing.rc.pfunc.(time_range); linewidth=2);
 fig

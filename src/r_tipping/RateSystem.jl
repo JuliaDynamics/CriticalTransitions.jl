@@ -73,7 +73,7 @@ for f in (
     :initial_time,
     :successful_step,
     :set_parameter!,
-    :trajectory
+    :trajectory,
 ) # all api functions here
     @eval DynamicalSystemsBase.$(f)(rs::RateSystem, args...; kw...) = $(f)(
         rs.system, args...; kw...
