@@ -21,9 +21,9 @@ the rate and magnitude of the forcing.
 
 Use `show(::RateConfig)` to display ``t`` and ``p(t)``.
 """
-@kwdef mutable struct RateConfig
-    pfunc::Function
-    interval::Tuple{Real,Real}
+@kwdef struct RateConfig{F,T<:Real}
+    pfunc::F
+    interval::Tuple{T,T}
 end
 
 # Convenience constructors for RateConfig
@@ -47,8 +47,8 @@ forcing function `rc.pfunc`.
 ## Keyword arguments
 `n=50`: Number of data points to be returned.
 """
-function show(rc::RateConfig, n=20)
+function show(rc::RateConfig, n::Integer=50)
     domain_values = range(rc.interval[1], rc.interval[2]; length=n)
-    pfunc_values = rc.pfunc(domain_values)
+    pfunc_values = rc.pfunc.(domain_values)  # broadcast
     return domain_values, pfunc_values
 end

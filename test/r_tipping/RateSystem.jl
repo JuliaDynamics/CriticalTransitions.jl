@@ -1,4 +1,5 @@
 using CriticalTransitions
+using DynamicalSystemsBase
 using Test
 
 @testset "RateSystem" begin
@@ -27,7 +28,7 @@ using Test
 
     @testset "obtaining info" begin
         @test current_state(rs) == x0
-        @test initial_state(rs) == x0
+        @test DynamicalSystemsBase.initial_state(rs) == x0
         @test current_parameters(rs) == p_auto
         @test initial_parameters(rs) == p_auto
         @test current_time(rs) == t0
