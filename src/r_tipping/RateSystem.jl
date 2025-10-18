@@ -64,8 +64,9 @@ for f in (
     :successful_step,
     :set_parameter!,
 ) # all api functions here
-    @eval DynamicalSystemsBase.$(f)(rs::RateSystem, args...; kw...) =
-        $(f)(rs.system, args...; kw...)
+    @eval DynamicalSystemsBase.$(f)(rs::RateSystem, args...; kw...) = $(f)(
+        rs.system, args...; kw...
+    )
 end
 
 function DynamicalSystemsBase.set_state!(rs::RateSystem, u::AbstractArray)
