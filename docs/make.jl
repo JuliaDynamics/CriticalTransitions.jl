@@ -76,11 +76,11 @@ makedocs(;
     linkcheck=true,
     pagesonly=true,
     checkdocs=:exports,
-    doctest=false,
+    doctest=false, # run in test CI
     format=Documenter.HTML(; html_options...),
     warnonly=[:missing_docs, :linkcheck, :cross_references],
     plugins=[bib, links],
-    draft=CI ? false : true,
+    draft=false #CI ? false : true,
 )
 
 deploydocs(; repo="github.com/JuliaDynamics/CriticalTransitions.jl.git", push_preview=true)

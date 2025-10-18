@@ -51,16 +51,18 @@ forcing_length = 105.0 # Time interval over which p(interval) is spread out or s
 forcing_scale = 3.0   # Amplitude of the ramping. `p` is then automatically rescaled
 t0 = -70.0            # Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 
-RateSys = RateSystem(auto_sys, rc, pidx; forcing_start, forcing_length, forcing_scale, t0)
+rate_system = RateSystem(
+    auto_sys, rc, pidx; forcing_start, forcing_length, forcing_scale, t0
+)
 
-# Note # Choosing different values of the `forcing_length` allows us to vary the speed of the parameter ramping, while its shape remains the same, and it only gets stretched or squeezed.
+#note # Choosing different values of the `forcing_length` allows us to vary the speed of the parameter ramping, while its shape remains the same, and it only gets stretched or squeezed.
 
-# Note # If `p(t)` within the `RateConfig` is a monotonic function, the `forcing_scale` will give the total amplitude of the parameter ramping. For non-monotonic `p(t)`, the `forcing_scale` will only linearly scale the amplitude of the parameter ramping, but does not equal the total amplitude.
+#note # If `p(t)` within the `RateConfig` is a monotonic function, the `forcing_scale` will give the total amplitude of the parameter ramping. For non-monotonic `p(t)`, the `forcing_scale` will only linearly scale the amplitude of the parameter ramping, but does not equal the total amplitude.
 
-# Now, we can compute trajectories of this new system `RateSys.system` and of the previous autonomous system `auto_sys` in the familiar way:
+# Now, we can compute trajectories of this new system `rate_system` and of the previous autonomous system `auto_sys` in the familiar way:
 T = forcing_length + 40.0; # length of the trajectory that we want to compute
 auto_traj = trajectory(auto_sys, T, x0);
-nonauto_traj = trajectory(RateSys.system, T, x0);
+nonauto_traj = trajectory(rate_system, T, x0);
 
 # We plot the two trajectories:
 fig = Figure();
@@ -83,12 +85,14 @@ axislegend(axs; position=:rc, labelsize=10);
 fig
 
 # We can also plot the shifted parameter `p(t)`:
-figPar = Figure();
-axsPar = Axis(figPar[1, 1]; xlabel="t", ylabel="p(t)");
+time_range = range(t0, t0+T, length=Int(T+1));
+
+fig = Figure();
+ax = Axis(fig[1, 1]; xlabel="t", ylabel="p(t)");
 lines!(
-    axsPar,
-    range(t0, t0 + T; length=Int(T + 1)),
-    RateSys.forcing.(range(t0, t0 + T; length=Int(T + 1)));
+    ax,
+    time_range,
+    rate_system.RateConfig.pfunc(time_range);
     linewidth=2,
 );
-figPar
+fig
