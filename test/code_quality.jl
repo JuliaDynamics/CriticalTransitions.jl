@@ -13,7 +13,7 @@ using CriticalTransitions, Test
             ],
         ),
         ambiguities=false,
-        persistent_tasks=false
+        persistent_tasks=false,
     )
 end
 
