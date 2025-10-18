@@ -57,9 +57,11 @@ end
 
 for f in (
     :initial_state,
+    :initial_parameters,
     :current_parameters,
     :dynamic_rule,
     :current_time,
+    :current_state,
     :initial_time,
     :successful_step,
     :set_parameter!,
@@ -76,6 +78,9 @@ SciMLBase.step!(rs::RateSystem, args...) = (SciMLBase.step!(rs.system, args...);
 # SciMLBase.reinit!(rs::RateSystem, args...; kw...) = (reinit!(rs.system, args...; kw...); rs)
 SciMLBase.isinplace(rs::RateSystem) = SciMLBase.isinplace(rs.system)
 StateSpaceSets.dimension(rs::RateSystem) = StateSpaceSets.dimension(rs.system)
+DynamicalSystemsBase.isdeterministic(rs::RateSystem) = false
+
+(rs::RateSystem)(t::Real) = rs.system.integ(t)
 
 # Creates a piecewise constant function in alignment with the entries of the RateConfig and
 # the parameter value of the underlying autonomous system
