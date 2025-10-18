@@ -92,7 +92,7 @@ ax = Axis(fig[1, 1]; xlabel="t", ylabel="p(t)");
 lines!(
     ax,
     time_range,
-    rate_system.RateConfig.pfunc(time_range);
+    rate_system.forcing.rc.pfunc.(time_range);
     linewidth=2,
 );
 fig
