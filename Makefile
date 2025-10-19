@@ -22,8 +22,7 @@ bench:
 	${JULIA} --project=benchmarks -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
 	${JULIA} --project=docs benchmarks/runbenchmarks.jl
 
-
-all: setup format test docs 
+all: setup format test docs bench
 
 help:
 	@echo "The following make commands are available:"

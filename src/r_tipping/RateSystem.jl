@@ -50,7 +50,7 @@ struct RateSystem{S,P,F,T} <: ContinuousTimeDynamicalSystem
         forcing_scale=1.0,
         t0=0.0,
     ) where {P,F,T}
-        @assert (forcing_start_time >= t0) "The forcing cannot start before the system start time t0, but your forcing_start ($(forcing_start_time)) < t0 ($(t0))."
+        @assert (forcing_start_time >= t0) "The forcing cannot start before the system start time t0, but your forcing_start_time ($(forcing_start_time)) < t0 ($(t0))."
 
         nonauto_ds = apply_ramping(
             ds, rf, pidx, forcing_start_time, forcing_length, forcing_scale, t0
@@ -116,21 +116,21 @@ Creates a piecewise constant function in alignment with the entries of the RateF
 the parameter value of the underlying autonomous system
 """
 function p_modified(
-    t::Real, rf::RateFunction, p0, forcing_start, forcing_length, forcing_scale
+    t::Real, rf::RateFunction, p0, forcing_start_time, forcing_length, forcing_scale
 )
     p = rf.pfunc
     section_start = rf.ptspan[1]
     section_end = rf.ptspan[2]
 
     # making the function piecewise constant with range [p0,p0+forcing_scale]
-    q = if t ≤ forcing_start
+    q = if t ≤ forcing_start_time
         return p0
     else
-        if t < forcing_start + forcing_length
+        if t < forcing_start_time + forcing_length
             # performing the time shift corresponding to stretching/squeezing
             time_shift =
-                ((section_end - section_start) / forcing_length) * (t - forcing_start) +
-                section_start
+                ((section_end - section_start) / forcing_length) *
+                (t - forcing_start_time) + section_start
             return p0 +
                    forcing_scale * (p(time_shift) - p(section_start)) /
                    (p(section_end) - p(section_start))
@@ -143,14 +143,14 @@ function p_modified(
 end
 
 "returns a continuous time dynamical system with modified drift field"
-function apply_ramping(ds, rc, pidx, forcing_start, forcing_length, forcing_scale, t0)
+function apply_ramping(ds, rc, pidx, forcing_start_time, forcing_length, forcing_scale, t0)
     f = dynamic_rule(ds)
     params = current_parameters(ds)
     p0 = params[pidx]
 
     # this should be rewritten with the Callback mechanism from SciML
     function f_new(u, p, t)
-        pvalue = p_modified(t, rc, p0, forcing_start, forcing_length, forcing_scale)
+        pvalue = p_modified(t, rc, p0, forcing_start_time, forcing_length, forcing_scale)
         if p isa Union{AbstractArray,AbstractDict}
             setindex!(p, pvalue, pidx)
         else
