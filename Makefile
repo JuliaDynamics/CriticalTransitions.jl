@@ -3,7 +3,7 @@ JULIA:=julia
 default: help
 
 setup:
-	${JULIA} -e 'import Pkg; Pkg.add(["JuliaFormatter", "Changelog", "LiveServer"])'
+	${JULIA} -e 'import Pkg; Pkg.add(["JuliaFormatter", "Changelog", "LiveServer", "BenchmarkTools"])'
 
 format:
 	${JULIA} -e 'using JuliaFormatter; format(".")'

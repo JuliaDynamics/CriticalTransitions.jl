@@ -7,10 +7,10 @@ EditURL = "../../../examples/RateSystem.jl"
 Consider an autonomous deterministic dynamical system `auto_sys` (i.e. a `CoupledODEs`) of which you want to ramp one parameter, i.e. change the parameter's value over time.
 
 Applying this parameter ramping is here implemented as a two-step process:
-1) Specify a section `p(domain_interval)` of a function `p(t)` over an interval ``t\in I`` describing the shape of the parameter ramping you would like to consider. This is done by defining a `RateConfig` type.
+1) Specify a section `p(domain_interval)` of a function `p(t)` over an interval ``t\in I`` describing the shape of the parameter ramping you would like to consider. This is done by defining a `RateFunction` type.
 2) Specify how you would like use this section of `p(t)` to ramp one parameter of the `auto_sys`. This is done by defining a `RateSystem` type which then returns a non-autonomous system `RateSystem.system` (i.e. a `CoupledODEs`) with the parameter ramping incorporated.
 
-For times `t < forcing_start`, the returned system `RateSystem.system` is autonomous, for `forcing_start < t < forcing_start + forcing_length` it is non-autonomous with the parameter ramping given by the `RateConfig` and for `forcing_start + forcing_length < t` the system is autonomous again. This setting is a widely used and convenient for studying R-tipping.
+For times `t < forcing_start`, the returned system `RateSystem.system` is autonomous, for `forcing_start < t < forcing_start + forcing_length` it is non-autonomous with the parameter ramping given by the `RateFunction` and for `forcing_start + forcing_length < t` the system is autonomous again. This setting is a widely used and convenient for studying R-tipping.
 
 ## Example
 
@@ -49,10 +49,10 @@ First specify a section of a function `p(t)` that you would like to use to ramp 
 ````@example RateSystem
 p(t) = tanh(t) # A monotonic function that describes the parameter shift
 interval = (-5, 5) # Domain interval of p(t) we want to consider
-rc = RateConfig(p, interval)
+rc = RateFunction(p, interval)
 ````
 
-Then specify how you would like to use the `RateConfig` to shift the `pidx`'th parameter of auto_sys:
+Then specify how you would like to use the `RateFunction` to shift the `pidx`'th parameter of auto_sys:
 
 ````@example RateSystem
 pidx = 1              # Index of the parameter within the parameter-container of auto_sys
@@ -70,7 +70,7 @@ rate_system = RateSystem(
     Choosing different values of the `forcing_length` allows us to vary the speed of the parameter ramping, while its shape remains the same, and it only gets stretched or squeezed.
 
 !!! note
-    If `p(t)` within the `RateConfig` is a monotonic function, the `forcing_scale` will give the total amplitude of the parameter ramping. For non-monotonic `p(t)`, the `forcing_scale` will only linearly scale the amplitude of the parameter ramping, but does not equal the total amplitude.
+    If `p(t)` within the `RateFunction` is a monotonic function, the `forcing_scale` will give the total amplitude of the parameter ramping. For non-monotonic `p(t)`, the `forcing_scale` will only linearly scale the amplitude of the parameter ramping, but does not equal the total amplitude.
 
 Now, we can compute trajectories of this new system `rate_system` and of the previous autonomous system `auto_sys` in the familiar way:
 
@@ -114,7 +114,7 @@ ax = Axis(fig[1, 1]; xlabel="t", ylabel="p(t)");
 lines!(
     ax,
     time_range,
-    rate_system.RateConfig.pfunc(time_range);
+    rate_system.RateFunction.pfunc(time_range);
     linewidth=2,
 );
 fig

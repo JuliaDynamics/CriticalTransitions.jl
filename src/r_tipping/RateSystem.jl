@@ -1,66 +1,87 @@
-struct RateSystemForcing{F,T<:Real,S<:Real}
-    pidx::Int64
-    rc::RateConfig{F,T}
-    t0::S
-    forcing_start::S
-    forcing_length::S
-    forcing_scale::S
-end
-
 """
-$(DocStringExtensions.TYPEDEF)
+    RateSystem <: ContinuousTimeDynamicalSystem
+    RateSystem(ds, pfunc::Function, ptspan::Tuple, pidx; kwargs...)
+    RateSystem(ds, rf::RateFunction, pidx; kwargs...)
 
-Struct defining a non-autonomous dynamical system obtained by applying a time-dependent parametric
-forcing protocol to an underlying autonomous continuous-time dynamical system.
+A non-autonomous dynamical system obtained by applying a time-dependent parametric
+forcing protocol `pfunc` to an underlying autonomous continuous-time dynamical system
+`ds <: ContinuousTimeDynamicalSystem`.
 
-# Fields
-$(DocStringExtensions.FIELDS)
+The time-dependent forcing protocol `pfunc` describes the evolution of the parameter defined
+by `pidx` over a time interval `ptspan`. The parameter `p` that is swept is defined by
+`current_parameters(ds)[pidx]`.
 
-"""
-struct RateSystem{S,F,T} <: ContinuousTimeDynamicalSystem
-    "Underlying continuous-time dynamical system"
-    system::S
-    "Time-dependent parametric forcing protocol"
-    forcing::RateSystemForcing{F,T}
-end
-
-"""
-    RateSystem(sys::ContinuousTimeDynamicalSystem, rc::RateConfig, pidx; kwargs...)
-
-Creates a `RateSystem` type from an autonomous dynamical system `sys` and a time-dependent
-parametric forcing protocol of `RateConfig` type.
+The forcing protocol can be specified directly via a `[RateFunction](@def)` refered to as
+`rf = RateFunction(pfunc, ptspan)`. The forcing protocol can be adjusted by using the
+keyword arguments `forcing_start_time`, `forcing_length`, and `forcing_scale` when
+constructing the `RateSystem`. This allows to repurpose the same forcing protocol `rf`.
 
 ## Keyword arguments
-- `forcing_start = RateConfig.interval[1]`: Time when parameter shift starts (before this, the resulting system will be autonomous)
-- `forcing_length = RateConfig.interval[2] - RateConfig.interval[1]`: Time-interval over which RateConfig.pfunc([RateConfig.interval[1], RateConfig.interval[2]]) is spread out (for window_length > RateConfig.interval[2] - RateConfig.interval[1]) or squeezed into (for window_length < RateConfig.interval[2] - RateConfig.interval[1])
-- `forcing_scale = 1.0`: Amplitude of the ramping. The ramping is then automatically rescaled
-- `t0 = 0.0`: Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
+- `forcing_start_time = ptspan[1]`: Time when parameter shift starts
+  (before this, the resulting system will be autonomous)
+- `forcing_length = ptspan[2] - ptspan[1]`: Time-interval over which `pfunc(ptspan)` is
+  spread out (for window_length > ptspan[2] - ptspan[1]) or squeezed into
+  (for window_length < ptspan[2] - ptspan[1])
+- `forcing_scale = 1.0`: Amplitude of the protocol.
+- `t0 = 0.0`: Initial time of the resulting non-autonomous system
 
-## Description
-The returned `RateSystem` is autonomous before `forcing_start`, non-autnonmous from
-`forcing_start` to `forcing_start+forcing_length` with the parameter shift given by the
-[`RateConfig`](@def), and again autonomous after `forcing_start+forcing_length`.
 """
-function RateSystem(
-    auto_sys::ContinuousTimeDynamicalSystem,
-    rc::RateConfig,
-    pidx;
-    forcing_start=rc.interval[1],
-    forcing_length=(rc.interval[2] - rc.interval[1]),
-    forcing_scale=1.0,
-    t0=0.0,
-)
-    params = deepcopy(current_parameters(auto_sys))
-    p0 = params[pidx]
 
-    @assert (forcing_start >= t0) "The forcing cannot start before the system start time t0, but your forcing_start ($(forcing_start)) < t0 ($(t0))."
+struct RateSystem{S,P,F,T} <: ContinuousTimeDynamicalSystem
+    "Underlying continuous-time dynamical system"
+    system::S
+    "The index of the parameter being forced"
+    pidx::P
+    "Time-dependent parametric forcing protocol"
+    rate_function::RateFunction{F,T}
+    "Time when parameter shift starts"
+    forcing_start_time::T
+    "Time-interval of the protocol"
+    forcing_length::T
+    "Amplitude of the protocol"
+    forcing_scale::T
 
-    system = apply_ramping(
-        auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0
-    )
+    function RateSystem(
+        ds::ContinuousTimeDynamicalSystem,
+        rf::RateFunction{F,T},
+        pidx::P;
+        forcing_start_time=rf.ptspan[1],
+        forcing_length=(rf.ptspan[2] - rf.ptspan[1]),
+        forcing_scale=1.0,
+        t0=0.0,
+    ) where {P,F,T}
+        @assert (forcing_start_time >= t0) "The forcing cannot start before the system start time t0, but your forcing_start ($(forcing_start_time)) < t0 ($(t0))."
 
-    forcing = RateSystemForcing(pidx, rc, t0, forcing_start, forcing_length, forcing_scale)
-    return RateSystem(system, forcing)
+        nonauto_ds = apply_ramping(
+            ds, rf, pidx, forcing_start_time, forcing_length, forcing_scale, t0
+        )
+
+        return new{typeof(nonauto_ds),P,F,T}(
+            nonauto_ds, pidx, rf, forcing_start_time, forcing_length, forcing_scale
+        )
+    end
+
+    function RateSystem(
+        ds::ContinuousTimeDynamicalSystem,
+        pfunc::F,
+        ptspan::Tuple,
+        pidx;
+        forcing_start_time=ptspan[1],
+        forcing_length=(ptspan[2] - ptspan[1]),
+        forcing_scale=1.0,
+        t0=0.0,
+    ) where {F}
+        forcing_start_time, forcing_length, forcing_scale, _ = promote(
+            forcing_start_time, forcing_length, forcing_scale, ptspan[1]
+        )
+        T = typeof(forcing_scale)
+        ptspan = reinterpret(NTuple{2,T}, ptspan)
+
+        rf = RateFunction{F,T}(pfunc, ptspan)
+
+        rs = RateSystem(ds, rf, pidx; forcing_start_time, forcing_length, forcing_scale, t0)
+        return rs
+    end
 end
 
 for f in (
@@ -81,24 +102,25 @@ for f in (
 end
 
 function DynamicalSystemsBase.set_state!(rs::RateSystem, u::AbstractArray)
-    (DynamicalSystemsBase.set_state!(rs.system, u); rs)
+    return (DynamicalSystemsBase.set_state!(rs.system, u); rs)
 end
 SciMLBase.step!(rs::RateSystem, args...) = (SciMLBase.step!(rs.system, args...); rs)
-# SciMLBase.reinit!(rs::RateSystem, args...; kw...) = (reinit!(rs.system, args...; kw...); rs)
 SciMLBase.isinplace(rs::RateSystem) = SciMLBase.isinplace(rs.system)
 StateSpaceSets.dimension(rs::RateSystem) = StateSpaceSets.dimension(rs.system)
 DynamicalSystemsBase.isdeterministic(rs::RateSystem) = false
 
 (rs::RateSystem)(t::Real) = rs.system.integ(t)
 
-# Creates a piecewise constant function in alignment with the entries of the RateConfig and
-# the parameter value of the underlying autonomous system
+"""
+Creates a piecewise constant function in alignment with the entries of the RateFunction and
+the parameter value of the underlying autonomous system
+"""
 function p_modified(
-    t::Real, rc::RateConfig, p0, forcing_start, forcing_length, forcing_scale
+    t::Real, rf::RateFunction, p0, forcing_start, forcing_length, forcing_scale
 )
-    p = rc.pfunc
-    section_start = rc.interval[1]
-    section_end = rc.interval[2]
+    p = rf.pfunc
+    section_start = rf.ptspan[1]
+    section_end = rf.ptspan[2]
 
     # making the function piecewise constant with range [p0,p0+forcing_scale]
     q = if t ≤ forcing_start
@@ -120,12 +142,13 @@ function p_modified(
     return q
 end
 
-# returns a continuous time dynamical system with modified drift field
-function apply_ramping(
-    auto_sys, rc, pidx, p0, params, forcing_start, forcing_length, forcing_scale, t0
-)
-    f = deepcopy(dynamic_rule(auto_sys))
+"returns a continuous time dynamical system with modified drift field"
+function apply_ramping(ds, rc, pidx, forcing_start, forcing_length, forcing_scale, t0)
+    f = dynamic_rule(ds)
+    params = current_parameters(ds)
+    p0 = params[pidx]
 
+    # this should be rewritten with the Callback mechanism from SciML
     function f_new(u, p, t)
         pvalue = p_modified(t, rc, p0, forcing_start, forcing_length, forcing_scale)
         if p isa Union{AbstractArray,AbstractDict}
@@ -135,12 +158,9 @@ function apply_ramping(
         end
         return f(u, p, t)
     end
-
-    prob = remake(
-        deepcopy(referrenced_sciml_prob(auto_sys)); f=f_new, p=params, tspan=(t0, Inf)
-    )
-    nonauto_sys = CoupledODEs(prob, auto_sys.diffeq)
-    return nonauto_sys
+    old_prob = deepcopy(referrenced_sciml_prob(ds))
+    prob = remake(old_prob; f=f_new, p=params, tspan=(t0, Inf))
+    return CoupledODEs(prob, ds.diffeq)
 end
 
 function set_forcing_scale!(rs::RateSystem, scale) end

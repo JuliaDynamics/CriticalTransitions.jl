@@ -1,7 +1,6 @@
 module CriticalTransitions
 
 # Base
-import Base: show
 using Statistics: Statistics, mean
 using LinearAlgebra: LinearAlgebra, I, norm, dot, tr, det
 using StaticArrays: StaticArrays, SVector
@@ -61,7 +60,7 @@ include("largedeviations/geometric_min_action_method.jl")
 include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
 
-include("r_tipping/RateConfig.jl")
+include("r_tipping/RateFunction.jl")
 include("r_tipping/RateSystem.jl")
 
 # Experimental features
@@ -88,9 +87,8 @@ export MinimumActionPath
 export deterministic_orbit
 export transition, transitions
 
-export RateConfig, RateSystem
+export RateFunction, RateSystem
 export set_forcing_length!, set_forcing_scale!, set_forcing_start!
-export show
 
 # Error hint for extensions stubs
 function __init__()

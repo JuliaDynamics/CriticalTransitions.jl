@@ -1,1 +1,11 @@
-# Rate-induced transitions
+# Rate systems
+
+## system
+
+```@docs
+RateSystem
+RateFunction
+```
+
+
+## Rate-induced transitions
