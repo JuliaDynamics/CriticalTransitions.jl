@@ -3,8 +3,8 @@
 ## system
 
 ```@docs
-RateSystem
-RateFunction
+CriticalTransitions.RateSystem
+CriticalTransitions.RateFunction
 ```
 
 ## Rate-induced transitions

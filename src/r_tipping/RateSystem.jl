@@ -26,7 +26,6 @@ constructing the `RateSystem`. This allows to repurpose the same forcing protoco
 - `t0 = 0.0`: Initial time of the resulting non-autonomous system
 
 """
-
 struct RateSystem{S,P,F,T} <: ContinuousTimeDynamicalSystem
     "Underlying continuous-time dynamical system"
     system::S

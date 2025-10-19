@@ -1,5 +1,5 @@
 """
-    RateFunction(pfunc::Function, interval)
+    RateFunction(;pfunc::Function, ptspan)
 
 Time-dependent forcing protocol ``p(t)`` describing the evolution of a parameter over a
 time interval `ptspan = (start, end)`. Used to construct a non-autonomous `RateSystem`.
@@ -15,11 +15,11 @@ of a dynamical system using the `RateSystem` constructor.
 The rate and magnitude of the forcing can be adjusted when constructing the `RateSystem`.
 
 ## Convenience functions
-`RateFunction(:linear)`: Creates a linear ramp from 0 to 1.
-`RateFunction(:tanh)`: Creates a hyperbolic tangent ramping from 0 to 1.
+- `RateFunction(:linear)`: Creates a linear ramp from 0 to 1.
+- `RateFunction(:tanh)`: Creates a hyperbolic tangent ramping from 0 to 1.
 
 """
-@kwdef struct RateFunction{F,T<:Real}
+struct RateFunction{F,T<:Real}
     pfunc::F
     ptspan::Tuple{T,T}
 end
