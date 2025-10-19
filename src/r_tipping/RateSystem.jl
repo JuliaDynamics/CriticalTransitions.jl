@@ -11,7 +11,7 @@ The time-dependent forcing protocol `pfunc` describes the evolution of the param
 by `pidx` over a time interval `ptspan`. The parameter `p` that is swept is defined by
 `current_parameters(ds)[pidx]`.
 
-The forcing protocol can be specified directly via a `[RateFunction](@def)` refered to as
+The forcing protocol can be specified directly via a `[RateFunction](@def)` referred to as
 `rf = RateFunction(pfunc, ptspan)`. The forcing protocol can be adjusted by using the
 keyword arguments `forcing_start_time`, `forcing_length`, and `forcing_scale` when
 constructing the `RateSystem`. This allows to repurpose the same forcing protocol `rf`.

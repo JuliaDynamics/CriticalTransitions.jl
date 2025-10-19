@@ -7,5 +7,4 @@ RateSystem
 RateFunction
 ```
 
-
 ## Rate-induced transitions
