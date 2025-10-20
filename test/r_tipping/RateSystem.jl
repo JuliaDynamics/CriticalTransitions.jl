@@ -14,26 +14,25 @@ using Test
     ds = CoupledODEs(f, x0, p_auto)
 
     p(t) = tanh(t)         # A monotonic function that describes the parameter shift
-    ptspan = (-5, 5)
-    rc = RateFunction(p, ptspan)
+    ptspan = (-5.0, 5.0)
+    rc = ForcingProfile(p, ptspan)
 
     pidx = 1
-    forcing_start_time = -50.0
-    forcing_length = 105.0
+    forcing_start_time = 0.0
+    forcing_length = 20.0
     forcing_scale = 3.0
-    t0 = -70.0
 
-    rs = RateSystem(ds, rc, pidx; forcing_start_time, forcing_length, forcing_scale, t0)
+    rs = RateSystem(ds, rc, pidx; forcing_start_time, forcing_length, forcing_scale)
 
     @testset "obtaining info" begin
         @test current_state(rs) == x0
         @test DynamicalSystemsBase.initial_state(rs) == x0
         @test current_parameters(rs) == p_auto
         @test initial_parameters(rs) == p_auto
-        @test current_time(rs) == t0
-        @test initial_time(rs) == t0
+        @test current_time(rs) == 0.0
+        @test initial_time(rs) == 0.0
         @test isinplace(rs) == false
-        @test isdeterministic(rs) == false
+        @test isdeterministic(rs) == true
         @test isdiscretetime(rs) == false
         @test rs(0) == x0
     end
@@ -42,6 +41,10 @@ using Test
     T = forcing_length + 40.0
     auto_traj = trajectory(ds, T, x0)
     nonauto_traj = trajectory(rs, T, x0)
+
+    println(auto_traj)
+
+    println(nonauto_traj)
 
     @test isapprox(auto_traj[1][end, 1], -1; atol=1e-2)
     @test isapprox(nonauto_traj[1][end, 1], -4; atol=1e-2)
@@ -58,8 +61,8 @@ end
     ds = CoupledODEs(f, x0, p_auto)
 
     p(t) = tanh(t)
-    interval = (-100, 100)
-    rc = RateFunction(p, interval)
+    interval = (-100.0, 100.0)
+    rc = ForcingProfile(p, interval)
 
     pidx = 1
     forcing_start_time = -100.0

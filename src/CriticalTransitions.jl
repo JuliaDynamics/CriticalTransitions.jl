@@ -15,13 +15,16 @@ using DynamicalSystemsBase:
     CoupledSDEs,
     CoupledODEs,
     dynamic_rule,
+    initial_state,
     current_state,
     set_state!,
     trajectory,
     jacobian,
     ContinuousTimeDynamicalSystem,
-    referrenced_sciml_prob,
-    current_parameters
+    initial_parameters,
+    current_parameters,
+    initial_time,
+    referrenced_sciml_prob
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq
@@ -60,7 +63,7 @@ include("largedeviations/geometric_min_action_method.jl")
 include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
 
-include("r_tipping/RateFunction.jl")
+include("r_tipping/ForcingProfile.jl")
 include("r_tipping/RateSystem.jl")
 
 # Experimental features
@@ -87,8 +90,9 @@ export MinimumActionPath
 export deterministic_orbit
 export transition, transitions
 
-export RateFunction, RateSystem
+export ForcingProfile, RateSystem
 export set_forcing_length!, set_forcing_scale!, set_forcing_start!
+export get_forcing, frozen_system
 
 # Error hint for extensions stubs
 function __init__()
