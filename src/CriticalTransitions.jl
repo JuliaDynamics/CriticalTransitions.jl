@@ -23,7 +23,8 @@ using DynamicalSystemsBase:
     ContinuousTimeDynamicalSystem,
     initial_parameters,
     current_parameters,
-    initial_time
+    initial_time,
+    referrenced_sciml_prob
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq

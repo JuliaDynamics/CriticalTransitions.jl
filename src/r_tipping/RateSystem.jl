@@ -5,6 +5,7 @@ mutable struct NonautonomousDynamicRule{R,F,P,T} <: Function
     forcing_start_time::T
     forcing_length::T
     forcing_scale::T
+    t0::T
 end
 
 """
@@ -54,12 +55,16 @@ function RateSystem(
     (forcing_start_time >= t0) ||
         throw("The forcing cannot start before the system's initial time `t0`
               but your forcing_start_time ($(forcing_start_time)) < t0 ($(t0)).")
-    _ds = deepcopy(ds)
-    forcing_config = NonautonomousDynamicRule(
-        dynamic_rule(_ds), pidx, fp, forcing_start_time, forcing_length, forcing_scale
-    )
-    system = CoupledODEs(forcing_config, current_state(_ds), current_parameters(_ds); t0)
-    return RateSystem(system, forcing_config)
+    forcing_config = deepcopy(NonautonomousDynamicRule(
+        dynamic_rule(ds), pidx, fp, forcing_start_time, forcing_length, forcing_scale, t0
+    ))
+
+    prob = remake(deepcopy(referrenced_sciml_prob(ds));
+        f=forcing_config, p=deepcopy(current_parameters(ds)), tspan=(t0, Inf))
+    #system = CoupledODEs(forcing_config, current_state(ds), current_parameters(ds);
+    #    t0, diffeq=ds.diffeq)
+    system = CoupledODEs(prob, ds.diffeq)
+    return RateSystem(deepcopy(system), deepcopy(forcing_config))
 end
 
 function (ndr::NonautonomousDynamicRule)(u, p, t)
@@ -71,7 +76,7 @@ function (ndr::NonautonomousDynamicRule)(u, p, t)
     else
         setproperty!(p, ndr.pidx, p_at_t)
     end
-    return ndr.unforced_rule(u, p, t)
+    return ndr.unforced_rule(u, p, ndr.t0)
 end
 
 """
@@ -100,28 +105,28 @@ function p_modified(t::Real, ndr::NonautonomousDynamicRule, p0)
 end
 
 function set_forcing_scale!(rs::RateSystem, scale)
-    rs.ndr.forcing_scale = scale
+    rs.forcing.forcing_scale = scale
     return rs
 end
 
 function set_forcing_length!(rs::RateSystem, length)
-    rs.ndr.forcing_length = length
+    rs.forcing.forcing_length = length
     return rs
 end
 
 function set_forcing_start!(rs::RateSystem, start)
-    rs.ndr.forcing_start = start
+    rs.forcing.forcing_start = start
     return rs
 end
 
 function get_forcing(rs, t)
-    p = initial_parameters(rs)
-    p[rs.ndr.pidx] = p_modified(t, rs.ndr, p)
+    p = deepcopy(current_parameters(rs))
+    p[rs.forcing.pidx] = p_modified(t, rs.forcing, p[rs.forcing.pidx])
     return p
 end
 
 function frozen_system(rs::RateSystem, t)
-    ds = CoupledODEs(rs.ndr.unforced_rule, current_state(ds), get_forcing(rs, t))
+    ds = CoupledODEs(rs.forcing.unforced_rule, current_state(ds), get_forcing(rs, t))
     return ds
 end
 
@@ -136,12 +141,17 @@ for f in (
     :initial_time,
     :successful_step,
     :set_parameter!,
+    :set_parameters!,
+    :set_state!,
     :trajectory,
 ) # all api functions here
     @eval DynamicalSystemsBase.$(f)(rs::RateSystem, args...; kw...) = $(f)(
         rs.system, args...; kw...
     )
 end
+
+reinit!(rs::RateSystem, u=initial_state(rs); kw...) = reinit!(rs.system, u; kw...)
+#reinit!(rs::Ratesystem, ::Nothing; kw...) = ds
 
 function DynamicalSystemsBase.set_state!(rs::RateSystem, u::AbstractArray)
     return (DynamicalSystemsBase.set_state!(rs.system, u); rs)
