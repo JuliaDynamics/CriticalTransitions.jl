@@ -72,7 +72,12 @@ function RateSystem(
     ndr = NonautonomousDynamicRule(
         dynamic_rule(ds), pidx, fp, forcing_start_time, forcing_length, forcing_scale, p0, t0
     )
-    newds = CoupledODEs(ndr, current_state(ds), current_parameters(ds); t0)
+
+    # TODO: Do we want the rate system to have the same parameter container,
+    # or a deep copy of it...? Derivative systems in DynamicalSystems.jl
+    # typically have the same parameter container, however this one is special,
+    # as it constantly alters the parameter container...
+    newds = CoupledODEs(ndr, current_state(ds), deepcopy(current_parameters(ds)); t0)
     return RateSystem(newds, ndr)
 end
 
@@ -132,6 +137,7 @@ end
 
 function get_forcing(rs, t)
     p = deepcopy(current_parameters(rs))
+    # TODO: Doesn't work for vector parameters
     p[rs.forcing.pidx] = p_modified(rs.forcing, t)
     return p
 end
