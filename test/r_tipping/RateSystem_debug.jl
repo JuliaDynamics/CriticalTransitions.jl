@@ -1,5 +1,4 @@
 using CriticalTransitions
-using DynamicalSystemsBase
 using Test
 
 @testset "RateSystem" begin

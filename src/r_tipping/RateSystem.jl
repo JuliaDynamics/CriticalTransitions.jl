@@ -1,10 +1,20 @@
+# TODO: Generalize to multi-parameter
+# In general, all instances of parameters that are just `Real`
+# must be made into `Vector{Pair{IDX, Real}}` with `IDX` the index type
+# This also decreases the number of fields as we dont need different fields
+# for different parameters. we can have a single `pspec` for pawrameter specification
+# that is `Vector{Pair{IDX, Real}}`. Or it can be a `Vector{Dict}`. In
+# general anything that can be given to `set_parameters!`. So we cross ref that
+# docstring and everything becomes simple and unified and harmonious...
+
 mutable struct NonautonomousDynamicRule{R,F,P,T} <: Function
     unforced_rule::R
-    pidx::P
+    pidx::P # make this a vector
     fp::ForcingProfile{F,T}
     forcing_start_time::T
     forcing_length::T
     forcing_scale::T
+    p0::T # make this a vector
     t0::T
 end
 
@@ -25,9 +35,9 @@ keyword arguments `forcing_start_time`, `forcing_length`, and `forcing_scale` wh
 constructing the `RateSystem`. This allows to repurpose the same forcing protocol `fp`.
 """
 struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
-    "Underlying continuous-time dynamical system"
+    "Underlying non-autonomous continuous-time dynamical system"
     system::S
-    "The index of the parameter being forced"
+    "Datastructure representing the forcing in system units"
     forcing::NonautonomousDynamicRule{F,P,T}
 end
 
@@ -55,27 +65,27 @@ function RateSystem(
     (forcing_start_time >= t0) ||
         throw("The forcing cannot start before the system's initial time `t0`
               but your forcing_start_time ($(forcing_start_time)) < t0 ($(t0)).")
-    forcing_config = deepcopy(NonautonomousDynamicRule(
-        dynamic_rule(ds), pidx, fp, forcing_start_time, forcing_length, forcing_scale, t0
-    ))
 
-    prob = remake(deepcopy(referrenced_sciml_prob(ds));
-        f=forcing_config, p=deepcopy(current_parameters(ds)), tspan=(t0, Inf))
-    #system = CoupledODEs(forcing_config, current_state(ds), current_parameters(ds);
-    #    t0, diffeq=ds.diffeq)
-    system = CoupledODEs(prob, ds.diffeq)
-    return RateSystem(deepcopy(system), deepcopy(forcing_config))
+
+    # TODO: Make p0 a vector
+    p0 = current_parameter(ds, pidx)
+    ndr = NonautonomousDynamicRule(
+        dynamic_rule(ds), pidx, fp, forcing_start_time, forcing_length, forcing_scale, p0, t0
+    )
+    newds = CoupledODEs(ndr, current_state(ds), current_parameters(ds); t0)
+    return RateSystem(newds, ndr)
 end
 
 function (ndr::NonautonomousDynamicRule)(u, p, t)
-    # this should be rewritten with the Callback mechanism from SciML
-    p_i = p[ndr.pidx]
-    p_at_t = p_modified(t, ndr, p_i)
-    if p isa Union{AbstractArray,AbstractDict}
+    # TODO: this should be rewritten with `current_parameter`
+    p_at_t = p_modified(ndr, t)
+    if p isa Union{AbstractArray, AbstractDict}
         setindex!(p, p_at_t, ndr.pidx)
     else
         setproperty!(p, ndr.pidx, p_at_t)
     end
+    # TODO: This doesn't work if the dynamical system is in-place...
+    # We need to multi-dispatch one more version of `(ndr::)` function with 4 arguments
     return ndr.unforced_rule(u, p, ndr.t0)
 end
 
@@ -83,12 +93,14 @@ end
 Creates a piecewise constant function in alignment with the entries of the ForcingProfile
 and the parameter value of the underlying autonomous system
 """
-function p_modified(t::Real, ndr::NonautonomousDynamicRule, p0)
+function p_modified(ndr::NonautonomousDynamicRule, t::Real)
+    # TODO: Make `p0` vector, and make the function re-write a dummy vector of time dependent parameters
+    p0 = ndr.p0
     f = ndr.fp.profile
     section_start = ndr.fp.interval[1]
     section_end = ndr.fp.interval[2]
     # making the function piecewise constant with range [p0,p0+forcing_scale]
-    q = if t ≤ ndr.forcing_start_time
+    if t ≤ ndr.forcing_start_time
         return p0
     else
         if t < ndr.forcing_start_time + ndr.forcing_length
@@ -101,7 +113,6 @@ function p_modified(t::Real, ndr::NonautonomousDynamicRule, p0)
             return p0 + ndr.forcing_scale*(f(section_end) - f(section_start))
         end
     end
-    return q
 end
 
 function set_forcing_scale!(rs::RateSystem, scale)
@@ -121,7 +132,7 @@ end
 
 function get_forcing(rs, t)
     p = deepcopy(current_parameters(rs))
-    p[rs.forcing.pidx] = p_modified(t, rs.forcing, p[rs.forcing.pidx])
+    p[rs.forcing.pidx] = p_modified(rs.forcing, t)
     return p
 end
 
