@@ -1,10 +1,5 @@
-# Rate systems
+# Rate-induced transitions
 
-## system
+## Critical Rate
 
-```@docs
-CriticalTransitions.RateSystem
-CriticalTransitions.RateFunction
-```
-
-## Rate-induced transitions
+> In preparation.

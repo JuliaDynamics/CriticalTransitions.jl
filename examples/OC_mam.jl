@@ -64,9 +64,8 @@ objective(sol) # Objective value
 
 # Let's plot the solution trajectory and phase space:
 
-plot(sol)
+#plot(sol)
 
-#
 
 MLP = state(sol).(time_grid(sol))
 scatter(

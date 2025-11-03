@@ -93,7 +93,7 @@ export transition, transitions
 
 export ForcingProfile, RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
-export get_forcing, frozen_system
+export frozen_system, parameters
 
 # Error hint for extensions stubs
 function __init__()

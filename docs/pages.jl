@@ -12,7 +12,7 @@ pages = [
         "Constructing rate system" => "examples/RateSystem.md",
     ],
     "Manual" => Any[
-        "Define your system" => "man/CoupledSDEs.md",
+        "Define your system" => "man/system_construction.md",
         "Stability analysis" => "man/systemanalysis.md",
         "Simulating the system" => "man/simulation.md",
         "Sampling transitions" => "man/sampling.md",
