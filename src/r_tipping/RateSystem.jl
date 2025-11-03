@@ -75,7 +75,10 @@ value and thereafter the system is again autonomous.
 - `forcing_scale = 1.0`: Amplitude multiplication factor of the forcing protocol
 - `t0 = 0.0`: Initial time of the system
 """
-function RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx::P;
+function RateSystem(
+    ds::ContinuousTimeDynamicalSystem,
+    fp::ForcingProfile,
+    pidx::P;
     forcing_start_time::T=initial_time(ds),
     forcing_duration::T=(fp.interval[2] - fp.interval[1]),
     forcing_scale::T=1.0,

@@ -66,7 +66,6 @@ objective(sol) # Objective value
 
 #plot(sol)
 
-
 MLP = state(sol).(time_grid(sol))
 scatter(
     first.(MLP),
