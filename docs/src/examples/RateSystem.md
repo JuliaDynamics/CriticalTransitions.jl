@@ -1,4 +1,4 @@
-# Constructing a `RateSystem`
+# Example: Defining a `RateSystem`
 
 Consider an autonomous deterministic dynamical system `ds` (e.g. a `CoupledODEs`) of which
 you want to ramp one parameter, i.e. change the parameter's value over time.

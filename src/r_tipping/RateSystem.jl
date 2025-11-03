@@ -37,24 +37,11 @@ end
 
 """
     RateSystem <: ContinuousTimeDynamicalSystem
+    RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kwargs...)
 
 A non-autonomous dynamical system constructed by applying a time-dependent parametric
 forcing protocol ([`ForcingProfile`](@ref)) to an underlying autonomous continuous-time
 dynamical system `ds`.
-"""
-struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
-    "Non-autonomous continuous-time dynamical system"
-    system::S
-    "Data structure representing the system and forcing specifications in system units"
-    forcing::RateSystemSpecs{F,P,T}
-end
-
-"""
-    RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kwargs...)
-
-Constructs a non-autonomous dynamical system from a given autonomous 
-continuous-time dynamical system `ds` by applying a time-dependent parametric forcing 
-via a [`ForcingProfile`](@ref).
 
 The `ForcingProfile`, applied to the parameter with index `pidx`, describes the functional
 form of the parameter evolution over a given `interval`. This interval is rescaled
@@ -75,6 +62,13 @@ value and thereafter the system is again autonomous.
 - `forcing_scale = 1.0`: Amplitude multiplication factor of the forcing protocol
 - `t0 = 0.0`: Initial time of the system
 """
+struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
+    "Non-autonomous continuous-time dynamical system"
+    system::S
+    "Data structure representing the system and forcing specifications in system units"
+    forcing::RateSystemSpecs{F,P,T}
+end
+
 function RateSystem(
     ds::ContinuousTimeDynamicalSystem,
     fp::ForcingProfile,
