@@ -8,7 +8,6 @@ Random.seed!(SEED)
 
 using CriticalTransitions.CTLibrary: fitzhugh_nagumo
 
-"""
 @testset "Code Quality" begin
     include("code_quality.jl")
 end
@@ -44,14 +43,11 @@ end
     include("trajectories/simulate.jl")
     include("trajectories/transition.jl")
 end
-"""
 
 @testset "R-tipping" begin
-    #include("r_tipping/RateSystem.jl")
-    include("r_tipping/RateSystem_debug.jl")
+    include("r_tipping/RateSystem.jl")
 end
 
-"""
 @testset "Extensions" begin
     @testset "ChaosToolsExt" begin
         include("ext/ChaosToolsExt.jl")
@@ -66,4 +62,3 @@ end
     using Documenter
     Documenter.doctest(CriticalTransitions)
 end
-"""

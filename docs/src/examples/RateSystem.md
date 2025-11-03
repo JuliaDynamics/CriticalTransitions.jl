@@ -16,8 +16,8 @@ Applying this parameter ramping is here implemented as a two-step process:
    `RateSystem.system` (i.e. a `CoupledODEs`) with the parameter ramping incorporated.
 
 For times `t < forcing_start_time`, the returned system `RateSystem.system` is autonomous, for
-`forcing_start_time < t < forcing_start_time + forcing_length` it is non-autonomous with the
-parameter ramping given by the `RateFunction` and for `forcing_start_time + forcing_length < t`
+`forcing_start_time < t < forcing_start_time + forcing_duration` it is non-autonomous with the
+parameter ramping given by the `RateFunction` and for `forcing_start_time + forcing_duration < t`
 the system is autonomous again. This setting is a widely used and convenient for studying
 R-tipping.
 
@@ -71,15 +71,15 @@ of ds:
 ````@example RateSystem
 pidx = 1              # Index of the parameter within the parameter-container of ds
 forcing_start_time = -50.0  # Time when the parameter shift should start
-forcing_length = 105.0 # Time interval over which p(interval) is spread out or squeezed
+forcing_duration = 105.0 # Time interval over which p(interval) is spread out or squeezed
 forcing_scale = 3.0   # Amplitude of the ramping. `p` is then automatically rescaled
 t0 = -70.0            # Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 
-rs = RateSystem(ds, rf, pidx; forcing_start_time, forcing_length, forcing_scale, t0)
+rs = RateSystem(ds, rf, pidx; forcing_start_time, forcing_duration, forcing_scale, t0)
 ````
 
 !!! note
-    Choosing different values of the `forcing_length` allows us to vary the speed of the parameter ramping, while its shape remains the same, and it only gets stretched or squeezed.
+    Choosing different values of the `forcing_duration` allows us to vary the speed of the parameter ramping, while its shape remains the same, and it only gets stretched or squeezed.
 
 !!! note
     If `p(t)` within the `RateFunction` is a monotonic function, the `forcing_scale` will give the total amplitude of the parameter ramping. For non-monotonic `p(t)`, the `forcing_scale` will only linearly scale the amplitude of the parameter ramping, but does not equal the total amplitude.
@@ -87,7 +87,7 @@ rs = RateSystem(ds, rf, pidx; forcing_start_time, forcing_length, forcing_scale,
 Now, we can compute trajectories of this new system `rate_system` and of the previous autonomous system `ds` in the familiar way:
 
 ````@example RateSystem
-T = forcing_length + 40.0; # length of the trajectory that we want to compute
+T = forcing_duration + 40.0; # length of the trajectory that we want to compute
 auto_traj = trajectory(ds, T, x0);
 nonauto_traj = trajectory(rs, T, x0);
 nothing #hide

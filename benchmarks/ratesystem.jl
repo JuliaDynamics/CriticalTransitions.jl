@@ -18,13 +18,13 @@ function benchmark_rate_system!(SUITE)
 
     pidx = 1
     forcing_start_time = -100.0
-    forcing_length = 200.0
+    forcing_duration = 200.0
     forcing_scale = 1.0
     t0 = forcing_start_time
 
-    rs = RateSystem(ds, rc, pidx; forcing_start_time, forcing_length, forcing_scale, t0)
+    rs = RateSystem(ds, rc, pidx; forcing_start_time, forcing_duration, forcing_scale, t0)
 
-    T = forcing_length + 40.0
+    T = forcing_duration + 40.0
     trajectory(rs, T, x0)
 
     @btime trajectory($rs, $T, $x0)

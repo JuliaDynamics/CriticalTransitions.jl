@@ -22,9 +22,10 @@ using DynamicalSystemsBase:
     jacobian,
     ContinuousTimeDynamicalSystem,
     initial_parameters,
+    current_parameter,
     current_parameters,
-    initial_time,
-    referrenced_sciml_prob
+    initial_time
+
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq
@@ -91,7 +92,7 @@ export deterministic_orbit
 export transition, transitions
 
 export ForcingProfile, RateSystem
-export set_forcing_length!, set_forcing_scale!, set_forcing_start!
+export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
 export get_forcing, frozen_system
 
 # Error hint for extensions stubs
