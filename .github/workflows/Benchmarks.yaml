@@ -4,7 +4,7 @@ on:
     branches:
       - 'main'
     paths:
-      - '.github/workflows/Benchmarks.yml'
+      - '.github/workflows/Benchmarks.yaml'
       - 'src/**'
       - 'ext/**'
       - 'test/runtests.jl'
@@ -13,7 +13,7 @@ on:
     branches:
       - 'main'
     paths:
-      - '.github/workflows/Benchmarks.yml'
+      - '.github/workflows/Benchmarks.yaml'
       - 'src/**'
       - 'ext/**'
       - 'test/**'
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: julia-actions/setup-julia@v2
         with:
-          version: '1'
+          version: '1.11'
           arch: x64
       - uses: julia-actions/cache@v2
       - name: Run benchmark
