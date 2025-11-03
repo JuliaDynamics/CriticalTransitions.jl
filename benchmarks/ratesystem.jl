@@ -12,9 +12,9 @@ function benchmark_rate_system!(SUITE)
     p_auto = [0.0]
     ds = CoupledODEs(f, x0, p_auto)
 
-    p(t) = tanh(t)
-    interval = (-100, 100)
-    rc = RateFunction(p, interval)
+    profile(t) = tanh(t)
+    interval = (-100.0, 100.0)
+    fp = ForcingProfile(profile, interval)
 
     pidx = 1
     forcing_start_time = -100.0
@@ -22,7 +22,7 @@ function benchmark_rate_system!(SUITE)
     forcing_scale = 1.0
     t0 = forcing_start_time
 
-    rs = RateSystem(ds, rc, pidx; forcing_start_time, forcing_duration, forcing_scale, t0)
+    rs = RateSystem(ds, fp, pidx; forcing_start_time, forcing_duration, forcing_scale, t0)
 
     T = forcing_duration + 40.0
     trajectory(rs, T, x0)
