@@ -29,12 +29,19 @@ function preprocess(content)
     return content
 end
 
+function md_note(str)
+    str = replace(str, r"^#note # (.*)$"m => s"""
+    # !!! note
+    #     \1""")
+    return str
+end
+
 for example in examples
     Literate.markdown(
         example,
         OUTPUT_MD_DIR;
         flavor=Literate.DocumenterFlavor(),
         config=extra_literate_config,
-        # preprocess=preprocess,
+        preprocess=md_note,
     )
 end

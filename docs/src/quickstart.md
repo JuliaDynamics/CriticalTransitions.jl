@@ -23,9 +23,13 @@ Some functions are only loaded as extensions when loading other dependency packa
 The [Tutorial](@ref) and code examples in the *Examples* section illustrate some use cases of the package. All available functions and types are documented in the *Manual* section (see [Index](@ref) for an overview).
 
 ## Index
+A quick overview of available features:
+
 **Defining a system and its forcing**
 - [`DynamicalSystemsBase.CoupledODEs`](@ref)
 - [`DynamicalSystemsBase.CoupledSDEs`](@ref) (alias for `StochSystem`)
+- [`RateSystem`](@ref)
+- [`ForcingProfile`](@ref)
 
 **System analysis and simulation**
 ```@index
@@ -37,7 +41,7 @@ Pages = ["man/systemanalysis.md", "man/simulation.md"]
 Pages = ["man/sampling.md", "man/largedeviations.md"]
 ```
 
-**Nonautonomous dynamics: R-tipping** 
+**Nonautonomous dynamics: Rate-induced tipping** 
 ```@index
 Pages = ["man/r-tipping.md"]
 ```

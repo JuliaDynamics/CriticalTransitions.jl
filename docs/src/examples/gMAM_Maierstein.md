@@ -2,7 +2,7 @@
 EditURL = "../../../examples/gMAM_Maierstein.jl"
 ```
 
-# The Maier-Stein model.
+# Example: Large deviations in the Maier-Stein model
 
 ````@example gMAM_Maierstein
 using CriticalTransitions
