@@ -40,7 +40,7 @@ function f(u, p, t) # out-of-place
 end
 
 x0 = [-1.0]
-ds = CoupledODEs(f, x0, [0.0]);
+ds = CoupledODEs(f, x0, [0.0])
 
 # ## Applying the parameter ramping
 
@@ -52,7 +52,7 @@ ds = CoupledODEs(f, x0, [0.0]);
 # parameter of `ds`:
 
 p(t) = tanh(t) # A monotonic function that describes the parameter shift
-interval = (-5, 5) # Domain interval of p(t) we want to consider
+interval = (-5.0, 5.0) # Domain interval of p(t) we want to consider
 fp = ForcingProfile(p, interval)
 
 # Then specify how you would like to use the `ForcingProfile` to shift the `pidx`'th parameter
