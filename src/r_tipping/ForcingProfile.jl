@@ -1,23 +1,20 @@
 """
-    ForcingProfile(;profile::Function, interval)
+    ForcingProfile(profile::Function, interval)
 
-Time-dependent forcing protocol ``p(t)`` describing the evolution of a parameter over a
-time interval `interval = (start, end)`. Used to construct a non-autonomous `RateSystem`.
+Time-dependent forcing profile ``p(t)`` describing the evolution of a parameter over a
+domain interval `interval = (start, end)`. Used to define a parametric forcing when 
+constructing a non-autonomous [`RateSystem`](@ref).
 
-## Keyword Arguments
-- `profile`: function ``p(t)`` from ``ℝ → ℝ`` describing the parameter time dependence
-- `interval`: domain interval over which `profile` is considered
+## Keyword arguments
+- `profile`: function ``p(t)`` from ``ℝ → ℝ`` describing the parameter change
+- `interval`: domain interval over which the `profile` is considered
 
-## Description
-The `ForcingProfile` type allows to specify the functional form of a parametric
-forcing over a time interval. This forcing protocol can then be applied to the parameter
-of a dynamical system using the `RateSystem` constructor.
-The rate and magnitude of the forcing can be adjusted when constructing the `RateSystem`.
+Note: The units of `t` are arbitrary; the forcing profile is rescaled in system time units
+and magnitude when using it to construct a `RateSystem`.
 
 ## Convenience functions
 - `ForcingProfile(:linear)`: Creates a linear ramp from 0 to 1.
 - `ForcingProfile(:tanh)`: Creates a hyperbolic tangent ramping from 0 to 1.
-
 """
 struct ForcingProfile{F,T<:Real}
     profile::F

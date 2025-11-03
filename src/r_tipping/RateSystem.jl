@@ -53,33 +53,29 @@ end
     RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kwargs...)
 
 Constructs a non-autonomous dynamical system from a given autonomous 
-continous-time dynamical system `ds` by applying a time-dependent parametric forcing 
+continuous-time dynamical system `ds` by applying a time-dependent parametric forcing 
 via a [`ForcingProfile`](@ref).
 
 The `ForcingProfile`, applied to the parameter with index `pidx`, describes the functional
-form of the parameter evolution over a given time interval. This time interval is defined
-in system time units by its start time (`forcing_start_time`) and duration
-(`forcing_duration`). The forcing profile can be scaled in magnitude by the factor
-`forcing_scale`.
+form of the parameter evolution over a given `interval`. This interval is rescaled
+in system time units by defining its start time (`forcing_start_time`) and duration
+(`forcing_duration`). The magnitude of the forcing can be adjusted by scaling the
+forcing profile by a factor `forcing_scale`.
+
+The integer `pidx` refers to the relevant index of the parameter container `p` of `ds`.
 
 Before `t = forcing_start_time`, the system parameters correspond to that of the
-underlying autonomous system `ds`. At the end of the forcing window
+underlying autonomous system `ds`. At the end of the forcing interval
 (`t = forcing_start_time + forcing_duration`), the parameters are frozen at their current
-value and thereafter the system is again autonomous. 
+value and thereafter the system is again autonomous.
 
 ## Keyword arguments
-- `forcing_start_time = interval[1]`: Time when parameter shift starts
-  (before this, the resulting system will be autonomous)
-- `forcing_duration = interval[2] - interval[1]`: Time-interval over which `profile(interval)` is
-  spread out (for window_length > interval[2] - interval[1]) or squeezed into
-  (for window_length < interval[2] - interval[1])
-- `forcing_scale = 1.0`: Amplitude of the protocol.
-- `t0 = 0.0`: Initial time of the resulting non-autonomous system
+- `forcing_start_time = fp.interval[1]`: Time when parameter change starts
+- `forcing_duration = fp.interval[2] - fp.interval[1]`: Duration of the parameter change (in system time units)
+- `forcing_scale = 1.0`: Amplitude multiplication factor of the forcing protocol
+- `t0 = 0.0`: Initial time of the system
 """
-function RateSystem(
-    ds::ContinuousTimeDynamicalSystem,
-    fp::ForcingProfile,
-    pidx::P;
+function RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx::P;
     forcing_start_time::T=initial_time(ds),
     forcing_duration::T=(fp.interval[2] - fp.interval[1]),
     forcing_scale::T=1.0,
@@ -123,10 +119,7 @@ function (rss::RateSystemSpecs)(u, p, t)
     return rss.unforced_rule(u, p, rss.t0)
 end
 
-"""
-Creates a piecewise constant function in alignment with the entries of the ForcingProfile
-and the parameter value of the underlying autonomous system
-"""
+# Returns the non-autonomous system's parameter value at time t
 function p_modified(rss::RateSystemSpecs, t::Real)
     # TODO: Make `p0` vector, and make the function re-write a dummy vector of time dependent parameters
     p0 = rss.p0
@@ -149,28 +142,58 @@ function p_modified(rss::RateSystemSpecs, t::Real)
     end
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Sets the amplitude (`forcing_scale`) of the forcing protocol applied to
+the [`RateSystem`](@ref) `rs`.
+"""
 function set_forcing_scale!(rs::RateSystem, scale)
     rs.forcing.forcing_scale = scale
     return rs
 end
 
-function set_forcing_duration!(rs::RateSystem, length)
-    rs.forcing.forcing_duration = length
+"""
+$(TYPEDSIGNATURES)
+
+Sets the duration (`forcing_duration`) of the forcing protocol applied to
+the [`RateSystem`](@ref) `rs`.
+"""
+function set_forcing_duration!(rs::RateSystem, duration)
+    rs.forcing.forcing_duration = duration
     return rs
 end
 
-function set_forcing_start!(rs::RateSystem, start)
-    rs.forcing.forcing_start = start
+"""
+$(TYPEDSIGNATURES)
+
+Sets the start time (`forcing_start_time`) of the forcing protocol applied to
+the [`RateSystem`](@ref) `rs`.
+"""
+function set_forcing_start!(rs::RateSystem, start_time)
+    rs.forcing.forcing_start = start_time
     return rs
 end
 
-function get_forcing(rs, t)
+"""
+$(TYPEDSIGNATURES)
+
+Returns the parameter vector of a [`RateSystem`](@ref) at time `t` (in system time units).
+"""
+function parameters(rs::RateSystem, t)
     p = deepcopy(current_parameters(rs))
     # TODO: Doesn't work for vector parameters
     p[rs.forcing.pidx] = p_modified(rs.forcing, t)
     return p
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Returns an autonomous dynamical system of type [`DynamicalSystemsBase.CoupledODEs`](@ref) 
+corresponding to the frozen system of the non-autonomous [`RateSystem`](@ref) `rs` at
+time `t`.
+"""
 function frozen_system(rs::RateSystem, t)
     ds = CoupledODEs(rs.forcing.unforced_rule, current_state(ds), get_forcing(rs, t))
     return ds
