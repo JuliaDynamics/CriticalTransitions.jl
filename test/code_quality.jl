@@ -13,6 +13,7 @@ using CriticalTransitions, Test
             ],
         ),
         ambiguities=false,
+        persistent_tasks=false,
     )
 end
 
@@ -21,9 +22,9 @@ end
 
     @test check_no_implicit_imports(CriticalTransitions) == nothing
     @test check_all_explicit_imports_via_owners(CriticalTransitions) == nothing
-    @test check_all_explicit_imports_are_public(CriticalTransitions) == nothing
     @test check_no_stale_explicit_imports(CriticalTransitions) == nothing
     @test check_all_qualified_accesses_via_owners(CriticalTransitions) == nothing
+    @test check_no_self_qualified_accesses(CriticalTransitions) == nothing
     @test isnothing(
         check_all_qualified_accesses_are_public(
             CriticalTransitions;
@@ -38,7 +39,17 @@ end
             ),
         ),
     )
-    @test check_no_self_qualified_accesses(CriticalTransitions) == nothing
+    @test isnothing(
+        check_all_explicit_imports_are_public(
+            CriticalTransitions;
+            skip=(Base => Base.Experimental, Base => Core),
+            ignore=(
+                :referrenced_sciml_prob,
+                :DEFAULT_DIFFEQ,
+                :_decompose_into_solver_and_remaining,
+            ),
+        ),
+    )
 end
 
 if isempty(VERSION.prerelease)

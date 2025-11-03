@@ -3,7 +3,7 @@ JULIA:=julia
 default: help
 
 setup:
-	${JULIA} -e 'import Pkg; Pkg.add(["JuliaFormatter", "Changelog", "LiveServer"])'
+	${JULIA} -e 'import Pkg; Pkg.add(["JuliaFormatter", "Changelog", "LiveServer", "BenchmarkTools"])'
 
 format:
 	${JULIA} -e 'using JuliaFormatter; format(".")'
@@ -22,8 +22,7 @@ bench:
 	${JULIA} --project=benchmarks -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
 	${JULIA} --project=docs benchmarks/runbenchmarks.jl
 
-
-all: setup format test docs 
+all: setup format test docs bench
 
 help:
 	@echo "The following make commands are available:"

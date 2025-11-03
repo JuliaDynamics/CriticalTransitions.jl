@@ -1,7 +1,3 @@
-```@meta
-EditURL = "../../../examples/OC_mam.jl"
-```
-
 # Minimal Action Method using Optimal Control
 
 The Minimal Action Method is a numerical technique for finding the most probable transition pathway between stable states in stochastic dynamical systems. It achieves this by minimizing an action functional that represents the path's deviation from the deterministic dynamics, effectively identifying the path of least resistance through the system's landscape.
@@ -9,7 +5,7 @@ This tutorial demonstrates how to implement MAM as an optimal control problem.
 
 ## Required Packages
 
-````@example OC_mam
+````julia
 using OptimalControl
 using NLPModelsIpopt
 using Plots, Printf
@@ -22,7 +18,7 @@ The system's deterministic dynamics are given by:
 
 Define the vector field
 
-````@example OC_mam
+````julia
 f(u, v) = [u - u^3 - 10*u*v^2, -(1 - u^2)*v]
 f(x) = f(x...)
 nothing # hide
@@ -32,7 +28,7 @@ nothing # hide
 
 The minimal action path minimizes the deviation from the deterministic dynamics:
 
-````@example OC_mam
+````julia
 function ocp(T)
     action = @def begin
         t ∈ [0, T], time
@@ -52,7 +48,7 @@ nothing # hide
 
 We provide an initial guess for the path using a simple interpolation:
 
-````@example OC_mam
+````julia
 T = 50 # Time horizon
 
 x1(t) = -(1 - t/T) + t/T # Linear interpolation for x₁
@@ -69,7 +65,7 @@ nothing # hide
 
 We solve the problem in two steps for better accuracy:
 
-````@example OC_mam
+````julia
 sol = solve(ocp(T); init=init, grid_size=50) # First solve with coarse grid
 sol = solve(ocp(T); init=sol, grid_size=1000) # Refine solution
 objective(sol) # Objective value
@@ -79,11 +75,10 @@ objective(sol) # Objective value
 
 Let's plot the solution trajectory and phase space:
 
-````@example OC_mam
-plot(sol)
-````
+````julia
+#plot(sol)
 
-````@example OC_mam
+
 MLP = state(sol).(time_grid(sol))
 scatter(
     first.(MLP),
@@ -101,7 +96,7 @@ The resulting path shows the most likely transition between the two stable state
 
 To find the maximum likelihood path, we also need to minimize the transient time `T`. Hence, we perform a discrete continuation over the parameter `T` by solving the optimal control problem over a continuous range of final times `T`, using each solution to initialize the next problem.
 
-````@example OC_mam
+````julia
 objectives = []
 Ts = range(1, 100, 30)
 sol = solve(ocp(Ts[1]); display=false, init=init, grid_size=50)
@@ -113,7 +108,7 @@ for T in Ts
 end
 ````
 
-````@example OC_mam
+````julia
 T_min = Ts[argmin(objectives)]
 plt1 = scatter(Ts, log10.(objectives); xlabel="Time", label="Objective (log10)")
 vline!(plt1, [T_min]; label="Minimum", z_order=:back)

@@ -2,24 +2,25 @@
 
 This section explains how to specify your dynamical system and forcing of interest.
 
-To specify a system, `CriticalTransitions` imports two core system types from [`DynamicalSystemsBase.jl`](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/dynamicalsystemsbase/stable/):
+To specify a system, `CriticalTransitions` provides three core system types:
 
-- [CoupledODEs](@ref) - used to define deterministic systems of ordinary differential equations 
+- [CoupledODEs](@ref) - used to define a deterministic system of ordinary differential equations 
   of the form ``\frac{\text{d}\mathbf{u}}{\text{d}t} = \mathbf{f}(\mathbf{u}, p, t)``.
-- [CoupledSDEs](@ref) - used to define systems of stochastic differential equations
+- [CoupledSDEs](@ref) - used to define a system of stochastic differential equations
   of the form ``\text{d}\mathbf{u} = \mathbf{f}(\mathbf{u}, p, t) \text{d}t + \mathbf{g}(\mathbf{u}, p, t) \text{d}\mathcal{N}_t``.
+- [RateSystem](@ref) - used to define a non-autonomous system with parametric forcing
+  of the form ``\frac{\text{d}\mathbf{u}}{\text{d}t} = \mathbf{f}(\mathbf{u}(t), p(t))``.
 
-Both `CoupledODEs` and `CoupledSDEs` support nonautonomous (i.e. explicitly time-dependent) dynamics. A time-dependent parameter change can easily be specified:
-- `RateProtocol` - allows to specify the time evolution of a system parameter.
-- `apply_ramping` - used to apply a `RateProtocol` to a given dynamical system.
+The `CoupledODEs` and `CoupledSDEs` system types are inherited from [`DynamicalSystemsBase.jl`](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/dynamicalsystemsbase/stable/).
+The `RateSystem` type is added in CriticalTransitions.jl to enable easy construction of non-autonomous dynamical systems in which a parameter changes over time.
 
-## CoupledODEs
+## Deterministic: `CoupledODEs`
 
 ```@docs
 CoupledODEs
 ```
 
-## CoupledSDEs
+## Stochastic: `CoupledSDEs`
 
 ```@docs
 CoupledSDEs
@@ -42,12 +43,22 @@ StochasticSystemsBase.diffusion_matrix
 noise_process
 ```
 
-## Non-autonomous systems
+## Non-autonomous: `RateSystem`
 
-RateProtocol
-apply_ramping
+```@docs
+RateSystem
+ForcingProfile
+frozen_system
+```
 
-## Converting between system types
+```@docs
+parameters
+set_forcing_start!
+set_forcing_duration!
+set_forcing_scale!
+```
+
+## Converting between systems
 
 The deterministic part of a [`CoupledSDEs`](@ref) can be extracted as a 
 [`CoupledODEs`](@ref), making it compatible with functionality of `DynamicalSystems.jl`.
