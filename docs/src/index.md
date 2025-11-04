@@ -5,8 +5,6 @@
 This package provides a toolbox for dynamical systems under time-dependent forcing, with a focus on tipping phenomena and metastability. 
 Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystems.jl/stable/) and [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/), the code adds functionality specifically to study stochastic and non-autonomous dynamics -- while keeping a familiar user interface and taking advantage of the powerful existing solvers in Julia.
 
-![CT.jl infographic](./assets/CTjl_structure_v0.3_small.jpeg)
-
 ## Purpose
 The DynamicalSystems.jl ecosystem offers various functions to simulate and analyze dynamical systems in continuous time, centered around the `CoupledODEs` type that interfaces with the solvers of DifferentialEquations.jl. However, dedicated functionality for stochastic and/or explicitly time-dependent dynamics has largely been missing in this framework. [CriticalTransitions.jl](https://github.com/JuliaDynamics/CriticalTransitions.jl) seeks to fill this gap.
 
