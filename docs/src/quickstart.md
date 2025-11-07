@@ -1,26 +1,32 @@
 # Getting started
 
 ## Installation
-To install the Julia language, we recommend [juliaup](https://github.com/JuliaLang/juliaup).
+> To install the Julia language, we recommend [juliaup](https://github.com/JuliaLang/juliaup).
 
-The `CriticalTransitions.jl` package can be installed from Github via the Julia package manager:
-```julia
-using Pkg; Pkg.add(url="https://github.com/juliadynamics/CriticalTransitions.jl.git")
+`CriticalTransitions` is a registered Julia package (as of `v0.7`) and can be installed with the Julia package manager:
+
+```console
+julia> ]
+Pkg>   add CriticalTransitions
 ```
-You can then load the package with `using CriticalTransitions`.
+or 
 
-The package is currently tested to be compatible with Julia versions `1.10` and `1.11`.
+```julia
+using Pkg; Pkg.add("CriticalTransitions")
+```
+
+The package is currently tested to be compatible with Julia versions `1.10-1.12`.
 
 ## Basic usage
-The general workflow of `CriticalTransitions.jl` essentially follows two steps, similar to `DynamicalSystems.jl`:
+The general workflow of CriticalTransitions.jl consists of two steps, similar to DynamicalSystems.jl:
 
 1. Define your dynamical system (see [Defining a forced dynamical system](@ref))
-2. Investigate the system by calling functions (see [Index](@ref))
+2. Investigate the system by calling methods (see [Index](@ref))
 
-Some functions are only loaded as extensions when loading other dependency packages (see [Extensions](@ref)).
+Some methods are only loaded as extensions when loading other dependency packages (see [Extensions](@ref)).
 
 ## Documentation
-The [Tutorial](@ref) and code examples in the *Examples* section illustrate some use cases of the package. All available functions and types are documented in the *Manual* section (see [Index](@ref) for an overview).
+The [Tutorial](@ref) and code examples in the *Examples* section illustrate some use cases of the package. All available methods and types are documented in the *Manual* section (see [Index](@ref) for an overview).
 
 ## Index
 A quick overview of available features:
@@ -28,8 +34,8 @@ A quick overview of available features:
 **Defining a system and its forcing**
 - [`DynamicalSystemsBase.CoupledODEs`](@ref)
 - [`DynamicalSystemsBase.CoupledSDEs`](@ref) (alias for `StochSystem`)
-- [`RateSystem`](@ref)
-- [`ForcingProfile`](@ref)
+- [`CriticalTransitions.RateSystem`](@ref)
+- [`CriticalTransitions.ForcingProfile`](@ref)
 
 **System analysis and simulation**
 ```@index

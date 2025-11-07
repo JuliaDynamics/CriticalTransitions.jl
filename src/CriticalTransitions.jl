@@ -10,7 +10,7 @@ using Random: Random
 
 # Core
 using SciMLBase: SciMLBase, EnsembleThreads, DiscreteCallback, remake, terminate!, isinplace
-using DynamicalSystemsBase:
+import DynamicalSystemsBase:
     DynamicalSystemsBase,
     CoupledSDEs,
     CoupledODEs,
