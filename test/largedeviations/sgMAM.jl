@@ -47,7 +47,7 @@ using Test
 
     eqs = [D(u) ~ fu(u, v), D(v) ~ fv(u, v)]
     @named sysMTK = System(eqs, t)
-    sysMTK = structural_simplify(sysMTK)
+    sysMTK = mtkcompile(sysMTK)
     prob = ODEProblem(sysMTK, sts .=> zeros(2), (0.0, 100.0), (); jac=true)
     ds = CoupledODEs(prob)
 
