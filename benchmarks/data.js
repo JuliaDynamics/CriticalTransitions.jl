@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762202785314,
+  "lastUpdate": 1762818546364,
   "repoUrl": "https://github.com/JuliaDynamics/CriticalTransitions.jl",
   "entries": {
     "Benchmark Results": [
@@ -178,6 +178,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "Rate System/trajectory/RateSystem",
             "value": 69650,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "r.borner@uu.nl",
+            "name": "Reyk Börner",
+            "username": "reykboerner"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "971e6889df568378d09bc4e958fb3c7306e1c3a1",
+          "message": "bugfix: frozen_system and docs update (#210)\n\n* update install instructions in docs\n\n* fix frozen_system bug\n\n* bump MTK compat in test/Project.toml\n\n* format\n\n* replace mtkcompile with structural_simplify again\n\n* streamline RateSystem example\n\n* refine docs\n\n---------\n\nCo-authored-by: Orjan Ameye <orjan.ameye@hotmail.com>",
+          "timestamp": "2025-11-11T00:42:26+01:00",
+          "tree_id": "bc8811545edf9bbd6dd1cbf3aae59bf44ff57e56",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/971e6889df568378d09bc4e958fb3c7306e1c3a1"
+        },
+        "date": 1762818544001,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 88126716,
+            "unit": "ns",
+            "extra": "gctime=11824751\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2251822088,
+            "unit": "ns",
+            "extra": "gctime=365835574\nmemory=4138027152\nallocs=112014837\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 736896052,
+            "unit": "ns",
+            "extra": "gctime=118591340.5\nmemory=2207479728\nallocs=3397954\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 60053,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40406,
             "unit": "ns",
             "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
