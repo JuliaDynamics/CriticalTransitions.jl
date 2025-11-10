@@ -69,10 +69,10 @@ fp1, fp2 = eqs[stab]
 ```
 
 ### Stochastic simulation
-Using the [`trajectory`](@ref) function, we now run a simulation of our system for `100` time units starting out from the fixed point `fp1`:
+Using the [`trajectory`](@ref) function, we now run a simulation of our system for `200` time units starting out from the fixed point `fp1`:
 
 ```@example MAIN
-sim = trajectory(sys, 100, fp1)
+sim = trajectory(sys, 200, fp1)
 ```
 
 In the keyword arguments, we have specified at which interval the solution is saved. Further keyword arguments can be used to change the solver (the default is `SOSRA()` for stochastic integration) and other settings.

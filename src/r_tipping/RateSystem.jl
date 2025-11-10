@@ -192,7 +192,7 @@ corresponding to the frozen system of the non-autonomous [`RateSystem`](@ref) `r
 time `t`.
 """
 function frozen_system(rs::RateSystem, t)
-    ds = CoupledODEs(rs.forcing.unforced_rule, current_state(ds), get_forcing(rs, t))
+    ds = CoupledODEs(rs.forcing.unforced_rule, current_state(rs), parameters(rs, t))
     return ds
 end
 

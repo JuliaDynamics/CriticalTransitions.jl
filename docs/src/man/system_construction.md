@@ -32,7 +32,7 @@ CoupledSDEs
 !!! info
     Note that nonlinear mixings of the Noise Process $\mathcal{W}$ fall into the class of random ordinary differential equations (RODEs) which have a separate set of solvers. See [this example](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/rode_example/) of DifferentialEquations.jl.
 
-### Accessing `CoupledSDEs` properties
+### `CoupledSDEs` API
 
 ```@docs
 solver
@@ -50,6 +50,10 @@ RateSystem
 ForcingProfile
 frozen_system
 ```
+
+![Schematic explaining RateSystem construction](../assets/ratesystem_scheme.png)
+
+### `RateSystem` API
 
 ```@docs
 parameters
