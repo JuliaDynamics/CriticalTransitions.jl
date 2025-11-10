@@ -2,11 +2,11 @@
 pages = [
     "Home" => "index.md",
     "Getting started" => "quickstart.md",
-    "Tutorial" => "examples/tutorial.md",
     "Examples" => Any[
+        "Tutorial" => "examples/tutorial.md",
         "Defining a system" => Any[
-            "Defining stochastic systems" => "examples/stochastic-dynamics.md",
-            "Constructing a rate system" => "examples/RateSystem.md",],
+            "Stochastic system" => "examples/stochastic-dynamics.md",
+            "Nonautonomous system" => "examples/RateSystem.md",],
         "System analysis" => Any[  
             "Large deviations: Maier-Stein system" => "examples/gMAM_Maierstein.md",
             "Simple gMAM: Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
