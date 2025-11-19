@@ -83,7 +83,7 @@ function RateSystem(
               but your forcing_start_time ($(forcing_start_time)) < t0 ($(t0)).")
 
     # TODO: Make p0 a vector
-    p0 = [k => (current_parameter(ds, k)) for k in length(pidx)]
+    p0 = [k => (current_parameter(ds, k)) for k in 1:length(pidx)]
     rss = RateSystemSpecs(
         dynamic_rule(ds),
         fp,
@@ -123,7 +123,7 @@ function p_modified(rss::RateSystemSpecs, t::Real)
     # TODO: Make `p0` vector, and make the function re-write a dummy vector of time dependent parameters
     p_timedep = Vector{typeof(rss.p0)}(undef, length(rss.p0))
 
-    for k in length(rss.p0)
+    for k in 1:length(rss.p0)
         pidx, p0 = rss.p0[k]
         f = rss.fp[k].profile
         fstart = rss.fp[k].interval[1]
@@ -179,12 +179,25 @@ end
 """
 $(TYPEDSIGNATURES)
 
+Returns the `i`-th parameter of a [`RateSystem`](@ref) at time `t` (in system time units).
+"""
+function parameter(rs::RateSystem, i, t)
+    p = deepcopy(current_parameter(rs, i))
+    p_mod = p_modified(rs.forcing, t)
+    timedependent_indices = [pmod[k][1] for k in 1:length(pmod)]
+    (i in timedependent_indices) ? (return p_mod[i][2]) : (return p[i])
+end
+
+"""
+$(TYPEDSIGNATURES)
+
 Returns the parameter vector of a [`RateSystem`](@ref) at time `t` (in system time units).
 """
 function parameters(rs::RateSystem, t)
     p = deepcopy(current_parameters(rs))
-    # TODO: Doesn't work for vector parameters
-    p[rs.forcing.pidx] = p_modified(rs.forcing, t)
+    for (pidx, pval) in p_modified(rs.forcing, t)
+        p[pidx] = pval
+    end
     return p
 end
 
