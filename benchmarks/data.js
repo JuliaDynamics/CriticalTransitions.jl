@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762818546364,
+  "lastUpdate": 1764002104743,
   "repoUrl": "https://github.com/JuliaDynamics/CriticalTransitions.jl",
   "entries": {
     "Benchmark Results": [
@@ -232,6 +232,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "Rate System/trajectory/RateSystem",
             "value": 40406,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "71acaed2aa1011a51709e86f6b24fe4a48600f32",
+          "message": "build(deps): bump actions/checkout from 5 to 6 (#215)\n\nBumps [actions/checkout](https://github.com/actions/checkout) from 5 to 6.\n- [Release notes](https://github.com/actions/checkout/releases)\n- [Changelog](https://github.com/actions/checkout/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/actions/checkout/compare/v5...v6)\n\n---\nupdated-dependencies:\n- dependency-name: actions/checkout\n  dependency-version: '6'\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2025-11-24T17:28:22+01:00",
+          "tree_id": "e024e3edd9f7cc12bf5975e115ee0e6061de36d2",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/71acaed2aa1011a51709e86f6b24fe4a48600f32"
+        },
+        "date": 1764002101225,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 112947706,
+            "unit": "ns",
+            "extra": "gctime=20364923\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2365841917,
+            "unit": "ns",
+            "extra": "gctime=507025414\nmemory=4138027152\nallocs=112014837\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 770254628,
+            "unit": "ns",
+            "extra": "gctime=137569934\nmemory=2207148416\nallocs=3377234\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 78566,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 54700,
             "unit": "ns",
             "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
