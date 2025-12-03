@@ -19,18 +19,18 @@ at time `t`, where `p` is the parameter container of the underlying autonomous s
 mutable struct RateSystemSpecs{R,F,P,T} <: Function
     "Dynamic rule of the underlying autonomous system"
     unforced_rule::R
-    "Parameter index of the time-dependent parameter"
-    pidx::P # make this a vector
+    #"Parameter index of the time-dependent parameter"
+    #pidx::Vector{Pair{P, T}}
     "Forcing profile"
-    fp::ForcingProfile{F,T}
+    fp::Vector{ForcingProfile{F,T}}
     "Start time of parametric forcing"
     forcing_start_time::T
     "Duration of parametric forcing"
     forcing_duration::T
     "Magnitude of parametric forcing"
     forcing_scale::T
-    "Initial (autonomous) parameter value"
-    p0::T # make this a vector
+    "Parameter indices and their initial (autonomous) value(s)"
+    p0::Vector{Pair{P, T}} # make this a vector
     "Initial time (of system initiation)"
     t0::T
 end
@@ -71,8 +71,8 @@ end
 
 function RateSystem(
     ds::ContinuousTimeDynamicalSystem,
-    fp::ForcingProfile,
-    pidx::P;
+    fp::Vector{ForcingProfile},
+    pidx::Vector{P};
     forcing_start_time::T=initial_time(ds),
     forcing_duration::T=(fp.interval[2] - fp.interval[1]),
     forcing_scale::T=1.0,
@@ -83,10 +83,9 @@ function RateSystem(
               but your forcing_start_time ($(forcing_start_time)) < t0 ($(t0)).")
 
     # TODO: Make p0 a vector
-    p0 = current_parameter(ds, pidx)
+    p0 = [k => (current_parameter(ds, k)) for k in 1:length(pidx)]
     rss = RateSystemSpecs(
         dynamic_rule(ds),
-        pidx,
         fp,
         forcing_start_time,
         forcing_duration,
@@ -106,10 +105,13 @@ end
 function (rss::RateSystemSpecs)(u, p, t)
     # TODO: this should be rewritten with `current_parameter`
     p_at_t = p_modified(rss, t)
-    if p isa Union{AbstractArray,AbstractDict}
-        setindex!(p, p_at_t, rss.pidx)
-    else
-        setproperty!(p, rss.pidx, p_at_t)
+    for k in 1:length(rss.p0)
+        pidx, pval = p_at_t[k]
+        if p isa Union{AbstractArray,AbstractDict}
+            setindex!(p, pval, pidx)
+        else
+            setproperty!(p, pidx, pval)
+        end
     end
     # TODO: This doesn't work if the dynamical system is in-place...
     # We need to multi-dispatch one more version of `(rss::)` function with 4 arguments
@@ -119,24 +121,26 @@ end
 # Returns the non-autonomous system's parameter value at time t
 function p_modified(rss::RateSystemSpecs, t::Real)
     # TODO: Make `p0` vector, and make the function re-write a dummy vector of time dependent parameters
-    p0 = rss.p0
-    f = rss.fp.profile
-    section_start = rss.fp.interval[1]
-    section_end = rss.fp.interval[2]
-    # making the function piecewise constant with range [p0,p0+forcing_scale]
-    if t ≤ rss.forcing_start_time
-        return p0
-    else
-        if t < rss.forcing_start_time + rss.forcing_duration
-            # performing the time shift corresponding to stretching/squeezing
-            time_shift =
-                ((section_end - section_start) / rss.forcing_duration) *
-                (t - rss.forcing_start_time) + section_start
-            return p0 + rss.forcing_scale*(f(time_shift) - f(section_start))
+    p_timedep = Vector{typeof(rss.p0)}(undef, length(rss.p0))
+
+    for k in 1:length(rss.p0)
+        pidx, p0 = rss.p0[k]
+        f = rss.fp[k].profile
+        fstart = rss.fp[k].interval[1]
+        fend = rss.fp[k].interval[2]
+        if t <= rss.forcing_start_time
+            p_timedep[k] = pidx => p0
         else
-            return p0 + rss.forcing_scale*(f(section_end) - f(section_start))
+            if t < rss.forcing_start_time + rss.forcing_duration
+                time_shift = ((fend - fstart)/rss.forcing_duration)*(t -
+                    rss.forcing_start_time) + fstart
+                p_timedep[k] = pidx => p0 + rss.forcing_scale*(f(time_shift) - f(fstart))
+            else
+                p_timedep[k] = pidx => p0 + rss.forcing_scale*(f(fend) - f(fstart))
+            end
         end
     end
+    return p_timedep
 end
 
 """
@@ -175,12 +179,25 @@ end
 """
 $(TYPEDSIGNATURES)
 
+Returns the `i`-th parameter of a [`RateSystem`](@ref) at time `t` (in system time units).
+"""
+function parameter(rs::RateSystem, i, t)
+    p = deepcopy(current_parameter(rs, i))
+    p_mod = p_modified(rs.forcing, t)
+    timedependent_indices = [pmod[k][1] for k in 1:length(pmod)]
+    (i in timedependent_indices) ? (return p_mod[i][2]) : (return p[i])
+end
+
+"""
+$(TYPEDSIGNATURES)
+
 Returns the parameter vector of a [`RateSystem`](@ref) at time `t` (in system time units).
 """
 function parameters(rs::RateSystem, t)
     p = deepcopy(current_parameters(rs))
-    # TODO: Doesn't work for vector parameters
-    p[rs.forcing.pidx] = p_modified(rs.forcing, t)
+    for (pidx, pval) in p_modified(rs.forcing, t)
+        p[pidx] = pval
+    end
     return p
 end
 
