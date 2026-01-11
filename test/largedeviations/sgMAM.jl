@@ -61,3 +61,26 @@ using Test
     @test sys′.H_x(x_r, p_r) ≈ sys.H_x(x_r, p_r)
     @test sys′.H_p(x_r, p_r) ≈ sys.H_p(x_r, p_r)
 end
+
+@testset "SgmamSystem MTK" begin
+    @independent_variables t
+    D = Differential(t)
+    sts = @variables u(t) v(t)
+
+    @parameters λ = 3 / 1.21 * 2 / 295 ω0 = 1.0 ω = 1.0 γ = 1 / 295 η = 0 α = -1
+
+    eqs = [
+        D(u) ~ (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
+               (8 * ω),
+        D(v) ~ (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
+               (8 * ω),
+    ]
+    @named sysMTK = System(eqs, t)
+    sysMTK = structural_simplify(sysMTK)
+    prob = ODEProblem(sysMTK, sts .=> zeros(2), (0.0, 100.0), (); jac=true)
+    ds = CoupledODEs(prob)
+    sys = SgmamSystem(ds)
+
+    @test sys.H_x(zeros(2),zeros(2)) ≈ zeros(2)
+    @test sys.H_p(zeros(2),zeros(2)) ≈ zeros(2)
+end
