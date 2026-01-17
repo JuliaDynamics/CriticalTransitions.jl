@@ -122,7 +122,7 @@ function transitions(
     tries = 0
     success = 0
     function output_func(sol, i)
-        rerun = sol.retcode != SciMLBase.ReturnCode.Terminated && i < Nmax
+        rerun = sol.retcode != SciMLBase.ReturnCode.Terminated && i < Nmax && sol.t[end] < tmax
         tries += 1
         !rerun && (success += 1)
         if !rerun && cut_start
@@ -133,7 +133,7 @@ function transitions(
 
     seed = sys.integ.sol.prob.seed
     function prob_func(prob, i, repeat)
-        return remake(prob; seed=rand(Random.MersenneTwister(seed + i + repeat), UInt32))
+        return remake(prob; seed=rand(Random.MersenneTwister(seed + i + repeat), UInt32), tspan=(0, tmax))
     end
 
     ensemble = SciMLBase.EnsembleProblem(prob; output_func=output_func, prob_func=prob_func)

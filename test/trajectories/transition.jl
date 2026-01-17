@@ -28,10 +28,10 @@
     @test length(ensemble.times) == 10
     @test isapprox(stats.residence_time, 346.5424; atol=1e-2) ||
         isapprox(stats.residence_time, 177.70; atol=1e-2)
-    
+
     # Test warning when Nmax is reached
     # Use very small tmax to make transitions fail
     @test_logs (:warn, r"Maximum number of attempts.*reached") begin
-        ensemble_fail = transitions(sys, fp1, fp2, 5; Nmax=3, tmax=0.1, show_progress=false)
+        ensemble_fail = transitions(sys, fp1, fp2, 5; Nmax=3, tmax=0.01, show_progress=false)
     end
 end
