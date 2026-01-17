@@ -42,6 +42,8 @@ function stommel(u, p, t; smooth=1e-6, flow_law="abs")
     x, y = u
     delta, mu, R = p
 
+    diffu = 0.0
+    q = 0.0
     if flow_law == "abs"
         # Original Stommel model
         q = (smooth > 0) ? smoothabs(x - y, 1 / smooth) : abs(x - y)

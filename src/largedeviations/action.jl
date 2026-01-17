@@ -57,7 +57,7 @@ function om_action(sys::CoupledSDEs, path, time, noise_strength)
 
     σ = noise_strength
     # Compute action integral
-    S = 0
+    S = 0.0
     for i in 1:(size(path, 2) - 1)
         S +=
             σ^2 / 2 * (
@@ -78,6 +78,7 @@ Computes the action functional specified by `functional` for a given CoupledSDEs
 * `functional = "OM"`: Returns the Onsager-Machlup action ([`om_action`](@ref))
 """
 function action(sys::CoupledSDEs, path::Matrix, time, functional; noise_strength=nothing)
+    S = 0.0
     if functional == "FW"
         S = fw_action(sys, path, time)
     elseif functional == "OM"
