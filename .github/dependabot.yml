@@ -8,12 +8,9 @@ updates:
       interval: "weekly"
   - package-ecosystem: "julia"
     directories: # Location of Julia projects
-      - "/CriticalTransitions"
-      - "/CriticalTransitions/docs"
-      - "/CriticalTransitions/test"
-      - "/CriticalTransitions"
-      - "/CriticalTransitions/docs"
-      - "/CriticalTransitions/test"
+      - "/"
+      - "/docs"
+      - "/test"
     schedule:
       interval: "daily"
     groups:
