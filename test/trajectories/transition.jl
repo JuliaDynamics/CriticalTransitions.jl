@@ -39,7 +39,7 @@
         fp1 = [0.816, 0.272]
         fp2 = [-0.816, -0.272]
 
-        if VERSION > v"1.12.0-beta"
+        if VERSION < v"1.12.0-beta"
             @test_warn "Maximum number of attempts " ensemble_fail = transitions(
                 sys, fp1, fp2, 10; Nmax=3, tmax=0.01, cut_start=false, show_progress=false
             )
