@@ -19,6 +19,9 @@
 
     ensemble = transitions(sys, fp1, fp2, 10)
     stats = ensemble.stats
+    @show stats.success_rate
+    @show stats.transition_time
+    @show stats.residence_time
     @test isapprox(stats.success_rate, 0.833; atol=1e-2) ||
         isapprox(stats.success_rate, 0.909; atol=1e-2)
     @test isapprox(stats.transition_time, 5.213; atol=1e-2) ||
