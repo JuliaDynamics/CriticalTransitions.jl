@@ -141,5 +141,9 @@ function transitions(
         ensemble, solver(sys), EnsembleAlg; callback=cb_ball, trajectories=N, kwargs...
     )
 
+    if success < N
+        @warn "Maximum number of attempts (Nmax=$Nmax) reached before generating $N transitions. Only $success transitions were successful out of $tries attempts."
+    end
+
     return TransitionEnsemble(sim, success / tries)
 end;
