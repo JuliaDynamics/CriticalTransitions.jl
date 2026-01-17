@@ -1,8 +1,8 @@
 name = "CriticalTransitions"
 uuid = "251e6cd3-3112-48a5-99dd-66efcfd18334"
+version = "0.7.1"
 authors = ["Reyk Börner, Orjan Ameye, Ryan Deeley, Raphael Römer", "George Datseris"]
 repo = "https://github.com/juliadynamics/CriticalTransitions.jl.git"
-version = "0.7.1"
 
 [deps]
 ConstructionBase = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
@@ -31,6 +31,7 @@ StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
 Attractors = "f3fd9213-ca85-4dba-9dfd-7fc91308fec7"
 ChaosTools = "608a59af-f2a3-5ad4-90b4-758bdf3122a7"
 DelaunayTriangulation = "927a84f5-c5f4-47a5-9785-b46e178433df"
+NonlinearSolve = "8913a72c-1f9b-4ce2-8d82-65094dcecaec"
 
 [extensions]
 AttractorsExt = ["Attractors"]
@@ -49,7 +50,8 @@ Format = "1"
 Interpolations = "0.15.1, 0.16"
 IntervalArithmetic = "0.22.22, 0.23, 1"
 LinearAlgebra = "1.10"
-LinearSolve = "2.37.0, 3"
+LinearSolve = "2.37.0 - 3.47.0"
+NonlinearSolve = "< 4.11"
 Optimization = "4"
 OptimizationOptimisers = "0.3"
 Printf = "1.10"
