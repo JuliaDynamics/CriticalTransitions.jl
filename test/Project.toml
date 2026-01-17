@@ -28,7 +28,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 [compat]
 Aqua = "0.8.7"
 ExplicitImports = "1.9"
-JET = "0.9.18, 0.10"
+JET = "0.9.18, 0.10, 0.11"
 ModelingToolkit = "9.25 - 9.83"
 LinearSolve = "2.37.0 - 3.47.0"
 OptimizationOptimJL = "0.4.1"
