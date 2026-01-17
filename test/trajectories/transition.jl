@@ -21,9 +21,6 @@
 
     ensemble = transitions(sys, fp1, fp2, 10)
     stats = ensemble.stats
-    @show stats.success_rate
-    @show stats.transition_time
-    @show stats.residence_time
 
     @test stats.success_rate == 1.0
     @test stats.transition_time < 10
@@ -31,11 +28,19 @@
     @test length(ensemble.times) == 10
     @test stats.residence_time < 100
 
-    # Test warning when Nmax is reached
-    # Use very small tmax to make transitions fail
-    @test_logs (:warn, r"Maximum number of attempts.*reached") begin
-        ensemble_fail = transitions(
-            sys, fp1, fp2, 5; Nmax=3, tmax=0.01, show_progress=false
-        )
+    @testset "fitzhugh_nagumo - Nmax warning" begin
+        # Test warning when Nmax is reached
+        # Use very small tmax to make transitions fail
+        p = [1.0, 3.0, 1.0, 1.0, 1.0, 0.0] # Parameters (ϵ, β, α, γ, κ, I)
+        σ = 0.215 # noise strength
+
+        # CoupledSDEs
+        sys = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ, seed=SEED)
+
+        @test_logs (:warn, r"Maximum number of attempts.*reached") begin
+            ensemble_fail = transitions(
+                sys, fp1, fp2, 5; Nmax=3, tmax=0.01, show_progress=false
+            )
+        end
     end
 end
