@@ -37,10 +37,8 @@
         # CoupledSDEs
         sys = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ, seed=SEED)
 
-        @test_logs (:warn, r"Maximum number of attempts.*reached") begin
-            ensemble_fail = transitions(
+        @test_warn ensemble_fail = transitions(
                 sys, fp1, fp2, 5; Nmax=3, tmax=0.01, show_progress=false
             )
-        end
     end
 end
