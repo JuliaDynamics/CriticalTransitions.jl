@@ -63,10 +63,10 @@ using LinearAlgebra
     # Swap rows to match MTK's internal ordering
     x_r_swapped = [x_r[2, :]'; x_r[1, :]']
     p_r_swapped = [p_r[2, :]'; p_r[1, :]']
-    
+
     result_H_x = sys′.H_x(x_r_swapped, p_r_swapped)
     result_H_p = sys′.H_p(x_r_swapped, p_r_swapped)
-    
+
     # Swap results back to compare with manual system
     @test [result_H_x[2, :]'; result_H_x[1, :]'] ≈ sys.H_x(x_r, p_r)
     @test [result_H_p[2, :]'; result_H_p[1, :]'] ≈ sys.H_p(x_r, p_r)
