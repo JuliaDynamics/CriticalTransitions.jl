@@ -18,3 +18,5 @@ updates:
       all-julia-packages:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "CriticalTransitions"
