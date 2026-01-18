@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1768727177274,
+  "lastUpdate": 1768739762009,
   "repoUrl": "https://github.com/JuliaDynamics/CriticalTransitions.jl",
   "entries": {
     "Benchmark Results": [
@@ -556,6 +556,60 @@ window.BENCHMARK_DATA = {
           {
             "name": "Rate System/trajectory/RateSystem",
             "value": 40966,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c693a5b0747bbeeb9e63947a030a1bfc67aab2cd",
+          "message": "bump Optimization (#231)\n\n* bump Optimization\n\n* bump MTK to v10\n\n* fix(tests): adjust variable ordering for MTK v10 compatibility\n\n* style(tests): remove unnecessary blank lines in sgMAM.jl",
+          "timestamp": "2026-01-18T13:32:25+01:00",
+          "tree_id": "4f9e99e3c4c343e27e55f9813da3dc3d50412e90",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/c693a5b0747bbeeb9e63947a030a1bfc67aab2cd"
+        },
+        "date": 1768739758407,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 88401232,
+            "unit": "ns",
+            "extra": "gctime=11729852\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2243489637,
+            "unit": "ns",
+            "extra": "gctime=327740426\nmemory=4137128784\nallocs=111994292\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 674861017,
+            "unit": "ns",
+            "extra": "gctime=93458475\nmemory=2189277904\nallocs=3279124\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 58439,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40295,
             "unit": "ns",
             "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
           }
