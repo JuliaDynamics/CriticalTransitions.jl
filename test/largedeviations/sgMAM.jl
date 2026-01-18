@@ -1,6 +1,7 @@
 using CriticalTransitions
 using ModelingToolkit
 using Test
+using LinearAlgebra
 
 @testset "SgmamSystem KPO" begin
     λ = 3 / 1.21 * 2 / 295
@@ -48,7 +49,7 @@ using Test
     eqs = [D(u) ~ fu(u, v), D(v) ~ fv(u, v)]
     @named sysMTK = System(eqs, t)
     sysMTK = structural_simplify(sysMTK)
-    prob = ODEProblem(sysMTK, sts .=> zeros(2), (0.0, 100.0), (); jac=true)
+    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac=true)
     ds = CoupledODEs(prob)
 
     sys = SgmamSystem{false,2}(H_x, H_p)
@@ -58,8 +59,17 @@ using Test
     p_r = rand(2, Nt)
     x_r = rand(2, Nt)
 
-    @test sys′.H_x(x_r, p_r) ≈ sys.H_x(x_r, p_r)
-    @test sys′.H_p(x_r, p_r) ≈ sys.H_p(x_r, p_r)
+    # MTK v10+ reorders variables: unknowns are [v, u] instead of [u, v]
+    # Swap rows to match MTK's internal ordering
+    x_r_swapped = [x_r[2, :]'; x_r[1, :]']
+    p_r_swapped = [p_r[2, :]'; p_r[1, :]']
+
+    result_H_x = sys′.H_x(x_r_swapped, p_r_swapped)
+    result_H_p = sys′.H_p(x_r_swapped, p_r_swapped)
+
+    # Swap results back to compare with manual system
+    @test [result_H_x[2, :]'; result_H_x[1, :]'] ≈ sys.H_x(x_r, p_r)
+    @test [result_H_p[2, :]'; result_H_p[1, :]'] ≈ sys.H_p(x_r, p_r)
 end
 
 @testset "SgmamSystem MTK" begin
@@ -79,7 +89,7 @@ end
     ]
     @named sysMTK = System(eqs, t)
     sysMTK = structural_simplify(sysMTK)
-    prob = ODEProblem(sysMTK, sts .=> zeros(2), (0.0, 100.0), (); jac=true)
+    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac=true)
     ds = CoupledODEs(prob)
     sys = SgmamSystem(ds)
 
