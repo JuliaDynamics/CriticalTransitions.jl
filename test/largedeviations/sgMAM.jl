@@ -1,6 +1,7 @@
 using CriticalTransitions
 using ModelingToolkit
 using Test
+using LinearAlgebra
 
 @testset "ExtendedHamiltonianSystem KPO" begin
     λ = 3 / 1.21 * 2 / 295
@@ -48,7 +49,7 @@ using Test
     eqs = [D(u) ~ fu(u, v), D(v) ~ fv(u, v)]
     @named sysMTK = System(eqs, t)
     sysMTK = structural_simplify(sysMTK)
-    prob = ODEProblem(sysMTK, sts .=> zeros(2), (0.0, 100.0), (); jac=true)
+    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac=true)
     ds = CoupledODEs(prob)
 
     sys = ExtendedHamiltonianSystem{false,2}(H_x, H_p)
@@ -58,6 +59,40 @@ using Test
     p_r = rand(2, Nt)
     x_r = rand(2, Nt)
 
-    @test sys′.H_x(x_r, p_r) ≈ sys.H_x(x_r, p_r)
-    @test sys′.H_p(x_r, p_r) ≈ sys.H_p(x_r, p_r)
+    # MTK v10+ reorders variables: unknowns are [v, u] instead of [u, v]
+    # Swap rows to match MTK's internal ordering
+    x_r_swapped = [x_r[2, :]'; x_r[1, :]']
+    p_r_swapped = [p_r[2, :]'; p_r[1, :]']
+
+    result_H_x = sys′.H_x(x_r_swapped, p_r_swapped)
+    result_H_p = sys′.H_p(x_r_swapped, p_r_swapped)
+
+    # Swap results back to compare with manual system
+    @test [result_H_x[2, :]'; result_H_x[1, :]'] ≈ sys.H_x(x_r, p_r)
+    @test [result_H_p[2, :]'; result_H_p[1, :]'] ≈ sys.H_p(x_r, p_r)
+end
+
+@testset "SgmamSystem MTK" begin
+    @independent_variables t
+    D = Differential(t)
+    sts = @variables u(t) v(t)
+
+    @parameters λ = 3 / 1.21 * 2 / 295 ω0 = 1.0 ω = 1.0 γ = 1 / 295 η = 0 α = -1
+
+    eqs = [
+        D(u) ~
+        (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
+        (8 * ω),
+        D(v) ~
+        (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
+        (8 * ω),
+    ]
+    @named sysMTK = System(eqs, t)
+    sysMTK = structural_simplify(sysMTK)
+    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac=true)
+    ds = CoupledODEs(prob)
+    sys = SgmamSystem(ds)
+
+    @test sys.H_x(zeros(2), zeros(2)) ≈ zeros(2)
+    @test sys.H_p(zeros(2), zeros(2)) ≈ zeros(2)
 end

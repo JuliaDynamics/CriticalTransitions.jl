@@ -32,7 +32,7 @@ end
 end
 
 @testset "Transition Path Theory" begin
-    include("tpt.jl")
+    include("transition_path_theory.jl")
 end
 
 @testset "Utilities" begin
@@ -42,6 +42,10 @@ end
 @testset "Trajectories" begin
     include("trajectories/simulate.jl")
     include("trajectories/transition.jl")
+end
+
+@testset "R-tipping" begin
+    include("r_tipping/RateSystem.jl")
 end
 
 @testset "Extensions" begin

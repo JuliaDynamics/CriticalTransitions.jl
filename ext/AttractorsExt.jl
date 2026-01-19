@@ -2,7 +2,7 @@ module AttractorsExt
 
 using CriticalTransitions
 using Attractors: Attractors, AttractorsViaProximity, AttractorMapper
-import Attractors: edgetracking, bisect_to_edge
+import Attractors: edgetracking, bisect_to_edge, EdgeTrackingResults
 using DynamicalSystemsBase: ParallelDynamicalSystem
 
 export edgetracking, bisect_to_edge

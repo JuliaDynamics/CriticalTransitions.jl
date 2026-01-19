@@ -51,15 +51,15 @@ p = [1., 3., 1., 1., 1., 0.] # Parameters (ϵ, β, α, γ, κ, I)
 # CoupledSDE
 sys = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ)
 ```
-Here the first field `fitzhugh_nagumo` specifies the deterministic dynamics `f` (see [Define a CoupledSDEs system](@ref)). We have chosen `zeros(2)` as the initial state of the system, which is the second field. The length of this vector must match the system's dimensionality. In the (optional) third field, we specify the parameter vector `p`, which includes the parameters of `f` followed by the parameters of `g` (in this case, there are no parameters for `g`). Lastly, `noise_strength` sets the noise strength. Since we have not specified a noise process, the default case of an uncorrelated Wiener process is used.
+Here the first field `fitzhugh_nagumo` specifies the deterministic dynamics `f` (see [`CoupledSDEs`](@ref)). We have chosen `zeros(2)` as the initial state of the system, which is the second field. The length of this vector must match the system's dimensionality. In the (optional) third field, we specify the parameter vector `p`, which includes the parameters of `f` followed by the parameters of `g` (in this case, there are no parameters for `g`). Lastly, `noise_strength` sets the noise strength. Since we have not specified a noise process, the default case of an uncorrelated Wiener process is used.
 
 !!! note "Multiplicative and/or correlated noise"
-    Of course, it is also possible to define more complicated noise processes than simple additive white noise. This is done by specifying a custom *noise function* and *covariance matrix* in the `CoupledSDEs` definition. For more info, see [Define a CoupledSDEs system](@ref).
+    Of course, it is also possible to define more complicated noise processes than simple additive white noise. This is done by specifying a custom *noise function* and *covariance matrix* in the `CoupledSDEs` definition. For more info, see [`CoupledSDEs`](@ref).
 
 That's it! Now we can apply the toolbox of `CriticalTransitions` to our stochastic FitzHugh-Nagumo system `sys`.
 
 ### Find stable equilibria
-For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let's compute the fixed points using the [`fixedpoints`](https://juliadynamics.github.io/CriticalTransitions.jl/dev/man/systemanalysis/#ChaosTools.fixedpoints) function. This function is borrowed from ChaosTools.jl and is loaded as an extension when we write `using ChaosTools`.
+For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let's compute the fixed points using the [`ChaosTools.fixedpoints`](@ref) function. This function is borrowed from ChaosTools.jl and is loaded as an extension when we write `using ChaosTools`.
 
 ```@example MAIN
 using ChaosTools
@@ -69,10 +69,10 @@ fp1, fp2 = eqs[stab]
 ```
 
 ### Stochastic simulation
-Using the [`trajectory`](@ref) function, we now run a simulation of our system for `100` time units starting out from the fixed point `fp1`:
+Using the [`trajectory`](@ref) function, we now run a simulation of our system for `200` time units starting out from the fixed point `fp1`:
 
 ```@example MAIN
-sim = trajectory(sys, 100, fp1)
+sim = trajectory(sys, 200, fp1)
 ```
 
 In the keyword arguments, we have specified at which interval the solution is saved. Further keyword arguments can be used to change the solver (the default is `SOSRA()` for stochastic integration) and other settings.

@@ -1,27 +1,81 @@
-# Quickstart
+# Getting started
 
 ## Installation
-Although the package is not yet registered, you can install it from Github via the Julia package manager:
+> To install the Julia language, we recommend [juliaup](https://github.com/JuliaLang/juliaup).
+
+`CriticalTransitions` is a registered Julia package (as of `v0.7`) and can be installed with the Julia package manager:
+
+```console
+julia> ]
+Pkg>   add CriticalTransitions
+```
+or 
+
 ```julia
-using Pkg; Pkg.add('https://github.com/juliadynamics/CriticalTransitions.jl.git')
+using Pkg; Pkg.add("CriticalTransitions")
 ```
 
-The package is currently tested to be compatible with Julia versions `1.10` and `1.11`.
+The package is currently tested to be compatible with Julia versions `1.10-1.12`.
 
 ## Basic usage
-The general workflow of `CriticalTransitions` essentially follows two steps:
+The general workflow of CriticalTransitions.jl consists of two steps, similar to DynamicalSystems.jl:
 
-1. Define your system as a `CoupledSDEs` (see [Define a CoupledSDEs system](@ref))
-2. Investigate the system by calling methods (see [Methods](@ref))
+1. Define your dynamical system (see [Defining a forced dynamical system](@ref))
+2. Investigate the system by calling methods (see [Index](@ref))
 
-!!! info "New system type: RateSystem"
-    We are planning to introduce the the struct `RateSystem` along `CoupledSDEs`. In a `RateSystem`, the time dependence of parameters can conveniently be specified, laying the foundation for a toolbox to study rate-induced tipping, or R-tipping.
+Some methods are only loaded as extensions when loading other dependency packages (see [Extensions](@ref)).
 
-## Methods
+## Documentation
+The [Tutorial](@ref) and code examples in the *Examples* section illustrate some use cases of the package. All available methods and types are documented in the *Manual* section (see [Index](@ref) for an overview).
 
-Currently the following functions are implemented to analyze a [`CoupledSDEs`](@ref) and 
-corresponding sample transition paths.
+## Index
+A quick overview of available features:
 
+**Defining a system and its forcing**
+- [`DynamicalSystemsBase.CoupledODEs`](@ref)
+- [`DynamicalSystemsBase.CoupledSDEs`](@ref) (alias for `StochSystem`)
+- [`CriticalTransitions.RateSystem`](@ref)
+- [`CriticalTransitions.ForcingProfile`](@ref)
+
+**System analysis and simulation**
 ```@index
-Pages = ["man/systemanalysis.md", "man/simulation.md", "man/sampling.md", "man/largedeviations.md", "man/utils.md"]
+Pages = ["man/systemanalysis.md", "man/simulation.md"]
+```
+
+**Stochastic dynamics: Transition path sampling, large deviation theory**
+```@index
+Pages = ["man/sampling.md", "man/largedeviations.md"]
+```
+
+**Nonautonomous dynamics: Rate-induced tipping** 
+```@index
+Pages = ["man/r-tipping.md"]
+```
+
+**More**
+```@index
+Pages = ["man/utils.md"]
+```
+
+## Extensions
+- Loading the `ChaosTools` dependency makes the functions [`fixedpoints`](@ref) and [`intervals_to_box`](@ref) available.
+
+```julia
+using CriticalTransitions
+using ChaosTools
+
+# Now the following functions are available
+fixedpoints()
+intervals_to_box()
+```
+
+- Loading the `Attractors` dependency makes the functions [`edgetracking`](@ref) and [`bisect_to_edge`](@ref) available.
+
+```julia
+using CriticalTransitions
+using Attractors
+
+# Now the following functions are available
+edgetracking()
+bisect_to_edge()
 ```

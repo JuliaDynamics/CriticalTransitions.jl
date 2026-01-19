@@ -1,14 +1,4 @@
-# Define a CoupledSDEs system
-
-```@docs
-CoupledSDEs
-```
-
-!!! info
-    Note that nonlinear mixings of the Noise Process $\mathcal{W}$ fall into the class of random ordinary differential equations (RODEs) which have a separate set of solvers. See [this example](https://docs.sciml.ai/DiffEqDocs/stable/tutorials/rode_example/) of DifferentialEquations.jl.
-
-
-## [Examples: Defining stochastic dynamics](@id defining-stochastic-dynamics)
+# [Examples: Defining stochastic dynamics](@id defining-stochastic-dynamics)
 
 Let's look at some examples of the different types of stochastic systems that can be defined.
 
@@ -30,7 +20,7 @@ function plot_trajectory(Y, t)
 end;
 ```
 
-### Additive noise
+## Additive noise
 When $g(u, p, t)$ is independent of the state $u$, the noise is called additive; otherwise, it is multiplicative.
 We can define a simple additive noise system as follows:
 ```@example type
@@ -52,7 +42,7 @@ tr = trajectory(sde, 1.0)
 plot_trajectory(tr...)
 ```
 
-#### Correlated noise
+### Correlated noise
 In the case of correlated noise, the random numbers in a vector increment `dW` are correlated. This can be achieved by specifying the covariance matrix $\Sigma$ via the `covariance` keyword:
 ```@example type
 ρ = 0.3
@@ -67,7 +57,7 @@ sde = CoupledSDEs(f!, zeros(2), (ρ); g=g!, noise_prototype=zeros(2, 2))
 ```
 Here, we had to provide `noise_prototype` to indicate that the diffusion function `g` will output a 2x2 matrix.
 
-#### Scalar noise
+### Scalar noise
 If all state variables are forced by the same single random variable, we have scalar noise.
 To define scalar noise, one has to give an one-dimensional noise process to the `noise_process` keyword of the `CoupledSDEs` constructor. 
 ```@example type
@@ -80,7 +70,7 @@ plot_trajectory(tr...)
 ```
 We can see that noise applied to each variable is the same.
 
-### Multiplicative and time-dependent noise
+## Multiplicative and time-dependent noise
 In the SciML ecosystem, multiplicative noise is defined through the condition $g_i(t, u)=a_i u$. However, in the literature the name is more broadly used for any situation where the noise is non-additive and depends on the state $u$, possibly also in a non-linear way. When defining a `CoupledSDEs`, we can make the noise term time- and state-dependent by specifying an explicit time- or state-dependence in the noise function `g`, just like we would define `f`. For example, we can define a system with temporally decreasing multiplicative noise as follows:
 ```@example type
 function g!(du, u, p, t)
@@ -90,7 +80,7 @@ end
 sde = CoupledSDEs(f!, rand(2)./10; g=g!)
 ```
 
-#### Non-diagonal noise
+### Non-diagonal noise
 Non-diagonal noise allows for the terms to be linearly mixed (correlated) via `g` being a matrix. Suppose we have two Wiener processes and two state variables such that the output of `g` is a 2x2 matrix. Therefore, we have
 ```math
 du_1 = f_1(u,p,t)dt + g_{11}(u,p,t)dW_1 + g_{12}(u,p,t)dW_2 \\
@@ -113,40 +103,3 @@ sde = CoupledSDEs(f!, rand(2)./10; g=g!, noise_prototype = zeros(2, 2), diffeq =
 
 !!! warning
     Non-diagonal problems need specific solvers. See the [SciML recommendations](https://docs.sciml.ai/DiffEqDocs/stable/solvers/sde_solve/#sde_solve).
-
-## Interface to `DynamicalSystems.jl`
-#### Converting between `CoupledSDEs` and `CoupledODEs`
-
-!!! tip "Analyzing deterministic dynamics with DynamicalSystems.jl"
-    The deterministic part of a [`CoupledSDEs`](@ref) system can easily be extracted as a 
-    [`CoupledODEs`](https://juliadynamics.github.io/DynamicalSystems.jl/dev/tutorial/#DynamicalSystemsBase.CoupledODEs), a common subtype of a `ContinuousTimeDynamicalSystem` in DynamicalSystems.jl.
-
-- `CoupledODEs(sde::CoupledSDEs)` extracts the deterministic part of `sde` as a `CoupledODEs`.
-- `CoupledSDEs(ode::CoupledODEs; kwargs)` turns `ode` into a `CoupledSDEs`.
-
-```@docs
-CoupledODEs
-```
-For example, the
-Lyapunov spectrum of a `CoupledSDEs` in the absence of noise, here exemplified by the
-FitzHugh-Nagumo model, can be computed by typing:
-
-```julia
-using CriticalTransitions
-using DynamicalSystems: lyapunovspectrum
-
-function fitzhugh_nagumo(u, p, t)
-    x, y = u
-    ϵ, β, α, γ, κ, I = p
-
-    dx = (-α * x^3 + γ * x - κ * y + I) / ϵ
-    dy = -β * y + x
-
-    return SA[dx, dy]
-end
-
-p = [1.,3.,1.,1.,1.,0.]
-
-sys = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=0.1)
-ls = lyapunovspectrum(CoupledODEs(sys), 10000)
-```

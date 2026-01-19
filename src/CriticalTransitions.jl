@@ -15,11 +15,17 @@ using DynamicalSystemsBase:
     CoupledSDEs,
     CoupledODEs,
     dynamic_rule,
+    initial_state,
     current_state,
     set_state!,
     trajectory,
     jacobian,
-    ContinuousTimeDynamicalSystem
+    ContinuousTimeDynamicalSystem,
+    initial_parameters,
+    current_parameter,
+    current_parameters,
+    initial_time
+
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq
@@ -32,7 +38,8 @@ using LinearSolve: LinearProblem, KLUFactorization, solve
 # io and documentation
 using Format: Format
 using Printf: Printf
-using DocStringExtensions: TYPEDSIGNATURES, TYPEDEF, TYPEDFIELDS, METHODLIST
+using DocStringExtensions:
+    TYPEDSIGNATURES, TYPEDEF, TYPEDFIELDS, METHODLIST, DocStringExtensions
 using ProgressMeter: Progress, next!
 
 # reexport
@@ -48,13 +55,6 @@ include("trajectories/TransitionEnsemble.jl")
 include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 
-include("transition_path_theory/TransitionPathMesh.jl")
-include("transition_path_theory/langevin.jl")
-include("transition_path_theory/committor.jl")
-include("transition_path_theory/invariant_pdf.jl")
-include("transition_path_theory/reactive_current.jl")
-include("transition_path_theory/probability.jl")
-
 include("largedeviations/utils.jl")
 include("largedeviations/action.jl")
 include("largedeviations/MinimumActionPath.jl")
@@ -63,6 +63,17 @@ include("largedeviations/geometric_min_action_method.jl")
 
 include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
+
+include("r_tipping/ForcingProfile.jl")
+include("r_tipping/RateSystem.jl")
+
+# Experimental features
+include("experimental/transition_path_theory/TransitionPathMesh.jl")
+include("experimental/transition_path_theory/langevin.jl")
+include("experimental/transition_path_theory/committor.jl")
+include("experimental/transition_path_theory/invariant_pdf.jl")
+include("experimental/transition_path_theory/reactive_current.jl")
+include("experimental/transition_path_theory/probability.jl")
 
 include("../systems/CTLibrary.jl")
 using .CTLibrary
@@ -80,13 +91,9 @@ export MinimumActionPath
 export deterministic_orbit
 export transition, transitions
 
-export distmesh2D, dellipse, ddiff
-export TransitionPathMesh, Committor
-export get_ellipse, reparameterization
-export find_boundary, huniform, dunion
-
-export committor,
-    invariant_pdf, reactive_current, probability_reactive, probability_last_A, Langevin
+export ForcingProfile, RateSystem
+export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
+export frozen_system, parameters
 
 # Error hint for extensions stubs
 function __init__()

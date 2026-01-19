@@ -16,12 +16,13 @@ struct ExtendedHamiltonianSystem{IIP,D,Hx,Hp}
 
         f = dynamic_rule(ds)
         jac = jacobian(ds)
+        param=current_parameters(ds)
 
         function H_x(x, p) # ℜ² → ℜ²
             Hx = similar(x)
 
             for idx in 1:size(x, 2)
-                jax = jac(x[:, idx], (), 0.0)
+                jax = jac(x[:, idx], param, 0.0)
                 for idc in 1:size(x, 1)
                     Hx[idc, idx] = dot(jax[:, idc], p[:, idx])
                 end
@@ -32,7 +33,7 @@ struct ExtendedHamiltonianSystem{IIP,D,Hx,Hp}
             Hp = similar(x)
 
             for idx in 1:size(x, 2)
-                Hp[:, idx] = p[:, idx] + f(x[:, idx], ds.p0, 0.0)
+                Hp[:, idx] = p[:, idx] + f(x[:, idx], param, 0.0)
             end
             return Hp
         end

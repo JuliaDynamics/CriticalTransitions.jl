@@ -1,5 +1,25 @@
 # Changelog for `CriticalTransitions.jl`
 
+## v0.7.0
+New `RateSystem` type
+
+Introduced the following new types:
+- `RateSystem`
+- `ForcingProfile`
+- `RateSystemSpecs` (behind the scenes data structure; not exported)
+
+... along with several interface methods.
+
+Several small other changes and revised docs. Full changelog [here](https://github.com/JuliaDynamics/CriticalTransitions.jl/compare/v0.6.0...v0.7.0).
+
+## v0.6.0
+New features and examples
+
+- Several breaking changes due to renaming of functions and types.
+- Functionality on transition path theory has been revised. Associated functions are not automatically exported but can be accessed by loading them explicitly.
+
+Full changelog [here](https://github.com/JuliaDynamics/CriticalTransitions.jl/compare/v0.5.0...v0.6.0).
+
 ## v0.5.0
 Package clean-up
 

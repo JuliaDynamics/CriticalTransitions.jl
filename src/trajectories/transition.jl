@@ -119,27 +119,48 @@ function transitions(
         sys, (x_i, x_f), radii, radius_directions, tmax
     )
 
+    lock = ReentrantLock()
     tries = 0
     success = 0
     function output_func(sol, i)
-        rerun = sol.retcode != SciMLBase.ReturnCode.Terminated && i < Nmax
-        tries += 1
-        !rerun && (success += 1)
-        if !rerun && cut_start
+        Base.lock(lock)
+        try
+            tries += 1
+            if sol.retcode == SciMLBase.ReturnCode.Terminated
+                success += 1
+            end
+        finally
+            Base.unlock(lock)
+        end
+
+        if cut_start && sol.retcode == SciMLBase.ReturnCode.Terminated
             sol = remove_start(sol, x_i, radii[1])
         end
-        return (sol, rerun)
+        return (sol, false)  # Never rerun, we control attempts via Nmax
     end
 
     seed = sys.integ.sol.prob.seed
     function prob_func(prob, i, repeat)
-        return remake(prob; seed=rand(Random.MersenneTwister(seed + i + repeat), UInt32))
+        return remake(
+            prob;
+            seed=rand(Random.MersenneTwister(seed + i + repeat), UInt32),
+            tspan=(0, tmax),
+        )
     end
 
     ensemble = SciMLBase.EnsembleProblem(prob; output_func=output_func, prob_func=prob_func)
     sim = solve(
-        ensemble, solver(sys), EnsembleAlg; callback=cb_ball, trajectories=N, kwargs...
+        ensemble,
+        solver(sys),
+        EnsembleAlg;
+        callback=cb_ball,
+        trajectories=min(N, Nmax),
+        kwargs...,
     )
+
+    if success < N
+        @warn "Maximum number of attempts (Nmax=$Nmax) reached before generating $N transitions. Only $success transitions were successful out of $tries attempts."
+    end
 
     return TransitionEnsemble(sim, success / tries)
 end;

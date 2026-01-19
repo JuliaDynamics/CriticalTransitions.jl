@@ -2,7 +2,7 @@
 EditURL = "../../../examples/gMAM_Maierstein.jl"
 ```
 
-# The Maier-Stein model.
+# Example: Large deviations in the Maier-Stein model
 
 ````@example gMAM_Maierstein
 using CriticalTransitions
@@ -18,7 +18,7 @@ font = (;
 nothing #hide
 ````
 
-Let us explore the features of [CriticalTransitions.jl](https://github.com/JuliaDynamics/CriticalTransitions.jl) with the Maier-Stein model.
+Let us explore the features of [CriticalTransitions.jl](https://github.com/JuliaDynamics/CriticalTransitions.jl) with Maier-Stein model.
 
 ## Maier-stein model
 
