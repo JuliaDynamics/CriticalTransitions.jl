@@ -1,9 +1,11 @@
 """
-A structure representing a system with Hamiltonian functions H_x and H_p.
+A structure representing a extanded phase space system where your dissipative vector field is embedded in a doubled dimensional phase space. Given old phase space coordinates `x` of a vector field `f(x)`, we can define the canonical momenta `p`, such that the new phase space coordinates are `(x, p)`. The dynamics in this extended phase space are then governed by the Hamtiltonian system:
 
-This system operates in an extended phase space where the Hamiltonian is assumed to be
-quadratic in the extended momentum. The phase space coordinates `x` are doubled to
-form a 2n-dimensional extended phase space.
+``H = p^2 + x \\dot f(x)``
+
+Hence, this system operates in an extended phase space where the Hamiltonian is assumed to be quadratic in the extended momentum.
+
+The struct `ExtendedPhaseSpace` holds the Hamilton's functions `H_x` and `H_p`.
 """
 struct ExtendedPhaseSpace{IIP,D,Hx,Hp}
     H_x::Hx
