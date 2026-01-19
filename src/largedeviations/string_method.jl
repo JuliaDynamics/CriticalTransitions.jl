@@ -8,7 +8,7 @@ The string method is an iterative algorithm used to find minimum energy path (ME
 This implementation allows for computation between arbitrary points, not just stable fixed points.
 
 # Arguments
-- `sys::ExtendedHamiltonianSystem`: The doubled phase space system for which the string method is computed
+- `sys::ExtendedPhaseSpace`: The doubled phase space system for which the string method is computed
 - `x_initial`: Initial path discretized as a matrix where each column represents a point on the path
 - `ϵ::Real`: Step size for the evolution step
 - `iterations::Int64`: Maximum number of iterations for path convergence
@@ -18,7 +18,7 @@ This implementation allows for computation between arbitrary points, not just st
 - `x`: The final converged path representing the MEP
 """
 function string_method(
-    sys::Union{ExtendedHamiltonianSystem,Function},
+    sys::Union{ExtendedPhaseSpace,Function},
     x_initial::Matrix;
     ϵ::Real=1e-1,
     iterations::Int64=1000,
@@ -68,7 +68,7 @@ function string_method(sys::ContinuousTimeDynamicalSystem, init; kwargs...)
 end
 
 function string_method(
-    b::Union{ExtendedHamiltonianSystem,Function},
+    b::Union{ExtendedPhaseSpace,Function},
     x_initial::StateSpaceSet{D};
     ϵ::Real=1e-1,
     iterations::Int64=1000,
@@ -90,10 +90,10 @@ function string_method(
     return x
 end
 
-function update_x!(x::Matrix, sys::ExtendedHamiltonianSystem, ϵ::Real)
+function update_x!(x::Matrix, sys::ExtendedPhaseSpace, ϵ::Real)
     return x += ϵ * sys.H_p(x, 0 * x) # euler integration
 end
-function update_x!(x::StateSpaceSet, sys::ExtendedHamiltonianSystem, ϵ::Real)
+function update_x!(x::StateSpaceSet, sys::ExtendedPhaseSpace, ϵ::Real)
     return x += ϵ .* vec(sys.H_p(x, 0 * Matrix(x))) # euler integration
 end
 function update_x!(x::StateSpaceSet, b::Function, ϵ::Real)

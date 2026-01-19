@@ -3,7 +3,7 @@ using ModelingToolkit
 using Test
 using LinearAlgebra
 
-@testset "ExtendedHamiltonianSystem KPO" begin
+@testset "ExtendedPhaseSpace KPO" begin
     λ = 3 / 1.21 * 2 / 295
     ω0 = 1.000
     ω = 1.000
@@ -52,8 +52,8 @@ using LinearAlgebra
     prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac=true)
     ds = CoupledODEs(prob)
 
-    sys = ExtendedHamiltonianSystem{false,2}(H_x, H_p)
-    sys′ = ExtendedHamiltonianSystem(ds)
+    sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
+    sys′ = ExtendedPhaseSpace(ds)
 
     Nt = 500  # number of discrete time steps
     p_r = rand(2, Nt)
@@ -72,7 +72,7 @@ using LinearAlgebra
     @test [result_H_p[2, :]'; result_H_p[1, :]'] ≈ sys.H_p(x_r, p_r)
 end
 
-@testset "SgmamSystem MTK" begin
+@testset "ExtendedPhaseSpace MTK" begin
     @independent_variables t
     D = Differential(t)
     sts = @variables u(t) v(t)
@@ -91,7 +91,7 @@ end
     sysMTK = structural_simplify(sysMTK)
     prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac=true)
     ds = CoupledODEs(prob)
-    sys = SgmamSystem(ds)
+    sys = ExtendedPhaseSpace(ds)
 
     @test sys.H_x(zeros(2), zeros(2)) ≈ zeros(2)
     @test sys.H_p(zeros(2), zeros(2)) ≈ zeros(2)

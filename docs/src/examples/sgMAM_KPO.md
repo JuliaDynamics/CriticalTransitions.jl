@@ -63,10 +63,10 @@ function H_p(x, p) # ℜ² → ℜ²
     return Matrix([H_pu H_pv]')
 end
 
-sys = ExtendedHamiltonianSystem{false,2}(H_x, H_p)
+sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
 ````
 
-We saved this function in the `ExtendedHamiltonianSystem` struct. We want to find the optimal path between two attractors in the phase space. We define the initial trajectory as `wiggle` between the two attractors.
+We saved this function in the `ExtendedPhaseSpace` struct. We want to find the optimal path between two attractors in the phase space. We define the initial trajectory as `wiggle` between the two attractors.
 
 ````@example sgMAM_KPO
 Nt = 500  # number of discrete time steps

@@ -50,7 +50,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         return StateSpaceSet([H_pu H_pv])
     end
 
-    sys_sss = ExtendedHamiltonianSystem{false,2}(H_x, H_p)
+    sys_sss = ExtendedPhaseSpace{false,2}(H_x, H_p)
 
     x_init_sss = StateSpaceSet([xx yy])
 
@@ -75,7 +75,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         return Matrix([H_pu H_pv]')
     end
 
-    sys_m = ExtendedHamiltonianSystem{false,2}(H_x, H_p)
+    sys_m = ExtendedPhaseSpace{false,2}(H_x, H_p)
 
     x_init_m = Matrix([xx yy]')
 

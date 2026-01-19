@@ -37,7 +37,7 @@ function benchmark_KPO!(SUITE)
         return Matrix([H_pu H_pv]')
     end
 
-    sys = SgmamSystem{false,2}(H_x, H_p)
+    sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
 
     Nt = 100  # number of discrete time steps
     s = collect(range(0; stop=1, length=Nt))
