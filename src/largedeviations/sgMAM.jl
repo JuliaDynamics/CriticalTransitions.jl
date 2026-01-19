@@ -107,8 +107,12 @@ end
 function simple_geometric_min_action_method(sys, x_initial::StateSpaceSet; kwargs...)
     return simple_geometric_min_action_method(sys, Matrix(Matrix(x_initial)'); kwargs...)
 end
-function simple_geometric_min_action_method(sys::ContinuousTimeDynamicalSystem, x_initial::Matrix{<:Real}; kwargs...)
-    return simple_geometric_min_action_method(ExtendedHamiltonianSystem(sys), Matrix(Matrix(x_initial)'); kwargs...)
+function simple_geometric_min_action_method(
+    sys::ContinuousTimeDynamicalSystem, x_initial::Matrix{<:Real}; kwargs...
+)
+    return simple_geometric_min_action_method(
+        ExtendedHamiltonianSystem(sys), Matrix(Matrix(x_initial)'); kwargs...
+    )
 end
 
 function init_allocation(x_initial, Nt)

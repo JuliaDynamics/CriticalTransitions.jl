@@ -72,7 +72,9 @@ x_initial = Matrix([xx yy]')
 
 # The optimisation is the performed by the `simple_geometric_min_action_method` function:
 
-MLP = simple_geometric_min_action_method(sys, x_initial; iterations=1_000, ϵ=10e2, show_progress=false)
+MLP = simple_geometric_min_action_method(
+    sys, x_initial; iterations=1_000, ϵ=10e2, show_progress=false
+)
 x_min = MLP.path;
 
 # The function returns the optimal path `x_min`, the minimal action `S_min`, the Lagrange multipliers `lambda` associated with the optimal path, the optimal generalised momentum `p`, and the time derivative of the optimal path `xdot`. We can plot the initial trajectory and the optimal path:
