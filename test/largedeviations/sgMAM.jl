@@ -47,8 +47,7 @@ using LinearAlgebra
     sts = @variables u(t) v(t)
 
     eqs = [D(u) ~ fu(u, v), D(v) ~ fv(u, v)]
-    @named sysMTK = System(eqs, t)
-    sysMTK = structural_simplify(sysMTK)
+    @mtkcompile sysMTK = System(eqs, t)
     prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac=true)
     ds = CoupledODEs(prob)
 
@@ -87,8 +86,7 @@ end
         (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
         (8 * ω),
     ]
-    @named sysMTK = System(eqs, t)
-    sysMTK = structural_simplify(sysMTK)
+    @mtkcompile sysMTK = System(eqs, t)
     prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac=true)
     ds = CoupledODEs(prob)
     sys = SgmamSystem(ds)
