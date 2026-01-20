@@ -31,7 +31,7 @@ min_action_method
 ```
 
 ### Geometric minimum action method (gMAM)
-Minimization of the geometric action following [heymann_geometric_2008, heymann_pathways_2008](@citet). gMAM reformulates MAM to avoid double optimization of both the action and the transition time. It achieves this by using a [geometric action](@ref "Geometric Freidlin-Wentzell action") functional that is independent of the time parametrization of the path. This reparameterization invariance makes the method more robust and computationally efficient, particularly for multiscale systems.
+Minimization of the geometric action following [heymann_pathways_2008, heymann_geometric_2008](@citet). gMAM reformulates MAM to avoid double optimization of both the action and the transition time. It achieves this by using a [geometric action](@ref "Geometric Freidlin-Wentzell action") functional that is independent of the time parametrization of the path. This reparameterization invariance makes the method more robust and computationally efficient, particularly for multiscale systems.
 
 ```@docs
 geometric_min_action_method

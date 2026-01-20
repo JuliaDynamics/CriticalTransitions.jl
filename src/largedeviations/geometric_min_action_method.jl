@@ -14,19 +14,17 @@ To set an initial path different from a straight line, see the multiple dispatch
   - `maxiter::Int=100`: maximum number of optimization iterations before the algorithm stops
   - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
   - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
-  - `method = Adam()`: minimization algorithm (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
+  - `method = Adam()`: minimization algorithm (see below)
   - `=0.1`: step size parameter in gradient descent HeymannVandenEijnden implementation.
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
-## Optimization algorithms
+## Minimization algorithms
 
 The `method` keyword argument takes solver methods of the
 [`Optimization.jl`](https://docs.sciml.ai/Optimization/) package; alternatively,
-the option `solver = "HeymannVandenEijnden"` uses the original gMAM
-algorithm[^1].
-
-[^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
+the option `method = "HeymannVandenEijnden"` implements the original gMAM
+algorithm [heymann_pathways_2008](@cite).
 """
 function geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem, x_i, x_f; N=100, kwargs...
