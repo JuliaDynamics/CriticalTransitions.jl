@@ -55,6 +55,6 @@ end
 if isempty(VERSION.prerelease)
     @testset "Code linting" begin
         using JET
-        JET.test_package(CriticalTransitions; target_defined_modules=true)
+        JET.test_package(CriticalTransitions; target_modules=(CriticalTransitions,))
     end
 end
