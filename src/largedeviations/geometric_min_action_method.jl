@@ -2,8 +2,9 @@
 $(TYPEDSIGNATURES)
 
 Computes the minimizer of the geometric Freidlin-Wentzell action based on the geometric
-minimum action method (gMAM), using optimizers of OPtimization.jl or the original formulation
-by Heymann and Vanden-Eijnden[^1]. Only Freidlin-Wentzell action has a geometric formulation.
+minimum action method (gMAM), using optimizers of Optimization.jl or the original formulation
+by Heymann and Vanden-Eijnden [heymann_pathways_2008](@citet). Only the Freidlin-Wentzell action
+has a geometric formulation.
 
 To set an initial path different from a straight line, see the multiple dispatch method
 
@@ -15,7 +16,7 @@ To set an initial path different from a straight line, see the multiple dispatch
   - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
   - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
   - `method = Adam()`: minimization algorithm (see below)
-  - `=0.1`: step size parameter in gradient descent HeymannVandenEijnden implementation.
+  - `ϵ=0.1`: step size parameter in gradient descent HeymannVandenEijnden implementation
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
@@ -99,14 +100,17 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `L`.
+Solves eq. (6) of [heymann_pathways_2008](@citet) for an initial `path` with `N` points and
+arclength `L`.
 
 ## Keyword arguments
 
   - `tau = 0.1`: step size
   - `diff_order = 4`: order of the finite differencing along the path. Either `2` or `4`.
 
-[^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
+## References
+
+- [heymann_pathways_2008](@cite)
 """
 function heymann_vandeneijnden_step(
     sys::ContinuousTimeDynamicalSystem, path, N; tau=0.1, diff_order=4

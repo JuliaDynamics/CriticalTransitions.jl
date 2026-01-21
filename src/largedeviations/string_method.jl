@@ -1,11 +1,15 @@
 """
     $(TYPEDSIGNATURES)
 
-Compute the string method for a given system using [E et al. (2007)](https://doi.org/10.1063/1.2720838).
+Compute the string method for a given system using the method of [e_string_2007](@citet).
 
 The string method is an iterative algorithm used to find minimum energy path (MEP) between two points in phase space. It works by evolving a discretized path (string) according to the system's drift while maintaining equal arc-length parametrization between points.
 
 This implementation allows for computation between arbitrary points, not just stable fixed points.
+
+## References
+
+- [e_string_2007](@cite)
 
 # Arguments
 - `sys::ExtendedPhaseSpace`: The doubled phase space system for which the string method is computed
@@ -46,11 +50,15 @@ end
 """
     $(TYPEDSIGNATURES)
 
-Compute the string method for a given system using [E et al. (2007)](https://doi.org/10.1063/1.2720838).
+Compute the string method for a given system using the method of [e_string_2007](@citet).
 
 The string method is an iterative algorithm used to find minimum energy path (MEP) between two points in phase space. It works by evolving a discretized path (string) according to the system's drift while maintaining equal arc-length parametrization between points.
 
 This implementation allows for computation between arbitrary points, not just stable fixed points.
+
+## References
+
+- [e_string_2007](@cite)
 
 # Arguments
 - `sys::CoupledSDEs`: The system for which the string method is computed

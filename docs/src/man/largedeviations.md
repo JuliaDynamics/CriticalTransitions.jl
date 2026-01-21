@@ -78,7 +78,7 @@ action
 ```
 
 ## String method
-The string method is a technique for finding transition paths between two states in a dynamical system. The method represents the path as a "string" of points that connects the states and evolves it to minimize the drift along the path. The resulting tangent path is parallel to the drift of the system, i.e., the string method computes the heteroclinic orbit. For non-gradient systems (detailed -balance is broken), the heteroclinic orbit differs from the transition path, it does correctly predict, it correctly captures the deterministic dynamics from the saddle point onward ("downhill" portion of the path).
+The string method is a technique for finding transition paths between two states in a dynamical system [e_string_2007](@citet). The method represents the path as a "string" of points that connects the states and evolves it to minimize the drift along the path. The resulting tangent path is parallel to the drift of the system, i.e., the string method computes the heteroclinic orbit. For non-gradient systems (detailed -balance is broken), the heteroclinic orbit differs from the transition path, it does correctly predict, it correctly captures the deterministic dynamics from the saddle point onward ("downhill" portion of the path).
 ```@docs
 string_method
 ```
