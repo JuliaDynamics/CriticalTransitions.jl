@@ -83,13 +83,14 @@ function simple_geometric_min_action_method(
     Nx, Nt = size(x_initial)
     s = range(0; stop=1, length=Nt)
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
+    xdotdot = zeros(size(xdot))
 
     S = CircularBuffer{T}(2)
     fill!(S, Inf)
 
     progress = Progress(iterations; dt=0.5, enabled=show_progress)
     for i in 1:iterations
-        update!(x, xdot, p, pdot, lambda, H_x, H_p, ϵ)
+        update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ)
 
         # reparameterize to arclength
         interpolate_path!(x, alpha, s)
@@ -128,7 +129,7 @@ function init_allocation(x_initial, Nt)
     return x, p, pdot, xdot, lambda, alpha
 end
 
-function update!(x, xdot, p, pdot, lambda, H_x, H_p, ϵ)
+function update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ)
     central_diff!(xdot, x)
 
     update_p!(p, lambda, x, xdot, H_p)
@@ -137,7 +138,6 @@ function update!(x, xdot, p, pdot, lambda, H_x, H_p, ϵ)
     Hx = H_x(x, p)
 
     # implicit update
-    xdotdot = zeros(size(xdot))
     central_diff!(xdotdot, xdot)
 
     return update_x!(x, lambda, pdot, xdotdot, Hx, ϵ)
