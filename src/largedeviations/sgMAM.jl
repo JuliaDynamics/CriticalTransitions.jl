@@ -1,15 +1,17 @@
 """
-A structure representing a system with Hamiltonian functions H_x and H_p.
+A structure representing a extanded phase space system where your dissipative vector field is embedded in a doubled dimensional phase space. Given old phase space coordinates `x` of a vector field `f(x)`, we can define the canonical momenta `p`, such that the new phase space coordinates are `(x, p)`. The dynamics in this extended phase space are then governed by the Hamtiltonian system:
 
-This system operates in an extended phase space where the Hamiltonian is assumed to be
-quadratic in the extended momentum. The phase space coordinates `x` are doubled to
-form a 2n-dimensional extended phase space.
+``H = p^2 + x \\dot f(x)``
+
+Hence, this system operates in an extended phase space where the Hamiltonian is assumed to be quadratic in the extended momentum.
+
+The struct `ExtendedPhaseSpace` holds the Hamilton's functions `H_x` and `H_p`.
 """
-struct SgmamSystem{IIP,D,Hx,Hp}
+struct ExtendedPhaseSpace{IIP,D,Hx,Hp}
     H_x::Hx
     H_p::Hp
 
-    function SgmamSystem(ds::ContinuousTimeDynamicalSystem)
+    function ExtendedPhaseSpace(ds::ContinuousTimeDynamicalSystem)
         if ds isa CoupledSDEs
             proper_sgMAM_system(ds)
         end
@@ -39,16 +41,16 @@ struct SgmamSystem{IIP,D,Hx,Hp}
         end
         return new{isinplace(ds),dimension(ds),typeof(H_x),typeof(H_p)}(H_x, H_p)
     end
-    function SgmamSystem{IIP,D}(H_x::Function, H_p::Function) where {IIP,D}
+    function ExtendedPhaseSpace{IIP,D}(H_x::Function, H_p::Function) where {IIP,D}
         return new{IIP,D,typeof(H_x),typeof(H_p)}(H_x, H_p)
     end
 end
 
-function prettyprint(mlp::SgmamSystem{IIP,D}) where {IIP,D}
+function prettyprint(mlp::ExtendedPhaseSpace{IIP,D}) where {IIP,D}
     return "Doubled $D-dimensional phase space containing $(IIP ? "in-place" : "out-of-place") functions"
 end
 
-Base.show(io::IO, mlp::SgmamSystem) = print(io, prettyprint(mlp))
+Base.show(io::IO, mlp::ExtendedPhaseSpace) = print(io, prettyprint(mlp))
 
 """
 $(TYPEDSIGNATURES)
@@ -68,8 +70,8 @@ the Lagrange multipliers, the momentum, and the state derivatives. The implement
 based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html.
 ).
 """
-function sgmam(
-    sys::SgmamSystem,
+function simple_geometric_min_action_method(
+    sys::ExtendedPhaseSpace,
     x_initial::Matrix{T};
     ϵ::Real=1e-1,
     iterations::Int64=1000,
@@ -104,11 +106,15 @@ function sgmam(
         StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
     )
 end
-function sgmam(sys, x_initial::StateSpaceSet; kwargs...)
-    return sgmam(sys, Matrix(Matrix(x_initial)'); kwargs...)
+function simple_geometric_min_action_method(sys, x_initial::StateSpaceSet; kwargs...)
+    return simple_geometric_min_action_method(sys, Matrix(Matrix(x_initial)'); kwargs...)
 end
-function sgmam(sys::ContinuousTimeDynamicalSystem, x_initial::Matrix{<:Real}; kwargs...)
-    return sgmam(SgmamSystem(sys), Matrix(Matrix(x_initial)'); kwargs...)
+function simple_geometric_min_action_method(
+    sys::ContinuousTimeDynamicalSystem, x_initial::Matrix{<:Real}; kwargs...
+)
+    return simple_geometric_min_action_method(
+        ExtendedPhaseSpace(sys), Matrix(Matrix(x_initial)'); kwargs...
+    )
 end
 
 function init_allocation(x_initial, Nt)

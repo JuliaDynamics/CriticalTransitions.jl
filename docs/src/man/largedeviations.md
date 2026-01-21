@@ -43,8 +43,8 @@ The simple gMAM reduces the complexity of the original gMAM by requiring only fi
 
 The implementation below performs a constrained gradient descent assuming an autonomous system with additive Gaussian noise.
 ```@docs
-sgmam
-SgmamSystem
+simple_geometric_min_action_method
+ExtendedPhaseSpace
 ```
 
 ### `MinimumActionPath`

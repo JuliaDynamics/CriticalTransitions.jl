@@ -83,7 +83,7 @@ export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_mat
 export drift, div_drift, solver
 export StateSpaceSet
 
-export sgmam, SgmamSystem
+export simple_geometric_min_action_method, ExtendedPhaseSpace
 export fw_action, om_action, action, geometric_action
 export min_action_method, action_minimizer, geometric_min_action_method, string_method
 export MinimumActionPath

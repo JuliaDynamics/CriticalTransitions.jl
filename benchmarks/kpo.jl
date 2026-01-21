@@ -37,7 +37,7 @@ function benchmark_KPO!(SUITE)
         return Matrix([H_pu H_pv]')
     end
 
-    sys = SgmamSystem{false,2}(H_x, H_p)
+    sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
 
     Nt = 100  # number of discrete time steps
     s = collect(range(0; stop=1, length=Nt))
@@ -50,7 +50,7 @@ function benchmark_KPO!(SUITE)
     yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
     x_initial = Matrix([xx yy]')
 
-    SUITE["Large deviation"]["Simple geometric minimal action"]["KPO"] = @benchmarkable sgmam(
+    SUITE["Large deviation"]["Simple geometric minimal action"]["KPO"] = @benchmarkable simple_geometric_min_action_method(
         $sys, $x_initial; iterations=10_000, ϵ=10e2, show_progress=false
     ) seconds = 10
 

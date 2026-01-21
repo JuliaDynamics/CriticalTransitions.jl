@@ -51,7 +51,7 @@ function sss()
         return StateSpaceSet([H_pu H_pv])
     end
 
-    sys_sss = SgmamSystem(H_x, H_p)
+    sys_sss = ExtendedPhaseSpace(H_x, H_p)
 
     x_init_sss = StateSpaceSet([xx yy])
     return sys_sss, x_init_sss
@@ -75,7 +75,7 @@ function m()
         return Matrix([H_pu H_pv]')
     end
 
-    sys_m = SgmamSystem(H_x, H_p)
+    sys_m = ExtendedPhaseSpace(H_x, H_p)
 
     x_init_m = Matrix([xx yy]')
     return sys_m, x_init_m

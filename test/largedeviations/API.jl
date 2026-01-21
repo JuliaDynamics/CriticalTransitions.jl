@@ -17,6 +17,6 @@
     for inst in [corr_alt, addit_non_autom, linear_multipli]
         @test_throws ArgumentError min_action_method(inst, init, T)
         @test_throws ArgumentError geometric_min_action_method(inst, init)
-        @test_throws ArgumentError sgmam(inst, init)
+        @test_throws ArgumentError simple_geometric_min_action_method(inst, init)
     end
 end
