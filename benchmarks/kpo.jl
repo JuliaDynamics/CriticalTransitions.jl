@@ -65,7 +65,7 @@ function benchmark_KPO!(SUITE)
     # ds_sa = CoupledSDEs(KPO_SA, zeros(2), ())
 
     # SUITE["Large deviation"]["Geometric minimal action"]["KPO (Optimisers.Adam; AutoFiniteDiff)"] = @benchmarkable geometric_min_action_method(
-    #     $ds_sa, $x_initial; maxiter=100, show_progress=false
+    #     $ds_sa, $x_initial; maxiters=100, show_progress=false
     # ) seconds = 20
     return nothing
 end
