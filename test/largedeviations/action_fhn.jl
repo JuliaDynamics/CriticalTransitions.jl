@@ -43,7 +43,7 @@ end
     @test all(integrand .>= -eps())
     # Integral of integrand should equal 2 * fw_action for same path/time.
     dt = time[2] - time[1]
-    trapz = sum((integrand[2:end] .+ integrand[1:end-1]) .* dt ./ 2)
+    trapz = sum((integrand[2:end] .+ integrand[1:(end - 1)]) .* dt ./ 2)
     @test isapprox(trapz, 2 * fw_action(sys, path, time); rtol=1e-10, atol=1e-12)
 end
 
