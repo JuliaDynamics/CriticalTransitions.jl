@@ -16,8 +16,7 @@ using StochasticDiffEq: LambaEulerHeun
         D(y) ~ x * (ρ - z) - y + y * β + x * η,
         D(z) ~ x * y - β * z + (x * z) * β,
     ]
-    @named sys1 = System(eqs, t)
-    sys1 = structural_simplify(sys1)
+    @mtkcompile sys1 = System(eqs, t)
 
     drift_eqs = [D(x) ~ σ * (y - x), D(y) ~ x * (ρ - z) - y, D(z) ~ x * y]
 
@@ -27,7 +26,7 @@ using StochasticDiffEq: LambaEulerHeun
         (s * x * z)-s * z 0
     ]
 
-    sys2 = structural_simplify(SDESystem(drift_eqs, diffusion_eqs, t, sts, ps; name=:sys1))
+    sys2 = mtkcompile(SDESystem(drift_eqs, diffusion_eqs, t, sts, ps; name=:sys1))
     @test sys1 == sys2
 
     prob = SDEProblem(sys1, sts .=> [1.0, 0.0, 0.0], (0.0, 100.0), ps .=> (10.0, 26.0))

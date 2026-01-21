@@ -72,8 +72,7 @@ D = Differential(t)
 sts = @variables u(t) v(t)
 
 eqs = [D(u) ~ fu(u, v), D(v) ~ fv(u, v)]
-@named sys1 = System(eqs, t)
-sys1 = structural_simplify(sys1)
+@mtkcompile sys1 = System(eqs, t)
 prob = ODEProblem(sys1, sts .=> zeros(2), (0.0, 100.0), (); jac=true)
 ds = CoupledODEs(prob)
 jac = jacobian(ds)
