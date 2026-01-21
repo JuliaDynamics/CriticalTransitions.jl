@@ -93,30 +93,17 @@ end
     xa2 = [-1.0, 0.0]
     xb2 = [1.0, 0.0]
 
-    x_init_m =
-        xa2 .* (1 .- s_small)' .+ xb2 .* s_small' .+ [0.0, 0.3] .* sinpi.(s_small)'
+    x_init_m = xa2 .* (1 .- s_small)' .+ xb2 .* s_small' .+ [0.0, 0.3] .* sinpi.(s_small)'
 
     b_rot(x) = [-x[2], x[1]]
 
-    string_m = string_method(
-        b_rot,
-        x_init_m;
-        iterations=25,
-        ϵ=0.2,
-        show_progress=false,
-    )
+    string_m = string_method(b_rot, x_init_m; iterations=25, ϵ=0.2, show_progress=false)
     m = Matrix(string_m)
     @test vec(m[1, :]) ≈ x_init_m[:, 1]
     @test vec(m[end, :]) ≈ x_init_m[:, end]
 
     x_init_sss = StateSpaceSet(x_init_m')
-    string_sss = string_method(
-        b_rot,
-        x_init_sss;
-        iterations=25,
-        ϵ=0.2,
-        show_progress=false,
-    )
+    string_sss = string_method(b_rot, x_init_sss; iterations=25, ϵ=0.2, show_progress=false)
     ms = Matrix(string_sss)
     @test vec(ms[1, :]) ≈ x_init_m[:, 1]
     @test vec(ms[end, :]) ≈ x_init_m[:, end]
@@ -128,12 +115,13 @@ end
 
     xa2 = [-1.0, 0.0]
     xb2 = [1.0, 0.0]
-    x_init_m =
-        xa2 .* (1 .- s_small)' .+ xb2 .* s_small' .+ [0.0, 0.25] .* sinpi.(s_small)'
+    x_init_m = xa2 .* (1 .- s_small)' .+ xb2 .* s_small' .+ [0.0, 0.25] .* sinpi.(s_small)'
 
     b_nl(x) = [-x[1] + 0.2 * x[2]^3, -0.5 * x[2] - 0.1 * x[1]^3]
 
-    string_default = string_method(b_nl, x_init_m; iterations=20, ϵ=0.3, show_progress=false)
+    string_default = string_method(
+        b_nl, x_init_m; iterations=20, ϵ=0.3, show_progress=false
+    )
     string_euler = string_method(
         b_nl,
         x_init_m;
@@ -146,12 +134,7 @@ end
     @test vec(Matrix(string_default)) ≈ vec(Matrix(string_euler))
 
     string_tsit5 = string_method(
-        b_nl,
-        x_init_m;
-        iterations=20,
-        ϵ=0.3,
-        alg=Tsit5(),
-        show_progress=false,
+        b_nl, x_init_m; iterations=20, ϵ=0.3, alg=Tsit5(), show_progress=false
     )
     @test norm(vec(Matrix(string_default)) - vec(Matrix(string_tsit5))) > 1e-10
 end
@@ -186,12 +169,7 @@ end
         show_progress=false,
     )
     string_tsit5_m = string_method(
-        sys_m,
-        x_init_m;
-        iterations=15,
-        ϵ=0.25,
-        alg=Tsit5(),
-        show_progress=false,
+        sys_m, x_init_m; iterations=15, ϵ=0.25, alg=Tsit5(), show_progress=false
     )
 
     me = Matrix(string_euler_m)
@@ -204,12 +182,7 @@ end
 
     x_init_sss = StateSpaceSet(x_init_m')
     string_tsit5_sss = string_method(
-        sys_sss,
-        x_init_sss;
-        iterations=15,
-        ϵ=0.25,
-        alg=Tsit5(),
-        show_progress=false,
+        sys_sss, x_init_sss; iterations=15, ϵ=0.25, alg=Tsit5(), show_progress=false
     )
     ms = Matrix(string_tsit5_sss)
     @test vec(ms[1, :]) ≈ x_init_m[:, 1]

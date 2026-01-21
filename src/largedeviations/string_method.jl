@@ -127,7 +127,7 @@ function _string_matrix(y::AbstractMatrix, D::Int, Nt::Int)
     else
         throw(
             ArgumentError(
-                "Unexpected matrix size $(size(y)); expected $(D)×$(Nt) or $(Nt)×$(D).",
+                "Unexpected matrix size $(size(y)); expected $(D)×$(Nt) or $(Nt)×$(D)."
             ),
         )
     end
