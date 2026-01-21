@@ -14,19 +14,17 @@ To set an initial path different from a straight line, see the multiple dispatch
   - `maxiter::Int=100`: maximum number of optimization iterations before the algorithm stops
   - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
   - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
-  - `method = Adam()`: minimization algorithm (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
+  - `method = Adam()`: minimization algorithm (see below)
   - `=0.1`: step size parameter in gradient descent HeymannVandenEijnden implementation.
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
-## Optimization algorithms
+## Minimization algorithms
 
 The `method` keyword argument takes solver methods of the
 [`Optimization.jl`](https://docs.sciml.ai/Optimization/) package; alternatively,
-the option `solver = "HeymannVandenEijnden"` uses the original gMAM
-algorithm[^1].
-
-[^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
+the option `method = "HeymannVandenEijnden"` implements the original gMAM
+algorithm [heymann_pathways_2008](@cite).
 """
 function geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem, x_i, x_f; N=100, kwargs...
@@ -72,14 +70,12 @@ function geometric_min_action_method(
 
     prog = Progress(maxiter; enabled=show_progress)
     if method == "HeymannVandenEijnden"
-        # error("The HeymannVandenEijnden method is broken")
-        @warn("The HeymannVandenEijnden method currently does not work.")
-        # for i in 1:maxiter
-        #     update = heymann_vandeneijnden_step(sys, path, N; tau=tau)
-        #     path .= update
-        #     interpolate_path!(path, alpha, arc)
-        #     next!(prog)
-        # end
+        for i in 1:maxiter
+            update = heymann_vandeneijnden_step(sys, path, N; tau=ϵ)
+            path .= update
+            interpolate_path!(path, alpha, arc)
+            next!(prog)
+        end
     else
         optf = SciMLBase.OptimizationFunction((x, _) -> S(x), AD)
         prob = SciMLBase.OptimizationProblem(optf, init, ())
@@ -120,19 +116,30 @@ function heymann_vandeneijnden_step(
     dx = L / (N - 1)
     update = zeros(size(path))
     lambdas, lambdas_prime = zeros(N), zeros(N)
-    x_prime = path_velocity(path, 0:dx:L; order=diff_order)
+    x_prime = path_velocity(path, range(0, L; length=N); order=diff_order)
 
     A = inv(covariance_matrix(sys))
 
     for i in 2:(N - 1)
-        lambdas[i] = anorm(drift(sys, path[:, i]), A) / anorm(path[:, i], A)
+        velocity_norm = anorm(x_prime[:, i], A)
+        if velocity_norm > 1e-14
+            lambdas[i] = anorm(drift(sys, path[:, i]), A) / velocity_norm
+            if !isfinite(lambdas[i])
+                lambdas[i] = 0.0
+            end
+        end
     end
     for i in 2:(N - 1)
         lambdas_prime[i] = (lambdas[i + 1] - lambdas[i - 1]) / (2 * dx)
     end
 
     b(x) = drift(sys, x)
-    jac(x) = jacobian(sys)(x, sys.p0)
+    params = current_parameters(sys)
+    jac_fun = jacobian(sys)
+
+    jac = let jac_fun=jac_fun, params=params
+        x -> jac_fun(x, params, 0.0)
+    end
 
     J = [jac(path[:, i]) for i in 2:(N - 1)]
     prod1 = [(J[i - 1] - J[i - 1]') * x_prime[:, i] for i in 2:(N - 1)]
@@ -141,7 +148,7 @@ function heymann_vandeneijnden_step(
     # Solve linear system M*x = v for each system dimension
     #! might be made faster using LinearSolve.jl special solvers
     for j in 1:size(path, 1)
-        M = Matrix{Real}(1 * I(N))
+        M = Matrix{Float64}(I(N))
         v = zeros(N)
 
         # Boundary conditions
@@ -151,14 +158,21 @@ function heymann_vandeneijnden_step(
         # Linear system of equations
         for i in 2:(N - 1)
             alpha = tau * lambdas[i]^2 / (dx^2)
+            if !isfinite(alpha)
+                v[i] = path[j, i]
+                continue
+            end
             M[i, i] += 2 * alpha
             M[i, i - 1] = -alpha
             M[i, i + 1] = -alpha
 
-            v[i] = (
-                path[j, i] - lambdas[i] * prod1[i - 1][j] - prod2[i - 1][j] +
-                lambdas[i] * lambdas_prime[i] * x_prime[j, i]
-            )
+            rhs =
+                path[j, i] +
+                tau * (
+                    -lambdas[i] * prod1[i - 1][j] - prod2[i - 1][j] +
+                    lambdas[i] * lambdas_prime[i] * x_prime[j, i]
+                )
+            v[i] = isfinite(rhs) ? rhs : path[j, i]
         end
 
         # Solve and store solution

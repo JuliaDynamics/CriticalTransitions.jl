@@ -3,7 +3,7 @@ function benchmark_maierstein!(SUITE)
         x, y = u
         dx = x - x^3 - 10 * x * y^2
         dy = -(1 + x^2) * y
-        return [dx, dy]
+        return SA[dx, dy]
     end
     σ = 0.25
     sys = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
