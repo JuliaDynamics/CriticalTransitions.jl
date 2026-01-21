@@ -22,7 +22,7 @@ function benchmark_maierstein!(SUITE)
         $sys, $init; maxiters=1000, show_progress=false, method="HeymannVandenEijnden"
     ) seconds = 10
     SUITE["Large deviation"]["Geometric minimal action"]["Maier-Stein (HeymannVandenEijnden)"] = @benchmarkable geometric_min_action_method(
-        $sys, $init; maxiter=1000, show_progress=false, method="HeymannVandenEijnden"
+        $sys, $init; maxiters=1000, show_progress=false, method="HeymannVandenEijnden"
     ) seconds = 10
     return nothing
 end

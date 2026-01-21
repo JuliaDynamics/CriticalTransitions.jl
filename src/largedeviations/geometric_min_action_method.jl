@@ -87,9 +87,7 @@ function geometric_min_action_method(
             return false
         end
 
-        sol = solve(
-            prob, method; maxiters, callback, abstol, reltol
-        )
+        sol = solve(prob, method; maxiters, callback, abstol, reltol)
         path = sol.u
     end
     # if verbose && !converged
