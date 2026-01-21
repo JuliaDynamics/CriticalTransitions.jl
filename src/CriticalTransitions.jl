@@ -10,6 +10,7 @@ using Random: Random
 
 # Core
 using SciMLBase: SciMLBase, EnsembleThreads, DiscreteCallback, remake, terminate!, isinplace
+using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK, Euler
 using DynamicalSystemsBase:
     DynamicalSystemsBase,
     CoupledSDEs,
