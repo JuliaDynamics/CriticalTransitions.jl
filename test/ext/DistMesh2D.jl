@@ -7,7 +7,7 @@ using Contour
 using CriticalTransitions:
     dellipse, get_ellipse, ddiff, dunion, reparameterization, distmesh2D
 
-function Hamiltonian(x, y)
+function hamiltonian_distmesh(x, y)
     return 0.5 .* y .^ 2 .+ 0.25 .* x .^ 4 .- 0.5 .* x .^ 2
 end
 
@@ -33,7 +33,7 @@ y1 = range(ymin, ymax; length=ny)
 x_grid = [xx for yy in y1, xx in x1]
 y_grid = [yy for yy in y1, xx in x1]
 
-Hgrid = Hamiltonian(x_grid, y_grid)
+Hgrid = hamiltonian_distmesh(x_grid, y_grid)
 
 cont = Contour.contour(x1, y1, Hgrid, Hbdry)
 yc, xc = coordinates(lines(cont)[1])
@@ -49,15 +49,15 @@ pfix[1:Na, :] .= ptsA
 pfix[(Na + 1):(Na + Nb), :] .= ptsB
 pfix[(Na + Nb + 1):Nfix, :] .= pts_outer
 
-function dfunc(p)
-    d0 = Hamiltonian(p[:, 1], p[:, 2])
+function dfunc_distmesh(p)
+    d0 = hamiltonian_distmesh(p[:, 1], p[:, 2])
     dA = dellipse(p, point_a, radii)
     dB = dellipse(p, point_b, radii)
     d = ddiff(d0 .- Hbdry, dunion(dA, dB))
     return d
 end
 
-mesh = distmesh2D(dfunc, CriticalTransitions.huniform, density, box, pfix)
+mesh = distmesh2D(dfunc_distmesh, CriticalTransitions.huniform, density, box, pfix)
 
 @test size(mesh.pts, 1) == 872
 @test size(mesh.tri, 1) == 1586 || size(mesh.tri, 1) == 1587

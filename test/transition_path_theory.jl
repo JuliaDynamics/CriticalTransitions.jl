@@ -11,7 +11,7 @@ using CriticalTransitions:
 beta = 20.0
 gamma = 0.5
 
-function Hamiltonian(x, y)
+function hamiltonian_tpt(x, y)
     return 0.5 .* y .^ 2 .+ 0.25 .* x .^ 4 .- 0.5 .* x .^ 2
 end
 
@@ -25,7 +25,7 @@ function divfree(x, y)
     return f1, f2
 end
 
-sys = LangevinSystem(Hamiltonian, divfree, KE, gamma, beta)
+sys = LangevinSystem(hamiltonian_tpt, divfree, KE, gamma, beta)
 
 point_a = (-1.0, 0.0)
 point_b = (1.0, 0.0)
@@ -49,7 +49,7 @@ y1 = range(ymin, ymax; length=ny)
 x_grid = [xx for yy in y1, xx in x1]
 y_grid = [yy for yy in y1, xx in x1]
 
-Hgrid = Hamiltonian(x_grid, y_grid)
+Hgrid = hamiltonian_tpt(x_grid, y_grid)
 
 cont = Contour.contour(x1, y1, Hgrid, Hbdry)
 yc, xc = coordinates(Contour.lines(cont)[1])
@@ -65,15 +65,15 @@ pfix[1:Na, :] .= ptsA
 pfix[(Na + 1):(Na + Nb), :] .= ptsB
 pfix[(Na + Nb + 1):Nfix, :] .= pts_outer
 
-function dfunc(p)
-    d0 = Hamiltonian(p[:, 1], p[:, 2])
+function dfunc_tpt(p)
+    d0 = hamiltonian_tpt(p[:, 1], p[:, 2])
     dA = dellipse(p, point_a, radii)
     dB = dellipse(p, point_b, radii)
     d = ddiff(d0 .- Hbdry, dunion(dA, dB))
     return d
 end
 
-mesh = distmesh2D(dfunc, CriticalTransitions.huniform, density, box, pfix)
+mesh = distmesh2D(dfunc_tpt, CriticalTransitions.huniform, density, box, pfix)
 
 TPM = TransitionPathMesh(mesh, point_a, point_b, radii, density)
 

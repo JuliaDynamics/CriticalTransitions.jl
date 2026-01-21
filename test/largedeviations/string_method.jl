@@ -33,7 +33,7 @@ xx = @. (xb[1] - xa[1]) * s + xa[1] + 4 * s * (1 - s) * xsaddle[1]
 yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
 
 @testset "StateSpaceSet vs Matrix" begin
-    function H_x(x, p) # ℜ² → ℜ²
+    function H_x_sss(x, p) # ℜ² → ℜ²
         u, v = eachcol(x)
         pu, pv = eachcol(p)
 
@@ -41,7 +41,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
         return StateSpaceSet([H_u H_v])
     end
-    function H_p(x, p) # ℜ² → ℜ²
+    function H_p_sss(x, p) # ℜ² → ℜ²
         u, v = eachcol(x)
         pu, pv = eachcol(p)
 
@@ -50,7 +50,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         return StateSpaceSet([H_pu H_pv])
     end
 
-    sys_sss = ExtendedPhaseSpace{false,2}(H_x, H_p)
+    sys_sss = ExtendedPhaseSpace{false,2}(H_x_sss, H_p_sss)
 
     x_init_sss = StateSpaceSet([xx yy])
 
@@ -58,7 +58,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         sys_sss, x_init_sss; iterations=10_000, ϵ=0.5, show_progress=false
     )
 
-    function H_x(x, p) # ℜ² → ℜ²
+    function H_x_m(x, p) # ℜ² → ℜ²
         u, v = eachrow(x)
         pu, pv = eachrow(p)
 
@@ -66,7 +66,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
         return Matrix([H_u H_v]')
     end
-    function H_p(x, p) # ℜ² → ℜ²
+    function H_p_m(x, p) # ℜ² → ℜ²
         u, v = eachrow(x)
         pu, pv = eachrow(p)
 
@@ -75,7 +75,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         return Matrix([H_pu H_pv]')
     end
 
-    sys_m = ExtendedPhaseSpace{false,2}(H_x, H_p)
+    sys_m = ExtendedPhaseSpace{false,2}(H_x_m, H_p_m)
 
     x_init_m = Matrix([xx yy]')
 
