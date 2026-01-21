@@ -69,7 +69,8 @@ string = string_method(sys, x_initial; iterations=100_000, ϵ=0.5, show_progress
 @show S_min;
 plot(x_initial[1, :], x_initial[2, :]; label="init", lw=3, c=:black)
 plot!(x_min[1, :], x_min[2, :]; label="MLP", lw=3, c=:red)
-plot!(string[1, :], string[2, :]; label="string", lw=3, c=:blue)
+string_path = permutedims(Matrix(string))
+plot!(string_path[1, :], string_path[2, :]; label="string", lw=3, c=:blue)
 
 @btime $simple_geometric_min_action_method(
     $sys, $x_initial, iterations=100, ϵ=10e2, show_progress=false
