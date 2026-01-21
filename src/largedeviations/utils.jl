@@ -78,3 +78,32 @@ function proper_MAM_system(ds::CoupledSDEs)
         end
     end
 end
+
+function path_velocity!(v, path, time; order=4)
+    if order == 2
+        @views begin
+            v[:, 1] .= (path[:, 2] .- path[:, 1]) / (time[2] - time[1])
+            v[:, end] .= (path[:, end] .- path[:, end - 1]) / (time[end] - time[end - 1])
+            for i in 2:(size(path, 2) - 1)
+                v[:, i] .= (path[:, i + 1] .- path[:, i - 1]) / (time[i + 1] - time[i - 1])
+            end
+        end
+    elseif order == 4
+        @views begin
+            v[:, 1] .= (path[:, 2] .- path[:, 1]) / (time[2] - time[1])
+            v[:, end] .= (path[:, end] .- path[:, end - 1]) / (time[end] - time[end - 1])
+            v[:, 2] .= (path[:, 3] .- path[:, 1]) / (time[3] - time[1])
+            v[:, end - 1] .=
+                (path[:, end] .- path[:, end - 2]) / (time[end] - time[end - 2])
+            for i in 3:(size(path, 2) - 2)
+                v[:, i] .= (
+                    (
+                        -path[:, i + 2] .+ 8 * path[:, i + 1] .- 8 * path[:, i - 1] .+
+                        path[:, i - 2]
+                    ) / (6 * (time[i + 1] - time[i - 1]))
+                )
+            end
+        end
+    end
+    return v
+end

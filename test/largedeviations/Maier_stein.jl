@@ -33,10 +33,10 @@ using Test
 
     @testset "Adam" begin
         gm = geometric_min_action_method(
-            sys, x_i, x_f; maxiter=10, verbose=false, show_progress=false
+            sys, x_i, x_f; maxiters=10, verbose=false, show_progress=false
         )
         gm = geometric_min_action_method(
-            sys, init; maxiter=500, verbose=false, show_progress=false
+            sys, init; maxiters=500, verbose=false, show_progress=false
         )
 
         path = Matrix(gm.path)'
@@ -50,7 +50,7 @@ using Test
         S(x) = geometric_action(sys, CT.fix_ends(x, init[:, 1], init[:, end]), 1.0)
 
         gm = geometric_min_action_method(
-            sys, init; maxiter=500, verbose=false, show_progress=false
+            sys, init; maxiters=500, verbose=false, show_progress=false
         )
         string = string_method(sys, init; iterations=10_000, ϵ=0.5, show_progress=false)
         @test S(Matrix(Matrix(string)')) > S(Matrix(Matrix(gm.path)'))

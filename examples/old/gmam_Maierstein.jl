@@ -28,7 +28,7 @@ xx = range(-1.0, 1.0; length=100)
 yy = 0.3 .* (-xx .^ 2 .+ 1)
 init = Matrix([xx yy]')
 
-gm = geometric_min_action_method(sys, init; maxiter=1000, Stol=1e-6, iter_per_batch=1)
+gm = geometric_min_action_method(sys, init; maxiters=1000, Stol=1e-6, iter_per_batch=1)
 
 begin
     u_min = -1.1
