@@ -94,10 +94,18 @@ end
 sys_sss, x_init_sss = sss()
 sys_m, x_init_m = m()
 
-@benchmark string_method($sys_sss, $x_init_sss; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=Euler())
-@benchmark string_method($sys_sss, $x_init_sss; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=RK4())
-@benchmark string_method($sys_m, $x_init_m; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=Euler())
-@benchmark string_method($sys_m, $x_init_m; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=RK4())
+@benchmark string_method(
+    $sys_sss, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@benchmark string_method(
+    $sys_sss, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4()
+)
+@benchmark string_method(
+    $sys_m, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@benchmark string_method(
+    $sys_m, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4()
+)
 
 function KPO_SA(x, p, t)
     u, v = x
@@ -110,15 +118,33 @@ end
 ds = CoupledSDEs(KPO, zeros(2), ())
 ds_sa = CoupledSDEs(KPO_SA, zeros(2), ())
 
-@btime string_method($ds_sa, $x_init_sss; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=Euler())
-@btime string_method($ds_sa, $x_init_sss; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=RK4())
-@btime string_method($ds, $x_init_sss; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=Euler())
-@btime string_method($ds, $x_init_sss; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=RK4())
-@btime string_method($sys_m, $x_init_m; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=Euler())
-@btime string_method($sys_m, $x_init_m; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=RK4())
-@btime string_method($ds_sa, $x_init_m; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=Euler())
-@btime string_method($ds_sa, $x_init_m; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=RK4())
-@btime string_method($sys_sss, $x_init_sss; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=Euler())
-@btime string_method($sys_sss, $x_init_sss; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=RK4())
-@btime string_method($ds, $x_init_m; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=Euler())
-@btime string_method($ds, $x_init_m; iterations=$STRING_ITERS, ϵ=$STRING_ϵ, alg=RK4())
+@btime string_method(
+    $ds_sa, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@btime string_method(
+    $ds_sa, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4()
+)
+@btime string_method(
+    $ds, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@btime string_method($ds, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4())
+@btime string_method(
+    $sys_m, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@btime string_method(
+    $sys_m, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4()
+)
+@btime string_method(
+    $ds_sa, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@btime string_method(
+    $ds_sa, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4()
+)
+@btime string_method(
+    $sys_sss, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@btime string_method(
+    $sys_sss, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4()
+)
+@btime string_method($ds, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler())
+@btime string_method($ds, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4())
