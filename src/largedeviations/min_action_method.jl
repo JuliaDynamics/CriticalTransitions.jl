@@ -28,7 +28,7 @@ value.
   - `method = Optimisers.Adam()`: minimization algorithm (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
   - `ad_type = Optimization.AutoFiniteDiff()`: type of automatic differentiation to use
     (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
-  - `maxiter = 100`: maximum number of iterations before the algorithm stops.
+  - `maxiters = 100`: maximum number of iterations before the algorithm stops.
   - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
   - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
   - `verbose = true`: whether to print Optimization information during the run
@@ -60,7 +60,7 @@ function min_action_method(
     noise_strength=nothing,
     method=Optimisers.Adam(),
     ad_type=Optimization.AutoFiniteDiff(),
-    maxiter::Int=100,
+    maxiters::Int=100,
     abstol=nothing,
     reltol=nothing,
     verbose=false,
@@ -77,7 +77,7 @@ function min_action_method(
     optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)
     prob = SciMLBase.OptimizationProblem(optf, init, ())
 
-    prog = Progress(maxiter; enabled=show_progress)
+    prog = Progress(maxiters; enabled=show_progress)
     function callback(state, loss_val)
         verbose && println("Loss: $loss_val")
         show_progress ? next!(prog) : nothing
@@ -85,7 +85,7 @@ function min_action_method(
     end
 
     sol = solve(
-        prob, method; maxiters=maxiter, callback=callback, abstol=abstol, reltol=reltol
+        prob, method; maxiters=maxiters, callback=callback, abstol=abstol, reltol=reltol
     )
     return MinimumActionPath(StateSpaceSet(sol.u'), sol.objective)
 end;

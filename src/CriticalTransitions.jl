@@ -2,7 +2,7 @@ module CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra: LinearAlgebra, I, norm, dot, tr, det
+using LinearAlgebra: LinearAlgebra, norm, dot, tr, det
 using StaticArrays: StaticArrays, SVector
 using SparseArrays: spdiagm
 using DataStructures: CircularBuffer
