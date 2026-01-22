@@ -1,5 +1,9 @@
 using CriticalTransitions
 using BenchmarkTools
+using OrdinaryDiffEqLowOrderRK: Euler, RK4
+
+const STRING_ITERS = 1_000
+const STRING_ϵ = 0.5
 
 const λ = 3 / 1.21 * 2 / 295
 const ω0 = 1.000
@@ -35,23 +39,29 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
 
 function sss()
     function H_x(x, p) # ℜ² → ℜ²
-        u, v = eachcol(x)
-        pu, pv = eachcol(p)
+        x_m = permutedims(Matrix(x))
+        p_m = permutedims(Matrix(p))
+
+        u, v = eachrow(x_m)
+        pu, pv = eachrow(p_m)
 
         H_u = @. pu * dfudu(u, v) + pv * dfvdu(u, v)
         H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
-        return StateSpaceSet([H_u H_v])
+        return StateSpaceSet(permutedims(Matrix([H_u H_v]')))
     end
     function H_p(x, p) # ℜ² → ℜ²
-        u, v = eachcol(x)
-        pu, pv = eachcol(p)
+        x_m = permutedims(Matrix(x))
+        p_m = permutedims(Matrix(p))
+
+        u, v = eachrow(x_m)
+        pu, pv = eachrow(p_m)
 
         H_pu = @. pu + fu(u, v)
         H_pv = @. pv + fv(u, v)
-        return StateSpaceSet([H_pu H_pv])
+        return StateSpaceSet(permutedims(Matrix([H_pu H_pv]')))
     end
 
-    sys_sss = ExtendedPhaseSpace(H_x, H_p)
+    sys_sss = ExtendedPhaseSpace{false,2}(H_x, H_p)
 
     x_init_sss = StateSpaceSet([xx yy])
     return sys_sss, x_init_sss
@@ -75,7 +85,7 @@ function m()
         return Matrix([H_pu H_pv]')
     end
 
-    sys_m = ExtendedPhaseSpace(H_x, H_p)
+    sys_m = ExtendedPhaseSpace{false,2}(H_x, H_p)
 
     x_init_m = Matrix([xx yy]')
     return sys_m, x_init_m
@@ -84,8 +94,18 @@ end
 sys_sss, x_init_sss = sss()
 sys_m, x_init_m = m()
 
-@benchmark string_method($sys_sss, $x_init_sss)
-@benchmark string_method($sys_m, $x_init_m)
+@benchmark string_method(
+    $sys_sss, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@benchmark string_method(
+    $sys_sss, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4()
+)
+@benchmark string_method(
+    $sys_m, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@benchmark string_method(
+    $sys_m, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4()
+)
 
 function KPO_SA(x, p, t)
     u, v = x
@@ -98,9 +118,33 @@ end
 ds = CoupledSDEs(KPO, zeros(2), ())
 ds_sa = CoupledSDEs(KPO_SA, zeros(2), ())
 
-@btime string_method($ds_sa, $x_init_sss) # 77.119 ms (48693 allocations: 86.62 MiB)
-@btime string_method($ds, $x_init_sss) # 151.156 ms (1044693 allocations: 162.61 MiB)
-@btime string_method($sys_m, $x_init_m) # 150.201 ms (51540 allocations: 127.86 MiB)
-@btime string_method($ds_sa, $x_init_m) # 178.669 ms (1039716 allocations: 158.70 MiB)
-@btime string_method($sys_sss, $x_init_sss) #  206.504 ms (1087517 allocations: 186.73 MiB)
-@btime string_method($ds, $x_init_m) # 244.689 ms (2533716 allocations: 272.68 MiB)
+@btime string_method(
+    $ds_sa, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@btime string_method(
+    $ds_sa, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4()
+)
+@btime string_method(
+    $ds, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@btime string_method($ds, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4())
+@btime string_method(
+    $sys_m, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@btime string_method(
+    $sys_m, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4()
+)
+@btime string_method(
+    $ds_sa, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@btime string_method(
+    $ds_sa, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4()
+)
+@btime string_method(
+    $sys_sss, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler()
+)
+@btime string_method(
+    $sys_sss, $x_init_sss; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4()
+)
+@btime string_method($ds, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=Euler())
+@btime string_method($ds, $x_init_m; iterations=($STRING_ITERS), ϵ=($STRING_ϵ), alg=RK4())

@@ -1,3 +1,5 @@
+using OrdinaryDiffEqLowOrderRK: Euler, RK4
+
 function benchmark_KPO!(SUITE)
     λ = 3 / 1.21 * 2 / 295
     ω0 = 1.000
@@ -55,7 +57,7 @@ function benchmark_KPO!(SUITE)
     ) seconds = 10
 
     SUITE["Large deviation"]["String method"]["Kerr parametric resonator"] = @benchmarkable string_method(
-        $sys, $x_initial; iterations=10_000, ϵ=10e2, show_progress=false
+        $sys, $x_initial; iterations=10_000, ϵ=0.5, show_progress=false, alg=Euler()
     ) seconds = 10
 
     # function KPO_SA(x, p, t)
