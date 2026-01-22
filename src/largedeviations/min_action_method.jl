@@ -84,9 +84,7 @@ function min_action_method(
         return false
     end
 
-    sol = solve(
-        prob, method; maxiters=maxiters, callback=callback, abstol=abstol, reltol=reltol
-    )
+    sol = solve(prob, method; maxiters, callback, abstol, reltol)
     return MinimumActionPath(StateSpaceSet(sol.u'), sol.objective)
 end;
 
