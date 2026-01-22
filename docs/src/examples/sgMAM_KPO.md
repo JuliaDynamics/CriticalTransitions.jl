@@ -88,7 +88,9 @@ x_initial = Matrix([xx yy]')
 The optimisation is the performed by the `simple_geometric_min_action_method` function:
 
 ````@example sgMAM_KPO
-MLP = simple_geometric_min_action_method(sys, x_initial; iterations=1_000, ϵ=10e2, show_progress=false)
+MLP = simple_geometric_min_action_method(
+    sys, x_initial; iterations=1_000, ϵ=10e2, show_progress=false
+)
 x_min = MLP.path;
 nothing #hide
 ````

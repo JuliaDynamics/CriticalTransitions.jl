@@ -7,10 +7,11 @@ pages = [
         "Defining a system" => Any[
             "Stochastic system" => "examples/stochastic-dynamics.md",
             "Nonautonomous system" => "examples/RateSystem.md",],
-        "System analysis" => Any[  
+        "System analysis" => Any[
             "Large deviations: Maier-Stein system" => "examples/gMAM_Maierstein.md",
             "Simple gMAM: Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
             "Minimal action method: Optimal Control problem" => "examples/OC_mam.md",
+            "String method: Muller-Brown potential" => "examples/potential_string.md",
             "Transition path theory: Finite element method" => "examples/transition_path_theory_double_well.md",],
     ],
     "Manual" => Any[

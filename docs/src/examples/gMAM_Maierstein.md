@@ -2,7 +2,7 @@
 EditURL = "../../../examples/gMAM_Maierstein.jl"
 ```
 
-# Example: Large deviations in the Maier-Stein model
+# The Maier-Stein model.
 
 ````@example gMAM_Maierstein
 using CriticalTransitions
@@ -284,7 +284,8 @@ init = Matrix([xx yy]')
 `geometric_min_action_method` computes the minimizer of the Freidlin-Wentzell action using the geometric minimum action method (gMAM), to find the minimum action path (instanton) between an initial state x_i and final state x_f. The Minimum Action Method (MAM) is a more traditional approach, while the Geometric Minimum Action Method (gMAM) is a blend of the original MAM and the [string method](https://doi.org/10.1103/PhysRevB.66.052301).
 
 ````@example gMAM_Maierstein
-gm = geometric_min_action_method(sys, init; maxiters=500, show_progress=false)
+method = "HeymannVandenEijnden"
+gm = geometric_min_action_method(sys, init; maxiters=500, show_progress=false, method)
 MLP = gm.path
 ````
 
