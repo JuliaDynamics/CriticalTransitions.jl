@@ -23,6 +23,21 @@ To summarize, the following methods are available:
 - Simple geometric minimum action method [(sgMAM)](@ref "Simple geometric minimum action method (sgMAM)")
 - [String method](@ref)
 
+| Method | Use when | Requirements (this package) | Not suitable when |
+|---|---|---|---|
+| **MAM** | You want a **minimum action path** for a specified travel time $T$ (FW/OM action minimization). | `CoupledSDEs` with **additive**, **invertible**, **autonomous** noise (constant covariance); discretized path uses **equispaced time**. | **Multiplicative/state-dependent noise**, **degenerate/non-invertible** noise, **non-autonomous** noise; when the transition time is unknown and you want a time-reparametrization-invariant formulation (prefer gMAM/sgMAM). |
+| **gMAM** | You want a **time-reparametrization-invariant** minimum action path (no explicit optimization over $T$). | Same as MAM for `CoupledSDEs`: **additive**, **invertible**, **autonomous** noise (constant covariance). | **Multiplicative/state-dependent**, **degenerate**, or **non-autonomous** noise; if you need the Onsager--Machlup functional (only FW has a geometric formulation). |
+| **sgMAM** | You want a **Hamiltonian/simple gMAM** formulation that can be efficient in practice. | Same as MAM **and** **diagonal** noise covariance (implementation restriction); assumes **additive** noise. | **Non-diagonal** covariance; **multiplicative/state-dependent** or **degenerate** noise; models where the required derivatives/Jacobian are not available or are too expensive. |
+| **String method** | You want a **minimum energy path / heteroclinic orbit** driven by the deterministic drift (typical use: **gradient** systems). | Deterministic drift field (works for `ContinuousTimeDynamicalSystem`; does not rely on an SDE noise model). | In **non-gradient** systems if you need the *most probable* noise-induced transition path (string gives the deterministic heteroclinic orbit, which generally differs from the instanton). |
+
+#### Variants and extensions
+The literature contains a number of extensions of MAM-type methods that may be relevant depending on the model class and numerical difficulties. These variants are not currently implemented in `CriticalTransitions.jl`, but serve as useful pointers:
+
+- **tMAM / optimal linear time scaling**: avoids explicit optimization over the transition time by introducing an optimal linear time scaling; can be combined with adaptivity in time discretization [wan_tmam_2015](@citet).
+- **Adaptive MAM**: uses a moving-mesh strategy to concentrate grid points in dynamically important portions of the path, improving efficiency and robustness [zhou_adaptive_mam_2008](@citet).
+- **Non-Gaussian (jump / Lévy) noise**: for systems driven by jump noise, the rate function and path optimization problem differ from the Freidlin--Wentzell diffusive setting; see e.g. an optimal-control-based approach in [wei_most_likely_jumps_2023](@citet).
+- **Multiplicative / state-dependent noise**: extensions of geometric action minimization to degenerate or multiplicative noise are discussed in [grafke_small_random_2017](@citet); the current `sgMAM` implementation assumes additive noise.
+
 ### Minimum action method (MAM)
 Minimization of the specified action functional using the optimization algorithm of `Optimization.jl`. See also [e_minimum_2004](@citet).
 
