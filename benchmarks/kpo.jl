@@ -56,12 +56,8 @@ function benchmark_KPO!(SUITE)
         $sys, $x_initial; iterations=10_000, ϵ=10e2, show_progress=false
     ) seconds = 10
 
-    SUITE["Large deviation"]["String method"]["Kerr parametric resonator (Euler)"] = @benchmarkable string_method(
+    SUITE["Large deviation"]["String method"]["Kerr parametric resonator"] = @benchmarkable string_method(
         $sys, $x_initial; iterations=10_000, ϵ=0.5, show_progress=false, alg=Euler()
-    ) seconds = 10
-
-    SUITE["Large deviation"]["String method"]["Kerr parametric resonator (RK4)"] = @benchmarkable string_method(
-        $sys, $x_initial; iterations=10_000, ϵ=0.5, show_progress=false, alg=RK4()
     ) seconds = 10
 
     # function KPO_SA(x, p, t)
