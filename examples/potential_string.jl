@@ -101,11 +101,7 @@ eps_step = 1e-4
 iterations = 2500
 
 string = CriticalTransitions.string_method(
-    b,
-    x_initial;
-    ϵ=eps_step,
-    iterations,
-    show_progress=false,
+    b, x_initial; ϵ=eps_step, iterations, show_progress=false
 )
 
 # A simple convergence diagnostic: average step along the string.
