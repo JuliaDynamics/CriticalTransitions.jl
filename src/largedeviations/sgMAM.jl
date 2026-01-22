@@ -149,23 +149,44 @@ function update_x!(x, λ, p′, x′′, Hx, ϵ)
     xa = x[:, 1]
     xb = x[:, end]
 
-    # rhs = zeros(Nt)
     idxc = 2:(Nt - 1)
-    Threads.@threads for dof in 1:Nx
-        rhs = @. (
-            x[dof, idxc] +
-            ϵ * (λ[idxc] * p′[dof, idxc] + Hx[dof, idxc] - λ[idxc]^2 * x′′[dof, idxc])
+
+    # Tridiagonal system is shared across dof
+    d = 1 .+ 2 .* ϵ .* λ[2:(end - 1)] .^ 2
+    du = -ϵ .* λ[2:(end - 2)] .^ 2
+    dl = -ϵ .* λ[3:(end - 1)] .^ 2
+    T = LinearAlgebra.Tridiagonal(dl, d, du)
+
+    # One cache per thread (solve! is not thread-safe on a shared cache)
+    nthreads = Threads.nthreads()
+    if hasmethod(Threads.nthreads, Tuple{Symbol})
+        nthreads = Threads.nthreads(:default) + Threads.nthreads(:interactive)
+    end
+    caches = map(1:nthreads) do _
+        b = zeros(eltype(x), length(d))
+        prob = LinearProblem(T, b)
+        init(
+            prob,
+            LUFactorization();
+            alias=SciMLBase.LinearAliasSpecifier(alias_A=true, alias_b=true),
         )
+    end
+
+    Threads.@threads for dof in 1:Nx
+        cache = caches[Threads.threadid()]
+        rhs = cache.b
+
+        @inbounds for k in 1:length(rhs)
+            i = k + 1
+            rhs[k] =
+                x[dof, i] +
+                ϵ * (λ[i] * p′[dof, i] + Hx[dof, i] - λ[i]^2 * x′′[dof, i])
+        end
         rhs[1] += ϵ * λ[2]^2 * xa[dof]
         rhs[end] += ϵ * λ[end - 1]^2 * xb[dof]
 
-        A = spdiagm( # spdiagm makes it significantly faster
-            0 => 1 .+ 2 .* ϵ .* λ[2:(end - 1)] .^ 2,
-            1 => -ϵ .* λ[2:(end - 2)] .^ 2,
-            -1 => -ϵ .* λ[3:(end - 1)] .^ 2,
-        )
-        prob = LinearProblem(A, rhs)
-        x[dof, 2:(end - 1)] .= solve(prob, KLUFactorization()).u
+        solve!(cache)
+        x[dof, idxc] .= cache.u
     end
     return nothing
 end
