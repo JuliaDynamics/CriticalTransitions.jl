@@ -168,7 +168,7 @@ function update_x!(x, λ, p′, x′′, Hx, ϵ)
         init(
             prob,
             LUFactorization();
-            alias=SciMLBase.LinearAliasSpecifier(alias_A=true, alias_b=true),
+            alias=SciMLBase.LinearAliasSpecifier(; alias_A=true, alias_b=true),
         )
     end
 
@@ -178,9 +178,7 @@ function update_x!(x, λ, p′, x′′, Hx, ϵ)
 
         @inbounds for k in 1:length(rhs)
             i = k + 1
-            rhs[k] =
-                x[dof, i] +
-                ϵ * (λ[i] * p′[dof, i] + Hx[dof, i] - λ[i]^2 * x′′[dof, i])
+            rhs[k] = x[dof, i] + ϵ * (λ[i] * p′[dof, i] + Hx[dof, i] - λ[i]^2 * x′′[dof, i])
         end
         rhs[1] += ϵ * λ[2]^2 * xa[dof]
         rhs[end] += ϵ * λ[end - 1]^2 * xb[dof]
