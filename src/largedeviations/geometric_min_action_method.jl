@@ -237,25 +237,32 @@ function heymann_vandeneijnden_step!(
     end
 
     T = LinearAlgebra.Tridiagonal(ws.dl, ws.d, ws.du)
-    F = LinearAlgebra.lu(T)
+    prob = LinearProblem(T, ws.v)
+    cache = init(
+        prob,
+        LUFactorization();
+        alias=SciMLBase.LinearAliasSpecifier(; alias_A=true, alias_b=true),
+    )
+    rhs = cache.b
 
     @inbounds for j in 1:size(path, 1)
-        ws.v[1] = path[j, 1]
-        ws.v[end] = path[j, end]
+        rhs[1] = path[j, 1]
+        rhs[end] = path[j, end]
         for i in 2:(N - 1)
             if ws.alpha_cache[i] == 0.0
-                ws.v[i] = path[j, i]
+                rhs[i] = path[j, i]
                 continue
             end
-            rhs =
+            rhs_val =
                 path[j, i] +
                 tau * (
                     -ws.lambdas[i] * ws.prod1[j, i - 1] - ws.prod2[j, i - 1] +
                     ws.lambdas[i] * ws.lambdas_prime[i] * ws.x_prime[j, i]
                 )
-            ws.v[i] = isfinite(rhs) ? rhs : path[j, i]
+            rhs[i] = isfinite(rhs_val) ? rhs_val : path[j, i]
         end
-        ws.update[j, :] .= F \ ws.v
+        solve!(cache)
+        ws.update[j, :] .= cache.u
     end
 
     return ws.update

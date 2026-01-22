@@ -4,7 +4,6 @@ module CriticalTransitions
 using Statistics: Statistics, mean
 using LinearAlgebra: LinearAlgebra, norm, dot, tr, det
 using StaticArrays: StaticArrays, SVector
-using SparseArrays: spdiagm
 using DataStructures: CircularBuffer
 using Random: Random
 
@@ -34,7 +33,7 @@ using StochasticDiffEq: StochasticDiffEq
 using Interpolations: linear_interpolation
 using Optimization: Optimization
 using OptimizationOptimisers: Optimisers
-using LinearSolve: LinearProblem, KLUFactorization, solve
+using LinearSolve: LinearProblem, LUFactorization, init, solve, solve!
 
 # io and documentation
 using Format: Format
