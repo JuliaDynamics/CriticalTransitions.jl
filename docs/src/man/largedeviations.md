@@ -82,3 +82,93 @@ The string method is a technique for finding transition paths between two states
 ```@docs
 string_method
 ```
+## Performance notes (sgMAM)
+
+This page documents a common performance pitfall when using the simplified geometric minimum action method (sgMAM) with a general-purpose [`CoupledSDEs`](@ref) versus using a *hardcoded* extended phase space system.
+
+### Summary
+
+- sgMAM evolves a discretized path using Hamiltonian derivatives `H_p(x, p)` and `H_x(x, p)` in an extended phase space.
+- If you construct the extended system from a `CoupledSDEs` via `ExtendedPhaseSpace(ds)`, the default implementation typically evaluates the drift and Jacobian *pointwise* along the path and can allocate heavily.
+- A hardcoded `ExtendedPhaseSpace(H_x, H_p)` that uses analytic expressions (and operates on the full `D×Nt` path matrix) is usually much faster and much more allocation-friendly.
+
+This often shows up as a large gap in allocations (and wall time) for the same `Nt` and number of iterations.
+
+### Why `ExtendedPhaseSpace(ds::CoupledSDEs)` can allocate more
+
+#### 1) Generic construction relies on the system Jacobian
+
+When you call `simple_geometric_min_action_method(ds::ContinuousTimeDynamicalSystem, ...)`, the method internally constructs an [`ExtendedPhaseSpace`](@ref) from `ds`.
+For `ds::CoupledSDEs`, this route uses `dynamic_rule(ds)` and `jacobian(ds)`.
+
+If you did not provide an analytic Jacobian, `jacobian(ds)` is typically produced via automatic differentiation, and its evaluation may allocate (and is inherently more expensive than a hardcoded formula).
+
+#### 2) The default `H_x` implementation can allocate inside tight loops
+
+The convenience implementation of `ExtendedPhaseSpace(ds)` computes
+
+\[ H_x(x, p) = J(x)^\top p \]
+
+by forming a Jacobian matrix `J(x)` for each path point and then taking dot products.
+If the Jacobian columns are accessed as `jax[:, idc]` without views, that column extraction creates temporary vectors repeatedly.
+
+This is great for correctness and ease of use, but it is not tuned for allocation-free inner loops.
+
+### Why a hardcoded extended phase space system is faster
+
+For sgMAM you can often write `H_p`/`H_x` to operate on a full `D×Nt` matrix at once, using analytic expressions and broadcast fusion.
+
+This tends to:
+
+- Reduce Julia-level dispatch overhead (fewer calls into user code).
+- Avoid per-point temporary vectors.
+- Let broadcast fusion and BLAS-friendly operations kick in.
+
+A particularly fast pattern is a “hardcoded” `H_p(x, p)` / `H_x(x, p)` pair that:
+
+- accepts `x` and `p` as matrices (`D×Nt`),
+- uses `eachrow(x)` / `eachrow(p)` and broadcasted formulas,
+- returns a `D×Nt` matrix.
+
+### A representative benchmark
+
+The following benchmark structure (adapted from JuliaDynamics/CriticalTransitions.jl issue #145) compares:
+
+- a hardcoded `ExtendedPhaseSpace` system used with [`simple_geometric_min_action_method`](@ref)
+- an `ExtendedPhaseSpace(ds)` constructed from a `CoupledSDEs` drift (and typically an AD Jacobian)
+
+```julia
+using CriticalTransitions
+using BenchmarkTools
+
+# ... define fu, fv, df* and H_x/H_p as in the issue ...
+
+sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
+
+function KPO(x, p, t)
+    u, v = x
+    return [fu(u, v), fv(u, v)]
+end
+
+ds = CoupledSDEs(KPO, zeros(2), ())
+
+# "generic" extended phase space from CoupledSDEs
+sys_generic = ExtendedPhaseSpace(ds)
+
+# initial path matrix x_initial: size (D, Nt)
+
+@btime simple_geometric_min_action_method($sys,         $x_initial; iterations=100, ϵ=0.5, show_progress=false)
+@btime simple_geometric_min_action_method($sys_generic, $x_initial; iterations=100, ϵ=0.5, show_progress=false)
+```
+
+On one machine the hardcoded version was noticeably faster and allocated much less.
+
+Exact numbers depend on Julia version, `Nt`, CPU, and how the drift is written, but the allocation gap is the key signal.
+
+### Practical recommendations
+
+- For sgMAM performance, prefer a hardcoded [`ExtendedPhaseSpace`](@ref) with analytic, matrix-based `H_p`/`H_x`.
+- If you start from `CoupledSDEs`, consider providing an analytic Jacobian (when possible) so `ExtendedPhaseSpace(ds)` does not fall back to an expensive AD Jacobian.
+- Use `@btime` to confirm allocations; big allocation counts are usually the main reason for slowdowns here.
+
+As a brief aside: the same general principle (vectorized, allocation-free evaluation) also tends to make [`string_method`](@ref) faster when used with `ExtendedPhaseSpace`.
