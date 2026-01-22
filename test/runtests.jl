@@ -23,6 +23,7 @@ end
 
 @testset "Large Deviations" begin
     include("largedeviations/action_fhn.jl")
+    include("largedeviations/action_limit_cycle.jl")
     include("largedeviations/MAM.jl")
     include("largedeviations/gMAM.jl")
     include("largedeviations/sgMAM.jl")
