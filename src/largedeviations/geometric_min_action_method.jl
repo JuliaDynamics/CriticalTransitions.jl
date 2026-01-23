@@ -87,8 +87,9 @@ function geometric_min_action_method(
                 abs_change = abs(curr_action - prev_action)
                 rel_change = curr_action == 0 ? abs_change : abs_change / abs(curr_action)
                 if (isfinite(abstol) && abs_change < abstol) ||
-                   (isfinite(reltol) && rel_change < reltol)
-                    verbose && @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
+                    (isfinite(reltol) && rel_change < reltol)
+                    verbose &&
+                        @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
                     converged = true
                 end
             end

@@ -107,11 +107,14 @@ function simple_geometric_min_action_method(
         abs_change = abs(S[end] - S[1])
         rel_change = S[end] == 0 ? abs_change : abs_change / abs(S[end])
         if (isfinite(abstol) && abs_change < abstol) ||
-           (isfinite(reltol) && rel_change < reltol)
+            (isfinite(reltol) && rel_change < reltol)
             @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
             break
         end
-        next!(progress; showvalues=[("iterations", i), ("Stol", round(rel_change; sigdigits=3))])
+        next!(
+            progress;
+            showvalues=[("iterations", i), ("Stol", round(rel_change; sigdigits=3))],
+        )
     end
     return MinimumActionPath(
         StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
