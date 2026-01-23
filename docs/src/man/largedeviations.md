@@ -83,8 +83,8 @@ sys_fast = ExtendedPhaseSpace{false,2}(H_x, H_p)  # hardcoded analytic H_x/H_p
 ds = CoupledSDEs(KPO, zeros(2), ())
 sys_generic = ExtendedPhaseSpace(ds)              # uses jacobian(ds)
 
-@btime simple_geometric_min_action_method($sys_fast,    $x_initial; iterations=100, ϵ=0.5, show_progress=false)
-@btime simple_geometric_min_action_method($sys_generic, $x_initial; iterations=100, ϵ=0.5, show_progress=false)
+@btime simple_geometric_min_action_method($sys_fast,    $x_initial; maxiters=100, stepsize=0.5, show_progress=false)
+@btime simple_geometric_min_action_method($sys_generic, $x_initial; maxiters=100, stepsize=0.5, show_progress=false)
 ```
 
 Aside: the same “vectorized + allocation-free inner loop” principle also tends to make [`string_method`](@ref) faster when used with `ExtendedPhaseSpace`.

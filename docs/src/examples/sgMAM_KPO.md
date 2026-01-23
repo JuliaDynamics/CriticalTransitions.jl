@@ -89,7 +89,7 @@ The optimisation is the performed by the `simple_geometric_min_action_method` fu
 
 ````@example sgMAM_KPO
 MLP = simple_geometric_min_action_method(
-    sys, x_initial; iterations=1_000, ϵ=10e2, show_progress=false
+    sys, x_initial; maxiters=1_000, stepsize=10e2, show_progress=false
 )
 x_min = MLP.path;
 nothing #hide

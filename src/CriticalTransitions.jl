@@ -24,7 +24,8 @@ using DynamicalSystemsBase:
     initial_parameters,
     current_parameter,
     current_parameters,
-    initial_time
+    initial_time,
+    integrator
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
@@ -87,6 +88,7 @@ export simple_geometric_min_action_method, ExtendedPhaseSpace
 export fw_action, om_action, action, geometric_action
 export min_action_method, action_minimizer, geometric_min_action_method, string_method
 export MinimumActionPath
+export GeometricGradient
 
 export deterministic_orbit
 export transition, transitions

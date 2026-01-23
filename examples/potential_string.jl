@@ -95,17 +95,17 @@ Nt = 50
 x_initial = linear_string(xa, xb, Nt)
 x_initial[2, :] .+= 0.15 .* sin.(range(0, π; length=Nt))
 
-# The parameter `ϵ` is the (fixed) time step used internally for the evolution step.
-# The Muller-Brown potential has steep regions, so small `ϵ` is recommended.
-eps_step = 1e-4
-iterations = 2500
+# The parameter `stepsize` is the (fixed) time step used internally for the evolution step.
+# The Muller-Brown potential has steep regions, so small `stepsize` is recommended.
+stepsize = 1e-4
+maxiters = 2500
 
 string = CriticalTransitions.string_method(
-    b, x_initial; ϵ=eps_step, iterations, show_progress=false
+    b, x_initial; stepsize, maxiters, show_progress=false
 )
 
 # A simple convergence diagnostic: average step along the string.
-string_m = Matrix(string)
+string_m = Matrix(string.path)
 dmean = mean(norm(string_m[i + 1, :] .- string_m[i, :]) for i in 1:(size(string_m, 1) - 1))
 dmean
 
@@ -118,15 +118,13 @@ V_clip = min.(V_vals, 500)
 
 fig = Figure(; size=(700, 450), fontsize=13)
 ax = Axis(fig[1, 1]; xlabel="x", ylabel="y", aspect=1.2)
-contour!(ax, xx, yy, V_clip; levels=LinRange(-150, 500, 35), colormap=:viridis)
+contour!(ax, xx, yy, V_clip; levels=range(-150, 500, 35), colormap=:viridis)
 
-# Minima and saddles
-scatter!(ax, [x1[1], x2[1], x3[1]], [x1[2], x2[2], x3[2]]; color=:red, markersize=10)
-scatter!(ax, [s1[1], s2[1]], [s1[2], s2[2]]; color=:green, marker=:diamond, markersize=10)
-
-# Initial string (dashed) and converged string (solid)
-lines!(ax, x_initial[1, :], x_initial[2, :]; color=:black, linewidth=2, linestyle=:dash)
+lines!(ax, x_initial[1, :], x_initial[2, :]; color=:black, linewidth=2, linestyle=:dash) # Initial string (dashed) and converged string (solid)
 lines!(ax, string_m[:, 1], string_m[:, 2]; color=:black, linewidth=3)
+
+scatter!(ax, [x1[1], x2[1], x3[1]], [x1[2], x2[2], x3[2]]; color=:red, markersize=10) # Minima and saddles
+scatter!(ax, [s1[1], s2[1]], [s1[2], s2[2]]; color=:green, marker=:diamond, markersize=10)
 
 limits!(ax, extrema(xx)..., extrema(yy)...)
 fig
