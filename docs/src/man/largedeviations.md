@@ -45,6 +45,7 @@ The implementation below performs a constrained gradient descent assuming an aut
 ```@docs
 simple_geometric_min_action_method
 ExtendedPhaseSpace
+```
 
 
 #### Performance notes (sgMAM)
@@ -72,8 +73,6 @@ sys_generic = ExtendedPhaseSpace(ds)              # uses jacobian(ds)
 ```
 
 Aside: the same “vectorized + allocation-free inner loop” principle also tends to make [`string_method`](@ref) faster when used with `ExtendedPhaseSpace`.
-
-```
 
 ### `MinimumActionPath`
 [(gMAM)](@ref "Geometric minimum action method (gMAM)") and [(sgMAM)](@ref "Simple geometric minimum action method (sgMAM)") return their output as a `MinimumActionPath` type:
