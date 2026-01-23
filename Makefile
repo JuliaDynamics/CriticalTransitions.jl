@@ -20,7 +20,7 @@ docs:
 
 bench:
 	${JULIA} --project=benchmarks -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
-	${JULIA} --project=docs benchmarks/runbenchmarks.jl
+	${JULIA} --project=benchmarks benchmarks/runbenchmarks.jl
 
 all: setup format test docs bench
 
