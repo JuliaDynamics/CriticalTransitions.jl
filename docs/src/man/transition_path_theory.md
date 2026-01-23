@@ -45,7 +45,7 @@ CriticalTransitions.invariant_pdf
 
 ### Reactive current
 
-```docs
+```@docs
 CriticalTransitions.reactive_current
 ```
 
