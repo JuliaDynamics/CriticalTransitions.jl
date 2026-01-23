@@ -63,10 +63,10 @@ minimizes the Freidlin–Wentzell action. The Hamiltonian functions `H_x` and `H
 the system's dynamics in a doubled phase. The initial state `x_initial` is evolved
 iteratively using constrained gradient descent with step size parameter `stepsize` over a specified
 number of iterations. The method can display a progress meter and will stop early if the
-relative tolerance `reltol` is achieved.
+absolute tolerance `abstol` or relative tolerance `reltol` is achieved.
 
 The function returns a [`MinimumActionPath`](@ref) containing the final path, the action value,
-the Lagrange multipliers (`.λ`), the momentum (`.generalized_momentum`), and the state derivatives (`.path_velocity`). 
+the Lagrange multipliers (`.λ`), the momentum (`.generalized_momentum`), and the state derivatives (`.path_velocity`).
 The implementation is based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html).
 
 ## Keyword arguments
@@ -74,6 +74,7 @@ The implementation is based on the work of [Grafke et al. (2019)](https://homepa
   - `stepsize::Real=1e-1`: step size for gradient descent. Default: `0.1`
   - `maxiters::Int=1000`: maximum number of iterations before the algorithm stops
   - `show_progress::Bool=false`: if true, display a progress bar
+  - `abstol::Real=NaN`: absolute tolerance for early stopping based on action change
   - `reltol::Real=NaN`: relative tolerance for early stopping based on action change
 """
 function simple_geometric_min_action_method(
@@ -82,6 +83,7 @@ function simple_geometric_min_action_method(
     stepsize::Real=1e-1,
     maxiters::Int=1000,
     show_progress::Bool=false,
+    abstol::Real=NaN,
     reltol::Real=NaN,
 ) where {T}
     H_p, H_x = sys.H_p, sys.H_x
@@ -102,12 +104,14 @@ function simple_geometric_min_action_method(
         interpolate_path!(x, alpha, s)
         push!(S, FW_action(xdot, p))
 
-        tol = abs(S[end] - S[1]) / S[end]
-        if tol < reltol
-            @info "Converged after $i iterations with $tol"
+        abs_change = abs(S[end] - S[1])
+        rel_change = S[end] == 0 ? abs_change : abs_change / abs(S[end])
+        if (isfinite(abstol) && abs_change < abstol) ||
+           (isfinite(reltol) && rel_change < reltol)
+            @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
             break
         end
-        next!(progress; showvalues=[("iterations", i), ("Stol", round(tol; sigdigits=3))])
+        next!(progress; showvalues=[("iterations", i), ("Stol", round(rel_change; sigdigits=3))])
     end
     return MinimumActionPath(
         StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
