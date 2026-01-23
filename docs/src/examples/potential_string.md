@@ -116,18 +116,18 @@ x_initial = linear_string(xa, xb, Nt)
 x_initial[2, :] .+= 0.15 .* sin.(range(0, π; length=Nt))
 ````
 
-The parameter `ϵ` is the (fixed) time step used internally for the evolution step.
-The Muller-Brown potential has steep regions, so small `ϵ` is recommended.
+The parameter `stepsize` is the (fixed) time step used internally for the evolution step.
+The Muller-Brown potential has steep regions, so small `stepsize` is recommended.
 
 ````@example potential_string
-eps_step = 1e-4
-iterations = 2500
+stepsize = 1e-4
+maxiters = 2500
 
 string = CriticalTransitions.string_method(
     b,
     x_initial;
-    ϵ=eps_step,
-    iterations,
+    stepsize,
+    maxiters,
     show_progress=false,
 )
 ````
