@@ -99,7 +99,9 @@ end
 
     b_rot(x) = [-x[2], x[1]]
 
-    string_m = string_method(b_rot, x_init_m; maxiters=25, stepsize=0.2, show_progress=false)
+    string_m = string_method(
+        b_rot, x_init_m; maxiters=25, stepsize=0.2, show_progress=false
+    )
     m = Matrix(string_m.path)
     @test vec(m[1, :]) ≈ x_init_m[:, 1]
     @test vec(m[end, :]) ≈ x_init_m[:, end]
@@ -186,7 +188,12 @@ end
 
     x_init_sss = StateSpaceSet(x_init_m')
     string_tsit5_sss = string_method(
-        sys_sss, x_init_sss; maxiters=15, stepsize=0.25, integrator=Tsit5(), show_progress=false
+        sys_sss,
+        x_init_sss;
+        maxiters=15,
+        stepsize=0.25,
+        integrator=Tsit5(),
+        show_progress=false,
     )
     ms = Matrix(string_tsit5_sss.path)
     @test vec(ms[1, :]) ≈ x_init_m[:, 1]

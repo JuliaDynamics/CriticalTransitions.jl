@@ -53,7 +53,9 @@ using Test
         gm = geometric_min_action_method(
             sys, init; maxiters=500, verbose=false, show_progress=false
         )
-        string = string_method(sys, init; maxiters=10_000, stepsize=0.5, show_progress=false)
+        string = string_method(
+            sys, init; maxiters=10_000, stepsize=0.5, show_progress=false
+        )
         @test S(permutedims(Matrix(string.path))) > S(Matrix(Matrix(gm.path)'))
     end
 end # gMAM Meier Stein
