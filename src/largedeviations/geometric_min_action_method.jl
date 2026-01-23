@@ -15,22 +15,22 @@ To set an initial path different from a straight line, see the multiple dispatch
   - `maxiters::Int=100`: maximum number of optimization iterations before the algorithm stops
   - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
   - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
-  - `method = Adam()`: minimization algorithm (see below)
-  - `ϵ=0.1`: step size parameter in gradient descent HeymannVandenEijnden implementation
+    - `optimizer = "HeymannVandenEijnden"`: minimization algorithm (see below)
+    - `stepsize=0.01`: step size parameter in gradient descent HeymannVandenEijnden implementation
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
 ## Minimization algorithms
 
-The `method` keyword argument takes solver methods of the
+The `optimizer` keyword argument takes solver methods of the
 [`Optimization.jl`](https://docs.sciml.ai/Optimization/) package; alternatively,
-the option `method = "HeymannVandenEijnden"` implements the original gMAM
+the option `optimizer = "HeymannVandenEijnden"` implements the original gMAM
 algorithm [heymann_pathways_2008](@cite).
 """
 function geometric_min_action_method(
-    sys::ContinuousTimeDynamicalSystem, x_i, x_f; N=100, kwargs...
+    sys::ContinuousTimeDynamicalSystem, x_i, x_f; points::Int=100, kwargs...
 )
-    path = reduce(hcat, range(x_i, x_f; length=N))
+    path = reduce(hcat, range(x_i, x_f; length=points))
     return geometric_min_action_method(sys, path; kwargs...)
 end
 
@@ -52,9 +52,9 @@ function geometric_min_action_method(
     maxiters::Int=100,
     abstol=nothing,
     reltol=nothing,
-    method=Optimisers.Adam(),
-    AD=Optimization.AutoFiniteDiff(),
-    ϵ=0.1,
+    optimizer="HeymannVandenEijnden",
+    ad_type=Optimization.AutoFiniteDiff(),
+    stepsize=0.01,
     verbose=false,
     show_progress=true,
 )
@@ -70,16 +70,16 @@ function geometric_min_action_method(
     S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
 
     prog = Progress(maxiters; enabled=show_progress)
-    if method == "HeymannVandenEijnden"
+    if optimizer == "HeymannVandenEijnden"
         ws = heymann_vandeneijnden_workspace(sys, path)
         for i in 1:maxiters
-            heymann_vandeneijnden_step!(ws, sys, path; tau=ϵ)
+            heymann_vandeneijnden_step!(ws, sys, path; tau=stepsize)
             path .= ws.update
             interpolate_path!(path, alpha, arc)
             next!(prog)
         end
     else
-        optf = SciMLBase.OptimizationFunction((x, _) -> S(x), AD)
+        optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)
         prob = SciMLBase.OptimizationProblem(optf, init, ())
 
         function callback(state, loss_val)
@@ -88,7 +88,7 @@ function geometric_min_action_method(
             return false
         end
 
-        sol = solve(prob, method; maxiters, callback, abstol, reltol)
+        sol = solve(prob, optimizer; maxiters, callback, abstol, reltol)
         path = sol.u
     end
     # if verbose && !converged
@@ -142,7 +142,7 @@ end
 
 function heymann_vandeneijnden_workspace(sys::ContinuousTimeDynamicalSystem, path)
     N = size(path, 2)
-    A = inv(covariance_matrix(sys))
+    A = inv(normalize_covariance!(covariance_matrix(sys)))
     params = current_parameters(sys)
     jac_fun = jacobian(sys)
     jac = let jac_fun=jac_fun, params=params

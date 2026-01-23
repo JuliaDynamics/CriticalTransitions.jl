@@ -64,9 +64,9 @@ end
         sys,
         x_i,
         x_f;
-        N=500,
+        points=500,
         maxiters=1000,
-        method="HeymannVandenEijnden",
+        optimizer="HeymannVandenEijnden",
         show_progress=false,
         verbose=false,
     )

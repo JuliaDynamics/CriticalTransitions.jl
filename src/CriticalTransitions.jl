@@ -24,7 +24,8 @@ using DynamicalSystemsBase:
     initial_parameters,
     current_parameter,
     current_parameters,
-    initial_time
+    initial_time,
+    integrator
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet

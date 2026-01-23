@@ -73,8 +73,8 @@ based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staf
 function simple_geometric_min_action_method(
     sys::ExtendedPhaseSpace,
     x_initial::Matrix{T};
-    ϵ::Real=1e-1,
-    iterations::Int64=1000,
+    stepsize::Real=1e-1,
+    maxiters::Int=1000,
     show_progress::Bool=false,
     reltol::Real=NaN,
 ) where {T}
@@ -88,9 +88,9 @@ function simple_geometric_min_action_method(
     S = CircularBuffer{T}(2)
     fill!(S, Inf)
 
-    progress = Progress(iterations; dt=0.5, enabled=show_progress)
-    for i in 1:iterations
-        update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ)
+    progress = Progress(maxiters; dt=0.5, enabled=show_progress)
+    for i in 1:maxiters
+        update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, stepsize)
 
         # reparameterize to arclength
         interpolate_path!(x, alpha, s)

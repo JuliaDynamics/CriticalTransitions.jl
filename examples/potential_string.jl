@@ -105,7 +105,7 @@ string = CriticalTransitions.string_method(
 )
 
 # A simple convergence diagnostic: average step along the string.
-string_m = Matrix(string)
+string_m = Matrix(string.path)
 dmean = mean(norm(string_m[i + 1, :] .- string_m[i, :]) for i in 1:(size(string_m, 1) - 1))
 dmean
 

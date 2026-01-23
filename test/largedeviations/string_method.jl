@@ -57,7 +57,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
     x_init_sss = StateSpaceSet([xx yy])
 
     string_sss = string_method(
-        sys_sss, x_init_sss; iterations=10_000, ϵ=0.5, show_progress=false
+        sys_sss, x_init_sss; maxiters=10_000, stepsize=0.5, show_progress=false
     )
 
     function H_x_m(x, p) # ℜ² → ℜ²
@@ -81,9 +81,11 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
 
     x_init_m = Matrix([xx yy]')
 
-    string_m = string_method(sys_m, x_init_m; iterations=10_000, ϵ=0.5, show_progress=false)
+    string_m = string_method(
+        sys_m, x_init_m; maxiters=10_000, stepsize=0.5, show_progress=false
+    )
 
-    @test vec(string_m) ≈ vec(string_sss)
+    @test vec(string_m.path) ≈ vec(string_sss.path)
 end
 
 @testset "String method endpoints pinned" begin
@@ -97,19 +99,21 @@ end
 
     b_rot(x) = [-x[2], x[1]]
 
-    string_m = string_method(b_rot, x_init_m; iterations=25, ϵ=0.2, show_progress=false)
-    m = Matrix(string_m)
+    string_m = string_method(b_rot, x_init_m; maxiters=25, stepsize=0.2, show_progress=false)
+    m = Matrix(string_m.path)
     @test vec(m[1, :]) ≈ x_init_m[:, 1]
     @test vec(m[end, :]) ≈ x_init_m[:, end]
 
     x_init_sss = StateSpaceSet(x_init_m')
-    string_sss = string_method(b_rot, x_init_sss; iterations=25, ϵ=0.2, show_progress=false)
-    ms = Matrix(string_sss)
+    string_sss = string_method(
+        b_rot, x_init_sss; maxiters=25, stepsize=0.2, show_progress=false
+    )
+    ms = Matrix(string_sss.path)
     @test vec(ms[1, :]) ≈ x_init_m[:, 1]
     @test vec(ms[end, :]) ≈ x_init_m[:, end]
 end
 
-@testset "String method alg keyword" begin
+@testset "String method integrator keyword" begin
     Nt_small = 60
     s_small = range(0; stop=1, length=Nt_small)
 
@@ -120,26 +124,26 @@ end
     b_nl(x) = [-x[1] + 0.2 * x[2]^3, -0.5 * x[2] - 0.1 * x[1]^3]
 
     string_default = string_method(
-        b_nl, x_init_m; iterations=20, ϵ=0.3, show_progress=false
+        b_nl, x_init_m; maxiters=20, stepsize=0.3, show_progress=false
     )
     string_euler = string_method(
         b_nl,
         x_init_m;
-        iterations=20,
-        ϵ=0.3,
-        alg=CriticalTransitions.Euler(),
+        maxiters=20,
+        stepsize=0.3,
+        integrator=CriticalTransitions.Euler(),
         show_progress=false,
     )
 
-    @test vec(Matrix(string_default)) ≈ vec(Matrix(string_euler))
+    @test vec(Matrix(string_default.path)) ≈ vec(Matrix(string_euler.path))
 
     string_tsit5 = string_method(
-        b_nl, x_init_m; iterations=20, ϵ=0.3, alg=Tsit5(), show_progress=false
+        b_nl, x_init_m; maxiters=20, stepsize=0.3, integrator=Tsit5(), show_progress=false
     )
-    @test norm(vec(Matrix(string_default)) - vec(Matrix(string_tsit5))) > 1e-10
+    @test norm(vec(Matrix(string_default.path)) - vec(Matrix(string_tsit5.path))) > 1e-10
 end
 
-@testset "ExtendedPhaseSpace supports alg" begin
+@testset "ExtendedPhaseSpace supports integrator" begin
     D = 2
     Nt_small = 40
     s_small = range(0; stop=1, length=Nt_small)
@@ -163,17 +167,17 @@ end
     string_euler_m = string_method(
         sys_m,
         x_init_m;
-        iterations=15,
-        ϵ=0.25,
-        alg=CriticalTransitions.Euler(),
+        maxiters=15,
+        stepsize=0.25,
+        integrator=CriticalTransitions.Euler(),
         show_progress=false,
     )
     string_tsit5_m = string_method(
-        sys_m, x_init_m; iterations=15, ϵ=0.25, alg=Tsit5(), show_progress=false
+        sys_m, x_init_m; maxiters=15, stepsize=0.25, integrator=Tsit5(), show_progress=false
     )
 
-    me = Matrix(string_euler_m)
-    mt = Matrix(string_tsit5_m)
+    me = Matrix(string_euler_m.path)
+    mt = Matrix(string_tsit5_m.path)
     @test vec(me[1, :]) ≈ x_init_m[:, 1]
     @test vec(me[end, :]) ≈ x_init_m[:, end]
     @test vec(mt[1, :]) ≈ x_init_m[:, 1]
@@ -182,9 +186,9 @@ end
 
     x_init_sss = StateSpaceSet(x_init_m')
     string_tsit5_sss = string_method(
-        sys_sss, x_init_sss; iterations=15, ϵ=0.25, alg=Tsit5(), show_progress=false
+        sys_sss, x_init_sss; maxiters=15, stepsize=0.25, integrator=Tsit5(), show_progress=false
     )
-    ms = Matrix(string_tsit5_sss)
+    ms = Matrix(string_tsit5_sss.path)
     @test vec(ms[1, :]) ≈ x_init_m[:, 1]
     @test vec(ms[end, :]) ≈ x_init_m[:, end]
 end

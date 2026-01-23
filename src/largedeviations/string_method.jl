@@ -14,31 +14,35 @@ This implementation allows for computation between arbitrary points, not just st
 # Arguments
 - `sys::ExtendedPhaseSpace`: The doubled phase space system for which the string method is computed
 - `x_initial`: Initial path discretized as a matrix where each column represents a point on the path
-- `ϵ::Real`: Step size for the evolution step
-- `alg`: SciML integrator algorithm (e.g. `Euler()`, `Tsit5()`). Defaults to `Euler()`.
-- `iterations::Int64`: Maximum number of iterations for path convergence
+- `stepsize::Real`: Step size for the evolution step
+- `integrator`: SciML integrator algorithm (e.g. `Euler()`, `Tsit5()`). Defaults to `Euler()`.
+- `maxiters::Int`: Maximum number of iterations for path convergence
 - `show_progress::Bool`: Whether to display a progress meter during computation
 
 # Returns
-- `x`: The final converged path representing the MEP
+- A [`MinimumActionPath`](@ref) containing the converged path.
+
+For `sys::CoupledSDEs` the `.action` field is computed as the geometric Freidlin-Wentzell
+action via [`geometric_action`](@ref). For drift-only systems (e.g. `sys::Function`) the
+same geometric action is computed assuming an identity noise covariance.
 """
 function string_method(
     sys::Union{ExtendedPhaseSpace,Function},
     x_initial::Matrix;
-    ϵ::Real=1e-1,
-    alg=Euler(),
-    iterations::Int64=1000,
+    stepsize::Real=1e-1,
+    integrator=Euler(),
+    maxiters::Int=1000,
     show_progress::Bool=false,
 )
     Nx, Nt = size(x_initial)
     s = range(0; stop=1, length=Nt)
     x, alpha = init_allocation_string(x_initial, Nt)
 
-    integ = _init_string_integrator(sys, x; ϵ, alg)
+    integ = _init_string_integrator(sys, x; ϵ=stepsize, alg=integrator)
 
-    progress = Progress(iterations; dt=0.5, enabled=show_progress)
-    for i in 1:iterations
-        _sciml_step!(x, integ, ϵ)
+    progress = Progress(maxiters; dt=0.5, enabled=show_progress)
+    for i in 1:maxiters
+        _sciml_step!(x, integ, stepsize)
         # reset initial and final points to allow for string computation
         # between points that are not stable fixed points
         x[:, 1] = x_initial[:, 1]
@@ -49,7 +53,16 @@ function string_method(
 
         next!(progress; showvalues=[("iterations", i)])
     end
-    return StateSpaceSet(x')
+
+    path_sss = StateSpaceSet(x')
+    S = if sys isa ExtendedPhaseSpace
+        NaN
+    elseif sys isa Function
+        geometric_action(sys, x, 1.0)
+    else
+        NaN
+    end
+    return MinimumActionPath(path_sss, S)
 end
 """
     $(TYPEDSIGNATURES)
@@ -67,36 +80,47 @@ This implementation allows for computation between arbitrary points, not just st
 # Arguments
 - `sys::CoupledSDEs`: The system for which the string method is computed
 - `x_initial`: Initial path discretized as a matrix where each column represents a point on the path
-- `ϵ::Real`: Step size for the evolution step
-- `alg`: SciML integrator algorithm (e.g. `Euler()`, `Tsit5()`). Defaults to `Euler()`.
-- `iterations::Int64`: Maximum number of iterations for path convergence
+- `stepsize::Real`: Step size for the evolution step
+- `integrator`: SciML integrator algorithm (e.g. `Euler()`, `Tsit5()`). Defaults to `Euler()`.
+- `maxiters::Int`: Maximum number of iterations for path convergence
 - `show_progress::Bool`: Whether to display a progress meter during computation
 
 # Returns
-- `x`: The final converged path representing the MEP
+- A [`MinimumActionPath`](@ref) containing the converged path.
 """
 function string_method(sys::ContinuousTimeDynamicalSystem, init; kwargs...)
+    if sys isa CoupledSDEs
+        return string_method(sys::CoupledSDEs, init; kwargs...)
+    end
     b(x) = drift(sys, x)
     return string_method(b, init; kwargs...)
+end
+
+function string_method(sys::CoupledSDEs, init; kwargs...)
+    b(x) = drift(sys, x)
+    res = string_method(b, init; kwargs...)
+    path_m, Nt = _string_matrix(res.path)
+    S = geometric_action(sys, path_m, 1.0)
+    return MinimumActionPath(res.path, S)
 end
 
 function string_method(
     b::Union{ExtendedPhaseSpace,Function},
     x_initial::StateSpaceSet{D};
-    ϵ::Real=1e-1,
-    alg=Euler(),
-    iterations::Int64=1000,
+    stepsize::Real=1e-1,
+    integrator=Euler(),
+    maxiters::Int=1000,
     show_progress::Bool=false,
 ) where {D}
     x_initial_m, Nt = _string_matrix(x_initial)
     s = range(0; stop=1, length=Nt)
 
     x, alpha = init_allocation_string(x_initial_m, Nt)
-    integ = _init_string_integrator(b, x; ϵ, alg)
+    integ = _init_string_integrator(b, x; ϵ=stepsize, alg=integrator)
 
-    progress = Progress(iterations; dt=0.5, enabled=show_progress)
-    for i in 1:iterations
-        _sciml_step!(x, integ, ϵ)
+    progress = Progress(maxiters; dt=0.5, enabled=show_progress)
+    for i in 1:maxiters
+        _sciml_step!(x, integ, stepsize)
 
         # reset initial and final points to allow for string computation
         # between points that are not stable fixed points
@@ -108,7 +132,16 @@ function string_method(
 
         next!(progress; showvalues=[("iterations", i)])
     end
-    return StateSpaceSet(x')
+
+    path_sss = StateSpaceSet(x')
+    S = if b isa ExtendedPhaseSpace
+        NaN
+    elseif b isa Function
+        geometric_action(b, x, 1.0)
+    else
+        NaN
+    end
+    return MinimumActionPath(path_sss, S)
 end
 
 function _string_matrix(x::StateSpaceSet{D}) where {D}
