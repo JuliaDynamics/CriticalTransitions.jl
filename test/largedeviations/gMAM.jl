@@ -16,7 +16,7 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
     @test isapprox(S, 0.18, atol=0.01)
 end
 
-@testset "HeymannVandenEijnden" begin
+@testset "GeometricGradient" begin
     function meier_stein(u, p, t) # out-of-place
         x, y = u
         dx = x - x^3 - 10 * x * y^2
@@ -34,13 +34,12 @@ end
     x_i = init[:, 1]
     x_f = init[:, end]
 
-    method = "HeymannVandenEijnden"
     gm = geometric_min_action_method(
-        sys, init; maxiters=500, optimizer=method, verbose=false, show_progress=false
+        sys, init; maxiters=500, optimizer=GeometricGradient(), verbose=false, show_progress=false
     )
 
     path = Matrix(gm.path)'
     action_val = gm.action
     @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=1e-3))
     @test all(isapprox.(action_val, 0.3375, atol=1e-3))
-end # HeymannVandenEijnden
+end # GeometricGradient

@@ -3,8 +3,8 @@ $(TYPEDSIGNATURES)
 
 Computes the minimizer of the geometric Freidlin-Wentzell action based on the geometric
 minimum action method (gMAM), using optimizers of Optimization.jl or the original formulation
-by Heymann and Vanden-Eijnden [heymann_pathways_2008](@citet). Only the Freidlin-Wentzell action
-has a geometric formulation.
+by Heymann and Vanden-Eijnden [heymann_pathways_2008](@citet), which performs a projected-gradient
+descent. Only the Freidlin-Wentzell action has a geometric formulation.
 
 To set an initial path different from a straight line, see the multiple dispatch method
 
@@ -15,8 +15,8 @@ To set an initial path different from a straight line, see the multiple dispatch
   - `maxiters::Int=100`: maximum number of optimization iterations before the algorithm stops
   - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
   - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
-    - `optimizer = "HeymannVandenEijnden"`: minimization algorithm (see below)
-    - `stepsize=0.01`: step size parameter in gradient descent HeymannVandenEijnden implementation
+  - `optimizer = GeometricGradient()`: minimization algorithm (see below)
+  - `stepsize=0.01`: step size parameter in projected gradient implementation
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
@@ -24,9 +24,11 @@ To set an initial path different from a straight line, see the multiple dispatch
 
 The `optimizer` keyword argument takes solver methods of the
 [`Optimization.jl`](https://docs.sciml.ai/Optimization/) package; alternatively,
-the option `optimizer = "HeymannVandenEijnden"` implements the original gMAM
-algorithm [heymann_pathways_2008](@cite).
+`optimizer = GeometricGradient()` runs a projected-gradient gMAM iteration.
 """
+abstract type GMAMOptimizer end
+struct GeometricGradient <: GMAMOptimizer end
+
 function geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem, x_i, x_f; points::Int=100, kwargs...
 )
@@ -52,7 +54,7 @@ function geometric_min_action_method(
     maxiters::Int=100,
     abstol=nothing,
     reltol=nothing,
-    optimizer="HeymannVandenEijnden",
+    optimizer=GeometricGradient(),
     ad_type=Optimization.AutoFiniteDiff(),
     stepsize=0.01,
     verbose=false,
@@ -70,10 +72,10 @@ function geometric_min_action_method(
     S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
 
     prog = Progress(maxiters; enabled=show_progress)
-    if optimizer == "HeymannVandenEijnden"
-        ws = heymann_vandeneijnden_workspace(sys, path)
+    if optimizer isa GeometricGradient
+        ws = geometric_gradient_workspace(sys, path)
         for i in 1:maxiters
-            heymann_vandeneijnden_step!(ws, sys, path; tau=stepsize)
+            geometric_gradient_step!(ws, sys, path; tau=stepsize)
             path .= ws.update
             interpolate_path!(path, alpha, arc)
             next!(prog)
@@ -112,15 +114,15 @@ arclength `L`.
 
 - [heymann_pathways_2008](@cite)
 """
-function heymann_vandeneijnden_step(
+function geometric_gradient_step(
     sys::ContinuousTimeDynamicalSystem, path, N; tau=0.1, diff_order=4
 )
-    ws = heymann_vandeneijnden_workspace(sys, path)
-    heymann_vandeneijnden_step!(ws, sys, path; tau=tau, diff_order=diff_order)
+    ws = geometric_gradient_workspace(sys, path)
+    geometric_gradient_step!(ws, sys, path; tau=tau, diff_order=diff_order)
     return ws.update
 end
 
-struct HeymannVandenEijndenWorkspace{Tupdate,Tprime,Tvec,Tmat,Ttmp,Tarc,TA,Tjac}
+struct GeometricGradientWorkspace{Tupdate,Tprime,Tvec,Tmat,Ttmp,Tarc,TA,Tjac}
     update::Tupdate
     x_prime::Tprime
     lambdas::Tvec
@@ -140,7 +142,7 @@ struct HeymannVandenEijndenWorkspace{Tupdate,Tprime,Tvec,Tmat,Ttmp,Tarc,TA,Tjac}
     jac::Tjac
 end
 
-function heymann_vandeneijnden_workspace(sys::ContinuousTimeDynamicalSystem, path)
+function geometric_gradient_workspace(sys::ContinuousTimeDynamicalSystem, path)
     N = size(path, 2)
     A = inv(normalize_covariance!(covariance_matrix(sys)))
     params = current_parameters(sys)
@@ -165,7 +167,7 @@ function heymann_vandeneijnden_workspace(sys::ContinuousTimeDynamicalSystem, pat
     v = zeros(N)
     arc = range(0, 1.0; length=N)
 
-    return HeymannVandenEijndenWorkspace(
+    return GeometricGradientWorkspace(
         update,
         x_prime,
         lambdas,
@@ -186,8 +188,8 @@ function heymann_vandeneijnden_workspace(sys::ContinuousTimeDynamicalSystem, pat
     )
 end
 
-function heymann_vandeneijnden_step!(
-    ws::HeymannVandenEijndenWorkspace,
+function geometric_gradient_step!(
+    ws::GeometricGradientWorkspace,
     sys::ContinuousTimeDynamicalSystem,
     path;
     tau=0.1,

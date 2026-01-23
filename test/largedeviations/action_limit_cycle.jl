@@ -66,7 +66,7 @@ end
         x_f;
         points=500,
         maxiters=1000,
-        optimizer="HeymannVandenEijnden",
+        optimizer=GeometricGradient(),
         show_progress=false,
         verbose=false,
     )
