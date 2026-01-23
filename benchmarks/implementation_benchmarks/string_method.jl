@@ -95,16 +95,32 @@ sys_sss, x_init_sss = sss()
 sys_m, x_init_m = m()
 
 @benchmark string_method(
-    $sys_sss, $x_init_sss; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=Euler()
+    $sys_sss,
+    $x_init_sss;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=Euler(),
 )
 @benchmark string_method(
-    $sys_sss, $x_init_sss; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=RK4()
+    $sys_sss,
+    $x_init_sss;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=RK4(),
 )
 @benchmark string_method(
-    $sys_m, $x_init_m; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=Euler()
+    $sys_m,
+    $x_init_m;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=Euler(),
 )
 @benchmark string_method(
-    $sys_m, $x_init_m; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=RK4()
+    $sys_m,
+    $x_init_m;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=RK4(),
 )
 
 function KPO_SA(x, p, t)
@@ -119,32 +135,82 @@ ds = CoupledSDEs(KPO, zeros(2), ())
 ds_sa = CoupledSDEs(KPO_SA, zeros(2), ())
 
 @btime string_method(
-    $ds_sa, $x_init_sss; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=Euler()
+    $ds_sa,
+    $x_init_sss;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=Euler(),
 )
 @btime string_method(
-    $ds_sa, $x_init_sss; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=RK4()
+    $ds_sa,
+    $x_init_sss;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=RK4(),
 )
 @btime string_method(
-    $ds, $x_init_sss; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=Euler()
-)
-@btime string_method($ds, $x_init_sss; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=RK4())
-@btime string_method(
-    $sys_m, $x_init_m; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=Euler()
-)
-@btime string_method(
-    $sys_m, $x_init_m; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=RK4()
+    $ds,
+    $x_init_sss;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=Euler(),
 )
 @btime string_method(
-    $ds_sa, $x_init_m; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=Euler()
+    $ds,
+    $x_init_sss;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=RK4(),
 )
 @btime string_method(
-    $ds_sa, $x_init_m; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=RK4()
+    $sys_m,
+    $x_init_m;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=Euler(),
 )
 @btime string_method(
-    $sys_sss, $x_init_sss; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=Euler()
+    $sys_m,
+    $x_init_m;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=RK4(),
 )
 @btime string_method(
-    $sys_sss, $x_init_sss; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=RK4()
+    $ds_sa,
+    $x_init_m;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=Euler(),
 )
-@btime string_method($ds, $x_init_m; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=Euler())
-@btime string_method($ds, $x_init_m; maxiters=$STRING_ITERS, stepsize=$STRING_STEPSIZE, integrator=RK4())
+@btime string_method(
+    $ds_sa,
+    $x_init_m;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=RK4(),
+)
+@btime string_method(
+    $sys_sss,
+    $x_init_sss;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=Euler(),
+)
+@btime string_method(
+    $sys_sss,
+    $x_init_sss;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=RK4(),
+)
+@btime string_method(
+    $ds,
+    $x_init_m;
+    maxiters=($STRING_ITERS),
+    stepsize=($STRING_STEPSIZE),
+    integrator=Euler(),
+)
+@btime string_method(
+    $ds, $x_init_m; maxiters=($STRING_ITERS), stepsize=($STRING_STEPSIZE), integrator=RK4()
+)
