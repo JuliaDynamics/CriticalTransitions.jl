@@ -12,19 +12,21 @@ To set an initial path different from a straight line, see the multiple dispatch
 
 ## Keyword arguments
 
+  - `points::Int=100`: number of discretization points along the path
   - `maxiters::Int=100`: maximum number of optimization iterations before the algorithm stops
   - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
   - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
-  - `optimizer = GeometricGradient()`: minimization algorithm (see below)
-  - `stepsize=0.01`: step size parameter in projected gradient implementation
+  - `optimizer = GeometricGradient()`: minimization algorithm (see below). Default: `GeometricGradient()`
+  - `stepsize=0.01`: step size parameter for projected gradient descent. Default: `0.01`
+  - `ad_type=Optimization.AutoFiniteDiff()`: type of automatic differentiation for Optimization.jl solvers
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
 ## Minimization algorithms
 
-The `optimizer` keyword argument takes solver methods of the
-[`Optimization.jl`](https://docs.sciml.ai/Optimization/) package; alternatively,
-`optimizer = GeometricGradient()` runs a projected-gradient gMAM iteration.
+The `optimizer` keyword argument accepts:
+  - `GeometricGradient()`: runs a projected-gradient gradient descent [heymann_pathways_2008](@citet)
+  - Any solver from [`Optimization.jl`](https://docs.sciml.ai/Optimization/) (e.g., `OptimizationOptimisers.Adam()`)
 """
 abstract type GMAMOptimizer end
 struct GeometricGradient <: GMAMOptimizer end
@@ -75,7 +77,7 @@ function geometric_min_action_method(
     if optimizer isa GeometricGradient
         ws = geometric_gradient_workspace(sys, path)
         for i in 1:maxiters
-            geometric_gradient_step!(ws, sys, path; tau=stepsize)
+            geometric_gradient_step!(ws, sys, path; stepsize=stepsize)
             path .= ws.update
             interpolate_path!(path, alpha, arc)
             next!(prog)
@@ -107,7 +109,7 @@ arclength `L`.
 
 ## Keyword arguments
 
-  - `tau = 0.1`: step size
+  - `stepsize = 0.1`: step size for gradient descent
   - `diff_order = 4`: order of the finite differencing along the path. Either `2` or `4`.
 
 ## References
@@ -115,10 +117,10 @@ arclength `L`.
 - [heymann_pathways_2008](@cite)
 """
 function geometric_gradient_step(
-    sys::ContinuousTimeDynamicalSystem, path, N; tau=0.1, diff_order=4
+    sys::ContinuousTimeDynamicalSystem, path, N; stepsize=0.1, diff_order=4
 )
     ws = geometric_gradient_workspace(sys, path)
-    geometric_gradient_step!(ws, sys, path; tau=tau, diff_order=diff_order)
+    geometric_gradient_step!(ws, sys, path; stepsize=stepsize, diff_order=diff_order)
     return ws.update
 end
 
@@ -192,7 +194,7 @@ function geometric_gradient_step!(
     ws::GeometricGradientWorkspace,
     sys::ContinuousTimeDynamicalSystem,
     path;
-    tau=0.1,
+    stepsize=0.1,
     diff_order=4,
 )
     N = size(path, 2)
@@ -228,7 +230,7 @@ function geometric_gradient_step!(
     ws.dl .= 0
     ws.du .= 0
     @views for i in 2:(N - 1)
-        ws.alpha_cache[i] = tau * ws.lambdas[i]^2 / (dx^2)
+        ws.alpha_cache[i] = stepsize * ws.lambdas[i]^2 / (dx^2)
         if isfinite(ws.alpha_cache[i])
             ws.d[i] += 2 * ws.alpha_cache[i]
             ws.dl[i - 1] = -ws.alpha_cache[i]
@@ -257,7 +259,7 @@ function geometric_gradient_step!(
             end
             rhs_val =
                 path[j, i] +
-                tau * (
+                stepsize * (
                     -ws.lambdas[i] * ws.prod1[j, i - 1] - ws.prod2[j, i - 1] +
                     ws.lambdas[i] * ws.lambdas_prime[i] * ws.x_prime[j, i]
                 )

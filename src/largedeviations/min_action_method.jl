@@ -22,13 +22,13 @@ value.
 ## Keyword arguments
 
   - `functional = "FW"`: type of action functional to minimize.
-    Defaults to [`fw_action`](@ref), alternative: "OM" for [`om_action`](@ref).
-    - `points = 100`: number of path points to use for the discretization of the path.
-  - `noise_strength = nothing`: noise strength for the action functional. Specify only if `functional = "OM"`.
-    - `optimizer = Optimisers.Adam()`: minimization algorithm (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
+    Defaults to [`fw_action`](@ref), alternative: "OM" for [`om_action`](@ref)
+  - `points = 100`: number of path points to use for the discretization of the path
+  - `noise_strength = nothing`: noise strength for the action functional. Specify only if `functional = "OM"`
+  - `optimizer = Optimisers.Adam()`: minimization algorithm from [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/)
   - `ad_type = Optimization.AutoFiniteDiff()`: type of automatic differentiation to use
     (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
-  - `maxiters = 100`: maximum number of iterations before the algorithm stops.
+  - `maxiters = 100`: maximum number of iterations before the algorithm stops
   - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
   - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
   - `verbose = true`: whether to print Optimization information during the run

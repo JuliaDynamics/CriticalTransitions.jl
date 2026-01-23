@@ -61,14 +61,20 @@ Our implementation is only valid for additive noise.
 This method computes the optimal path in the phase space of a Hamiltonian system that
 minimizes the Freidlin–Wentzell action. The Hamiltonian functions `H_x` and `H_p` define
 the system's dynamics in a doubled phase. The initial state `x_initial` is evolved
-iteratively using constrained gradient descent with step size parameter `ϵ` over a specified
+iteratively using constrained gradient descent with step size parameter `stepsize` over a specified
 number of iterations. The method can display a progress meter and will stop early if the
 relative tolerance `reltol` is achieved.
 
-The function returns a tuple containing the final state, the action value,
-the Lagrange multipliers, the momentum, and the state derivatives. The implementation is
-based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html.
-).
+The function returns a [`MinimumActionPath`](@ref) containing the final path, the action value,
+the Lagrange multipliers (`.λ`), the momentum (`.generalized_momentum`), and the state derivatives (`.path_velocity`). 
+The implementation is based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html).
+
+## Keyword arguments
+
+  - `stepsize::Real=1e-1`: step size for gradient descent. Default: `0.1`
+  - `maxiters::Int=1000`: maximum number of iterations before the algorithm stops
+  - `show_progress::Bool=false`: if true, display a progress bar
+  - `reltol::Real=NaN`: relative tolerance for early stopping based on action change
 """
 function simple_geometric_min_action_method(
     sys::ExtendedPhaseSpace,

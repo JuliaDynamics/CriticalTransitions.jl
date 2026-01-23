@@ -10,17 +10,18 @@ This implementation allows for computation between arbitrary points, not just st
 ## References
 
 - [e_string_2007](@cite)
+- [`StringMethod.jl`](https://github.com/gideonsimpson/StringMethod.jl)
 
-# Arguments
-- `sys::ExtendedPhaseSpace`: The doubled phase space system for which the string method is computed
-- `x_initial`: Initial path discretized as a matrix where each column represents a point on the path
-- `stepsize::Real`: Step size for the evolution step
-- `integrator`: SciML integrator algorithm (e.g. `Euler()`, `Tsit5()`). Defaults to `Euler()`.
-- `maxiters::Int`: Maximum number of iterations for path convergence
-- `show_progress::Bool`: Whether to display a progress meter during computation
+## Keyword arguments
 
-# Returns
-- A [`MinimumActionPath`](@ref) containing the converged path.
+  - `stepsize::Real=1e-1`: Step size for the evolution step. Default: `0.1`
+  - `integrator=Euler()`: SciML integrator algorithm (e.g. `Euler()`, `Tsit5()`)
+  - `maxiters::Int=1000`: Maximum number of iterations for path convergence
+  - `show_progress::Bool=false`: Whether to display a progress meter during computation
+
+## Returns
+
+A [`MinimumActionPath`](@ref) containing the converged path and action value.
 
 For `sys::CoupledSDEs` the `.action` field is computed as the geometric Freidlin-Wentzell
 action via [`geometric_action`](@ref). For drift-only systems (e.g. `sys::Function`) the
@@ -77,16 +78,18 @@ This implementation allows for computation between arbitrary points, not just st
 
 - [e_string_2007](@cite)
 
-# Arguments
-- `sys::CoupledSDEs`: The system for which the string method is computed
-- `x_initial`: Initial path discretized as a matrix where each column represents a point on the path
-- `stepsize::Real`: Step size for the evolution step
-- `integrator`: SciML integrator algorithm (e.g. `Euler()`, `Tsit5()`). Defaults to `Euler()`.
-- `maxiters::Int`: Maximum number of iterations for path convergence
-- `show_progress::Bool`: Whether to display a progress meter during computation
+## Keyword arguments
 
-# Returns
-- A [`MinimumActionPath`](@ref) containing the converged path.
+  - `stepsize::Real=1e-1`: Step size for the evolution step. Default: `0.1`
+  - `integrator=Euler()`: SciML integrator algorithm (e.g. `Euler()`, `Tsit5()`)
+  - `maxiters::Int=1000`: Maximum number of iterations for path convergence
+  - `show_progress::Bool=false`: Whether to display a progress meter during computation
+
+## Returns
+
+A [`MinimumActionPath`](@ref) containing the converged path and action value.
+
+For `sys::CoupledSDEs`, the action is computed using the system's noise covariance.
 """
 function string_method(sys::ContinuousTimeDynamicalSystem, init; kwargs...)
     if sys isa CoupledSDEs
