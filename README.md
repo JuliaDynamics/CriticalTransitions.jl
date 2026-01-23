@@ -3,6 +3,7 @@
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliadynamics.github.io/CriticalTransitions.jl/dev/)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/CriticalTransitions.jl/stable/)
 [![Tests](https://github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/Tests.yml/badge.svg)](github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/ci.yml)
+[![Benchmarks](https://github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/Benchmarks.yaml/badge.svg?branch=main)](https://juliadynamics.github.io/CriticalTransitions.jl/benchmarks/)
 
 [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
