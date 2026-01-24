@@ -17,7 +17,7 @@ Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSyste
 ## Installation
 `CriticalTransitions` is a registered Julia package.
 
-```console
+```julia
 julia> ] add CriticalTransitions
 ```
 
