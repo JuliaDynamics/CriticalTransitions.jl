@@ -29,8 +29,8 @@ value.
   - `ad_type = Optimization.AutoFiniteDiff()`: type of automatic differentiation to use
     (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
   - `maxiters = 100`: maximum number of iterations before the algorithm stops
-  - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
-  - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
+  - `abstol::Real=NaN`: absolute tolerance of action gradient to determine convergence
+  - `reltol::Real=NaN`: relative tolerance of action gradient to determine convergence
   - `verbose = true`: whether to print Optimization information during the run
   - `show_progress = false`: whether to print a progress bar
 """
@@ -61,10 +61,10 @@ function min_action_method(
     optimizer=Optimisers.Adam(),
     ad_type=Optimization.AutoFiniteDiff(),
     maxiters::Int=100,
-    abstol=nothing,
-    reltol=nothing,
-    verbose=false,
-    show_progress=true,
+    abstol::Real=NaN,
+    reltol::Real=NaN,
+    verbose::Bool=false,
+    show_progress::Bool=true,
 )
     if sys isa CoupledSDEs
         proper_MAM_system(sys)
