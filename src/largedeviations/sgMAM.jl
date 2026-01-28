@@ -60,7 +60,7 @@ Our implementation is only valid for additive noise.
 
 This method computes the optimal path in the phase space of a Hamiltonian system that
 minimizes the Freidlin–Wentzell action. The Hamiltonian functions `H_x` and `H_p` define
-the system's dynamics in a doubled phase. The initial state `x_initial` is evolved
+the system's dynamics in a doubled phase. The initruetial state `x_initial` is evolved
 iteratively using constrained gradient descent with step size parameter `stepsize` over a specified
 number of iterations. The method can display a progress meter and will stop early if the
 absolute tolerance `abstol` or relative tolerance `reltol` is achieved.
@@ -74,6 +74,7 @@ The implementation is based on the work of [Grafke et al. (2019)](https://homepa
   - `stepsize::Real=1e-1`: step size for gradient descent. Default: `0.1`
   - `maxiters::Int=1000`: maximum number of iterations before the algorithm stops
   - `show_progress::Bool=false`: if true, display a progress bar
+  - `verbose::Bool=false`: if true, print additional output
   - `abstol::Real=NaN`: absolute tolerance for early stopping based on action change
   - `reltol::Real=NaN`: relative tolerance for early stopping based on action change
 """
@@ -83,6 +84,7 @@ function simple_geometric_min_action_method(
     stepsize::Real=1e-1,
     maxiters::Int=1000,
     show_progress::Bool=false,
+    verbose::Bool=false,
     abstol::Real=NaN,
     reltol::Real=NaN,
 ) where {T}
@@ -108,7 +110,7 @@ function simple_geometric_min_action_method(
         rel_change = S[end] == 0 ? abs_change : abs_change / abs(S[end])
         if (isfinite(abstol) && abs_change < abstol) ||
             (isfinite(reltol) && rel_change < reltol)
-            @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
+            verbose && @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
             break
         end
         next!(
