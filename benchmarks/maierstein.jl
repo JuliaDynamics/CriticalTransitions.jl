@@ -1,3 +1,5 @@
+using OptimizationOptimisers: Optimisers
+
 function benchmark_maierstein!(SUITE)
     function meier_stein(u, p, t) # out-of-place
         x, y = u
