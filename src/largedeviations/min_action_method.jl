@@ -31,7 +31,7 @@ value.
   - `maxiters = 100`: maximum number of iterations before the algorithm stops
   - `abstol::Real=NaN`: absolute tolerance of action gradient to determine convergence
   - `reltol::Real=NaN`: relative tolerance of action gradient to determine convergence
-  - `verbose = true`: whether to print Optimization information during the run
+  - `verbose = false`: whether to print Optimization information during the run
   - `show_progress = false`: whether to print a progress bar
 """
 function min_action_method(
