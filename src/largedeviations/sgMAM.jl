@@ -60,7 +60,7 @@ Our implementation is only valid for additive noise.
 
 This method computes the optimal path in the phase space of a Hamiltonian system that
 minimizes the Freidlin–Wentzell action. The Hamiltonian functions `H_x` and `H_p` define
-the system's dynamics in a doubled phase. The initruetial state `x_initial` is evolved
+the system's dynamics in a doubled phase. The initial state `x_initial` is evolved
 iteratively using constrained gradient descent with step size parameter `stepsize` over a specified
 number of iterations. The method can display a progress meter and will stop early if the
 absolute tolerance `abstol` or relative tolerance `reltol` is achieved.
