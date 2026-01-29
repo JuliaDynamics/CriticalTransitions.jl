@@ -36,7 +36,13 @@ The optional positional argument `optimizer` selects the Optimization.jl solver.
   - `show_progress = false`: whether to print a progress bar
 """
 function min_action_method(
-    sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real, optimizer=Optimisers.Adam(); points::Int=100, kwargs...
+    sys::ContinuousTimeDynamicalSystem,
+    x_i,
+    x_f,
+    T::Real,
+    optimizer=Optimisers.Adam();
+    points::Int=100,
+    kwargs...,
 )
     init = reduce(hcat, range(x_i, x_f; length=points))
     return min_action_method(sys, init, T, optimizer; kwargs...)

@@ -35,11 +35,7 @@ end
     x_f = init[:, end]
 
     gm = geometric_min_action_method(
-        sys,
-        init, GeometricGradient();
-        maxiters=500,
-        verbose=false,
-        show_progress=false,
+        sys, init, GeometricGradient(); maxiters=500, verbose=false, show_progress=false
     )
 
     path = Matrix(gm.path)'

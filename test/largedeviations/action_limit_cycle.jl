@@ -61,13 +61,7 @@ end
 
     # Start from a straight-line initial path; minimizer should move it onto the LC segment.
     res = geometric_min_action_method(
-        sys,
-        x_i,
-        x_f;
-        points=500,
-        maxiters=1000,
-        show_progress=false,
-        verbose=false,
+        sys, x_i, x_f; points=500, maxiters=1000, show_progress=false, verbose=false
     )
 
     S = res.action
