@@ -36,9 +36,8 @@ end
 
     gm = geometric_min_action_method(
         sys,
-        init;
+        init, GeometricGradient();
         maxiters=500,
-        optimizer=GeometricGradient(),
         verbose=false,
         show_progress=false,
     )
