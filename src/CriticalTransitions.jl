@@ -58,6 +58,7 @@ include("trajectories/transition.jl")
 
 include("largedeviations/utils.jl")
 include("largedeviations/action.jl")
+include("largedeviations/methods.jl")
 include("largedeviations/MinimumActionPath.jl")
 include("largedeviations/min_action_method.jl")
 include("largedeviations/geometric_min_action_method.jl")
