@@ -4,7 +4,6 @@ module CriticalTransitions
 using Statistics: Statistics, mean
 using LinearAlgebra: LinearAlgebra, norm, dot, tr, det
 using StaticArrays: StaticArrays, SVector
-using DataStructures: CircularBuffer
 using Random: Random
 
 # Core
@@ -62,7 +61,6 @@ include("largedeviations/methods.jl")
 include("largedeviations/MinimumActionPath.jl")
 include("largedeviations/min_action_method.jl")
 include("largedeviations/geometric_min_action_method.jl")
-
 include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
 
