@@ -73,7 +73,9 @@ The implementation is based on the work of [Grafke et al. (2019)](https://homepa
 
   - `stepsize::Real=1e-1`: initial step size for the projected gradient update (also initial
     backtracking step).
-  - `maxiters::Int=1000`: maximum number of iterations before the algorithm stops
+  - `maxiters::Int=1000`: maximum number of *outer* iterations (path updates). If
+    `optimizer.max_backtracks > 0`, each outer iteration may perform up to
+    `optimizer.max_backtracks + 1` trial steps.
   - `show_progress::Bool=false`: if true, display a progress bar
   - `verbose::Bool=false`: if true, print additional output
   - `abstol::Real=NaN`: absolute tolerance for early stopping based on action change
