@@ -71,7 +71,8 @@ The implementation is based on the work of [Grafke et al. (2019)](https://homepa
 
 ## Keyword arguments
 
-  - `stepsize::Real=1e-1`: step size for gradient descent. Default: `0.1`
+  - `stepsize::Real=1e-1`: initial step size for the projected gradient update (also initial
+    backtracking step).
   - `maxiters::Int=1000`: maximum number of iterations before the algorithm stops
   - `show_progress::Bool=false`: if true, display a progress bar
   - `verbose::Bool=false`: if true, print additional output
@@ -81,7 +82,7 @@ The implementation is based on the work of [Grafke et al. (2019)](https://homepa
 function simple_geometric_min_action_method(
     sys::ExtendedPhaseSpace,
     x_initial::Matrix{T},
-    optimizer::GMAMOptimizer=GeometricGradient();
+    optimizer::GeometricGradient=GeometricGradient();
     stepsize::Real=1e-1,
     maxiters::Int=1000,
     show_progress::Bool=false,
@@ -99,13 +100,61 @@ function simple_geometric_min_action_method(
     S = CircularBuffer{T}(2)
     fill!(S, Inf)
 
+    backtracking = optimizer.max_backtracks > 0
+    x_prev = backtracking ? similar(x) : nothing
+    save_path! = backtracking ? () -> copyto!(x_prev, x) : () -> nothing
+    reset_path! = backtracking ? () -> copyto!(x, x_prev) : () -> nothing
+    ntries = backtracking ? optimizer.max_backtracks + 1 : 1
+
+    # Ensure a consistent starting path for action comparisons
+    interpolate_path!(x, alpha, s)
+    _sgmam_refresh!(xdot, p, lambda, x, H_p)
+
     progress = Progress(maxiters; dt=0.5, enabled=show_progress)
     for i in 1:maxiters
-        update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, stepsize)
+        _sgmam_refresh!(xdot, p, lambda, x, H_p)
+        S_old = FW_action(xdot, p)
 
-        # reparameterize to arclength
-        interpolate_path!(x, alpha, s)
-        push!(S, FW_action(xdot, p))
+        ϵ_try = clamp(stepsize, float(optimizer.stepsize_min), float(optimizer.stepsize_max))
+        accepted = false
+        S_new = S_old
+
+        save_path!()
+        for _ in 1:ntries
+            reset_path!()
+
+            update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ_try)
+
+            # reparameterize to arclength and re-sync (xdot, p, λ) with the updated path
+            interpolate_path!(x, alpha, s)
+            _sgmam_refresh!(xdot, p, lambda, x, H_p)
+
+            S_trial = FW_action(xdot, p)
+            if !backtracking || (isfinite(S_trial) && S_trial <= S_old)
+                accepted = true
+                S_new = S_trial
+                if backtracking
+                    stepsize = min(float(optimizer.stepsize_max), ϵ_try * float(optimizer.grow))
+                end
+                break
+            end
+
+            if backtracking
+                ϵ_try *= float(optimizer.shrink)
+                if ϵ_try < float(optimizer.stepsize_min)
+                    break
+                end
+            end
+        end
+
+        if backtracking && !accepted
+            reset_path!()
+            _sgmam_refresh!(xdot, p, lambda, x, H_p)
+            S_new = FW_action(xdot, p)
+            stepsize = max(float(optimizer.stepsize_min), ϵ_try)
+        end
+
+        push!(S, S_new)
 
         abs_change = abs(S[end] - S[1])
         rel_change = S[end] == 0 ? abs_change : abs_change / abs(S[end])
@@ -117,7 +166,11 @@ function simple_geometric_min_action_method(
         end
         next!(
             progress;
-            showvalues=[("iterations", i), ("Stol", round(rel_change; sigdigits=3))],
+            showvalues=[
+                ("iterations", i),
+                ("Stol", round(rel_change; sigdigits=3)),
+                ("stepsize", round(stepsize; sigdigits=3)),
+            ],
         )
     end
     return MinimumActionPath(
@@ -125,7 +178,7 @@ function simple_geometric_min_action_method(
     )
 end
 function simple_geometric_min_action_method(
-    sys, x_initial::StateSpaceSet, optimizer::GMAMOptimizer=GeometricGradient(); kwargs...
+    sys, x_initial::StateSpaceSet, optimizer::GeometricGradient=GeometricGradient(); kwargs...
 )
     return simple_geometric_min_action_method(
         sys, Matrix(Matrix(x_initial)'), optimizer; kwargs...
@@ -134,7 +187,7 @@ end
 function simple_geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem,
     x_initial::Matrix{<:Real},
-    optimizer::GMAMOptimizer=GeometricGradient();
+    optimizer::GeometricGradient=GeometricGradient();
     kwargs...,
 )
     return simple_geometric_min_action_method(
@@ -227,6 +280,12 @@ end
 function central_diff!(xdot, x)
     # ̇xₙ = 0.5(xₙ₊₁ - xₙ₋₁) central finite difference
     xdot[:, 2:(end - 1)] = 0.5 * (x[:, 3:end] - x[:, 1:(end - 2)])
+    return nothing
+end
+
+function _sgmam_refresh!(xdot, p, lambda, x, H_p)
+    central_diff!(xdot, x)
+    update_p!(p, lambda, x, xdot, H_p)
     return nothing
 end
 
