@@ -33,16 +33,9 @@ function GeometricGradient(;
     stepsize_max::Real=1e3,
 )
     T = promote_type(
-        typeof(shrink),
-        typeof(grow),
-        typeof(stepsize_min),
-        typeof(stepsize_max),
+        typeof(shrink), typeof(grow), typeof(stepsize_min), typeof(stepsize_max)
     )
     return GeometricGradient{T}(
-        T(shrink),
-        T(grow),
-        max_backtracks,
-        T(stepsize_min),
-        T(stepsize_max),
+        T(shrink), T(grow), max_backtracks, T(stepsize_min), T(stepsize_max)
     )
 end

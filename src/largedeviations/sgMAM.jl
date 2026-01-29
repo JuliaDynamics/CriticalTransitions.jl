@@ -97,31 +97,26 @@ function simple_geometric_min_action_method(
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
     xdotdot = zeros(size(xdot))
 
-    S = CircularBuffer{T}(2)
-    fill!(S, Inf)
-
     backtracking = optimizer.max_backtracks > 0
     x_prev = backtracking ? similar(x) : nothing
-    save_path! = backtracking ? () -> copyto!(x_prev, x) : () -> nothing
-    reset_path! = backtracking ? () -> copyto!(x, x_prev) : () -> nothing
     ntries = backtracking ? optimizer.max_backtracks + 1 : 1
 
     # Ensure a consistent starting path for action comparisons
     interpolate_path!(x, alpha, s)
     _sgmam_refresh!(xdot, p, lambda, x, H_p)
+    current_action = FW_action(xdot, p)
 
     progress = Progress(maxiters; dt=0.5, enabled=show_progress)
     for i in 1:maxiters
-        _sgmam_refresh!(xdot, p, lambda, x, H_p)
-        S_old = FW_action(xdot, p)
+        S_old = current_action
+        ϵ_try = clamp(
+            stepsize, float(optimizer.stepsize_min), float(optimizer.stepsize_max)
+        )
+        accepted = !backtracking
 
-        ϵ_try = clamp(stepsize, float(optimizer.stepsize_min), float(optimizer.stepsize_max))
-        accepted = false
-        S_new = S_old
-
-        save_path!()
+        backtracking && copyto!(x_prev, x)
         for _ in 1:ntries
-            reset_path!()
+            backtracking && copyto!(x, x_prev)
 
             update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ_try)
 
@@ -132,9 +127,11 @@ function simple_geometric_min_action_method(
             S_trial = FW_action(xdot, p)
             if !backtracking || (isfinite(S_trial) && S_trial <= S_old)
                 accepted = true
-                S_new = S_trial
+                current_action = S_trial
                 if backtracking
-                    stepsize = min(float(optimizer.stepsize_max), ϵ_try * float(optimizer.grow))
+                    stepsize = min(
+                        float(optimizer.stepsize_max), ϵ_try * float(optimizer.grow)
+                    )
                 end
                 break
             end
@@ -148,18 +145,27 @@ function simple_geometric_min_action_method(
         end
 
         if backtracking && !accepted
-            reset_path!()
+            copyto!(x, x_prev)
             _sgmam_refresh!(xdot, p, lambda, x, H_p)
-            S_new = FW_action(xdot, p)
+            current_action = S_old
             stepsize = max(float(optimizer.stepsize_min), ϵ_try)
+            if stepsize <= float(optimizer.stepsize_min)
+                verbose &&
+                    @info "Line search stalled at stepsize_min=$(optimizer.stepsize_min) after $i iterations."
+                break
+            end
         end
 
-        push!(S, S_new)
+        # With backtracking, do not treat "no acceptable step found" as convergence:
+        # only accepted steps are checked against abstol/reltol. If none are accepted,
+        # we continue and only stop when the line search stalls at stepsize_min.
+        abs_change = accepted ? abs(current_action - S_old) : Inf
+        rel_change = accepted ? (S_old == 0 ? abs_change : abs_change / abs(S_old)) : Inf
 
-        abs_change = abs(S[end] - S[1])
-        rel_change = S[end] == 0 ? abs_change : abs_change / abs(S[end])
-        if (isfinite(abstol) && abs_change < abstol) ||
+        if accepted && (
+            (isfinite(abstol) && abs_change < abstol) ||
             (isfinite(reltol) && rel_change < reltol)
+        )
             verbose &&
                 @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
             break
@@ -174,11 +180,18 @@ function simple_geometric_min_action_method(
         )
     end
     return MinimumActionPath(
-        StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
+        StateSpaceSet(x'),
+        current_action;
+        λ=lambda,
+        generalized_momentum=p,
+        path_velocity=xdot,
     )
 end
 function simple_geometric_min_action_method(
-    sys, x_initial::StateSpaceSet, optimizer::GeometricGradient=GeometricGradient(); kwargs...
+    sys,
+    x_initial::StateSpaceSet,
+    optimizer::GeometricGradient=GeometricGradient();
+    kwargs...,
 )
     return simple_geometric_min_action_method(
         sys, Matrix(Matrix(x_initial)'), optimizer; kwargs...
