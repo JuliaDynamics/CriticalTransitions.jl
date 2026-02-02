@@ -51,6 +51,15 @@ almost instant feedback in the browser.
  - [Documentation for `Documenter.jl`][documenter] which is used to render the HTML pages.
  - [Documentation for `Literate.jl`][literate] which is used for tutorials/examples.
 
+### Referencing literature
+
+Our package aims to remain as close as possible to the scientific literature that 
+describes the theory and algorithms implemented here. To ensure that the source literature
+is easily accessible and adequately attributed, we use
+[`DocumenterCitations.jl`](https://github.com/JuliaDocs/DocumenterCitations.jl).
+
+To add a reference to the documentation, add the `bibtex` entry to `docs/src/refs.bib` and
+cite it using the `@cite` or `@citet` commands.
 
 ## Reporting issues
 
