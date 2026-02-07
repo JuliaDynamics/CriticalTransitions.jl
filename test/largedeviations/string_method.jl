@@ -1,4 +1,6 @@
 using CriticalTransitions
+using OrdinaryDiffEq: Tsit5
+using LinearAlgebra: norm
 
 const λ = 3 / 1.21 * 2 / 295
 const ω0 = 1.000
@@ -33,7 +35,7 @@ xx = @. (xb[1] - xa[1]) * s + xa[1] + 4 * s * (1 - s) * xsaddle[1]
 yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
 
 @testset "StateSpaceSet vs Matrix" begin
-    function H_x(x, p) # ℜ² → ℜ²
+    function H_x_sss(x, p) # ℜ² → ℜ²
         u, v = eachcol(x)
         pu, pv = eachcol(p)
 
@@ -41,7 +43,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
         return StateSpaceSet([H_u H_v])
     end
-    function H_p(x, p) # ℜ² → ℜ²
+    function H_p_sss(x, p) # ℜ² → ℜ²
         u, v = eachcol(x)
         pu, pv = eachcol(p)
 
@@ -50,15 +52,15 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         return StateSpaceSet([H_pu H_pv])
     end
 
-    sys_sss = SgmamSystem{false,2}(H_x, H_p)
+    sys_sss = ExtendedPhaseSpace{false,2}(H_x_sss, H_p_sss)
 
     x_init_sss = StateSpaceSet([xx yy])
 
     string_sss = string_method(
-        sys_sss, x_init_sss; iterations=10_000, ϵ=0.5, show_progress=false
+        sys_sss, x_init_sss; maxiters=10_000, stepsize=0.5, show_progress=false
     )
 
-    function H_x(x, p) # ℜ² → ℜ²
+    function H_x_m(x, p) # ℜ² → ℜ²
         u, v = eachrow(x)
         pu, pv = eachrow(p)
 
@@ -66,7 +68,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
         return Matrix([H_u H_v]')
     end
-    function H_p(x, p) # ℜ² → ℜ²
+    function H_p_m(x, p) # ℜ² → ℜ²
         u, v = eachrow(x)
         pu, pv = eachrow(p)
 
@@ -75,11 +77,125 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         return Matrix([H_pu H_pv]')
     end
 
-    sys_m = SgmamSystem{false,2}(H_x, H_p)
+    sys_m = ExtendedPhaseSpace{false,2}(H_x_m, H_p_m)
 
     x_init_m = Matrix([xx yy]')
 
-    string_m = string_method(sys_m, x_init_m; iterations=10_000, ϵ=0.5, show_progress=false)
+    string_m = string_method(
+        sys_m, x_init_m; maxiters=10_000, stepsize=0.5, show_progress=false
+    )
 
-    @test vec(string_m) ≈ vec(string_sss)
+    @test vec(string_m.path) ≈ vec(string_sss.path)
+end
+
+@testset "String method endpoints pinned" begin
+    Nt_small = 50
+    s_small = range(0; stop=1, length=Nt_small)
+
+    xa2 = [-1.0, 0.0]
+    xb2 = [1.0, 0.0]
+
+    x_init_m = xa2 .* (1 .- s_small)' .+ xb2 .* s_small' .+ [0.0, 0.3] .* sinpi.(s_small)'
+
+    b_rot(x) = [-x[2], x[1]]
+
+    string_m = string_method(
+        b_rot, x_init_m; maxiters=25, stepsize=0.2, show_progress=false
+    )
+    m = Matrix(string_m.path)
+    @test vec(m[1, :]) ≈ x_init_m[:, 1]
+    @test vec(m[end, :]) ≈ x_init_m[:, end]
+
+    x_init_sss = StateSpaceSet(x_init_m')
+    string_sss = string_method(
+        b_rot, x_init_sss; maxiters=25, stepsize=0.2, show_progress=false
+    )
+    ms = Matrix(string_sss.path)
+    @test vec(ms[1, :]) ≈ x_init_m[:, 1]
+    @test vec(ms[end, :]) ≈ x_init_m[:, end]
+end
+
+@testset "String method integrator keyword" begin
+    Nt_small = 60
+    s_small = range(0; stop=1, length=Nt_small)
+
+    xa2 = [-1.0, 0.0]
+    xb2 = [1.0, 0.0]
+    x_init_m = xa2 .* (1 .- s_small)' .+ xb2 .* s_small' .+ [0.0, 0.25] .* sinpi.(s_small)'
+
+    b_nl(x) = [-x[1] + 0.2 * x[2]^3, -0.5 * x[2] - 0.1 * x[1]^3]
+
+    string_default = string_method(
+        b_nl, x_init_m; maxiters=20, stepsize=0.3, show_progress=false
+    )
+    string_euler = string_method(
+        b_nl,
+        x_init_m;
+        maxiters=20,
+        stepsize=0.3,
+        integrator=CriticalTransitions.Euler(),
+        show_progress=false,
+    )
+
+    @test vec(Matrix(string_default.path)) ≈ vec(Matrix(string_euler.path))
+
+    string_tsit5 = string_method(
+        b_nl, x_init_m; maxiters=20, stepsize=0.3, integrator=Tsit5(), show_progress=false
+    )
+    @test norm(vec(Matrix(string_default.path)) - vec(Matrix(string_tsit5.path))) > 1e-10
+end
+
+@testset "ExtendedPhaseSpace supports integrator" begin
+    D = 2
+    Nt_small = 40
+    s_small = range(0; stop=1, length=Nt_small)
+    xa2 = [-1.0, 0.0]
+    xb2 = [1.0, 0.0]
+    x_init_m = xa2 .* (1 .- s_small)' .+ xb2 .* s_small' .+ [0.0, 0.2] .* sinpi.(s_small)'
+
+    H_x_m(x, p) = zeros(size(x))
+    H_p_m(x, p) = -x
+    sys_m = ExtendedPhaseSpace{false,2}(H_x_m, H_p_m)
+
+    H_x_sss(x, p) = StateSpaceSet(zeros(length(x), D))
+    function H_p_sss(x, p)
+        m = Matrix(x)
+        # Ensure we build a StateSpaceSet from a Nt×D matrix (points in rows),
+        # regardless of whether Matrix(StateSpaceSet) returns D×Nt or Nt×D.
+        return size(m, 1) == length(x) ? StateSpaceSet(-m) : StateSpaceSet(-permutedims(m))
+    end
+    sys_sss = ExtendedPhaseSpace{false,2}(H_x_sss, H_p_sss)
+
+    string_euler_m = string_method(
+        sys_m,
+        x_init_m;
+        maxiters=15,
+        stepsize=0.25,
+        integrator=CriticalTransitions.Euler(),
+        show_progress=false,
+    )
+    string_tsit5_m = string_method(
+        sys_m, x_init_m; maxiters=15, stepsize=0.25, integrator=Tsit5(), show_progress=false
+    )
+
+    me = Matrix(string_euler_m.path)
+    mt = Matrix(string_tsit5_m.path)
+    @test vec(me[1, :]) ≈ x_init_m[:, 1]
+    @test vec(me[end, :]) ≈ x_init_m[:, end]
+    @test vec(mt[1, :]) ≈ x_init_m[:, 1]
+    @test vec(mt[end, :]) ≈ x_init_m[:, end]
+    @test norm(vec(me) - vec(mt)) > 1e-10
+
+    x_init_sss = StateSpaceSet(x_init_m')
+    string_tsit5_sss = string_method(
+        sys_sss,
+        x_init_sss;
+        maxiters=15,
+        stepsize=0.25,
+        integrator=Tsit5(),
+        show_progress=false,
+    )
+    ms = Matrix(string_tsit5_sss.path)
+    @test vec(ms[1, :]) ≈ x_init_m[:, 1]
+    @test vec(ms[end, :]) ≈ x_init_m[:, end]
 end

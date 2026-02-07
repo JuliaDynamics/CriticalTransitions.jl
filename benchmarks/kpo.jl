@@ -1,3 +1,5 @@
+using OrdinaryDiffEqLowOrderRK: Euler, RK4
+
 function benchmark_KPO!(SUITE)
     λ = 3 / 1.21 * 2 / 295
     ω0 = 1.000
@@ -37,7 +39,7 @@ function benchmark_KPO!(SUITE)
         return Matrix([H_pu H_pv]')
     end
 
-    sys = SgmamSystem{false,2}(H_x, H_p)
+    sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
 
     Nt = 100  # number of discrete time steps
     s = collect(range(0; stop=1, length=Nt))
@@ -50,12 +52,17 @@ function benchmark_KPO!(SUITE)
     yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
     x_initial = Matrix([xx yy]')
 
-    SUITE["Large deviation"]["Simple geometric minimal action"]["KPO"] = @benchmarkable sgmam(
-        $sys, $x_initial; iterations=10_000, ϵ=10e2, show_progress=false
+    SUITE["Large deviation"]["Simple geometric minimal action"]["KPO"] = @benchmarkable simple_geometric_min_action_method(
+        $sys, $x_initial; maxiters=10_000, stepsize=10e2, show_progress=false
     ) seconds = 10
 
     SUITE["Large deviation"]["String method"]["Kerr parametric resonator"] = @benchmarkable string_method(
-        $sys, $x_initial; iterations=10_000, ϵ=10e2, show_progress=false
+        $sys,
+        $x_initial;
+        maxiters=10_000,
+        stepsize=0.5,
+        show_progress=false,
+        integrator=Euler(),
     ) seconds = 10
 
     # function KPO_SA(x, p, t)
@@ -65,7 +72,7 @@ function benchmark_KPO!(SUITE)
     # ds_sa = CoupledSDEs(KPO_SA, zeros(2), ())
 
     # SUITE["Large deviation"]["Geometric minimal action"]["KPO (Optimisers.Adam; AutoFiniteDiff)"] = @benchmarkable geometric_min_action_method(
-    #     $ds_sa, $x_initial; maxiter=100, show_progress=false
+    #     $ds_sa, $x_initial; maxiters=100, show_progress=false
     # ) seconds = 20
     return nothing
 end

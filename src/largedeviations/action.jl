@@ -57,7 +57,7 @@ function om_action(sys::CoupledSDEs, path, time, noise_strength)
 
     σ = noise_strength
     # Compute action integral
-    S = 0
+    S = 0.0
     for i in 1:(size(path, 2) - 1)
         S +=
             σ^2 / 2 * (
@@ -78,6 +78,7 @@ Computes the action functional specified by `functional` for a given CoupledSDEs
 * `functional = "OM"`: Returns the Onsager-Machlup action ([`om_action`](@ref))
 """
 function action(sys::CoupledSDEs, path::Matrix, time, functional; noise_strength=nothing)
+    S = 0.0
     if functional == "FW"
         S = fw_action(sys, path, time)
     elseif functional == "OM"
@@ -110,19 +111,43 @@ L1 matrix norm.
 Returns the value of the geometric action ``\\bar S``.
 """
 function geometric_action(sys::CoupledSDEs, path, arclength=1.0)
+    A = inv(normalize_covariance!(covariance_matrix(sys)))
+    b(x) = drift(sys, x)
+    return _geometric_action_from_drift(b, path, arclength, A)
+end
+
+"""
+    geometric_action(b::Function, path, arclength=1.0; A=nothing)
+
+Geometric Freidlin-Wentzell action for a drift field `b` and a discrete `path`.
+
+This is a drift-only convenience overload that uses the same integrand as
+`geometric_action(sys::CoupledSDEs, ...)`, but requires an explicit inverse covariance
+(`A = Q^{-1}`) if you want anything other than the identity metric.
+
+If `A === nothing`, it defaults to the identity metric.
+
+The `path` must be a `(D × N)` matrix with points in columns.
+"""
+function geometric_action(b::Function, path, arclength=1.0; A=nothing)
+    if A === nothing
+        D = size(path, 1)
+        A = LinearAlgebra.Diagonal(ones(eltype(path), D))
+    end
+    return _geometric_action_from_drift(b, path, arclength, A)
+end
+
+function _geometric_action_from_drift(b::Function, path, arclength::Real, A)
     N = size(path, 2)
     v = path_velocity(path, range(0, arclength; length=N); order=4)
-    A = inv(normalize_covariance!(covariance_matrix(sys)))
 
-    b(x) = drift(sys, x)
-
-    integrand = zeros(N)
+    integrand = zeros(eltype(path), N)
     for i in 1:N
         drift = b(path[:, i])
         integrand[i] = anorm(v[:, i], A) * anorm(drift, A) - dot(v[:, i], A, drift)
     end
 
-    S = 0
+    S = zero(eltype(path))
     for i in 1:(N - 1)
         S += (integrand[i + 1] + integrand[i]) / 2
     end

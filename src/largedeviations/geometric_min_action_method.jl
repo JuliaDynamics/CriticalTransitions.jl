@@ -2,8 +2,9 @@
 $(TYPEDSIGNATURES)
 
 Computes the minimizer of the geometric Freidlin-Wentzell action based on the geometric
-minimum action method (gMAM), using optimizers of OPtimization.jl or the original formulation
-by Heymann and Vanden-Eijnden[^1]. Only Freidlin-Wentzell action has a geometric formulation.
+minimum action method (gMAM), using optimizers of Optimization.jl or the original formulation
+by Heymann and Vanden-Eijnden [heymann_pathways_2008](@citet), which performs a projected-gradient
+descent. Only the Freidlin-Wentzell action has a geometric formulation.
 
 To set an initial path different from a straight line, see the multiple dispatch method
 
@@ -11,27 +12,29 @@ To set an initial path different from a straight line, see the multiple dispatch
 
 ## Keyword arguments
 
-  - `maxiter::Int=100`: maximum number of optimization iterations before the algorithm stops
-  - `abstol=1e-8`: absolute tolerance of action gradient to determine convergence
-  - `reltol=1e-8`: relative tolerance of action gradient to determine convergence
-  - `method = Adam()`: minimization algorithm (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
-  - `=0.1`: step size parameter in gradient descent HeymannVandenEijnden implementation.
+  - `points::Int=100`: number of discretization points along the path
+  - `maxiters::Int=100`: maximum number of optimization iterations before the algorithm stops
+  - `abstol::Real=NaN`: absolute tolerance of action change to determine convergence
+  - `reltol::Real=NaN`: relative tolerance of action change to determine convergence
+  - `optimizer = GeometricGradient()`: minimization algorithm (see below). Default: `GeometricGradient()`
+  - `stepsize=0.01`: step size parameter for projected gradient descent. Default: `0.01`
+  - `ad_type=Optimization.AutoFiniteDiff()`: type of automatic differentiation for Optimization.jl solvers
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
-## Optimization algorithms
+## Minimization algorithms
 
-The `method` keyword argument takes solver methods of the
-[`Optimization.jl`](https://docs.sciml.ai/Optimization/) package; alternatively,
-the option `solver = "HeymannVandenEijnden"` uses the original gMAM
-algorithm[^1].
-
-[^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
+The `optimizer` keyword argument accepts:
+  - `GeometricGradient()`: runs a projected-gradient gradient descent [heymann_pathways_2008](@citet)
+  - Any solver from [`Optimization.jl`](https://docs.sciml.ai/Optimization/) (e.g., `OptimizationOptimisers.Adam()`)
 """
+abstract type GMAMOptimizer end
+struct GeometricGradient <: GMAMOptimizer end
+
 function geometric_min_action_method(
-    sys::ContinuousTimeDynamicalSystem, x_i, x_f; N=100, kwargs...
+    sys::ContinuousTimeDynamicalSystem, x_i, x_f; points::Int=100, kwargs...
 )
-    path = reduce(hcat, range(x_i, x_f; length=N))
+    path = reduce(hcat, range(x_i, x_f; length=points))
     return geometric_min_action_method(sys, path; kwargs...)
 end
 
@@ -50,12 +53,12 @@ For more information see the main method,
 function geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem,
     init::Matrix;
-    maxiter::Int=100,
-    abstol=nothing,
-    reltol=nothing,
-    method=Optimisers.Adam(),
-    AD=Optimization.AutoFiniteDiff(),
-    ϵ=0.1,
+    maxiters::Int=100,
+    abstol::Real=NaN,
+    reltol::Real=NaN,
+    optimizer=GeometricGradient(),
+    ad_type=Optimization.AutoFiniteDiff(),
+    stepsize=0.01,
     verbose=false,
     show_progress=true,
 )
@@ -70,18 +73,34 @@ function geometric_min_action_method(
 
     S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
 
-    prog = Progress(maxiter; enabled=show_progress)
-    if method == "HeymannVandenEijnden"
-        # error("The HeymannVandenEijnden method is broken")
-        @warn("The HeymannVandenEijnden method currently does not work.")
-        # for i in 1:maxiter
-        #     update = heymann_vandeneijnden_step(sys, path, N; tau=tau)
-        #     path .= update
-        #     interpolate_path!(path, alpha, arc)
-        #     next!(prog)
-        # end
+    prog = Progress(maxiters; enabled=show_progress)
+    if optimizer isa GeometricGradient
+        ws = geometric_gradient_workspace(sys, path)
+        check_convergence = isfinite(abstol) || isfinite(reltol)
+        prev_action = check_convergence ? S(path) : NaN
+        for i in 1:maxiters
+            geometric_gradient_step!(ws, sys, path; stepsize=stepsize)
+            path .= ws.update
+            interpolate_path!(path, alpha, arc)
+            next!(prog)
+            if check_convergence
+                curr_action = S(path)
+                if isfinite(curr_action) && isfinite(prev_action)
+                    abs_change = abs(curr_action - prev_action)
+                    rel_change =
+                        curr_action == 0 ? abs_change : abs_change / abs(curr_action)
+                    if (isfinite(abstol) && abs_change < abstol) ||
+                        (isfinite(reltol) && rel_change < reltol)
+                        verbose &&
+                            @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
+                        break
+                    end
+                end
+                prev_action = curr_action
+            end
+        end
     else
-        optf = SciMLBase.OptimizationFunction((x, _) -> S(x), AD)
+        optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)
         prob = SciMLBase.OptimizationProblem(optf, init, ())
 
         function callback(state, loss_val)
@@ -90,80 +109,179 @@ function geometric_min_action_method(
             return false
         end
 
-        sol = solve(
-            prob, method; maxiters=maxiter, callback=callback, abstol=abstol, reltol=reltol
-        )
+        sol = solve(prob, optimizer; maxiters, callback, abstol, reltol)
         path = sol.u
     end
-    # if verbose && !converged
-    #     @warn("Stopped after reaching maximum number of $(maxiter) iterations.")
-    # end
     return MinimumActionPath(StateSpaceSet(path'), S(path))
 end
 
 """
 $(TYPEDSIGNATURES)
 
-Solves eq. (6) of Ref.[^1] for an initial `path` with `N` points and arclength `L`.
+Solves eq. (6) of [heymann_pathways_2008](@citet) for an initial `path` with `N` points and
+arclength `L`.
 
 ## Keyword arguments
 
-  - `tau = 0.1`: step size
+  - `stepsize = 0.1`: step size for gradient descent
   - `diff_order = 4`: order of the finite differencing along the path. Either `2` or `4`.
 
-[^1]: [Heymann and Vanden-Eijnden, PRL (2008)](https://link.aps.org/doi/10.1103/PhysRevLett.100.140601)
+## References
+
+- [heymann_pathways_2008](@cite)
 """
-function heymann_vandeneijnden_step(
-    sys::ContinuousTimeDynamicalSystem, path, N; tau=0.1, diff_order=4
+function geometric_gradient_step(
+    sys::ContinuousTimeDynamicalSystem, path, N; stepsize=0.1, diff_order=4
 )
-    L = 1.0
-    dx = L / (N - 1)
-    update = zeros(size(path))
-    lambdas, lambdas_prime = zeros(N), zeros(N)
-    x_prime = path_velocity(path, 0:dx:L; order=diff_order)
+    ws = geometric_gradient_workspace(sys, path)
+    geometric_gradient_step!(ws, sys, path; stepsize=stepsize, diff_order=diff_order)
+    return ws.update
+end
 
-    A = inv(covariance_matrix(sys))
+struct GeometricGradientWorkspace{Tupdate,Tprime,Tvec,Tmat,Ttmp,Tarc,TA,Tjac}
+    update::Tupdate
+    x_prime::Tprime
+    lambdas::Tvec
+    lambdas_prime::Tvec
+    prod1::Tmat
+    prod2::Tmat
+    drift_cache::Tmat
+    temp1::Ttmp
+    temp2::Ttmp
+    alpha_cache::Tvec
+    dl::Tvec
+    d::Tvec
+    du::Tvec
+    v::Tvec
+    arc::Tarc
+    A::TA
+    jac::Tjac
+end
 
-    for i in 2:(N - 1)
-        lambdas[i] = anorm(drift(sys, path[:, i]), A) / anorm(path[:, i], A)
+function geometric_gradient_workspace(sys::ContinuousTimeDynamicalSystem, path)
+    N = size(path, 2)
+    A = inv(normalize_covariance!(covariance_matrix(sys)))
+    params = current_parameters(sys)
+    jac_fun = jacobian(sys)
+    jac = let jac_fun=jac_fun, params=params
+        x -> jac_fun(x, params, 0.0)
     end
-    for i in 2:(N - 1)
-        lambdas_prime[i] = (lambdas[i + 1] - lambdas[i - 1]) / (2 * dx)
-    end
 
-    b(x) = drift(sys, x)
-    jac(x) = jacobian(sys)(x, sys.p0)
+    update = similar(path)
+    x_prime = zeros(size(path))
+    lambdas = zeros(N)
+    lambdas_prime = zeros(N)
+    prod1 = zeros(size(path, 1), N - 2)
+    prod2 = zeros(size(path, 1), N - 2)
+    drift_cache = zeros(size(path, 1), N - 2)
+    temp1 = zeros(size(path, 1))
+    temp2 = zeros(size(path, 1))
+    alpha_cache = zeros(N)
+    dl = zeros(N - 1)
+    d = ones(N)
+    du = zeros(N - 1)
+    v = zeros(N)
+    arc = range(0, 1.0; length=N)
 
-    J = [jac(path[:, i]) for i in 2:(N - 1)]
-    prod1 = [(J[i - 1] - J[i - 1]') * x_prime[:, i] for i in 2:(N - 1)]
-    prod2 = [(J[i - 1]') * b(path[:, i]) for i in 2:(N - 1)]
+    return GeometricGradientWorkspace(
+        update,
+        x_prime,
+        lambdas,
+        lambdas_prime,
+        prod1,
+        prod2,
+        drift_cache,
+        temp1,
+        temp2,
+        alpha_cache,
+        dl,
+        d,
+        du,
+        v,
+        arc,
+        A,
+        jac,
+    )
+end
 
-    # Solve linear system M*x = v for each system dimension
-    #! might be made faster using LinearSolve.jl special solvers
-    for j in 1:size(path, 1)
-        M = Matrix{Real}(1 * I(N))
-        v = zeros(N)
+function geometric_gradient_step!(
+    ws::GeometricGradientWorkspace,
+    sys::ContinuousTimeDynamicalSystem,
+    path;
+    stepsize=0.1,
+    diff_order=4,
+)
+    N = size(path, 2)
+    dx = 1.0 / (N - 1)
 
-        # Boundary conditions
-        v[1] = path[j, 1]
-        v[end] = path[j, end]
+    path_velocity!(ws.x_prime, path, ws.arc; order=diff_order)
 
-        # Linear system of equations
-        for i in 2:(N - 1)
-            alpha = tau * lambdas[i]^2 / (dx^2)
-            M[i, i] += 2 * alpha
-            M[i, i - 1] = -alpha
-            M[i, i + 1] = -alpha
-
-            v[i] = (
-                path[j, i] - lambdas[i] * prod1[i - 1][j] - prod2[i - 1][j] +
-                lambdas[i] * lambdas_prime[i] * x_prime[j, i]
-            )
+    @views for i in 2:(N - 1)
+        velocity_norm = anorm(ws.x_prime[:, i], ws.A)
+        if velocity_norm > 1e-14
+            ws.drift_cache[:, i - 1] .= drift(sys, path[:, i])
+            ws.lambdas[i] = anorm(ws.drift_cache[:, i - 1], ws.A) / velocity_norm
+            if !isfinite(ws.lambdas[i])
+                ws.lambdas[i] = 0.0
+            end
+        else
+            ws.lambdas[i] = 0.0
         end
-
-        # Solve and store solution
-        sol = M \ v
-        update[j, :] = sol
     end
-    return update
+    @views for i in 2:(N - 1)
+        ws.lambdas_prime[i] = (ws.lambdas[i + 1] - ws.lambdas[i - 1]) / (2 * dx)
+    end
+
+    @views for i in 2:(N - 1)
+        J = ws.jac(path[:, i])
+        LinearAlgebra.mul!(ws.temp1, J, ws.x_prime[:, i])
+        LinearAlgebra.mul!(ws.temp2, J', ws.x_prime[:, i])
+        ws.prod1[:, i - 1] .= ws.temp1 .- ws.temp2
+        LinearAlgebra.mul!(ws.prod2[:, i - 1], J', ws.drift_cache[:, i - 1])
+    end
+
+    ws.d .= 1
+    ws.dl .= 0
+    ws.du .= 0
+    @views for i in 2:(N - 1)
+        ws.alpha_cache[i] = stepsize * ws.lambdas[i]^2 / (dx^2)
+        if isfinite(ws.alpha_cache[i])
+            ws.d[i] += 2 * ws.alpha_cache[i]
+            ws.dl[i - 1] = -ws.alpha_cache[i]
+            ws.du[i] = -ws.alpha_cache[i]
+        else
+            ws.alpha_cache[i] = 0.0
+        end
+    end
+
+    T = LinearAlgebra.Tridiagonal(ws.dl, ws.d, ws.du)
+    prob = LinearProblem(T, ws.v)
+    cache = init(
+        prob,
+        LUFactorization();
+        alias=SciMLBase.LinearAliasSpecifier(; alias_A=true, alias_b=true),
+    )
+    rhs = cache.b
+
+    @inbounds for j in 1:size(path, 1)
+        rhs[1] = path[j, 1]
+        rhs[end] = path[j, end]
+        for i in 2:(N - 1)
+            if ws.alpha_cache[i] == 0.0
+                rhs[i] = path[j, i]
+                continue
+            end
+            rhs_val =
+                path[j, i] +
+                stepsize * (
+                    -ws.lambdas[i] * ws.prod1[j, i - 1] - ws.prod2[j, i - 1] +
+                    ws.lambdas[i] * ws.lambdas_prime[i] * ws.x_prime[j, i]
+                )
+            rhs[i] = isfinite(rhs_val) ? rhs_val : path[j, i]
+        end
+        solve!(cache)
+        ws.update[j, :] .= cache.u
+    end
+
+    return ws.update
 end

@@ -23,6 +23,7 @@ end
 
 @testset "Large Deviations" begin
     include("largedeviations/action_fhn.jl")
+    include("largedeviations/action_limit_cycle.jl")
     include("largedeviations/MAM.jl")
     include("largedeviations/gMAM.jl")
     include("largedeviations/sgMAM.jl")
@@ -42,6 +43,10 @@ end
 @testset "Trajectories" begin
     include("trajectories/simulate.jl")
     include("trajectories/transition.jl")
+end
+
+@testset "R-tipping" begin
+    include("r_tipping/RateSystem.jl")
 end
 
 @testset "Extensions" begin

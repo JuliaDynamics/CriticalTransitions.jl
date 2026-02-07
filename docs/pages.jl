@@ -2,16 +2,20 @@
 pages = [
     "Home" => "index.md",
     "Getting started" => "quickstart.md",
-    "Tutorial" => "examples/tutorial.md",
     "Examples" => Any[
-        "Defining stochastic systems" => "examples/stochastic-dynamics.md",
-        "Large deviations: Maier-Stein system" => "examples/gMAM_Maierstein.md",
-        "Simple gMAM: Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
-        "Transition Path Theory: Finite element method" => "examples/transition_path_theory_double_well.md",
-        "Minimal action method: Optimal Control problem" => "examples/OC_mam.md",
+        "Tutorial" => "examples/tutorial.md",
+        "Defining a system" => Any[
+            "Stochastic system" => "examples/stochastic-dynamics.md",
+            "Nonautonomous system" => "examples/RateSystem.md",],
+        "System analysis" => Any[
+            "Large deviations: Maier-Stein system" => "examples/gMAM_Maierstein.md",
+            "Simple gMAM: Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
+            "Minimal action method: Optimal Control problem" => "examples/OC_mam.md",
+            "String method: Muller-Brown potential" => "examples/potential_string.md",
+            "Transition path theory: Finite element method" => "examples/transition_path_theory_double_well.md",],
     ],
     "Manual" => Any[
-        "Define your system" => "man/CoupledSDEs.md",
+        "Define your system" => "man/system_construction.md",
         "Stability analysis" => "man/systemanalysis.md",
         "Simulating the system" => "man/simulation.md",
         "Sampling transitions" => "man/sampling.md",

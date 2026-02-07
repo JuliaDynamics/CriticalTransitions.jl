@@ -5,7 +5,7 @@ using Test
         x, y = u
         dx = x - x^3 - 10 * x * y^2
         dy = -(1 + x^2) * y
-        return [dx, dy]
+        return SA[dx, dy]
     end
     σ = 0.25
     sys = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
@@ -21,22 +21,23 @@ using Test
     @testset "String method" begin
         for x_init in [init, StateSpaceSet(init')]
             string = string_method(
-                sys, x_init; iterations=10_000, ϵ=0.5, show_progress=false
+                sys, x_init; maxiters=10_000, stepsize=0.5, show_progress=false
             )
-            @test string[1] == x_i
-            @test string[end] == x_f
-            @test sum(string[:, 2]) ≈ 0 atol = 1e-6
-            @test sum(string[:, 1]) ≈ 0 atol = 1e-6
-            @test sum(diff(string[:, 1])) ≈ 2 atol = 1e-6
+            path = Matrix(string.path)
+            @test string.path[1] == x_i
+            @test string.path[end] == x_f
+            @test sum(path[:, 2]) ≈ 0 atol = 1e-6
+            @test sum(path[:, 1]) ≈ 0 atol = 1e-6
+            @test sum(diff(path[:, 1])) ≈ 2 atol = 1e-6
         end
     end
 
     @testset "Adam" begin
         gm = geometric_min_action_method(
-            sys, x_i, x_f; maxiter=10, verbose=false, show_progress=false
+            sys, x_i, x_f; maxiters=10, verbose=false, show_progress=false
         )
         gm = geometric_min_action_method(
-            sys, init; maxiter=500, verbose=false, show_progress=false
+            sys, init; maxiters=500, verbose=false, show_progress=false
         )
 
         path = Matrix(gm.path)'
@@ -50,9 +51,11 @@ using Test
         S(x) = geometric_action(sys, CT.fix_ends(x, init[:, 1], init[:, end]), 1.0)
 
         gm = geometric_min_action_method(
-            sys, init; maxiter=500, verbose=false, show_progress=false
+            sys, init; maxiters=500, verbose=false, show_progress=false
         )
-        string = string_method(sys, init; iterations=10_000, ϵ=0.5, show_progress=false)
-        @test S(Matrix(Matrix(string)')) > S(Matrix(Matrix(gm.path)'))
+        string = string_method(
+            sys, init; maxiters=10_000, stepsize=0.5, show_progress=false
+        )
+        @test S(permutedims(Matrix(string.path))) > S(Matrix(Matrix(gm.path)'))
     end
 end # gMAM Meier Stein

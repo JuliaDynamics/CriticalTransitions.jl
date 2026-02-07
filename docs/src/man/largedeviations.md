@@ -23,6 +23,21 @@ To summarize, the following methods are available:
 - Simple geometric minimum action method [(sgMAM)](@ref "Simple geometric minimum action method (sgMAM)")
 - [String method](@ref)
 
+| Method | Use when | Requirements (this package) | Not suitable when |
+|---|---|---|---|
+| **MAM** | You want a **minimum action path** for a specified travel time $T$ (FW/OM action minimization). | `CoupledSDEs` with **additive**, **invertible**, **autonomous** noise (constant covariance); discretized path uses **equispaced time**. | **Multiplicative/state-dependent noise**, **degenerate/non-invertible** noise, **non-autonomous** noise; when the transition time is unknown and you want a time-reparameterization-invariant formulation (prefer gMAM/sgMAM). |
+| **gMAM** | You want a **time-reparameterization-invariant** minimum action path (no explicit optimization over $T$). | Same as MAM for `CoupledSDEs`: **additive**, **invertible**, **autonomous** noise (constant covariance). | **Multiplicative/state-dependent**, **degenerate**, or **non-autonomous** noise; if you need the Onsager--Machlup functional (only FW has a geometric formulation). |
+| **sgMAM** | You want a **Hamiltonian/simple gMAM** formulation that can be efficient in practice. | Same as MAM **and** **diagonal** noise covariance (implementation restriction); assumes **additive** noise. | **Non-diagonal** covariance; **multiplicative/state-dependent** or **degenerate** noise; models where the required derivatives/Jacobian are not available or are too expensive. |
+| **String method** | You want a **minimum energy path / heteroclinic orbit** driven by the deterministic drift (typical use: **gradient** systems). | Deterministic drift field (works for `ContinuousTimeDynamicalSystem`; does not rely on an SDE noise model). | In **non-gradient** systems if you need the *most probable* noise-induced transition path (string gives the deterministic heteroclinic orbit, which generally differs from the instanton). |
+
+#### Variants and extensions
+The literature contains a number of extensions of MAM-type methods that may be relevant depending on the model class and numerical difficulties. These variants are not currently implemented in `CriticalTransitions.jl`, but serve as useful pointers:
+
+- **tMAM / optimal linear time scaling**: avoids explicit optimization over the transition time by introducing an optimal linear time scaling; can be combined with adaptivity in time discretization [wan_tmam_2015](@citet).
+- **Adaptive MAM**: uses a moving-mesh strategy to concentrate grid points in dynamically important portions of the path, improving efficiency and robustness [zhou_adaptive_mam_2008](@citet).
+- **Non-Gaussian (jump / Lévy) noise**: for systems driven by jump noise, the rate function and path optimization problem differ from the Freidlin--Wentzell diffusive setting; see e.g. an optimal-control-based approach in [wei_most_likely_jumps_2023](@citet).
+- **Multiplicative / state-dependent noise**: extensions of geometric action minimization to degenerate or multiplicative noise are discussed in [grafke_small_random_2017](@citet); the current `sgMAM` implementation assumes additive noise.
+
 ### Minimum action method (MAM)
 Minimization of the specified action functional using the optimization algorithm of `Optimization.jl`. See also [e_minimum_2004](@citet).
 
@@ -31,7 +46,7 @@ min_action_method
 ```
 
 ### Geometric minimum action method (gMAM)
-Minimization of the geometric action following [heymann_geometric_2008, heymann_pathways_2008](@citet). gMAM reformulates MAM to avoid double optimization of both the action and the transition time. It achieves this by using a [geometric action](@ref "Geometric Freidlin-Wentzell action") functional that is independent of the time parametrization of the path. This reparameterization invariance makes the method more robust and computationally efficient, particularly for multiscale systems.
+Minimization of the geometric action following [heymann_pathways_2008, heymann_geometric_2008](@citet). gMAM reformulates MAM to avoid double optimization of both the action and the transition time. It achieves this by using a [geometric action](@ref "Geometric Freidlin-Wentzell action") functional that is independent of the time parametrization of the path. This reparameterization invariance makes the method more robust and computationally efficient, particularly for multiscale systems.
 
 ```@docs
 geometric_min_action_method
@@ -43,9 +58,36 @@ The simple gMAM reduces the complexity of the original gMAM by requiring only fi
 
 The implementation below performs a constrained gradient descent assuming an autonomous system with additive Gaussian noise.
 ```@docs
-sgmam
-SgmamSystem
+simple_geometric_min_action_method
+ExtendedPhaseSpace
 ```
+
+
+#### Performance notes (sgMAM)
+
+sgMAM repeatedly evaluates `H_p(x, p)` and `H_x(x, p)` along a discretized path. If this allocates, sgMAM will be slow.
+
+Key reason for performance differences:
+
+- `ExtendedPhaseSpace(ds::CoupledSDEs)` typically relies on `jacobian(ds)` (often automatic differentiation unless you provide an analytic Jacobian) and evaluates it pointwise along the path.
+- A hardcoded `ExtendedPhaseSpace(H_x, H_p)` with analytic expressions operating on the full `D×Nt` path matrix usually allocates far less.
+
+Benchmark pattern:
+
+```julia
+using CriticalTransitions
+using BenchmarkTools
+
+sys_fast = ExtendedPhaseSpace{false,2}(H_x, H_p)  # hardcoded analytic H_x/H_p
+
+ds = CoupledSDEs(KPO, zeros(2), ())
+sys_generic = ExtendedPhaseSpace(ds)              # uses jacobian(ds)
+
+@btime simple_geometric_min_action_method($sys_fast,    $x_initial; maxiters=100, stepsize=0.5, show_progress=false)
+@btime simple_geometric_min_action_method($sys_generic, $x_initial; maxiters=100, stepsize=0.5, show_progress=false)
+```
+
+Aside: the same “vectorized + allocation-free inner loop” principle also tends to make [`string_method`](@ref) faster when used with `ExtendedPhaseSpace`.
 
 ### `MinimumActionPath`
 [(gMAM)](@ref "Geometric minimum action method (gMAM)") and [(sgMAM)](@ref "Simple geometric minimum action method (sgMAM)") return their output as a `MinimumActionPath` type:
@@ -78,7 +120,7 @@ action
 ```
 
 ## String method
-The string method is a technique for finding transition paths between two states in a dynamical system. The method represents the path as a "string" of points that connects the states and evolves it to minimize the drift along the path. The resulting tangent path is parallel to the drift of the system, i.e., the string method computes the heteroclinic orbit. For non-gradient systems (detailed -balance is broken), the heteroclinic orbit differs from the transition path, it does correctly predict, it correctly captures the deterministic dynamics from the saddle point onward ("downhill" portion of the path).
+The string method is a technique for finding transition paths between two states in a dynamical system [e_string_2007](@citet). The method represents the path as a "string" of points that connects the states and evolves it to minimize the drift along the path. The resulting tangent path is parallel to the drift of the system, i.e., the string method computes the heteroclinic orbit. For non-gradient systems (detailed -balance is broken), the heteroclinic orbit differs from the transition path, it does correctly predict, it correctly captures the deterministic dynamics from the saddle point onward ("downhill" portion of the path).
 ```@docs
 string_method
 ```

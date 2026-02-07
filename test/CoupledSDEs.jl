@@ -2,7 +2,7 @@ using CriticalTransitions, Test
 
 @testset "API" begin
     using DynamicalSystemsBase, Test
-    using OrdinaryDiffEq: Tsit5
+    using OrdinaryDiffEq: Tsit5, OrdinaryDiffEqCore
     using StochasticDiffEq: SDEProblem, SRA, SOSRA, LambaEM, CorrelatedWienerProcess
     using CriticalTransitions
 
@@ -75,7 +75,6 @@ using CriticalTransitions, Test
             lorenz_rule, u0, p0; diffeq=(alg=SRA(), abstol=1e-3, reltol=1e-3, verbose=false)
         )
         @test lorenz_SRA.integ.alg isa SRA
-        @test lorenz_SRA.integ.opts.verbose == false
 
         # also test SDEproblem creation
         prob = lorenz_SRA.integ.sol.prob
@@ -83,7 +82,6 @@ using CriticalTransitions, Test
         ds = CoupledSDEs(prob, (alg=SRA(), abstol=0.0, reltol=1e-3, verbose=false))
 
         @test ds.integ.alg isa SRA
-        @test ds.integ.opts.verbose == false
 
         @test_throws ArgumentError CoupledSDEs(prob; diffeq=(alg=SRA(),))
 

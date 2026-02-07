@@ -43,7 +43,7 @@ function H_p(x, p) # ℜ² → ℜ²
     return Matrix([H_pu H_pv]')
 end
 
-sys = SgmamSystem{false,2}(H_x, H_p)
+sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
 
 # setup
 Nt = 500  # number of discrete time steps
@@ -58,7 +58,9 @@ xx = @. (xb[1] - xa[1]) * s + xa[1] + 4 * s * (1 - s) * xsaddle[1]
 yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
 x_initial = Matrix([xx yy]')
 
-MLP = sgmam(sys, x_initial; iterations=100_000, ϵ=10e2, show_progress=true)
+MLP = simple_geometric_min_action_method(
+    sys, x_initial; iterations=100_000, ϵ=10e2, show_progress=true
+)
 x_min = MLP.path
 S_min = MLP.action
 
@@ -67,9 +69,14 @@ string = string_method(sys, x_initial; iterations=100_000, ϵ=0.5, show_progress
 @show S_min;
 plot(x_initial[1, :], x_initial[2, :]; label="init", lw=3, c=:black)
 plot!(x_min[1, :], x_min[2, :]; label="MLP", lw=3, c=:red)
-plot!(string[1, :], string[2, :]; label="string", lw=3, c=:blue)
+string_path = permutedims(Matrix(string))
+plot!(string_path[1, :], string_path[2, :]; label="string", lw=3, c=:blue)
 
-@btime $sgmam($sys, $x_initial, iterations=100, ϵ=10e2, show_progress=false) # 25.803 ms (29024 allocations: 105.69 MiB)
-@profview sgmam(sys, x_initial, iterations=100, ϵ=10e2, show_progress=false)
+@btime $simple_geometric_min_action_method(
+    $sys, $x_initial, iterations=100, ϵ=10e2, show_progress=false
+) # 25.803 ms (29024 allocations: 105.69 MiB)
+@profview simple_geometric_min_action_method(
+    sys, x_initial, iterations=100, ϵ=10e2, show_progress=false
+)
 
 # The bottleneck is atm at the LinearSolve call to update the x in the new iteration. So the more improve, one needs to write it own LU factorization.

@@ -54,9 +54,9 @@ function H_p(x, p) # ℜ² → ℜ²
     return Matrix([H_pu H_pv]')
 end
 
-sys = SgmamSystem{false,2}(H_x, H_p)
+sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
 
-# We saved this function in the `SgmamSystem` struct. We want to find the optimal path between two attractors in the phase space. We define the initial trajectory as `wiggle` between the two attractors.
+# We saved this function in the `ExtendedPhaseSpace` struct. We want to find the optimal path between two attractors in the phase space. We define the initial trajectory as `wiggle` between the two attractors.
 
 Nt = 500  # number of discrete time steps
 s = collect(range(0; stop=1, length=Nt))
@@ -70,9 +70,11 @@ xx = @. (xb[1] - xa[1]) * s + xa[1] + 4 * s * (1 - s) * xsaddle[1]
 yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
 x_initial = Matrix([xx yy]')
 
-# The optimisation is the performed by the `sgmam` function:
+# The optimisation is the performed by the `simple_geometric_min_action_method` function:
 
-MLP = sgmam(sys, x_initial; iterations=1_000, ϵ=10e2, show_progress=false)
+MLP = simple_geometric_min_action_method(
+    sys, x_initial; maxiters=1_000, stepsize=10e2, show_progress=false
+)
 x_min = MLP.path;
 
 # The function returns the optimal path `x_min`, the minimal action `S_min`, the Lagrange multipliers `lambda` associated with the optimal path, the optimal generalised momentum `p`, and the time derivative of the optimal path `xdot`. We can plot the initial trajectory and the optimal path:
