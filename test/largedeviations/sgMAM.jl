@@ -94,3 +94,43 @@ end
     @test sys.H_x(zeros(2), zeros(2)) ≈ zeros(2)
     @test sys.H_p(zeros(2), zeros(2)) ≈ zeros(2)
 end
+
+@testset "sgMAM GeometricGradient Backtracking" begin
+    CT = CriticalTransitions
+
+    function meier_stein(u, p, t) # out-of-place
+        x, y = u
+        dx = x - x^3 - 10 * x * y^2
+        dy = -(1 + x^2) * y
+        return SA[dx, dy]
+    end
+
+    σ = 0.25
+    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
+    sys = ExtendedPhaseSpace(ds)
+
+    xx = range(-1.0, 1.0; length=60)
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    x_initial = Matrix([xx yy]')
+
+    # Baseline action on an arclength-reparameterized path
+    x0 = deepcopy(x_initial)
+    Nt = size(x0, 2)
+    s = range(0; stop=1, length=Nt)
+    α = zeros(Nt)
+    CT.interpolate_path!(x0, α, s)
+    xdot = zeros(size(x0))
+    p = zeros(size(x0))
+    λ = zeros(1, Nt)
+    CT.central_diff!(xdot, x0)
+    CT.update_p!(p, λ, x0, xdot, sys.H_p)
+    S0 = CT.FW_action(xdot, p)
+    @test isfinite(S0)
+
+    opt = GeometricGradient(; max_backtracks=20)
+    res = simple_geometric_min_action_method(
+        sys, x_initial, opt; stepsize=1e6, maxiters=1, show_progress=false
+    )
+    @test isfinite(res.action)
+    @test res.action <= S0 + 1e-10
+end
