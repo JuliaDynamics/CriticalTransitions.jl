@@ -16,12 +16,7 @@ xx = range(-1.0, 1.0; length=N)
 yy = 0.3 .* (-xx .^ 2 .+ 1)
 init = Matrix([xx yy]')
 
-@btime CriticalTransitions.geometric_gradient_step($sys, $init, $N; tau=0.1)
+@btime CriticalTransitions.geometric_gradient_step($sys, $init, $N; stepsize=0.1)
 @btime geometric_min_action_method(
-    $sys,
-    $init;
-    maxiters=10,
-    show_progress=false,
-    optimizer=GeometricGradient(),
-    stepsize=0.1,
+    $sys, $init, GeometricGradient(); maxiters=10, show_progress=false, stepsize=0.1
 )

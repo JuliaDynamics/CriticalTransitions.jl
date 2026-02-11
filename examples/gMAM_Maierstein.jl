@@ -263,7 +263,7 @@ init = Matrix([xx yy]')
 
 # `geometric_min_action_method` computes the minimizer of the Freidlin-Wentzell action using the geometric minimum action method (gMAM), to find the minimum action path (instanton) between an initial state x_i and final state x_f. The Minimum Action Method (MAM) is a more traditional approach, while the Geometric Minimum Action Method (gMAM) is a blend of the original MAM and the [string method](https://doi.org/10.1103/PhysRevB.66.052301).
 optimizer = GeometricGradient()
-gm = geometric_min_action_method(sys, init; maxiters=500, show_progress=false, optimizer)
+gm = geometric_min_action_method(sys, init, optimizer; maxiters=500, show_progress=false)
 MLP = gm.path
 
 #
