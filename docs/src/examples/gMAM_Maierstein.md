@@ -285,7 +285,7 @@ init = Matrix([xx yy]')
 
 ````@example gMAM_Maierstein
 optimizer = GeometricGradient()
-gm = geometric_min_action_method(sys, init; maxiters=500, show_progress=false, optimizer)
+gm = geometric_min_action_method(sys, init, optimizer; maxiters=500, show_progress=false)
 MLP = gm.path
 ````
 
@@ -330,4 +330,3 @@ fig
 ---
 
 *This page was generated using [Literate.jl](https://github.com/fredrikekre/Literate.jl).*
-
