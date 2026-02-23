@@ -17,11 +17,12 @@ function benchmark_maierstein!(SUITE)
     x_i = init[:, 1]
     x_f = init[:, end]
 
+    optimizer=Optimisers.Adam()
     SUITE["Large deviation"]["Geometric minimal action"]["Maier-Stein (Optimisers.Adam; AutoFiniteDiff)"] = @benchmarkable geometric_min_action_method(
-        $sys, $init; maxiters=1000, show_progress=false, optimizer=Optimisers.Adam()
+        $sys, $init, $optimizer; maxiters=1000, show_progress=false
     ) seconds = 10
     SUITE["Large deviation"]["Geometric minimal action"]["Maier-Stein (HeymannVandenEijnden)"] = @benchmarkable geometric_min_action_method(
-        $sys, $init; maxiters=1000, show_progress=false, optimizer=GeometricGradient()
+        $sys, $init, GeometricGradient(); maxiters=1000, show_progress=false
     ) seconds = 10
     return nothing
 end

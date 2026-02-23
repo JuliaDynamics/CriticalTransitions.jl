@@ -18,7 +18,7 @@ struct ExtendedPhaseSpace{IIP,D,Hx,Hp}
 
         f = dynamic_rule(ds)
         jac = jacobian(ds)
-        param=current_parameters(ds)
+        param = current_parameters(ds)
 
         function H_x(x, p) # ℜ² → ℜ²
             Hx = similar(x)
@@ -80,7 +80,8 @@ The implementation is based on the work of [Grafke et al. (2019)](https://homepa
 """
 function simple_geometric_min_action_method(
     sys::ExtendedPhaseSpace,
-    x_initial::Matrix{T};
+    x_initial::Matrix{T},
+    optimizer::GMAMOptimizer=GeometricGradient();
     stepsize::Real=1e-1,
     maxiters::Int=1000,
     show_progress::Bool=false,
@@ -123,14 +124,21 @@ function simple_geometric_min_action_method(
         StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
     )
 end
-function simple_geometric_min_action_method(sys, x_initial::StateSpaceSet; kwargs...)
-    return simple_geometric_min_action_method(sys, Matrix(Matrix(x_initial)'); kwargs...)
-end
 function simple_geometric_min_action_method(
-    sys::ContinuousTimeDynamicalSystem, x_initial::Matrix{<:Real}; kwargs...
+    sys, x_initial::StateSpaceSet, optimizer::GMAMOptimizer=GeometricGradient(); kwargs...
 )
     return simple_geometric_min_action_method(
-        ExtendedPhaseSpace(sys), Matrix(Matrix(x_initial)'); kwargs...
+        sys, Matrix(Matrix(x_initial)'), optimizer; kwargs...
+    )
+end
+function simple_geometric_min_action_method(
+    sys::ContinuousTimeDynamicalSystem,
+    x_initial::Matrix{<:Real},
+    optimizer::GMAMOptimizer=GeometricGradient();
+    kwargs...,
+)
+    return simple_geometric_min_action_method(
+        ExtendedPhaseSpace(sys), Matrix(Matrix(x_initial)'), optimizer; kwargs...
     )
 end
 
