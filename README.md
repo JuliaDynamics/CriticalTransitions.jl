@@ -9,6 +9,22 @@
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![JET](https://img.shields.io/badge/%E2%9C%88%EF%B8%8F%20tested%20with%20-%20JET.jl%20-%20red)](https://github.com/aviatesk/JET.jl)
 
+**CriticalTransitions.jl** is a first-of-its-kind software for formalizing, automating, and making extendable, the analysis of critical transitions in dynamical systems.
+The current scope focuses along two independent paths: noise- and rate- induced transitions.
+
+The main software highlights are:
+
+- We need to decide these.
+
+
+CriticalTransitions.jl can be used as a standalone package, or as part of
+[DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/dynamicalsystems/stable/).
+
+To install it, run `import Pkg; Pkg.add("CriticalTransitions")`.
+
+All further information is provided in the documentation, which you can either find [online](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/criticaltransitions/stable/) or build locally by running the `docs/make.jl` file.
+
+--- old stuff.
 
 A Julia package for the numerical investigation of **noise- and rate-induced transitions in dynamical systems**.
 
