@@ -151,8 +151,9 @@ function RateSystem(
     return RateSystem(newds, rss)
 end
 
+# TODO: this must be rewritten using `set_parameter!` or its source code.
+# otherwise it doens't work with ModelingToolkit.jl
 function (rss::RateSystemSpecs)(u, p, t)
-    # TODO: this should be rewritten with `current_parameter`
     p_at_t = p_modified(rss, t)
     if p isa Union{AbstractArray,AbstractDict}
         setindex!(p, p_at_t, rss.pidx)
