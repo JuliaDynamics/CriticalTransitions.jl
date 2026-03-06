@@ -128,15 +128,17 @@ function RateSystem(
         throw("The forcing cannot start before the system's initial time `t0`
               but your forcing_start_time ($(forcing_start_time)) < t0 ($(t0)).")
 
-    # TODO: Make p0 a vector
+    # TODO: allow multi parameter
     p0 = current_parameter(ds, pidx)
+    # promote
+    a, b, c = float.((forcing_start_time, forcing_duration, forcing_scale))
     rss = RateSystemSpecs(
         dynamic_rule(ds),
         pidx,
         fp,
-        forcing_start_time,
-        forcing_duration,
-        forcing_scale,
+        a,
+        b,
+        c,
         p0,
         t0,
     )
@@ -169,7 +171,7 @@ function p_modified(rss::RateSystemSpecs, t::Real)
     f = rss.fp.profile
     section_start = rss.fp.interval[1]
     section_end = rss.fp.interval[2]
-    # making the function piecewise constant with range [p0,p0+forcing_scale]
+    # making the function piecewise constant with range [p0, p0+forcing_scale]
     if t ≤ rss.forcing_start_time
         return p0
     else
@@ -219,13 +221,14 @@ function set_forcing_start!(rs::RateSystem, start_time)
 end
 
 """
-$(TYPEDSIGNATURES)
+    current_parameters(rs::RateSystem, t)
 
 Returns the parameter vector of a [`RateSystem`](@ref) at time `t` (in system time units).
+Note: this function returns a copy of the original parameter container.
 """
-function parameters(rs::RateSystem, t)
+function DynamicalSystemsBase.current_parameters(rs::RateSystem, t)
     p = deepcopy(current_parameters(rs))
-    # TODO: Doesn't work for vector parameters
+    # TODO: Doesn't work for struct parameters, use generic function from DynamicalSystemsBase
     p[rs.forcing.pidx] = p_modified(rs.forcing, t)
     return p
 end

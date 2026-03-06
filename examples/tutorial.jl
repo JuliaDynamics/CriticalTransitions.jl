@@ -33,6 +33,7 @@
 # ```
 
 using CriticalTransitions # re-exports `DynamicalSystemsBase`
+using CairoMakie
 import Random # hide
 Random.seed!(1) # hide
 
@@ -48,16 +49,54 @@ p = [1., 3., 1., 1., 1., 0.] # Parameters (ϵ, β, α, γ, κ, I)
 u = zeros(2)
 ds = CoupledODEs(fitzhugh_nagumo, u, p)
 
-
 # ## RateSystem: creation
 
 # Transforming a deterministic `DynamicalSystem` to a `RateSystem` is straightforward.
-# All we have to do is define a number of profiles
+# All we have to do is define a forcing profile that dictates how the parameter(s)
+# may change with time. The simplest case is a linear ramp, captured by:
 
-...
+fp = ForcingProfile(:linear)
+
+# The forcing profile by itself doesn't say when the forcing starts or ends,
+# or how much the parameter will increase overall. It only captures the form
+# of the time variability.
+# The remaining information is encoded when creating the `RateSystem`:
+
+pidx = 6 # which parameter changes
+rs = RateSystem(ds, fp, pidx;
+    forcing_start_time = 10,
+    forcing_duration = 10,
+    forcing_scale = 5
+)
+
+# In the above example the current `I` will linearly ramp from 0 to 5 in the time window 10 to 20.
+# Being explicit, this is what's going on, given time `t`:
+
+# - `t < forcing_start_time`: the system is autonomous, with parameters given by
+#   the underlying autonomous system
+# - `forcing_start_time < t < forcing_start_time + forcing_duration`: the system is
+#   non-autonomous with the parameter change given by the `ForcingProfile`,
+#   scaled in magnitude by `forcing_scale`.
+# - `t > forcing_start_time + forcing_duration`: the system is again autonomous, with
+#   parameters fixed at their values attained at the end of the forcing interval.
+
+# Let's simulate both the autonomous and non-autonomous systems to see the difference:
+
+# ## RateSystem: utilities
+
+# The function [`current_parameters`](@ref) is overloaded for `RateSystem` and can be
+# called with a second input `t` to provide the parameters at time `t`.
+
+ps_of_t = current_parameters.(rs, 0:0.1:40)
+I_of_t = getindex.(ps_of_t, pidx)
+lines(0:0.1:40, I_of_t)
+
+
 
 # ## RateSystem: example applications
 
 # ## RandomSystem: creation
+
+# ## RandomSystem: utilities
 
 # ## RandomSystem: example applications
