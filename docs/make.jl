@@ -1,7 +1,5 @@
 CI = get(ENV, "CI", nothing) == "true" || get(ENV, "GITHUB_TOKEN", nothing) !== nothing
 
-using Documenter
-
 using CriticalTransitions, ChaosTools, Attractors
 using DynamicalSystemsBase
 StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
