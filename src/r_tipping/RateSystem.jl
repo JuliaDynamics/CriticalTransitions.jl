@@ -88,7 +88,7 @@ The time interval (in units of `ds`) where forcing applied is from
 of the [`ForcingProfile`](@ref) is rescaled in system time units; its purpose is only
 to establish the functional form of the forcing.
 The parameter value starts at `p0 = current_parameter(ds, pidx)`.
-Its maximum value is given by the maximum of the forcing function provided to the
+Its maximum value is given by the maximum of the forcing function given to the
 [`ForcingProfile`](@ref), multiplied by `forcing_scale`.
 
 Before `t = forcing_start_time`, the system parameters correspond to that of the
@@ -103,9 +103,10 @@ value and thereafter the system is again autonomous.
 Use the above signature with `forcing_profiles` a dictionary mapping parameter indices
 (anything valid for `set_parameter`) to [`ForcingProfile`](@ref) instances.
 
-    RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kw...)
+    RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidxs::Vector; kw...)
 
-Use this when all parameters share the same forcing profile.
+Use this when all parameters share the same forcing profile and pass all parameter
+indices to `pidxs`.
 """
 struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
@@ -115,14 +116,14 @@ struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
 end
 
 function RateSystem(
-    ds::ContinuousTimeDynamicalSystem,
-    fp::ForcingProfile,
-    pidx::P;
-    forcing_start_time::T=initial_time(ds),
-    forcing_duration::T=(fp.interval[2] - fp.interval[1]),
-    forcing_scale::T=1.0,
-    t0::T=initial_time(ds),
-) where {P,T<:Real}
+        ds::ContinuousTimeDynamicalSystem,
+        fp::ForcingProfile,
+        pidx;
+        forcing_start_time=initial_time(ds),
+        forcing_duration=(fp.interval[2] - fp.interval[1]),
+        forcing_scale=1.0,
+        t0=initial_time(ds),
+    )
     (forcing_start_time >= t0) ||
         throw("The forcing cannot start before the system's initial time `t0`
               but your forcing_start_time ($(forcing_start_time)) < t0 ($(t0)).")
