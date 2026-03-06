@@ -65,7 +65,6 @@ include("largedeviations/geometric_min_action_method.jl")
 include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
 
-include("r_tipping/ForcingProfile.jl")
 include("r_tipping/RateSystem.jl")
 
 # Experimental features
