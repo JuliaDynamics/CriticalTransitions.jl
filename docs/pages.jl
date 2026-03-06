@@ -1,7 +1,7 @@
 #! format: off
 pages = [
     "Home" => "index.md",
-    "Getting started" => "quickstart.md",
+    "Tutorial" => "quickstart.md",
     "Examples" => Any[
         "Tutorial" => "examples/tutorial.md",
         "Defining a system" => Any[

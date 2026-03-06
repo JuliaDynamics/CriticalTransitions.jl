@@ -1,5 +1,5 @@
+# Loading
 CI = get(ENV, "CI", nothing) == "true" || get(ENV, "GITHUB_TOKEN", nothing) !== nothing
-
 using CriticalTransitions, ChaosTools, Attractors
 using DynamicalSystemsBase
 StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
@@ -7,8 +7,12 @@ ChaosToolsExt = Base.get_extension(CriticalTransitions, :ChaosToolsExt)
 CoupledSDEsBasin = Base.get_extension(CriticalTransitions, :CoupledSDEsBasin)
 using StochasticDiffEq, DiffEqNoiseProcess
 
+# Convert tutorials and examples
+using Literate
+# TODO.
 include("pages.jl")
 
+# Install style  of JuliaDynamics
 import Downloads
 Downloads.download(
     "https://raw.githubusercontent.com/JuliaDynamics/doctheme/master/build_docs_with_style.jl",
@@ -16,6 +20,7 @@ Downloads.download(
 )
 include("build_docs_with_style.jl")
 
+# Set up doc build options
 using DocumenterCitations
 using DocumenterInterLinks
 
@@ -41,7 +46,6 @@ remote_pairs = map(["DynamicalSystemsBase", "Attractors"]) do pkg_name
 end
 remotes = Dict(remote_pairs)
 
-
 html_options = Dict(
     :prettyurls => true,
     :canonical => "https://juliadynamics.github.io/CriticalTransitions.jl/",
@@ -64,6 +68,7 @@ modules=[
     Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
 ],
 
+# Build docs
 build_docs_with_style(
     pages, modules...;
     plugins = [bib, links], warnonly = [:doctest,],
