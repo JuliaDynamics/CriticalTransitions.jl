@@ -8,9 +8,10 @@
 
 # The general workflow of CriticalTransitions.jl consists of two steps, similar to DynamicalSystems.jl:
 
-# 1. Define your special dynamical system type
+# 1. Define your specific dynamical system type
 #    (either [`RateSystem`](@ref) or [`RandomSystem`](@ref), see below in this tutorial).
-# 2. Investigate the system by calling existing functions on it (see [API](@ref) and examples in this tutorial).
+# 2. Investigate the system by calling existing functions on it
+#    (see [API](@ref) and examples in this tutorial).
 
 # The picture below showcases the two main routes one can go: rate or stochastic
 
@@ -20,7 +21,8 @@
 # The first type is systems that are driven by noise, primarily stochastic ordinary differential equations.
 # The second type is systems whose parameters change with time deterministically according.
 
-# In both cases one often starts with an autonomous deterministic system.
+# In both cases one often starts with an autonomous deterministic system,
+# which is created following the standard **DynamicalSystems.jl** approach.
 # For the scope of this tutorial, this will be the FitzHugh-Nagumo model:
 
 # ```math
@@ -29,6 +31,22 @@
 # \frac{dv}{dt} &= -\beta v + u \ ,
 # \end{aligned}
 # ```
+
+using CriticalTransitions # re-exports `DynamicalSystemsBase`
+import Random # hide
+Random.seed!(1) # hide
+
+function fitzhugh_nagumo(u,p,t)
+    u, v = u
+    ϵ, β, α, γ, κ, I = p
+    du = (-α*u^3 + γ*u - κ*v + I)/ϵ
+    dv = -β*v + u
+    return SVector(du, dv)
+end
+
+p = [1., 3., 1., 1., 1., 0.] # Parameters (ϵ, β, α, γ, κ, I)
+u = zeros(2)
+ds = CoupledODEs(fitzhugh_nagumo, u, p)
 
 
 # ## RateSystem: creation

@@ -37,30 +37,48 @@ end
 
 """
     RateSystem <: ContinuousTimeDynamicalSystem
-    RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kwargs...)
+    RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kw...)
 
 A non-autonomous dynamical system constructed by applying a time-dependent parametric
-forcing protocol ([`ForcingProfile`](@ref)) to an underlying autonomous continuous-time
-dynamical system `ds`.
+forcing protocol(s) to an underlying autonomous continuous-time dynamical system `ds`.
 
-The `ForcingProfile`, applied to the parameter with index `pidx`, describes the functional
-form of the parameter evolution over a given `interval`. This interval is rescaled
-in system time units by defining its start time (`forcing_start_time`) and duration
-(`forcing_duration`). The magnitude of the forcing can be adjusted by scaling the
-forcing profile by a factor `forcing_scale`.
+The parameter of the system with index `pidx` will be forced according to the given
+[`ForcingProfile`](@ref). The `ForcingProfile` describes the functional form of the parameter
+evolution over a given `interval`.
 
-The integer `pidx` refers to the relevant index of the parameter container `p` of `ds`.
+## Keyword arguments
+
+- `forcing_start_time = fp.interval[1]`: Time when parameter change starts.
+- `forcing_duration = fp.interval[2] - fp.interval[1]`:
+   Duration of the parameter change (in system time units).
+- `forcing_scale = 1.0`: Amplitude multiplication factor of the forcing protocol.
+- `t0 = 0.0`: Initial time of the system.
+
+## Description
+
+The time interval (in units of `ds`) where forcing applied is from
+`forcing_start_time` to `forcing_duration`. As such, the `interval` given
+of the [`ForcingProfile`](@ref) is rescaled in system time units; its purpose is only
+to establish the functional form of the forcing.
+The parameter value starts at `p0 = current_parameter(ds, pidx)`.
+Its maximum value is given by the maximum of the forcing function provided to the
+[`ForcingProfile`](@ref), multiplied by `forcing_scale`.
 
 Before `t = forcing_start_time`, the system parameters correspond to that of the
 underlying autonomous system `ds`. At the end of the forcing interval
-(`t = forcing_start_time + forcing_duration`), the parameters are frozen at their current
+(`t = forcing_start_time + forcing_duration`), the parameters are frozen at their final
 value and thereafter the system is again autonomous.
 
-## Keyword arguments
-- `forcing_start_time = fp.interval[1]`: Time when parameter change starts
-- `forcing_duration = fp.interval[2] - fp.interval[1]`: Duration of the parameter change (in system time units)
-- `forcing_scale = 1.0`: Amplitude multiplication factor of the forcing protocol
-- `t0 = 0.0`: Initial time of the system
+## Multiple parameters
+
+    RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profiles::Dict; kw...)
+
+Use the above signature with `forcing_profiles` a dictionary mapping parameter indices
+(anything valid for `set_parameter`) to [`ForcingProfile`](@ref) instances.
+
+    RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kw...)
+
+Use this when all parameters share the same forcing profile.
 """
 struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
@@ -187,7 +205,7 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Returns an autonomous dynamical system of type [`DynamicalSystemsBase.CoupledODEs`](@ref) 
+Returns an autonomous dynamical system of type [`DynamicalSystemsBase.CoupledODEs`](@ref)
 corresponding to the frozen system of the non-autonomous [`RateSystem`](@ref) `rs` at
 time `t`.
 """
