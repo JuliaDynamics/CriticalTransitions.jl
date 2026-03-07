@@ -152,7 +152,8 @@ function RateSystem(
 end
 
 # TODO: this must be rewritten using `set_parameter!` or its source code.
-# otherwise it doens't work with ModelingToolkit.jl
+# otherwise it doens't work with ModelingToolkit.jl;
+# Or better yet, use `set_parameters!` and give a dict of parameters to set?
 function (rss::RateSystemSpecs)(u, p, t)
     p_at_t = p_modified(rss, t)
     if p isa Union{AbstractArray,AbstractDict}

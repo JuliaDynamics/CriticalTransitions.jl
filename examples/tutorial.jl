@@ -11,9 +11,13 @@
 # 1. Define your specific dynamical system type
 #    (either [`RateSystem`](@ref) or [`RandomSystem`](@ref), see below in this tutorial).
 # 2. Investigate the system by calling existing functions on it
-#    (see [API](@ref) and examples in this tutorial).
+#    (see [API](@ref), this tutorial, and the Examples entries).
 
-# The picture below showcases the two main routes one can go: rate or stochastic
+# The picture below showcases the two main routes one can go: rate or random,
+# as well as how they integrate with the broader DynamicalSystems.jl library
+# and the functionality of CriticalTransitions.jl.
+
+# TODO:.
 
 # ## Types of systems
 
@@ -46,7 +50,7 @@ function fitzhugh_nagumo(u,p,t)
 end
 
 p = [1., 3., 1., 1., 1., 0.] # Parameters (ϵ, β, α, γ, κ, I)
-u = zeros(2)
+u = [0.1, 0.1]
 ds = CoupledODEs(fitzhugh_nagumo, u, p)
 
 # ## RateSystem: creation
@@ -73,7 +77,7 @@ rs = RateSystem(ds, fp, pidx;
 # Being explicit, this is what's going on, given time `t`:
 
 # - `t < forcing_start_time`: the system is autonomous, with parameters given by
-#   the underlying autonomous system
+#   the underlying autonomous system.
 # - `forcing_start_time < t < forcing_start_time + forcing_duration`: the system is
 #   non-autonomous with the parameter change given by the `ForcingProfile`,
 #   scaled in magnitude by `forcing_scale`.
@@ -82,18 +86,34 @@ rs = RateSystem(ds, fp, pidx;
 
 # Let's simulate both the autonomous and non-autonomous systems to see the difference:
 
-# ## RateSystem: utilities
+T = 50.0 # Total time
+traj_ds, = trajectory(ds, T; Δt = 0.01)
+traj_rs, = trajectory(rs, T; Δt = 0.01)
+fig = Figure()
+tvec = 0:0.01:T
+ax = Axis(fig[1, 1]; ylabel="u")
+lines!(ax, tvec, traj_ds[:, 1]; label = "autonomous")
+lines!(ax, tvec, traj_rs[:, 1]; label = "rate-forced")
+axislegend(ax)
+fig
 
 # The function [`current_parameters`](@ref) is overloaded for `RateSystem` and can be
-# called with a second input `t` to provide the parameters at time `t`.
+# called with a second input `t` to provide the parameters at time `t`. This way we can
+# plot the forcing parameter as well:
 
-ps_of_t = current_parameters.(rs, 0:0.1:40)
+ps_of_t = current_parameters.(rs, tvec)
 I_of_t = getindex.(ps_of_t, pidx)
-lines(0:0.1:40, I_of_t)
+ax = Axis(fig[2, 1]; xlabel="time", ylabel="I(t)")
+lines!(ax, tvec, I_of_t)
+fig
 
+# ## RateSystem: multiple parameters
 
+# TODO: Remains to be done.
 
 # ## RateSystem: example applications
+
+# TODO: Remains to be done.
 
 # ## RandomSystem: creation
 
