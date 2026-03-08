@@ -107,16 +107,78 @@ ax = Axis(fig[2, 1]; xlabel="time", ylabel="I(t)")
 lines!(ax, tvec, I_of_t)
 fig
 
-# ## RateSystem: multiple parameters
-
-# TODO: Remains to be done.
-
-# ## RateSystem: example applications
+# And what if you want multiple parameters to be forced? Easy!
 
 # TODO: Remains to be done.
 
 # ## RandomSystem: creation
 
-# ## RandomSystem: utilities
+# At the moment, the only case of a `RandomSystem` available is that of
+# [`CoupledSDEs`](@ref). The DynamicalSystemsBase.jl has an extensive documentation
+# on all the possible ways to create it. This can range from specifying just a noise strength
+# (leading to a white noise added to all variables) all the way to completely customized
+# noise and dynamics mixing with multiplicative correlated noise.
+
+# Here we will keep things simple and add additive white noise of given strength
+# to all variables:
+
+using StochasticDiffEq # required for `CoupledSDEs`
+sds = CoupledSDEs(ds, p; noise_strength = 0.2)
+
+# To define more complicated noise processes than simple additive white noise,
+# you can specify a custom *noise function* and *covariance matrix* in the `CoupledSDEs`
+# definition. For more info, see [`CoupledSDEs`](@ref).
+# In any case we now have our stochastic system, so let's visualize a couple of
+# trajectories (as this is a stochastic system each one will have different noise
+# by default)
+
+fig = Figure()
+ax = Axis(fig[1, 1]; xlabel="time", ylabel="u")
+for _ in 1:3
+    traj_sds, = trajectory(sds, T; Δt = 0.1)
+    lines!(ax, 0:0.1:T, traj_sds[:, 1])
+end
+fig
+
+# ## Usage with the broader DynamicalSystems.jl.
+
+# Both random and rate systems are part of DynamicalSystems.jl and usable directly with it.
+# The way to achieve this is to cast the systems back to their deterministic autonomous forms
+# (as this is the type of systems the rest of DynamicalSystems.jl covers).
+# For example, we may be interested in finding the basins of attraction of the deterministic system
+
+using Attractors
+
+grid = (range(-2, 2; length = 100), range(-2, 2; length = 100),)
+mapper = AttractorsViaRecurrences(ds, grid)
+boa = basins_of_attraction(mapper, grid)
+fig = heatmap_basins_attractors(boa)
+
+# We can visualize a couple of stochastic trajectories on top of the basins of attraction:
+
+ax = content(fig[1,1])
+for _ in 1:4
+    traj_sds, = trajectory(sds, 400, [0.5, 0]; Δt = 0.1)
+    lines!(ax, traj_sds; color = (:green, 0.25))
+    scatter!(ax, traj_sds[1]; color = :green)
+end
+fig
+
+# We can see that for the stochastic system, even though all trajectories start
+# in the basin of the right attractor, over time they will deviate and visit
+# the alternative attractor (and then come back and forth forever).
+
+# This is a well known result, for white noise, called "XXX" TODO: .
+# And indeed one can study it with CriticalTransitions.jl as we show below!
 
 # ## RandomSystem: example applications
+
+# TODO: probable escale path something something.
+
+# ## RateSystem: example applications
+
+# TODO: Remains to be done.
+
+
+
+#
