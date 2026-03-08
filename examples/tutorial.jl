@@ -107,7 +107,24 @@ ax = Axis(fig[2, 1]; xlabel="time", ylabel="I(t)")
 lines!(ax, tvec, I_of_t)
 fig
 
-# And what if you want multiple parameters to be forced? Easy!
+# And what if you want multiple parameters to be forced, each with a different profile?
+# Achieving this is straightforward. Provide a dictionary mapping the parameter
+# index to the corresponding forcing profile! For example:
+
+profiles = Dict(
+    6 => ForcingProfile(:linear), # as before
+    2 => ForcingProfile(x -> x^2, (0.0, 2.0)), # quadratic!
+)
+
+# Note that all profiles start and stop at the same system time, although nothing
+# stops you from making a piecewise profile function that has 0s at some of its starting or
+# ending portion(s). In any case, we now make a rate system by giving the profiles:
+
+rs = RateSystem(ds, profiles;
+    forcing_start_time = 10,
+    forcing_duration = 10,
+    forcing_scale = 5
+)
 
 # TODO: Remains to be done.
 
@@ -178,7 +195,5 @@ fig
 # ## RateSystem: example applications
 
 # TODO: Remains to be done.
-
-
 
 #

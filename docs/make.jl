@@ -2,10 +2,10 @@
 CI = get(ENV, "CI", nothing) == "true" || get(ENV, "GITHUB_TOKEN", nothing) !== nothing
 using CriticalTransitions, ChaosTools, Attractors
 using DynamicalSystemsBase
+using StochasticDiffEq, DiffEqNoiseProcess
 StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
 ChaosToolsExt = Base.get_extension(CriticalTransitions, :ChaosToolsExt)
 CoupledSDEsBasin = Base.get_extension(CriticalTransitions, :CoupledSDEsBasin)
-using StochasticDiffEq, DiffEqNoiseProcess
 
 # Convert tutorials and examples
 using Literate
