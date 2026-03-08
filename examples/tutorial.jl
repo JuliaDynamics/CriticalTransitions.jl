@@ -120,11 +120,13 @@ profiles = Dict(
 # stops you from making a piecewise profile function that has 0s at some of its starting or
 # ending portion(s). In any case, we now make a rate system by giving the profiles:
 
-rs = RateSystem(ds, profiles;
-    forcing_start_time = 10,
-    forcing_duration = 10,
-    forcing_scale = 5
-)
+# ```julia
+# rs = RateSystem(ds, profiles;
+#     forcing_start_time = 10,
+#     forcing_duration = 10,
+#     forcing_scale = 5
+# )
+# ```
 
 # TODO: Remains to be done.
 
