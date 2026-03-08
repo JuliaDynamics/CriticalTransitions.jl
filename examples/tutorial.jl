@@ -144,20 +144,40 @@ profiles = Dict(
 using StochasticDiffEq # required for `CoupledSDEs`
 sds = CoupledSDEs(ds, p; noise_strength = 0.2)
 
-# To define more complicated noise processes than simple additive white noise,
-# you can specify a custom *noise function* and *covariance matrix* in the `CoupledSDEs`
-# definition. For more info, see [`CoupledSDEs`](@ref).
-# In any case we now have our stochastic system, so let's visualize a couple of
+# Now that have our stochastic system let's visualize a couple of
 # trajectories (as this is a stochastic system each one will have different noise
 # by default)
 
 fig = Figure()
 ax = Axis(fig[1, 1]; xlabel="time", ylabel="u")
 for _ in 1:3
-    traj_sds, = trajectory(sds, T; Δt = 0.1)
+    traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
     lines!(ax, 0:0.1:T, traj_sds[:, 1])
 end
 fig
+
+# To define more complicated noise processes than simple additive white noise,
+# you can specify a custom *noise function* and *covariance matrix* in the
+# [`CoupledSDEs`](@ref) definition. For example, we can create
+# a system whose noise is multiplicative, time-dependent (here decreasing with time),
+# and also scales by the value of the current `I`, by explicitly providing a noise function
+
+function g(u, p, t)
+    return @. p[6] .* u ./ (1 + t)
+end
+p2 = [1., 3., 1., 1., 1., 1.5] # Parameters (ϵ, β, α, γ, κ, I)
+sds_advanced = CoupledSDEs(fitzhugh_nagumo, u, p2; g = g)
+
+#
+
+fig = Figure()
+ax = Axis(fig[1, 1]; xlabel="time", ylabel="u", title = "advanced SDE")
+for _ in 1:3
+    traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
+    lines!(ax, 0:0.1:T, traj_sds[:, 1])
+end
+fig
+
 
 # ## Usage with the broader DynamicalSystems.jl.
 

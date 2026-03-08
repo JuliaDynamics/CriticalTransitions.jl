@@ -96,12 +96,4 @@ export ForcingProfile, RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
 export frozen_system, parameters
 
-# Error hint for extensions stubs
-function __init__()
-    Base.Experimental.register_error_hint(
-        _basin_error_hinter(intervals_to_box), MethodError
-    )
-    return nothing
-end
-
 end # module CriticalTransitions

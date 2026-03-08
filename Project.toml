@@ -36,7 +36,6 @@ NonlinearSolve = "8913a72c-1f9b-4ce2-8d82-65094dcecaec"
 DistMesh2D = ["DelaunayTriangulation"]
 
 [compat]
-ChaosTools = "3.3.1"
 ConstructionBase = "1.6.0"
 DataStructures = "0.18.20, 0.19"
 DelaunayTriangulation = "1.6"
