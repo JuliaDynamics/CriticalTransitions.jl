@@ -1,5 +1,12 @@
 module CriticalTransitions
 
+# Use the README as the module docs
+@doc let
+    path = joinpath(dirname(@__DIR__), "README.md")
+    include_dependency(path)
+    read(path, String)
+end CriticalTransitions
+
 # Base
 using Statistics: Statistics, mean
 using LinearAlgebra: LinearAlgebra, norm, dot, tr, det
