@@ -1,23 +1,30 @@
+# Loading
 CI = get(ENV, "CI", nothing) == "true" || get(ENV, "GITHUB_TOKEN", nothing) !== nothing
-
-using Documenter
-using DocumenterCitations
-using DocumenterInterLinks
-using Pkg
-
 using CriticalTransitions, ChaosTools, Attractors
 using DynamicalSystemsBase
+using StochasticDiffEq, DiffEqNoiseProcess
 StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
 ChaosToolsExt = Base.get_extension(CriticalTransitions, :ChaosToolsExt)
 CoupledSDEsBasin = Base.get_extension(CriticalTransitions, :CoupledSDEsBasin)
 
-using StochasticDiffEq, DiffEqNoiseProcess
+include("pages.jl")
 
-project_toml = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
-package_version = project_toml["version"]
-name = project_toml["name"]
-authors = join(project_toml["authors"], ", ") * " and contributors"
-github = "https://github.com/juliadynamics/CriticalTransitions.jl"
+# Install style  of JuliaDynamics
+import Downloads
+Downloads.download(
+    "https://raw.githubusercontent.com/JuliaDynamics/doctheme/master/build_docs_with_style.jl",
+    joinpath(@__DIR__, "build_docs_with_style.jl")
+)
+include("build_docs_with_style.jl")
+
+# Set up doc build options
+using DocumenterCitations
+using DocumenterInterLinks
+
+bib = CitationBibliography(
+    joinpath(@__DIR__, "refs.bib");
+    style = :authoryear
+)
 
 links = InterLinks(
     "DynamicalSystemsBase" => "https://juliadynamics.github.io/DynamicalSystemsBase.jl/stable/",
@@ -27,15 +34,14 @@ links = InterLinks(
     # "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",
 )
 
-bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style=:numeric)
-
-if CI
-    include("make_md_examples.jl")
-else
-    nothing
+using Pkg # TODO: What is this? What is this remotes? Why do we need it?
+remote_pairs = map(["DynamicalSystemsBase", "Attractors"]) do pkg_name
+    status = sprint(io -> Pkg.status(pkg_name; io=io))
+    version = match(r"(v[0-9].[0-9]+.[0-9]+)", status)[1]
+    gh_moi = Documenter.Remotes.GitHub("JuliaDynamics", string(pkg_name, ".jl"))
+    (pkgdir(eval(Symbol(pkg_name))) => (gh_moi, version))
 end
-
-include("pages.jl")
+remotes = Dict(remote_pairs)
 
 html_options = Dict(
     :prettyurls => true,
@@ -50,37 +56,20 @@ if Documenter.DOCUMENTER_VERSION >= v"1.3.0"
     html_options[:inventory_version] = package_version
 end
 
-remote_pairs = map(["DynamicalSystemsBase", "Attractors"]) do pkg_name
-    status = sprint(io -> Pkg.status(pkg_name; io=io))
-    version = match(r"(v[0-9].[0-9]+.[0-9]+)", status)[1]
-    gh_moi = Documenter.Remotes.GitHub("JuliaDynamics", string(pkg_name, ".jl"))
-    (pkgdir(eval(Symbol(pkg_name))) => (gh_moi, version))
-end
-remotes = Dict(remote_pairs)
+modules=[
+    CriticalTransitions,
+    DynamicalSystemsBase,
+    Attractors,
+    Base.get_extension(CriticalTransitions, :ChaosToolsExt),
+    Base.get_extension(CriticalTransitions, :AttractorsExt),
+    Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
+],
 
-makedocs(;
-    authors,
-    sitename="CriticalTransitions.jl",
-    repo=Documenter.Remotes.GitHub("JuliaDynamics", "CriticalTransitions.jl"),
-    modules=[
-        CriticalTransitions,
-        DynamicalSystemsBase,
-        Attractors,
-        Base.get_extension(CriticalTransitions, :ChaosToolsExt),
-        Base.get_extension(CriticalTransitions, :AttractorsExt),
-        Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
-    ],
-    remotes,
+# Build docs
+build_docs_with_style(
+    pages, modules...;
+    plugins = [bib, links], warnonly = [:doctest,],
+    htmlkw = (; size_threshold_ignore), authors, htmlkw = html_options,
     checkdocs_ignored_modules=[CriticalTransitions.CTLibrary],
-    pages,
-    linkcheck=true,
-    pagesonly=true,
-    checkdocs=:exports,
-    doctest=false, # run in test CI
-    format=Documenter.HTML(; html_options...),
-    warnonly=[:missing_docs, :linkcheck, :cross_references],
-    plugins=[bib, links],
-    draft=CI ? false : true,
+    remotes,
 )
-
-deploydocs(; repo="github.com/JuliaDynamics/CriticalTransitions.jl.git", push_preview=true)
