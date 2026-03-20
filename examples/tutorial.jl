@@ -8,16 +8,17 @@
 
 # The general workflow of CriticalTransitions.jl consists of two steps, similar to DynamicalSystems.jl:
 
-# 1. Define your specific dynamical system type
-#    (either [`RateSystem`](@ref) or [`RandomSystem`](@ref), see below in this tutorial).
+# 1. Define your specific nonautonomous dynamical system type.
 # 2. Investigate the system by calling existing functions on it
 #    (see [API](@ref), this tutorial, and the Examples entries).
 
-# The picture below showcases the two main routes one can go: rate or random,
-# as well as how they integrate with the broader DynamicalSystems.jl library
-# and the functionality of CriticalTransitions.jl.
+# CriticalTransitions.jl focuses on two classes of nonautonomous systems:
 
-# TODO:.
+# 1. [`RateSystem`](@ref), which is a deterministic `DynamicalSystem` whose parameters
+#    change as functions of time in a predetermined way.
+# 2. [`RandomSystem`](@ref), which is a stochastic `DynamicalSystem` which is driven
+#    by some sorts of noise input.
+
 
 # ## Types of systems
 

@@ -1,10 +1,12 @@
-# # CriticalTransitions.jl
+# CriticalTransitions.jl
 
 ```@docs
 CriticalTransitions
 ```
 
 ## Latest news
+
+Upcoming release!
 
 ## Getting started
 
