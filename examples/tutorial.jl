@@ -12,21 +12,17 @@
 # 2. Investigate the system by calling existing functions on it
 #    (see [API](@ref), this tutorial, and the Examples entries).
 
+# ## Nonautonomous systems
+
 # CriticalTransitions.jl focuses on two classes of nonautonomous systems:
 
 # 1. [`RateSystem`](@ref), which is a deterministic `DynamicalSystem` whose parameters
 #    change as functions of time in a predetermined way.
 # 2. [`RandomSystem`](@ref), which is a stochastic `DynamicalSystem` which is driven
-#    by some sorts of noise input.
+#    by some sorts of noise input. Currently the only such systems supported are
+#    stochastic differential equations.
 
-
-# ## Types of systems
-
-# There are two main system types supported by this package, both being non-autonomous.
-# The first type is systems that are driven by noise, primarily stochastic ordinary differential equations.
-# The second type is systems whose parameters change with time deterministically according.
-
-# In both cases one often starts with an autonomous deterministic system,
+# To create either, one often starts with an autonomous deterministic system,
 # which is created following the standard **DynamicalSystems.jl** approach.
 # For the scope of this tutorial, this will be the FitzHugh-Nagumo model:
 
@@ -50,7 +46,7 @@ function fitzhugh_nagumo(u,p,t)
     return SVector(du, dv)
 end
 
-p = [1., 3., 1., 1., 1., 0.] # Parameters (ϵ, β, α, γ, κ, I)
+p = [1, 3, 1, 1, 1, 0.0] # Parameters (ϵ, β, α, γ, κ, I)
 u = [0.1, 0.1]
 ds = CoupledODEs(fitzhugh_nagumo, u, p)
 
@@ -63,7 +59,7 @@ ds = CoupledODEs(fitzhugh_nagumo, u, p)
 fp = ForcingProfile(:linear)
 
 # The forcing profile by itself doesn't say when the forcing starts or ends,
-# or how much the parameter will increase overall. It only captures the form
+# or which parameter will change and by how much. It only captures the form
 # of the time variability.
 # The remaining information is encoded when creating the `RateSystem`:
 
@@ -179,10 +175,9 @@ for _ in 1:3
 end
 fig
 
-
 # ## Usage with the broader DynamicalSystems.jl.
 
-# Both random and rate systems are part of DynamicalSystems.jl and usable directly with it.
+# Both random and rate systems can easily access the rest of DynamicalSystems.jl.
 # The way to achieve this is to cast the systems back to their deterministic autonomous forms
 # (as this is the type of systems the rest of DynamicalSystems.jl covers).
 # For example, we may be interested in finding the basins of attraction of the deterministic system
