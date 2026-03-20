@@ -31,7 +31,6 @@ The `optimizer` argument accepts:
   - `GeometricGradient()`: runs a projected-gradient gradient descent [heymann_pathways_2008](@citet)
   - Any solver from [`Optimization.jl`](https://docs.sciml.ai/Optimization/) (e.g., `OptimizationOptimisers.Adam()`)
 """
-
 function geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem, x_i, x_f; points::Int=100, kwargs...
 )
@@ -51,7 +50,6 @@ system and `N` is the number of path points.
 For more information see the main method,
 [`geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength::Real; kwargs...)`](@ref).
 """
-
 function geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem, init::Matrix; kwargs...
 )
