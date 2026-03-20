@@ -116,7 +116,11 @@ function simple_geometric_min_action_method(
     progress = Progress(maxiters; dt=0.5, enabled=show_progress)
     for i in 1:maxiters
         S_old = current_action
-        ϵ_try = backtracking ? clamp(stepsize, optimizer.stepsize_min, optimizer.stepsize_max) : stepsize
+        ϵ_try = if backtracking
+            clamp(stepsize, optimizer.stepsize_min, optimizer.stepsize_max)
+        else
+            stepsize
+        end
         accepted = !backtracking
 
         backtracking && copyto!(x_prev, x)
@@ -140,9 +144,7 @@ function simple_geometric_min_action_method(
                 accepted = true
                 current_action = S_trial
                 if backtracking
-                    stepsize = min(
-                        optimizer.stepsize_max, ϵ_try * optimizer.grow
-                    )
+                    stepsize = min(optimizer.stepsize_max, ϵ_try * optimizer.grow)
                 end
                 break
             end
