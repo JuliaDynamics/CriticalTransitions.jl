@@ -37,8 +37,8 @@ The optional positional argument `optimizer` selects the Optimization.jl solver.
 """
 function min_action_method(
     sys::ContinuousTimeDynamicalSystem,
-    x_i,
-    x_f,
+    x_i::AbstractVector{<:Real},
+    x_f::AbstractVector{<:Real},
     T::Real,
     optimizer=Optimisers.Adam();
     points::Int=100,
