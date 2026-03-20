@@ -22,13 +22,14 @@ To set an initial path different from a straight line, see the multiple dispatch
   - `show_progress=true`: if true, display a progress bar
 
 The optional positional argument `optimizer` selects the minimization algorithm. It defaults to
-`GeometricGradient()`. Pass any Optimization.jl optimizer to use Optimization.jl; `ad_type` is only
-used in that case.
+`GeometricGradient()`, which enables backtracking line search (see [`GeometricGradient`](@ref)).
+Pass `GeometricGradient(; max_backtracks=0)` to use a fixed step size, or any
+Optimization.jl optimizer to use Optimization.jl (`ad_type` is only used in that case).
 
 ## Minimization algorithms
 
 The `optimizer` argument accepts:
-  - `GeometricGradient()`: runs a projected-gradient gradient descent [heymann_pathways_2008](@citet)
+  - `GeometricGradient()`: projected-gradient descent with backtracking [heymann_pathways_2008](@citet)
   - Any solver from [`Optimization.jl`](https://docs.sciml.ai/Optimization/) (e.g., `OptimizationOptimisers.Adam()`)
 """
 function geometric_min_action_method(

@@ -63,7 +63,7 @@ SparseArrays = "1.10"
 StateSpaceSets = "2.3.0"
 StaticArrays = "1.9.8"
 Statistics = ">=1.9"
-StochasticDiffEq = "6.71"
+StochasticDiffEq = "6.71, < 6.96"
 julia = "1.10"
 
 [extras]

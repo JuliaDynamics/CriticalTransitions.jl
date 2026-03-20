@@ -4,7 +4,14 @@ abstract type GMAMOptimizer end
 $(TYPEDEF)
 
 Optimizer configuration for the (s)gMAM projected-gradient update with built-in
-backtracking line search (step size is provided per-call via keyword arguments).
+backtracking line search.
+
+By default, backtracking is **enabled** (`max_backtracks=10`): each iteration tries the
+current step size and, if the action increases, shrinks it by `shrink` and retries up to
+`max_backtracks` times. On accepted steps the step size grows by `grow` for the next
+iteration. This adaptive behaviour is particularly useful for underdamped systems where the
+instanton spirals near attractors and a fixed step size either diverges or converges very
+slowly. Set `max_backtracks=0` to disable backtracking and use a fixed step size.
 
 # Fields
 $(TYPEDFIELDS)

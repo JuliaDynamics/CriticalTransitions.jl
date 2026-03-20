@@ -69,12 +69,17 @@ The function returns a [`MinimumActionPath`](@ref) containing the final path, th
 the Lagrange multipliers (`.λ`), the momentum (`.generalized_momentum`), and the state derivatives (`.path_velocity`).
 The implementation is based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html).
 
+The optional positional argument `optimizer` controls step-size adaptation. It defaults to
+`GeometricGradient()`, which enables backtracking line search (see [`GeometricGradient`](@ref)).
+Pass `GeometricGradient(; max_backtracks=0)` to use a fixed step size.
+
 ## Keyword arguments
 
-  - `stepsize::Real=1e-1`: initial step size for the projected gradient update (also initial
-    backtracking step).
-  - `maxiters::Int=1000`: maximum number of *outer* iterations (path updates). If
-    `optimizer.max_backtracks > 0`, each outer iteration may perform up to
+  - `stepsize::Real=1e-1`: initial step size for the projected gradient update. When
+    backtracking is enabled (the default), this is the starting step size that is
+    adaptively shrunk or grown across iterations.
+  - `maxiters::Int=1000`: maximum number of *outer* iterations (path updates). When
+    backtracking is enabled, each outer iteration may perform up to
     `optimizer.max_backtracks + 1` trial steps.
   - `show_progress::Bool=false`: if true, display a progress bar
   - `verbose::Bool=false`: if true, print additional output
@@ -111,9 +116,7 @@ function simple_geometric_min_action_method(
     progress = Progress(maxiters; dt=0.5, enabled=show_progress)
     for i in 1:maxiters
         S_old = current_action
-        ϵ_try = clamp(
-            stepsize, optimizer.stepsize_min, optimizer.stepsize_max
-        )
+        ϵ_try = backtracking ? clamp(stepsize, optimizer.stepsize_min, optimizer.stepsize_max) : stepsize
         accepted = !backtracking
 
         backtracking && copyto!(x_prev, x)
