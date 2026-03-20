@@ -101,12 +101,8 @@ value and thereafter the system is again autonomous.
     RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profiles::Dict; kw...)
 
 Use the above signature with `forcing_profiles` a dictionary mapping parameter indices
-(anything valid for `set_parameter`) to [`ForcingProfile`](@ref) instances.
-
-    RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidxs::Vector; kw...)
-
-Use this when all parameters share the same forcing profile and pass all parameter
-indices to `pidxs`.
+(anything valid for `set_parameter!`) to [`ForcingProfile`](@ref) instances, one
+for each parameter.
 """
 struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
