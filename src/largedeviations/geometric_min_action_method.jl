@@ -55,6 +55,18 @@ function geometric_min_action_method(
 )
     return geometric_min_action_method(sys, init, GeometricGradient(); kwargs...)
 end
+function _gmam_setup(sys, init)
+    if sys isa CoupledSDEs
+        proper_MAM_system(sys)
+    end
+    path = deepcopy(init)
+    N = length(init[1, :])
+    alpha = zeros(N)
+    arc = range(0, 1.0; length=N)
+    S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
+    return path, alpha, arc, S
+end
+
 function geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem,
     init::Matrix,
@@ -66,16 +78,7 @@ function geometric_min_action_method(
     verbose=false,
     show_progress=true,
 )
-    if sys isa CoupledSDEs
-        proper_MAM_system(sys)
-    end
-
-    path = deepcopy(init)
-    N = length(init[1, :])
-    alpha = zeros(N)
-    arc = range(0, 1.0; length=N)
-
-    S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
+    path, alpha, arc, S = _gmam_setup(sys, init)
 
     prog = Progress(maxiters; enabled=show_progress)
     ws = geometric_gradient_workspace(sys, path)
@@ -112,20 +115,10 @@ function geometric_min_action_method(
     abstol::Real=NaN,
     reltol::Real=NaN,
     ad_type=Optimization.AutoFiniteDiff(),
-    stepsize=0.01,
     verbose=false,
     show_progress=true,
 )
-    if sys isa CoupledSDEs
-        proper_MAM_system(sys)
-    end
-
-    path = deepcopy(init)
-    N = length(init[1, :])
-    alpha = zeros(N)
-    arc = range(0, 1.0; length=N)
-
-    S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
+    path, alpha, arc, S = _gmam_setup(sys, init)
 
     prog = Progress(maxiters; enabled=show_progress)
     optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)

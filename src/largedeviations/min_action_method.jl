@@ -111,7 +111,7 @@ function fix_ends(x::Matrix, x_i, x_f)
 end;
 
 """
-    action_minimizer(sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real; kwargs...)
+    action_minimizer(sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real, optimizer=Optimisers.Adam(); kwargs...)
 
 Alias for [`min_action_method`](@ref).]
 """

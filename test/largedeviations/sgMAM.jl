@@ -127,10 +127,26 @@ end
     S0 = CT.FW_action(xdot, p)
     @test isfinite(S0)
 
+    # Single iteration with huge stepsize: backtracking should prevent blowup
     opt = GeometricGradient(; max_backtracks=20)
     res = simple_geometric_min_action_method(
         sys, x_initial, opt; stepsize=1e6, maxiters=1, show_progress=false
     )
     @test isfinite(res.action)
     @test res.action <= S0 + 1e-10
+
+    # Multi-iteration: backtracking should converge to a lower action than the initial path
+    res_bt = simple_geometric_min_action_method(
+        sys, x_initial, GeometricGradient(; max_backtracks=20);
+        stepsize=1.0, maxiters=200, show_progress=false,
+    )
+    @test res_bt.action < S0
+
+    # No-backtracking baseline with the same stepsize and iterations
+    res_no_bt = simple_geometric_min_action_method(
+        sys, x_initial, GeometricGradient(; max_backtracks=0);
+        stepsize=1.0, maxiters=200, show_progress=false,
+    )
+    # Backtracking should reach at least as good (or better) action
+    @test res_bt.action <= res_no_bt.action + 1e-6
 end

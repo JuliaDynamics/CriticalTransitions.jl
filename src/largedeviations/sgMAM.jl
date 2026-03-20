@@ -112,13 +112,19 @@ function simple_geometric_min_action_method(
     for i in 1:maxiters
         S_old = current_action
         ϵ_try = clamp(
-            stepsize, float(optimizer.stepsize_min), float(optimizer.stepsize_max)
+            stepsize, optimizer.stepsize_min, optimizer.stepsize_max
         )
         accepted = !backtracking
 
         backtracking && copyto!(x_prev, x)
-        for _ in 1:ntries
-            backtracking && copyto!(x, x_prev)
+        for try_idx in 1:ntries
+            if backtracking
+                copyto!(x, x_prev)
+                # On retries, xdot/p/lambda were invalidated by the previous try
+                if try_idx > 1
+                    _sgmam_refresh!(xdot, p, lambda, x, H_p)
+                end
+            end
 
             update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ_try)
 
@@ -132,15 +138,15 @@ function simple_geometric_min_action_method(
                 current_action = S_trial
                 if backtracking
                     stepsize = min(
-                        float(optimizer.stepsize_max), ϵ_try * float(optimizer.grow)
+                        optimizer.stepsize_max, ϵ_try * optimizer.grow
                     )
                 end
                 break
             end
 
             if backtracking
-                ϵ_try *= float(optimizer.shrink)
-                if ϵ_try < float(optimizer.stepsize_min)
+                ϵ_try *= optimizer.shrink
+                if ϵ_try < optimizer.stepsize_min
                     break
                 end
             end
@@ -150,8 +156,8 @@ function simple_geometric_min_action_method(
             copyto!(x, x_prev)
             _sgmam_refresh!(xdot, p, lambda, x, H_p)
             current_action = S_old
-            stepsize = max(float(optimizer.stepsize_min), ϵ_try)
-            if stepsize <= float(optimizer.stepsize_min)
+            stepsize = max(optimizer.stepsize_min, ϵ_try)
+            if stepsize <= optimizer.stepsize_min
                 verbose &&
                     @info "Line search stalled at stepsize_min=$(optimizer.stepsize_min) after $i iterations."
                 break
@@ -222,10 +228,8 @@ function init_allocation(x_initial, Nt)
 end
 
 function update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ)
-    central_diff!(xdot, x)
-
-    update_p!(p, lambda, x, xdot, H_p)
-
+    # xdot, p, and lambda are assumed to be pre-computed and consistent with x
+    # (via _sgmam_refresh! or central_diff! + update_p!)
     central_diff!(pdot, p)
     Hx = H_x(x, p)
 
