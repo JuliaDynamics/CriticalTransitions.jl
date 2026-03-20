@@ -16,8 +16,7 @@ To set an initial path different from a straight line, see the multiple dispatch
   - `maxiters::Int=100`: maximum number of optimization iterations before the algorithm stops
   - `abstol::Real=NaN`: absolute tolerance of action change to determine convergence
   - `reltol::Real=NaN`: relative tolerance of action change to determine convergence
-  - `stepsize=0.01`: step size parameter for projected gradient descent. Default: `0.01`
-  - `ad_type=Optimization.AutoFiniteDiff()`: type of automatic differentiation for Optimization.jl solvers
+  - `ad_type=Optimization.AutoFiniteDiff()`: type of automatic differentiation (only used with Optimization.jl solvers)
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
@@ -33,10 +32,15 @@ The `optimizer` argument accepts:
 """
 
 function geometric_min_action_method(
-    sys::ContinuousTimeDynamicalSystem, x_i, x_f; points::Int=100, kwargs...
+    sys::ContinuousTimeDynamicalSystem,
+    x_i,
+    x_f,
+    optimizer=GeometricGradient();
+    points::Int=100,
+    kwargs...,
 )
     path = reduce(hcat, range(x_i, x_f; length=points))
-    return geometric_min_action_method(sys, path; kwargs...)
+    return geometric_min_action_method(sys, path, optimizer; kwargs...)
 end
 
 """
@@ -52,6 +56,19 @@ For more information see the main method,
 [`geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength::Real; kwargs...)`](@ref).
 """
 
+function _gmam_setup(sys, init, maxiters, show_progress)
+    if sys isa CoupledSDEs
+        proper_MAM_system(sys)
+    end
+    path = deepcopy(init)
+    N = length(init[1, :])
+    alpha = zeros(N)
+    arc = range(0, 1.0; length=N)
+    S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
+    prog = Progress(maxiters; enabled=show_progress)
+    return path, N, alpha, arc, S, prog
+end
+
 function geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem, init::Matrix; kwargs...
 )
@@ -64,27 +81,16 @@ function geometric_min_action_method(
     maxiters::Int=100,
     abstol::Real=NaN,
     reltol::Real=NaN,
-    stepsize=0.01,
     verbose=false,
     show_progress=true,
 )
-    if sys isa CoupledSDEs
-        proper_MAM_system(sys)
-    end
+    path, N, alpha, arc, S, prog = _gmam_setup(sys, init, maxiters, show_progress)
 
-    path = deepcopy(init)
-    N = length(init[1, :])
-    alpha = zeros(N)
-    arc = range(0, 1.0; length=N)
-
-    S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
-
-    prog = Progress(maxiters; enabled=show_progress)
     ws = geometric_gradient_workspace(sys, path)
     check_convergence = isfinite(abstol) || isfinite(reltol)
     prev_action = check_convergence ? S(path) : NaN
     for i in 1:maxiters
-        geometric_gradient_step!(ws, sys, path; stepsize=stepsize)
+        geometric_gradient_step!(ws, sys, path; stepsize=optimizer.stepsize)
         path .= ws.update
         interpolate_path!(path, alpha, arc)
         next!(prog)
@@ -114,22 +120,10 @@ function geometric_min_action_method(
     abstol::Real=NaN,
     reltol::Real=NaN,
     ad_type=Optimization.AutoFiniteDiff(),
-    stepsize=0.01,
-    verbose=false,
     show_progress=true,
 )
-    if sys isa CoupledSDEs
-        proper_MAM_system(sys)
-    end
+    path, N, alpha, arc, S, prog = _gmam_setup(sys, init, maxiters, show_progress)
 
-    path = deepcopy(init)
-    N = length(init[1, :])
-    alpha = zeros(N)
-    arc = range(0, 1.0; length=N)
-
-    S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
-
-    prog = Progress(maxiters; enabled=show_progress)
     optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)
     prob = SciMLBase.OptimizationProblem(optf, init, ())
 
