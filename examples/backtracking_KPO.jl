@@ -61,18 +61,31 @@ x_initial = Matrix([xx yy]')
 # and accurate). All runs use `reltol=1e-8` so they stop at a consistent
 # convergence threshold.
 
-opt_fixed = GeometricGradient(; max_backtracks=0)
-opt_bt = GeometricGradient()  # backtracking on by default
 maxiters = 20_000
 
 res_small = simple_geometric_min_action_method(
-    sys, x_initial, opt_fixed; maxiters, stepsize=1e1, show_progress=false, reltol=1e-8
+    sys,
+    x_initial,
+    GeometricGradient(; stepsize=1e1, max_backtracks=0);
+    maxiters,
+    show_progress=false,
+    reltol=1e-8,
 )
 res_large = simple_geometric_min_action_method(
-    sys, x_initial, opt_fixed; maxiters, stepsize=1e4, show_progress=false, reltol=1e-8
+    sys,
+    x_initial,
+    GeometricGradient(; stepsize=1e4, max_backtracks=0);
+    maxiters,
+    show_progress=false,
+    reltol=1e-8,
 )
 res_bt = simple_geometric_min_action_method(
-    sys, x_initial, opt_bt; maxiters, stepsize=1e3, show_progress=false, reltol=1e-8
+    sys,
+    x_initial,
+    GeometricGradient(; stepsize=1e3);
+    maxiters,
+    show_progress=false,
+    reltol=1e-8,
 )
 
 stream(u, v) = Point2f(fu(u, v), fv(u, v))
@@ -138,7 +151,12 @@ fixed_actions = Float64[]
 fixed_times = Float64[]
 for ss in stepsizes
     t = @elapsed res = simple_geometric_min_action_method(
-        sys, x_initial, opt_fixed; maxiters, stepsize=ss, show_progress=false, reltol=1e-8
+        sys,
+        x_initial,
+        GeometricGradient(; stepsize=ss, max_backtracks=0);
+        maxiters,
+        show_progress=false,
+        reltol=1e-8,
     )
     push!(fixed_actions, res.action)
     push!(fixed_times, t)
@@ -149,7 +167,12 @@ bt_actions = Float64[]
 bt_times = Float64[]
 for ss in bt_stepsizes
     t = @elapsed res = simple_geometric_min_action_method(
-        sys, x_initial, opt_bt; maxiters, stepsize=ss, show_progress=false, reltol=1e-8
+        sys,
+        x_initial,
+        GeometricGradient(; stepsize=ss);
+        maxiters,
+        show_progress=false,
+        reltol=1e-8,
     )
     push!(bt_actions, res.action)
     push!(bt_times, t)

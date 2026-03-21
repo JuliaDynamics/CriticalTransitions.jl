@@ -61,8 +61,7 @@ Our implementation is only valid for additive noise.
 This method computes the optimal path in the phase space of a Hamiltonian system that
 minimizes the Freidlin–Wentzell action. The Hamiltonian functions `H_x` and `H_p` define
 the system's dynamics in a doubled phase. The initial state `x_initial` is evolved
-iteratively using constrained gradient descent with step size parameter `stepsize` over a specified
-number of iterations. The method can display a progress meter and will stop early if the
+iteratively using constrained gradient descent over a specified number of iterations. The method can display a progress meter and will stop early if the
 absolute tolerance `abstol` or relative tolerance `reltol` is achieved.
 
 The function returns a [`MinimumActionPath`](@ref) containing the final path, the action value,
@@ -70,14 +69,13 @@ the Lagrange multipliers (`.λ`), the momentum (`.generalized_momentum`), and th
 The implementation is based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html).
 
 The optional positional argument `optimizer` controls step-size adaptation. It defaults to
-`GeometricGradient()`, which enables backtracking line search (see [`GeometricGradient`](@ref)).
+`GeometricGradient()`, which enables backtracking step-size control (see [`GeometricGradient`](@ref)).
 Pass `GeometricGradient(; max_backtracks=0)` to use a fixed step size.
+
+The step size is configured via `GeometricGradient(; stepsize=...)`.
 
 ## Keyword arguments
 
-  - `stepsize::Real=1e-1`: initial step size for the projected gradient update. When
-    backtracking is enabled (the default), this is the starting step size that is
-    adaptively shrunk or grown across iterations.
   - `maxiters::Int=1000`: maximum number of *outer* iterations (path updates). When
     backtracking is enabled, each outer iteration may perform up to
     `optimizer.max_backtracks + 1` trial steps.
@@ -89,8 +87,7 @@ Pass `GeometricGradient(; max_backtracks=0)` to use a fixed step size.
 function simple_geometric_min_action_method(
     sys::ExtendedPhaseSpace,
     x_initial::Matrix{T},
-    optimizer::GeometricGradient=GeometricGradient();
-    stepsize::Real=1e-1,
+    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e3);
     maxiters::Int=1000,
     show_progress::Bool=false,
     verbose::Bool=false,
@@ -104,94 +101,37 @@ function simple_geometric_min_action_method(
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
     xdotdot = zeros(size(xdot))
 
-    backtracking = optimizer.max_backtracks > 0
-    x_prev = backtracking ? similar(x) : nothing
-    ntries = backtracking ? optimizer.max_backtracks + 1 : 1
+    x_prev = similar(x)
 
     # Ensure a consistent starting path for action comparisons
     interpolate_path!(x, alpha, s)
     _sgmam_refresh!(xdot, p, lambda, x, H_p)
-    current_action = FW_action(xdot, p)
+    initial_action = FW_action(xdot, p)
 
-    progress = Progress(maxiters; dt=0.5, enabled=show_progress)
-    for i in 1:maxiters
-        S_old = current_action
-        ϵ_try = if backtracking
-            clamp(stepsize, optimizer.stepsize_min, optimizer.stepsize_max)
-        else
-            stepsize
-        end
-        accepted = !backtracking
-
-        backtracking && copyto!(x_prev, x)
-        for try_idx in 1:ntries
-            if backtracking
-                copyto!(x, x_prev)
-                # On retries, xdot/p/lambda were invalidated by the previous try
-                if try_idx > 1
-                    _sgmam_refresh!(xdot, p, lambda, x, H_p)
-                end
-            end
-
-            update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ_try)
-
-            # reparameterize to arclength and re-sync (xdot, p, λ) with the updated path
-            interpolate_path!(x, alpha, s)
-            _sgmam_refresh!(xdot, p, lambda, x, H_p)
-
-            S_trial = FW_action(xdot, p)
-            if !backtracking || (isfinite(S_trial) && S_trial <= S_old)
-                accepted = true
-                current_action = S_trial
-                if backtracking
-                    stepsize = min(optimizer.stepsize_max, ϵ_try * optimizer.grow)
-                end
-                break
-            end
-
-            if backtracking
-                ϵ_try *= optimizer.shrink
-                if ϵ_try < optimizer.stepsize_min
-                    break
-                end
-            end
-        end
-
-        if backtracking && !accepted
-            copyto!(x, x_prev)
-            _sgmam_refresh!(xdot, p, lambda, x, H_p)
-            current_action = S_old
-            stepsize = max(optimizer.stepsize_min, ϵ_try)
-            if stepsize <= optimizer.stepsize_min
-                verbose &&
-                    @info "Line search stalled at stepsize_min=$(optimizer.stepsize_min) after $i iterations."
-                break
-            end
-        end
-
-        # With backtracking, do not treat "no acceptable step found" as convergence:
-        # only accepted steps are checked against abstol/reltol. If none are accepted,
-        # we continue and only stop when the line search stalls at stepsize_min.
-        abs_change = accepted ? abs(current_action - S_old) : Inf
-        rel_change = accepted ? (S_old == 0 ? abs_change : abs_change / abs(S_old)) : Inf
-
-        if accepted && (
-            (isfinite(abstol) && abs_change < abstol) ||
-            (isfinite(reltol) && rel_change < reltol)
-        )
-            verbose &&
-                @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
-            break
-        end
-        next!(
-            progress;
-            showvalues=[
-                ("iterations", i),
-                ("Stol", round(rel_change; sigdigits=3)),
-                ("stepsize", round(stepsize; sigdigits=3)),
-            ],
-        )
+    function try_step!(ϵ)
+        update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ)
+        interpolate_path!(x, alpha, s)
+        _sgmam_refresh!(xdot, p, lambda, x, H_p)
+        return FW_action(xdot, p)
     end
+    save!() = copyto!(x_prev, x)
+    function restore!()
+        copyto!(x, x_prev)
+        _sgmam_refresh!(xdot, p, lambda, x, H_p)
+    end
+
+    current_action, _ = backtracking_optimize!(
+        optimizer,
+        try_step!,
+        save!,
+        restore!,
+        initial_action;
+        maxiters,
+        abstol,
+        reltol,
+        verbose,
+        show_progress,
+    )
     return MinimumActionPath(
         StateSpaceSet(x'),
         current_action;
@@ -203,7 +143,7 @@ end
 function simple_geometric_min_action_method(
     sys,
     x_initial::StateSpaceSet,
-    optimizer::GeometricGradient=GeometricGradient();
+    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e3);
     kwargs...,
 )
     return simple_geometric_min_action_method(
@@ -213,7 +153,7 @@ end
 function simple_geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem,
     x_initial::Matrix{<:Real},
-    optimizer::GeometricGradient=GeometricGradient();
+    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e3);
     kwargs...,
 )
     return simple_geometric_min_action_method(
