@@ -243,7 +243,7 @@ end
 
 function central_diff!(xdot, x)
     # ̇xₙ = 0.5(xₙ₊₁ - xₙ₋₁) central finite difference
-    xdot[:, 2:(end - 1)] = 0.5 * (x[:, 3:end] - x[:, 1:(end - 2)])
+    @views xdot[:, 2:(end - 1)] .= 0.5 .* (x[:, 3:end] .- x[:, 1:(end - 2)])
     return nothing
 end
 
@@ -253,7 +253,7 @@ function _sgmam_refresh!(xdot, p, lambda, x, H_p)
     return nothing
 end
 
-FW_action(xdot, p) = sum(sum(xdot .* p; dims=1)) / 2
+FW_action(xdot, p) = dot(xdot, p) / 2
 
 function proper_sgMAM_system(ds::CoupledSDEs)
     proper_MAM_system(ds)

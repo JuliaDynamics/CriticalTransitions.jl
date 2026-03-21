@@ -18,3 +18,4 @@ examples/Manifest.toml
 benchmarks_output.json
 benchmarks/Manifest.toml
 Manifest.toml
+.claude/*
