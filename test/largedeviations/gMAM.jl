@@ -43,3 +43,13 @@ end
     @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=1e-3))
     @test all(isapprox.(action_val, 0.3375, atol=1e-3))
 end # GeometricGradient
+
+@testset "GeometricGradient constructor" begin
+    opt = GeometricGradient()
+    @test opt.stepsize isa Float64
+    @test opt.stepsize == 0.01
+
+    opt2 = GeometricGradient(; stepsize=1)
+    @test opt2.stepsize isa Float64
+    @test opt2.stepsize == 1.0
+end

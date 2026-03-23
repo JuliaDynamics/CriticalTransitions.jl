@@ -94,3 +94,22 @@ end
     @test sys.H_x(zeros(2), zeros(2)) ≈ zeros(2)
     @test sys.H_p(zeros(2), zeros(2)) ≈ zeros(2)
 end
+
+@testset "sgMAM GeometricGradient" begin
+    H_x(x, p) = zeros(size(x))
+    H_p(x, p) = ones(size(x))
+    sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
+
+    xx = collect(range(-1.0, 1.0; length=20))
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    x_initial = Matrix([xx yy]')
+
+    res_small = simple_geometric_min_action_method(
+        sys, x_initial, GeometricGradient(; stepsize=1e-6); maxiters=2, show_progress=false
+    )
+    res_large = simple_geometric_min_action_method(
+        sys, x_initial, GeometricGradient(; stepsize=1.0); maxiters=2, show_progress=false
+    )
+
+    @test res_small.action != res_large.action
+end

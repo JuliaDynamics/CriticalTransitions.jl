@@ -43,19 +43,6 @@ function geometric_min_action_method(
     return geometric_min_action_method(sys, path, optimizer; kwargs...)
 end
 
-"""
-$(TYPEDSIGNATURES)
-
-Runs the geometric Minimum Action Method (gMAM) to find the minimum action path (instanton) from an
-initial condition `init`, given a system `sys` and total arc length `arclength`.
-
-The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dimension of the
-system and `N` is the number of path points.
-
-For more information see the main method,
-[`geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength::Real; kwargs...)`](@ref).
-"""
-
 function _gmam_setup(sys, init, maxiters, show_progress)
     if sys isa CoupledSDEs
         proper_MAM_system(sys)
@@ -74,6 +61,19 @@ function geometric_min_action_method(
 )
     return geometric_min_action_method(sys, init, GeometricGradient(); kwargs...)
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Runs the geometric Minimum Action Method (gMAM) to find the minimum action path (instanton) from an
+initial condition `init`, given a system `sys` and total arc length `arclength`.
+
+The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dimension of the
+system and `N` is the number of path points.
+
+For more information see the main method,
+[`geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength::Real; kwargs...)`](@ref).
+"""
 function geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem,
     init::Matrix,

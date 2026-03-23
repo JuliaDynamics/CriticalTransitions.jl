@@ -61,17 +61,19 @@ Our implementation is only valid for additive noise.
 This method computes the optimal path in the phase space of a Hamiltonian system that
 minimizes the Freidlin–Wentzell action. The Hamiltonian functions `H_x` and `H_p` define
 the system's dynamics in a doubled phase. The initial state `x_initial` is evolved
-iteratively using constrained gradient descent with step size parameter `stepsize` over a specified
-number of iterations. The method can display a progress meter and will stop early if the
-absolute tolerance `abstol` or relative tolerance `reltol` is achieved.
+iteratively using constrained gradient descent over a specified number of iterations. The
+method can display a progress meter and will stop early if the absolute tolerance
+`abstol` or relative tolerance `reltol` is achieved.
 
 The function returns a [`MinimumActionPath`](@ref) containing the final path, the action value,
 the Lagrange multipliers (`.λ`), the momentum (`.generalized_momentum`), and the state derivatives (`.path_velocity`).
 The implementation is based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html).
 
+The optional positional argument `optimizer` configures the projected-gradient update. The
+step size is set via `GeometricGradient(; stepsize=...)`.
+
 ## Keyword arguments
 
-  - `stepsize::Real=1e-1`: step size for gradient descent. Default: `0.1`
   - `maxiters::Int=1000`: maximum number of iterations before the algorithm stops
   - `show_progress::Bool=false`: if true, display a progress bar
   - `verbose::Bool=false`: if true, print additional output
@@ -81,8 +83,7 @@ The implementation is based on the work of [Grafke et al. (2019)](https://homepa
 function simple_geometric_min_action_method(
     sys::ExtendedPhaseSpace,
     x_initial::Matrix{T},
-    optimizer::GMAMOptimizer=GeometricGradient();
-    stepsize::Real=1e-1,
+    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
     maxiters::Int=1000,
     show_progress::Bool=false,
     verbose::Bool=false,
@@ -101,7 +102,7 @@ function simple_geometric_min_action_method(
 
     progress = Progress(maxiters; dt=0.5, enabled=show_progress)
     for i in 1:maxiters
-        update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, stepsize)
+        update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, optimizer.stepsize)
 
         # reparameterize to arclength
         interpolate_path!(x, alpha, s)
@@ -125,7 +126,10 @@ function simple_geometric_min_action_method(
     )
 end
 function simple_geometric_min_action_method(
-    sys, x_initial::StateSpaceSet, optimizer::GMAMOptimizer=GeometricGradient(); kwargs...
+    sys,
+    x_initial::StateSpaceSet,
+    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
+    kwargs...,
 )
     return simple_geometric_min_action_method(
         sys, Matrix(Matrix(x_initial)'), optimizer; kwargs...
@@ -134,7 +138,7 @@ end
 function simple_geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem,
     x_initial::Matrix{<:Real},
-    optimizer::GMAMOptimizer=GeometricGradient();
+    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
     kwargs...,
 )
     return simple_geometric_min_action_method(
