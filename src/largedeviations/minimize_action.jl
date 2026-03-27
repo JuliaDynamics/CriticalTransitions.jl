@@ -25,7 +25,7 @@ The optional positional argument `optimizer` selects the Optimization.jl solver.
 
   - `functional = "FW"`: type of action functional to minimize.
     Defaults to [`fw_action`](@ref), alternative: "OM" for [`om_action`](@ref)
-  - `points = 100`: number of path points to use for the discretization of the path
+  - `npoints = 100`: number of path points to use for the discretization of the path
   - `noise_strength = nothing`: noise strength for the action functional. Specify only if `functional = "OM"`
   - `ad_type = Optimization.AutoFiniteDiff()`: type of automatic differentiation to use
     (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
@@ -41,10 +41,10 @@ function minimize_action(
     x_f::AbstractVector{<:Real},
     T::Real,
     optimizer=Optimisers.Adam();
-    points::Int=100,
+    npoints::Int=100,
     kwargs...,
 )
-    init = reduce(hcat, range(x_i, x_f; length=points))
+    init = reduce(hcat, range(x_i, x_f; length=npoints))
     return minimize_action(sys, init, T, optimizer; kwargs...)
 end;
 
