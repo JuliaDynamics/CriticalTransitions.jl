@@ -33,10 +33,10 @@ using Test
     end
 
     @testset "Adam" begin
-        gm = geometric_min_action_method(
+        gm = minimize_geometric_action(
             sys, x_i, x_f; maxiters=10, verbose=false, show_progress=false
         )
-        gm = geometric_min_action_method(
+        gm = minimize_geometric_action(
             sys, init; maxiters=500, verbose=false, show_progress=false
         )
 
@@ -50,7 +50,7 @@ using Test
         import CriticalTransitions as CT
         S(x) = geometric_action(sys, CT.fix_ends(x, init[:, 1], init[:, end]), 1.0)
 
-        gm = geometric_min_action_method(
+        gm = minimize_geometric_action(
             sys, init; maxiters=500, verbose=false, show_progress=false
         )
         string = string_method(

@@ -80,7 +80,7 @@ step size is set via `GeometricGradient(; stepsize=...)`.
   - `abstol::Real=NaN`: absolute tolerance for early stopping based on action change
   - `reltol::Real=NaN`: relative tolerance for early stopping based on action change
 """
-function simple_geometric_min_action_method(
+function minimize_simple_geometric_action(
     sys::ExtendedPhaseSpace,
     x_initial::Matrix{T},
     optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
@@ -125,23 +125,23 @@ function simple_geometric_min_action_method(
         StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
     )
 end
-function simple_geometric_min_action_method(
+function minimize_simple_geometric_action(
     sys,
     x_initial::StateSpaceSet,
     optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
     kwargs...,
 )
-    return simple_geometric_min_action_method(
+    return minimize_simple_geometric_action(
         sys, Matrix(Matrix(x_initial)'), optimizer; kwargs...
     )
 end
-function simple_geometric_min_action_method(
+function minimize_simple_geometric_action(
     sys::ContinuousTimeDynamicalSystem,
     x_initial::Matrix{<:Real},
     optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
     kwargs...,
 )
-    return simple_geometric_min_action_method(
+    return minimize_simple_geometric_action(
         ExtendedPhaseSpace(sys), Matrix(Matrix(x_initial)'), optimizer; kwargs...
     )
 end

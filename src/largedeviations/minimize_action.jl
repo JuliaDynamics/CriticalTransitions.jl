@@ -1,5 +1,5 @@
 """
-    min_action_method(sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real, optimizer=Optimisers.Adam(); kwargs...)
+    minimize_action(sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real, optimizer=Optimisers.Adam(); kwargs...)
 
 Minimizes an action functional to obtain a minimum action path (instanton) between an
 initial state `x_i` and final state `x_f` in phase space.
@@ -14,7 +14,7 @@ time via `N` equidistant points and total time `T`. Thus, the time step between
 discretized path points is ``\\Delta t = T/N``.
 To set an initial path different from a straight line, see the multiple dispatch method
 
-> `min_action_method(sys::ContinuousTimeDynamicalSystem, init::Matrix, T::Real, optimizer=Optimisers.Adam(); kwargs...)`.
+> `minimize_action(sys::ContinuousTimeDynamicalSystem, init::Matrix, T::Real, optimizer=Optimisers.Adam(); kwargs...)`.
 
 Returns a [`MinimumActionPath`](@ref) object containing the optimized path and the action
 value.
@@ -35,7 +35,7 @@ The optional positional argument `optimizer` selects the Optimization.jl solver.
   - `verbose = false`: whether to print Optimization information during the run
   - `show_progress = false`: whether to print a progress bar
 """
-function min_action_method(
+function minimize_action(
     sys::ContinuousTimeDynamicalSystem,
     x_i::AbstractVector{<:Real},
     x_f::AbstractVector{<:Real},
@@ -45,11 +45,11 @@ function min_action_method(
     kwargs...,
 )
     init = reduce(hcat, range(x_i, x_f; length=points))
-    return min_action_method(sys, init, T, optimizer; kwargs...)
+    return minimize_action(sys, init, T, optimizer; kwargs...)
 end;
 
 """
-    min_action_method(sys::ContinuousTimeDynamicalSystem, init::Matrix, T::Real, optimizer=Optimisers.Adam(); kwargs...)
+    minimize_action(sys::ContinuousTimeDynamicalSystem, init::Matrix, T::Real, optimizer=Optimisers.Adam(); kwargs...)
 
 Minimizes the specified action functional to obtain a minimum action path (instanton)
 between fixed end points given a system `sys` and total path time `T`.
@@ -61,7 +61,7 @@ is specified by `T`, such that the time step between consecutive path points is
 
 The optional positional argument `optimizer` selects the Optimization.jl solver. It defaults to `Optimisers.Adam()`.
 """
-function min_action_method(
+function minimize_action(
     sys::ContinuousTimeDynamicalSystem,
     init::Matrix{<:Real},
     T::Real,
@@ -113,6 +113,6 @@ end;
 """
     action_minimizer(sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real; kwargs...)
 
-Alias for [`min_action_method`](@ref).]
+Alias for [`minimize_action`](@ref).]
 """
-const action_minimizer = min_action_method
+const action_minimizer = minimize_action

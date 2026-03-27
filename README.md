@@ -60,7 +60,7 @@ sys = CoupledSDEs(fitzhugh_nagumo, initial_state, params; noise_strength)
 traj = trajectory(sys, 10.0)
 
 # Compute minimum action path using gMAM algorithm
-instanton = geometric_min_action_method(sys, initial_state, current_state(sys))
+instanton = minimize_geometric_action(sys, initial_state, current_state(sys))
 
 # Turn into a non-autonomous dynamical system
 # where the parameter β changes in time

@@ -42,14 +42,14 @@ The literature contains a number of extensions of MAM-type methods that may be r
 Minimization of the specified action functional using the optimization algorithm of `Optimization.jl`. See also [e_minimum_2004](@citet).
 
 ```@docs
-min_action_method
+minimize_action
 ```
 
 ### Geometric minimum action method (gMAM)
 Minimization of the geometric action following [heymann_pathways_2008, heymann_geometric_2008](@citet). gMAM reformulates MAM to avoid double optimization of both the action and the transition time. It achieves this by using a [geometric action](@ref "Geometric Freidlin-Wentzell action") functional that is independent of the time parametrization of the path. This reparameterization invariance makes the method more robust and computationally efficient, particularly for multiscale systems.
 
 ```@docs
-geometric_min_action_method
+minimize_geometric_action
 ```
 
 ### Simple geometric minimum action method (sgMAM)
@@ -58,7 +58,7 @@ The simple gMAM reduces the complexity of the original gMAM by requiring only fi
 
 The implementation below performs a constrained gradient descent assuming an autonomous system with additive Gaussian noise.
 ```@docs
-simple_geometric_min_action_method
+minimize_simple_geometric_action
 ExtendedPhaseSpace
 ```
 
@@ -84,8 +84,8 @@ ds = CoupledSDEs(KPO, zeros(2), ())
 sys_generic = ExtendedPhaseSpace(ds)              # uses jacobian(ds)
 
 opt = GeometricGradient(; stepsize=0.5)
-@btime simple_geometric_min_action_method($sys_fast,    $x_initial, $opt; maxiters=100, show_progress=false)
-@btime simple_geometric_min_action_method($sys_generic, $x_initial, $opt; maxiters=100, show_progress=false)
+@btime minimize_simple_geometric_action($sys_fast,    $x_initial, $opt; maxiters=100, show_progress=false)
+@btime minimize_simple_geometric_action($sys_generic, $x_initial, $opt; maxiters=100, show_progress=false)
 ```
 
 Aside: the same “vectorized + allocation-free inner loop” principle also tends to make [`string_method`](@ref) faster when used with `ExtendedPhaseSpace`.

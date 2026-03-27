@@ -59,7 +59,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
 x_initial = Matrix([xx yy]')
 
 opt = GeometricGradient(; stepsize=10e2)
-MLP = simple_geometric_min_action_method(
+MLP = minimize_simple_geometric_action(
     sys, x_initial, opt; maxiters=100_000, show_progress=true
 )
 x_min = MLP.path
@@ -73,10 +73,10 @@ plot!(x_min[1, :], x_min[2, :]; label="MLP", lw=3, c=:red)
 string_path = permutedims(Matrix(string))
 plot!(string_path[1, :], string_path[2, :]; label="string", lw=3, c=:blue)
 
-@btime $simple_geometric_min_action_method(
+@btime $minimize_simple_geometric_action(
     $sys, $x_initial, $opt; maxiters=100, show_progress=false
 ) # 25.803 ms (29024 allocations: 105.69 MiB)
-@profview simple_geometric_min_action_method(
+@profview minimize_simple_geometric_action(
     sys, x_initial, opt; maxiters=100, show_progress=false
 )
 

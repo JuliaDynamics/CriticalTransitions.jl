@@ -85,11 +85,11 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
 x_initial = Matrix([xx yy]')
 ````
 
-The optimisation is the performed by the `simple_geometric_min_action_method` function:
+The optimisation is the performed by the `minimize_simple_geometric_action` function:
 
 ````@example sgMAM_KPO
 optimizer = GeometricGradient(; stepsize=1e3)
-MLP = simple_geometric_min_action_method(
+MLP = minimize_simple_geometric_action(
     sys, x_initial, optimizer; maxiters=1_000, show_progress=false
 )
 x_min = MLP.path;

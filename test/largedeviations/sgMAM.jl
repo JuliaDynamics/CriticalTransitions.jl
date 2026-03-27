@@ -104,10 +104,10 @@ end
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     x_initial = Matrix([xx yy]')
 
-    res_small = simple_geometric_min_action_method(
+    res_small = minimize_simple_geometric_action(
         sys, x_initial, GeometricGradient(; stepsize=1e-6); maxiters=2, show_progress=false
     )
-    res_large = simple_geometric_min_action_method(
+    res_large = minimize_simple_geometric_action(
         sys, x_initial, GeometricGradient(; stepsize=1.0); maxiters=2, show_progress=false
     )
 

@@ -60,7 +60,7 @@ end
     x_f = SA[0.0, 1.0]
 
     # Start from a straight-line initial path; minimizer should move it onto the LC segment.
-    res = geometric_min_action_method(
+    res = minimize_geometric_action(
         sys, x_i, x_f; npoints=500, maxiters=1000, show_progress=false, verbose=false
     )
 
