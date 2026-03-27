@@ -1,10 +1,13 @@
 """
-$(TYPEDSIGNATURES)
+    geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, optimizer=GeometricGradient(); kwargs...)
 
 Computes the minimizer of the geometric Freidlin-Wentzell action based on the geometric
 minimum action method (gMAM), using optimizers of Optimization.jl or the original formulation
-by Heymann and Vanden-Eijnden [heymann_pathways_2008](@citet), which performs a projected-gradient
-descent. Only the Freidlin-Wentzell action has a geometric formulation.
+by Heymann and Vanden-Eijnden [heymann_pathways_2008](@citet), which performs a projected gradient
+descent.
+
+The minimizer is computed for the system `sys` over all paths leading from the initial state
+`x_i` to the final state `x_f`.
 
 To set an initial path different from a straight line, see the multiple dispatch method
 
@@ -12,7 +15,7 @@ To set an initial path different from a straight line, see the multiple dispatch
 
 ## Keyword arguments
 
-  - `points::Int=100`: number of discretization points along the path
+  - `npoints::Int=100`: number of discretization points along the path
   - `maxiters::Int=100`: maximum number of optimization iterations before the algorithm stops
   - `abstol::Real=NaN`: absolute tolerance of action change to determine convergence
   - `reltol::Real=NaN`: relative tolerance of action change to determine convergence
@@ -20,26 +23,28 @@ To set an initial path different from a straight line, see the multiple dispatch
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
+## Minimization algorithms
+
 The optional positional argument `optimizer` selects the minimization algorithm. It defaults to
 `GeometricGradient()`. Pass any Optimization.jl optimizer to use Optimization.jl; `ad_type` is only
 used in that case.
 
-## Minimization algorithms
-
 The `optimizer` argument accepts:
   - `GeometricGradient()`: runs a projected-gradient gradient descent [heymann_pathways_2008](@citet)
   - Any solver from [`Optimization.jl`](https://docs.sciml.ai/Optimization/) (e.g., `OptimizationOptimisers.Adam()`)
-"""
 
+## Notes
+Only the Freidlin-Wentzell action has a geometric formulation.
+"""
 function geometric_min_action_method(
     sys::ContinuousTimeDynamicalSystem,
     x_i,
     x_f,
     optimizer=GeometricGradient();
-    points::Int=100,
+    npoints::Int=100,
     kwargs...,
 )
-    path = reduce(hcat, range(x_i, x_f; length=points))
+    path = reduce(hcat, range(x_i, x_f; length=npoints))
     return geometric_min_action_method(sys, path, optimizer; kwargs...)
 end
 

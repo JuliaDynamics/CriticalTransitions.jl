@@ -10,7 +10,7 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
     res = geometric_min_action_method(
-        fhn, x_i, x_f; points=30, maxiters=500, show_progress=false
+        fhn, x_i, x_f; npoints=30, maxiters=500, show_progress=false
     )
     S = geometric_action(fhn, Matrix(res.path)')
     @test isapprox(S, 0.18, atol=0.01)
