@@ -61,8 +61,9 @@ Our implementation is only valid for additive noise.
 This method computes the optimal path in the phase space of a Hamiltonian system that
 minimizes the Freidlin–Wentzell action. The Hamiltonian functions `H_x` and `H_p` define
 the system's dynamics in a doubled phase. The initial state `x_initial` is evolved
-iteratively using constrained gradient descent over a specified number of iterations. The method can display a progress meter and will stop early if the
-absolute tolerance `abstol` or relative tolerance `reltol` is achieved.
+iteratively using constrained gradient descent over a specified number of iterations. The
+method can display a progress meter and will stop early if the absolute tolerance
+`abstol` or relative tolerance `reltol` is achieved.
 
 The function returns a [`MinimumActionPath`](@ref) containing the final path, the action value,
 the Lagrange multipliers (`.λ`), the momentum (`.generalized_momentum`), and the state derivatives (`.path_velocity`).
@@ -84,7 +85,7 @@ The step size is configured via `GeometricGradient(; stepsize=...)`.
   - `abstol::Real=NaN`: absolute tolerance for early stopping based on action change
   - `reltol::Real=NaN`: relative tolerance for early stopping based on action change
 """
-function simple_geometric_min_action_method(
+function minimize_simple_geometric_action(
     sys::ExtendedPhaseSpace,
     x_initial::Matrix{T},
     optimizer::GeometricGradient=GeometricGradient(; stepsize=1e3);
@@ -140,23 +141,23 @@ function simple_geometric_min_action_method(
         path_velocity=xdot,
     )
 end
-function simple_geometric_min_action_method(
+function minimize_simple_geometric_action(
     sys,
     x_initial::StateSpaceSet,
     optimizer::GeometricGradient=GeometricGradient(; stepsize=1e3);
     kwargs...,
 )
-    return simple_geometric_min_action_method(
+    return minimize_simple_geometric_action(
         sys, Matrix(Matrix(x_initial)'), optimizer; kwargs...
     )
 end
-function simple_geometric_min_action_method(
+function minimize_simple_geometric_action(
     sys::ContinuousTimeDynamicalSystem,
     x_initial::Matrix{<:Real},
     optimizer::GeometricGradient=GeometricGradient(; stepsize=1e3);
     kwargs...,
 )
-    return simple_geometric_min_action_method(
+    return minimize_simple_geometric_action(
         ExtendedPhaseSpace(sys), Matrix(Matrix(x_initial)'), optimizer; kwargs...
     )
 end

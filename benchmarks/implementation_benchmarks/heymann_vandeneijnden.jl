@@ -17,6 +17,6 @@ yy = 0.3 .* (-xx .^ 2 .+ 1)
 init = Matrix([xx yy]')
 
 @btime CriticalTransitions.geometric_gradient_step($sys, $init, $N; stepsize=0.1)
-@btime geometric_min_action_method(
+@btime minimize_geometric_action(
     $sys, $init, GeometricGradient(; stepsize=0.1); maxiters=10, show_progress=false
 )

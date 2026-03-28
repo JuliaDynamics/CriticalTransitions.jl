@@ -70,9 +70,9 @@ xx = @. (xb[1] - xa[1]) * s + xa[1] + 4 * s * (1 - s) * xsaddle[1]
 yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
 x_initial = Matrix([xx yy]')
 
-# The optimisation is the performed by the `simple_geometric_min_action_method` function:
+# The optimisation is the performed by the `minimize_simple_geometric_action` function:
 
-MLP = simple_geometric_min_action_method(
+MLP = minimize_simple_geometric_action(
     sys,
     x_initial,
     GeometricGradient(; stepsize=10e2, max_backtracks=0);

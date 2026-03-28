@@ -95,6 +95,33 @@ end
     @test sys.H_p(zeros(2), zeros(2)) ≈ zeros(2)
 end
 
+@testset "sgMAM GeometricGradient" begin
+    H_x(x, p) = zeros(size(x))
+    H_p(x, p) = ones(size(x))
+    sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
+
+    xx = collect(range(-1.0, 1.0; length=20))
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    x_initial = Matrix([xx yy]')
+
+    res_small = minimize_simple_geometric_action(
+        sys,
+        x_initial,
+        GeometricGradient(; stepsize=1e-6, max_backtracks=0);
+        maxiters=2,
+        show_progress=false,
+    )
+    res_large = minimize_simple_geometric_action(
+        sys,
+        x_initial,
+        GeometricGradient(; stepsize=1.0, max_backtracks=0);
+        maxiters=2,
+        show_progress=false,
+    )
+
+    @test res_small.action != res_large.action
+end
+
 @testset "sgMAM GeometricGradient Backtracking" begin
     CT = CriticalTransitions
 
@@ -129,14 +156,14 @@ end
 
     # Single iteration with huge stepsize: backtracking should prevent blowup
     opt = GeometricGradient(; max_backtracks=20, stepsize=1e6)
-    res = simple_geometric_min_action_method(
+    res = minimize_simple_geometric_action(
         sys, x_initial, opt; maxiters=1, show_progress=false
     )
     @test isfinite(res.action)
     @test res.action <= S0 + 1e-10
 
     # Multi-iteration: backtracking should converge to a lower action than the initial path
-    res_bt = simple_geometric_min_action_method(
+    res_bt = minimize_simple_geometric_action(
         sys,
         x_initial,
         GeometricGradient(; max_backtracks=20, stepsize=1.0);
@@ -146,7 +173,7 @@ end
     @test res_bt.action < S0
 
     # No-backtracking baseline with the same stepsize and iterations
-    res_no_bt = simple_geometric_min_action_method(
+    res_no_bt = minimize_simple_geometric_action(
         sys,
         x_initial,
         GeometricGradient(; max_backtracks=0, stepsize=1.0);
@@ -175,7 +202,7 @@ end
     # Different starting stepsizes should converge to the same action
     actions = Float64[]
     for ss in [1.0, 100.0, 1e4]
-        res = simple_geometric_min_action_method(
+        res = minimize_simple_geometric_action(
             sys,
             x_initial,
             GeometricGradient(; stepsize=ss);
@@ -204,7 +231,7 @@ end
     x_initial = Matrix([xx yy]')
 
     # With a tight reltol, should converge and get a finite action
-    res_tol = simple_geometric_min_action_method(
+    res_tol = minimize_simple_geometric_action(
         sys,
         x_initial,
         GeometricGradient(; stepsize=100.0);
@@ -216,7 +243,7 @@ end
     @test isfinite(res_tol.action)
 
     # Without reltol and more iterations should get same or better action
-    res_notol = simple_geometric_min_action_method(
+    res_notol = minimize_simple_geometric_action(
         sys,
         x_initial,
         GeometricGradient(; stepsize=100.0);

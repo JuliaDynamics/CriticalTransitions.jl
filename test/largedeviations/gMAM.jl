@@ -9,8 +9,8 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
     fhn = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ)
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
-    res = geometric_min_action_method(
-        fhn, x_i, x_f; points=30, maxiters=500, show_progress=false
+    res = minimize_geometric_action(
+        fhn, x_i, x_f; npoints=30, maxiters=500, show_progress=false
     )
     S = geometric_action(fhn, Matrix(res.path)')
     @test isapprox(S, 0.18, atol=0.01)
@@ -34,7 +34,7 @@ end
     x_i = init[:, 1]
     x_f = init[:, end]
 
-    gm = geometric_min_action_method(
+    gm = minimize_geometric_action(
         sys, init, GeometricGradient(); maxiters=500, verbose=false, show_progress=false
     )
 
@@ -59,7 +59,7 @@ end # GeometricGradient
     init = Matrix([xx yy]')
 
     # Huge stepsize with backtracking should not crash
-    res_bt = geometric_min_action_method(
+    res_bt = minimize_geometric_action(
         sys, init, GeometricGradient(; stepsize=1e6); maxiters=100, show_progress=false
     )
     @test isfinite(res_bt.action)
@@ -67,7 +67,7 @@ end # GeometricGradient
     # Step-size insensitivity: different starting stepsizes give similar action
     actions = Float64[]
     for ss in [0.01, 1.0, 1e3]
-        res = geometric_min_action_method(
+        res = minimize_geometric_action(
             sys, init, GeometricGradient(; stepsize=ss); maxiters=500, show_progress=false
         )
         push!(actions, res.action)
