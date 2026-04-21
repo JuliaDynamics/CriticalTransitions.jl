@@ -1,5 +1,5 @@
 """
-    min_action_method(sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real; kwargs...)
+    minimize_action(sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real, optimizer=Optimisers.Adam(); kwargs...)
 
 Minimizes an action functional to obtain a minimum action path (instanton) between an
 initial state `x_i` and final state `x_f` in phase space.
@@ -14,18 +14,19 @@ time via `N` equidistant points and total time `T`. Thus, the time step between
 discretized path points is ``\\Delta t = T/N``.
 To set an initial path different from a straight line, see the multiple dispatch method
 
-> `min_action_method(sys::ContinuousTimeDynamicalSystem, init::Matrix, T::Real; kwargs...)`.
+> `minimize_action(sys::ContinuousTimeDynamicalSystem, init::Matrix, T::Real, optimizer=Optimisers.Adam(); kwargs...)`.
 
 Returns a [`MinimumActionPath`](@ref) object containing the optimized path and the action
 value.
+
+The optional positional argument `optimizer` selects the Optimization.jl solver. It defaults to `Optimisers.Adam()`.
 
 ## Keyword arguments
 
   - `functional = "FW"`: type of action functional to minimize.
     Defaults to [`fw_action`](@ref), alternative: "OM" for [`om_action`](@ref)
-  - `points = 100`: number of path points to use for the discretization of the path
+  - `npoints = 100`: number of path points to use for the discretization of the path
   - `noise_strength = nothing`: noise strength for the action functional. Specify only if `functional = "OM"`
-  - `optimizer = Optimisers.Adam()`: minimization algorithm from [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/)
   - `ad_type = Optimization.AutoFiniteDiff()`: type of automatic differentiation to use
     (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
   - `maxiters = 100`: maximum number of iterations before the algorithm stops
@@ -34,15 +35,21 @@ value.
   - `verbose = false`: whether to print Optimization information during the run
   - `show_progress = false`: whether to print a progress bar
 """
-function min_action_method(
-    sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real; points::Int=100, kwargs...
+function minimize_action(
+    sys::ContinuousTimeDynamicalSystem,
+    x_i::AbstractVector{<:Real},
+    x_f::AbstractVector{<:Real},
+    T::Real,
+    optimizer=Optimisers.Adam();
+    npoints::Int=100,
+    kwargs...,
 )
-    init = reduce(hcat, range(x_i, x_f; length=points))
-    return min_action_method(sys, init, T; kwargs...)
+    init = reduce(hcat, range(x_i, x_f; length=npoints))
+    return minimize_action(sys, init, T, optimizer; kwargs...)
 end;
 
 """
-    min_action_method(sys::ContinuousTimeDynamicalSystem, init::Matrix, T::Real; kwargs...)
+    minimize_action(sys::ContinuousTimeDynamicalSystem, init::Matrix, T::Real, optimizer=Optimisers.Adam(); kwargs...)
 
 Minimizes the specified action functional to obtain a minimum action path (instanton)
 between fixed end points given a system `sys` and total path time `T`.
@@ -51,14 +58,16 @@ The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dime
 of the system and `N` is the number of path points. The physical time of the path
 is specified by `T`, such that the time step between consecutive path points is
 ``\\Delta t = T/N``.
+
+The optional positional argument `optimizer` selects the Optimization.jl solver. It defaults to `Optimisers.Adam()`.
 """
-function min_action_method(
+function minimize_action(
     sys::ContinuousTimeDynamicalSystem,
     init::Matrix{<:Real},
-    T::Real;
+    T::Real,
+    optimizer=Optimisers.Adam();
     functional="FW",
     noise_strength=nothing,
-    optimizer=Optimisers.Adam(),
     ad_type=Optimization.AutoFiniteDiff(),
     maxiters::Int=100,
     abstol::Real=NaN,
@@ -104,6 +113,6 @@ end;
 """
     action_minimizer(sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real; kwargs...)
 
-Alias for [`min_action_method`](@ref).]
+Alias for [`minimize_action`](@ref).]
 """
-const action_minimizer = min_action_method
+const action_minimizer = minimize_action

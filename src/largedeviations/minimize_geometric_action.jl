@@ -1,41 +1,71 @@
 """
-$(TYPEDSIGNATURES)
+    minimize_geometric_action(sys::CoupledSDEs, x_i, x_f, optimizer=GeometricGradient(); kwargs...)
 
 Computes the minimizer of the geometric Freidlin-Wentzell action based on the geometric
 minimum action method (gMAM), using optimizers of Optimization.jl or the original formulation
-by Heymann and Vanden-Eijnden [heymann_pathways_2008](@citet), which performs a projected-gradient
-descent. Only the Freidlin-Wentzell action has a geometric formulation.
+by Heymann and Vanden-Eijnden [heymann_pathways_2008](@citet), which performs a projected gradient
+descent.
 
+The minimizer is computed for the system `sys` over all paths leading from the initial state
+`x_i` to the final state `x_f`.
 To set an initial path different from a straight line, see the multiple dispatch method
 
-  - `geometric_min_action_method(sys::CoupledSDEs, init::Matrix, arclength::Real; kwargs...)`.
+  - `minimize_geometric_action(sys::CoupledSDEs, init::Matrix, arclength::Real; kwargs...)`.
+
+Returns a [`MinimumActionPath`](@ref) object.
 
 ## Keyword arguments
 
-  - `points::Int=100`: number of discretization points along the path
+  - `npoints::Int=100`: number of discretization points along the path
   - `maxiters::Int=100`: maximum number of optimization iterations before the algorithm stops
   - `abstol::Real=NaN`: absolute tolerance of action change to determine convergence
   - `reltol::Real=NaN`: relative tolerance of action change to determine convergence
-  - `optimizer = GeometricGradient()`: minimization algorithm (see below). Default: `GeometricGradient()`
-  - `stepsize=0.01`: step size parameter for projected gradient descent. Default: `0.01`
-  - `ad_type=Optimization.AutoFiniteDiff()`: type of automatic differentiation for Optimization.jl solvers
+  - `ad_type=Optimization.AutoFiniteDiff()`: type of automatic differentiation (only used with Optimization.jl solvers)
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
 ## Minimization algorithms
 
-The `optimizer` keyword argument accepts:
+The optional positional argument `optimizer` selects the minimization algorithm. It defaults to
+`GeometricGradient()`. Pass any Optimization.jl optimizer to use Optimization.jl; `ad_type` is only
+used in that case.
+
+The `optimizer` argument accepts:
   - `GeometricGradient()`: runs a projected-gradient gradient descent [heymann_pathways_2008](@citet)
   - Any solver from [`Optimization.jl`](https://docs.sciml.ai/Optimization/) (e.g., `OptimizationOptimisers.Adam()`)
-"""
-abstract type GMAMOptimizer end
-struct GeometricGradient <: GMAMOptimizer end
 
-function geometric_min_action_method(
-    sys::ContinuousTimeDynamicalSystem, x_i, x_f; points::Int=100, kwargs...
+## Notes
+Only the Freidlin-Wentzell action has a geometric formulation.
+"""
+function minimize_geometric_action(
+    sys::ContinuousTimeDynamicalSystem,
+    x_i,
+    x_f,
+    optimizer=GeometricGradient();
+    npoints::Int=100,
+    kwargs...,
 )
-    path = reduce(hcat, range(x_i, x_f; length=points))
-    return geometric_min_action_method(sys, path; kwargs...)
+    path = reduce(hcat, range(x_i, x_f; length=npoints))
+    return minimize_geometric_action(sys, path, optimizer; kwargs...)
+end
+
+function _gmam_setup(sys, init, maxiters, show_progress)
+    if sys isa CoupledSDEs
+        proper_MAM_system(sys)
+    end
+    path = deepcopy(init)
+    N = length(init[1, :])
+    alpha = zeros(N)
+    arc = range(0, 1.0; length=N)
+    S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
+    prog = Progress(maxiters; enabled=show_progress)
+    return path, N, alpha, arc, S, prog
+end
+
+function minimize_geometric_action(
+    sys::ContinuousTimeDynamicalSystem, init::Matrix; kwargs...
+)
+    return minimize_geometric_action(sys, init, GeometricGradient(); kwargs...)
 end
 
 """
@@ -48,70 +78,69 @@ The initial path `init` must be a matrix of size `(D, N)`, where `D` is the dime
 system and `N` is the number of path points.
 
 For more information see the main method,
-[`geometric_min_action_method(sys::CoupledSDEs, x_i, x_f, arclength::Real; kwargs...)`](@ref).
+[`minimize_geometric_action(sys::CoupledSDEs, x_i, x_f, arclength::Real; kwargs...)`](@ref).
 """
-function geometric_min_action_method(
+function minimize_geometric_action(
     sys::ContinuousTimeDynamicalSystem,
-    init::Matrix;
+    init::Matrix,
+    optimizer::GeometricGradient;
     maxiters::Int=100,
     abstol::Real=NaN,
     reltol::Real=NaN,
-    optimizer=GeometricGradient(),
-    ad_type=Optimization.AutoFiniteDiff(),
-    stepsize=0.01,
     verbose=false,
     show_progress=true,
 )
-    if sys isa CoupledSDEs
-        proper_MAM_system(sys)
-    end
+    path, N, alpha, arc, S, prog = _gmam_setup(sys, init, maxiters, show_progress)
 
-    path = deepcopy(init)
-    N = length(init[1, :])
-    alpha = zeros(N)
-    arc = range(0, 1.0; length=N)
-
-    S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
-
-    prog = Progress(maxiters; enabled=show_progress)
-    if optimizer isa GeometricGradient
-        ws = geometric_gradient_workspace(sys, path)
-        check_convergence = isfinite(abstol) || isfinite(reltol)
-        prev_action = check_convergence ? S(path) : NaN
-        for i in 1:maxiters
-            geometric_gradient_step!(ws, sys, path; stepsize=stepsize)
-            path .= ws.update
-            interpolate_path!(path, alpha, arc)
-            next!(prog)
-            if check_convergence
-                curr_action = S(path)
-                if isfinite(curr_action) && isfinite(prev_action)
-                    abs_change = abs(curr_action - prev_action)
-                    rel_change =
-                        curr_action == 0 ? abs_change : abs_change / abs(curr_action)
-                    if (isfinite(abstol) && abs_change < abstol) ||
-                        (isfinite(reltol) && rel_change < reltol)
-                        verbose &&
-                            @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
-                        break
-                    end
+    ws = geometric_gradient_workspace(sys, path)
+    check_convergence = isfinite(abstol) || isfinite(reltol)
+    prev_action = check_convergence ? S(path) : NaN
+    for i in 1:maxiters
+        geometric_gradient_step!(ws, sys, path; stepsize=optimizer.stepsize)
+        path .= ws.update
+        interpolate_path!(path, alpha, arc)
+        next!(prog)
+        if check_convergence
+            curr_action = S(path)
+            if isfinite(curr_action) && isfinite(prev_action)
+                abs_change = abs(curr_action - prev_action)
+                rel_change = curr_action == 0 ? abs_change : abs_change / abs(curr_action)
+                if (isfinite(abstol) && abs_change < abstol) ||
+                    (isfinite(reltol) && rel_change < reltol)
+                    verbose &&
+                        @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
+                    break
                 end
-                prev_action = curr_action
             end
+            prev_action = curr_action
         end
-    else
-        optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)
-        prob = SciMLBase.OptimizationProblem(optf, init, ())
-
-        function callback(state, loss_val)
-            interpolate_path!(state.u, alpha, arc)
-            show_progress ? next!(prog) : nothing
-            return false
-        end
-
-        sol = solve(prob, optimizer; maxiters, callback, abstol, reltol)
-        path = sol.u
     end
+    return MinimumActionPath(StateSpaceSet(path'), S(path))
+end
+
+function minimize_geometric_action(
+    sys::ContinuousTimeDynamicalSystem,
+    init::Matrix,
+    optimizer;
+    maxiters::Int=100,
+    abstol::Real=NaN,
+    reltol::Real=NaN,
+    ad_type=Optimization.AutoFiniteDiff(),
+    show_progress=true,
+)
+    path, N, alpha, arc, S, prog = _gmam_setup(sys, init, maxiters, show_progress)
+
+    optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)
+    prob = SciMLBase.OptimizationProblem(optf, init, ())
+
+    function callback(state, loss_val)
+        interpolate_path!(state.u, alpha, arc)
+        show_progress ? next!(prog) : nothing
+        return false
+    end
+
+    sol = solve(prob, optimizer; maxiters, callback, abstol, reltol)
+    path = sol.u
     return MinimumActionPath(StateSpaceSet(path'), S(path))
 end
 
@@ -163,7 +192,7 @@ function geometric_gradient_workspace(sys::ContinuousTimeDynamicalSystem, path)
     A = inv(normalize_covariance!(covariance_matrix(sys)))
     params = current_parameters(sys)
     jac_fun = jacobian(sys)
-    jac = let jac_fun=jac_fun, params=params
+    jac = let jac_fun = jac_fun, params = params
         x -> jac_fun(x, params, 0.0)
     end
 

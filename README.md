@@ -27,3 +27,11 @@ CriticalTransitions.jl can be used as a standalone package, or as part of
 To install it, run `import Pkg; Pkg.add("CriticalTransitions")`.
 
 All further information is provided in the documentation, which you can either find [online](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/criticaltransitions/stable/) or build locally by running the `docs/make.jl` file.
+
+---
+
+Developers: Reyk Börner, Orjan Ameye, Ryan Deeley, Raphael Römer and George Datseris
+
+Thanks to Jeroen Wouters, Calvin Nesbitt, Tobias Grafke and Oliver Mehling
+
+This package was created as part of the [CriticalEarth](https://www.criticalearth.eu) project.

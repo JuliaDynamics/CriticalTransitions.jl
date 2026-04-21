@@ -18,7 +18,7 @@ struct ExtendedPhaseSpace{IIP,D,Hx,Hp}
 
         f = dynamic_rule(ds)
         jac = jacobian(ds)
-        param=current_parameters(ds)
+        param = current_parameters(ds)
 
         function H_x(x, p) # ℜ² → ℜ²
             Hx = similar(x)
@@ -61,27 +61,29 @@ Our implementation is only valid for additive noise.
 This method computes the optimal path in the phase space of a Hamiltonian system that
 minimizes the Freidlin–Wentzell action. The Hamiltonian functions `H_x` and `H_p` define
 the system's dynamics in a doubled phase. The initial state `x_initial` is evolved
-iteratively using constrained gradient descent with step size parameter `stepsize` over a specified
-number of iterations. The method can display a progress meter and will stop early if the
-absolute tolerance `abstol` or relative tolerance `reltol` is achieved.
+iteratively using constrained gradient descent over a specified number of iterations. The
+method can display a progress meter and will stop early if the absolute tolerance
+`abstol` or relative tolerance `reltol` is achieved.
 
 The function returns a [`MinimumActionPath`](@ref) containing the final path, the action value,
 the Lagrange multipliers (`.λ`), the momentum (`.generalized_momentum`), and the state derivatives (`.path_velocity`).
 The implementation is based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html).
 
+The optional positional argument `optimizer` configures the projected-gradient update. The
+step size is set via `GeometricGradient(; stepsize=...)`.
+
 ## Keyword arguments
 
-  - `stepsize::Real=1e-1`: step size for gradient descent. Default: `0.1`
   - `maxiters::Int=1000`: maximum number of iterations before the algorithm stops
   - `show_progress::Bool=false`: if true, display a progress bar
   - `verbose::Bool=false`: if true, print additional output
   - `abstol::Real=NaN`: absolute tolerance for early stopping based on action change
   - `reltol::Real=NaN`: relative tolerance for early stopping based on action change
 """
-function simple_geometric_min_action_method(
+function minimize_simple_geometric_action(
     sys::ExtendedPhaseSpace,
-    x_initial::Matrix{T};
-    stepsize::Real=1e-1,
+    x_initial::Matrix{T},
+    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
     maxiters::Int=1000,
     show_progress::Bool=false,
     verbose::Bool=false,
@@ -100,7 +102,7 @@ function simple_geometric_min_action_method(
 
     progress = Progress(maxiters; dt=0.5, enabled=show_progress)
     for i in 1:maxiters
-        update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, stepsize)
+        update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, optimizer.stepsize)
 
         # reparameterize to arclength
         interpolate_path!(x, alpha, s)
@@ -123,14 +125,24 @@ function simple_geometric_min_action_method(
         StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
     )
 end
-function simple_geometric_min_action_method(sys, x_initial::StateSpaceSet; kwargs...)
-    return simple_geometric_min_action_method(sys, Matrix(Matrix(x_initial)'); kwargs...)
-end
-function simple_geometric_min_action_method(
-    sys::ContinuousTimeDynamicalSystem, x_initial::Matrix{<:Real}; kwargs...
+function minimize_simple_geometric_action(
+    sys,
+    x_initial::StateSpaceSet,
+    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
+    kwargs...,
 )
-    return simple_geometric_min_action_method(
-        ExtendedPhaseSpace(sys), Matrix(Matrix(x_initial)'); kwargs...
+    return minimize_simple_geometric_action(
+        sys, Matrix(Matrix(x_initial)'), optimizer; kwargs...
+    )
+end
+function minimize_simple_geometric_action(
+    sys::ContinuousTimeDynamicalSystem,
+    x_initial::Matrix{<:Real},
+    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
+    kwargs...,
+)
+    return minimize_simple_geometric_action(
+        ExtendedPhaseSpace(sys), Matrix(Matrix(x_initial)'), optimizer; kwargs...
     )
 end
 

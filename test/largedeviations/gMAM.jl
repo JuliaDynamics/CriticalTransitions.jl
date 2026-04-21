@@ -9,8 +9,8 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
     fhn = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ)
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
-    res = geometric_min_action_method(
-        fhn, x_i, x_f; points=30, maxiters=500, show_progress=false
+    res = minimize_geometric_action(
+        fhn, x_i, x_f; npoints=30, maxiters=500, show_progress=false
     )
     S = geometric_action(fhn, Matrix(res.path)')
     @test isapprox(S, 0.18, atol=0.01)
@@ -34,13 +34,8 @@ end
     x_i = init[:, 1]
     x_f = init[:, end]
 
-    gm = geometric_min_action_method(
-        sys,
-        init;
-        maxiters=500,
-        optimizer=GeometricGradient(),
-        verbose=false,
-        show_progress=false,
+    gm = minimize_geometric_action(
+        sys, init, GeometricGradient(); maxiters=500, verbose=false, show_progress=false
     )
 
     path = Matrix(gm.path)'
@@ -48,3 +43,13 @@ end
     @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=1e-3))
     @test all(isapprox.(action_val, 0.3375, atol=1e-3))
 end # GeometricGradient
+
+@testset "GeometricGradient constructor" begin
+    opt = GeometricGradient()
+    @test opt.stepsize isa Float64
+    @test opt.stepsize == 0.01
+
+    opt2 = GeometricGradient(; stepsize=1)
+    @test opt2.stepsize isa Float64
+    @test opt2.stepsize == 1.0
+end
