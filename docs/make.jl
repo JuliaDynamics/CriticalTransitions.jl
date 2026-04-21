@@ -3,6 +3,9 @@ CI = get(ENV, "CI", nothing) == "true" || get(ENV, "GITHUB_TOKEN", nothing) !== 
 using CriticalTransitions, ChaosTools, Attractors
 using DynamicalSystemsBase
 using StochasticDiffEq, DiffEqNoiseProcess
+
+# TODO: It is bad practice to access extensions at the top level.
+# We need to remove these, but not clear where they are used currently.
 StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
 ChaosToolsExt = Base.get_extension(CriticalTransitions, :ChaosToolsExt)
 CoupledSDEsBasin = Base.get_extension(CriticalTransitions, :CoupledSDEsBasin)
@@ -34,7 +37,8 @@ links = InterLinks(
     # "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",
 )
 
-using Pkg # TODO: What is this? What is this remotes? Why do we need it?
+# TODO: What is this? What is this remotes? Why do we need it? Seems like really complex code.
+using Pkg
 remote_pairs = map(["DynamicalSystemsBase", "Attractors"]) do pkg_name
     status = sprint(io -> Pkg.status(pkg_name; io=io))
     version = match(r"(v[0-9].[0-9]+.[0-9]+)", status)[1]
@@ -43,6 +47,7 @@ remote_pairs = map(["DynamicalSystemsBase", "Attractors"]) do pkg_name
 end
 remotes = Dict(remote_pairs)
 
+# TODO: Why do we need this?
 html_options = Dict(
     :prettyurls => true,
     :canonical => "https://juliadynamics.github.io/CriticalTransitions.jl/",
@@ -52,6 +57,7 @@ html_options = Dict(
     # :size_threshold => nothing,
 )
 
+# TODO: Why do we need these?
 if Documenter.DOCUMENTER_VERSION >= v"1.3.0"
     html_options[:inventory_version] = package_version
 end
