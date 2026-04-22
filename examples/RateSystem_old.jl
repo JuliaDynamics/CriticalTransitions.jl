@@ -58,7 +58,7 @@ fp = ForcingProfile(p, interval)
 # Then specify how you would like to use the `ForcingProfile` to shift the `pidx`'th parameter
 # of ds:
 
-pidx = 1              # Index of the parameter within the parameter-container of ds
+pidx = [1]            # Index (vector) of the parameter(s) within the parameter-container of ds
 forcing_start_time = -50.0  # Time when the parameter shift should start
 forcing_duration = 105.0 # Time interval over which p(interval) is spread out or squeezed
 forcing_scale = 3.0   # Amplitude of the ramping. `p` is then automatically rescaled

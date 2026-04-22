@@ -16,7 +16,7 @@ function benchmark_rate_system!(SUITE)
     interval = (-100.0, 100.0)
     fp = ForcingProfile(profile, interval)
 
-    pidx = 1
+    pidx = [1]
     forcing_start_time = -100.0
     forcing_duration = 200.0
     forcing_scale = 1.0

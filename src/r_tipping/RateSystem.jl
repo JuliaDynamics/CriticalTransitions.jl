@@ -7,7 +7,7 @@
 # general anything that can be given to `set_parameters!`. So we cross ref that
 # docstring and everything becomes simple and unified and harmonious...
 
-"""
+""" 
     RateSystemSpecs <: Function
 
 A mutable data structure storing information needed to construct and modify a
@@ -19,8 +19,8 @@ at time `t`, where `p` is the parameter container of the underlying autonomous s
 mutable struct RateSystemSpecs{R,F,P,T} <: Function
     "Dynamic rule of the underlying autonomous system"
     unforced_rule::R
-    "Parameter index of the time-dependent parameter"
-    pidx::P # make this a vector
+    "Parameter indices of the time-dependent parameter(s)"
+    pidx::Vector{P}
     "Forcing profile"
     fp::ForcingProfile{F,T}
     "Start time of parametric forcing"
@@ -29,8 +29,8 @@ mutable struct RateSystemSpecs{R,F,P,T} <: Function
     forcing_duration::T
     "Magnitude of parametric forcing"
     forcing_scale::T
-    "Initial (autonomous) parameter value"
-    p0::T # make this a vector
+    "Initial (autonomous) parameter values (one per index in `pidx`)"
+    p0::Vector{T}
     "Initial time (of system initiation)"
     t0::T
 end
@@ -62,31 +62,35 @@ value and thereafter the system is again autonomous.
 - `forcing_scale = 1.0`: Amplitude multiplication factor of the forcing protocol
 - `t0 = 0.0`: Initial time of the system
 """
-struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
+struct RateSystem{S,R,F,P,T} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
     system::S
     "Data structure representing the system and forcing specifications in system units"
-    forcing::RateSystemSpecs{F,P,T}
+    forcing::RateSystemSpecs{R,F,P,T}
 end
 
 function RateSystem(
     ds::ContinuousTimeDynamicalSystem,
     fp::ForcingProfile,
-    pidx::P;
+    pidx;
     forcing_start_time::T=initial_time(ds),
     forcing_duration::T=(fp.interval[2] - fp.interval[1]),
     forcing_scale::T=1.0,
     t0::T=initial_time(ds),
-) where {P,T<:Real}
+) where {T<:Real}
     (forcing_start_time >= t0) ||
         throw("The forcing cannot start before the system's initial time `t0`
               but your forcing_start_time ($(forcing_start_time)) < t0 ($(t0)).")
 
-    # TODO: Make p0 a vector
-    p0 = current_parameter(ds, pidx)
+    # Normalize pidx to a Vector of indices
+    pidx_vec = isa(pidx, AbstractVector) ? collect(pidx) : [pidx]
+
+    # Gather initial parameter values for all indices
+    p0 = [current_parameter(ds, idx) for idx in pidx_vec]
+
     rss = RateSystemSpecs(
         dynamic_rule(ds),
-        pidx,
+        pidx_vec,
         fp,
         forcing_start_time,
         forcing_duration,
@@ -106,10 +110,18 @@ end
 function (rss::RateSystemSpecs)(u, p, t)
     # TODO: this should be rewritten with `current_parameter`
     p_at_t = p_modified(rss, t)
-    if p isa Union{AbstractArray,AbstractDict}
-        setindex!(p, p_at_t, rss.pidx)
+    if p isa AbstractArray
+        for (i, idx) in enumerate(rss.pidx)
+            setindex!(p, p_at_t[i], idx)
+        end
+    elseif p isa AbstractDict
+        for (i, idx) in enumerate(rss.pidx)
+            p[idx] = p_at_t[i]
+        end
     else
-        setproperty!(p, rss.pidx, p_at_t)
+        for (i, idx) in enumerate(rss.pidx)
+            setproperty!(p, idx, p_at_t[i])
+        end
     end
     # TODO: This doesn't work if the dynamical system is in-place...
     # We need to multi-dispatch one more version of `(rss::)` function with 4 arguments
@@ -118,23 +130,21 @@ end
 
 # Returns the non-autonomous system's parameter value at time t
 function p_modified(rss::RateSystemSpecs, t::Real)
-    # TODO: Make `p0` vector, and make the function re-write a dummy vector of time dependent parameters
     p0 = rss.p0
     f = rss.fp.profile
     section_start = rss.fp.interval[1]
     section_end = rss.fp.interval[2]
-    # making the function piecewise constant with range [p0,p0+forcing_scale]
+    # piecewise: before start -> p0, during -> p0 + shift, after -> p0 + final shift
     if t ≤ rss.forcing_start_time
         return p0
     else
         if t < rss.forcing_start_time + rss.forcing_duration
-            # performing the time shift corresponding to stretching/squeezing
             time_shift =
                 ((section_end - section_start) / rss.forcing_duration) *
                 (t - rss.forcing_start_time) + section_start
-            return p0 + rss.forcing_scale*(f(time_shift) - f(section_start))
+            return p0 .+ rss.forcing_scale * (f(time_shift) - f(section_start))
         else
-            return p0 + rss.forcing_scale*(f(section_end) - f(section_start))
+            return p0 .+ rss.forcing_scale * (f(section_end) - f(section_start))
         end
     end
 end
@@ -168,7 +178,7 @@ Sets the start time (`forcing_start_time`) of the forcing protocol applied to
 the [`RateSystem`](@ref) `rs`.
 """
 function set_forcing_start!(rs::RateSystem, start_time)
-    rs.forcing.forcing_start = start_time
+    rs.forcing.forcing_start_time = start_time
     return rs
 end
 
@@ -179,8 +189,20 @@ Returns the parameter vector of a [`RateSystem`](@ref) at time `t` (in system ti
 """
 function parameters(rs::RateSystem, t)
     p = deepcopy(current_parameters(rs))
-    # TODO: Doesn't work for vector parameters
-    p[rs.forcing.pidx] = p_modified(rs.forcing, t)
+    p_at_t = p_modified(rs.forcing, t)
+    if p isa AbstractArray
+        for (i, idx) in enumerate(rs.forcing.pidx)
+            setindex!(p, p_at_t[i], idx)
+        end
+    elseif p isa AbstractDict
+        for (i, idx) in enumerate(rs.forcing.pidx)
+            p[idx] = p_at_t[i]
+        end
+    else
+        for (i, idx) in enumerate(rs.forcing.pidx)
+            setproperty!(p, idx, p_at_t[i])
+        end
+    end
     return p
 end
 

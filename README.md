@@ -65,7 +65,8 @@ instanton = minimize_geometric_action(sys, initial_state, current_state(sys))
 # Turn into a non-autonomous dynamical system
 # where the parameter β changes in time
 forcing = ForcingProfile(:tanh)
-sys_t = RateSystem(sys, forcing, 2; forcing_duration=5.0)
+# `pidx` can be a scalar or a vector of indices; we show the vector form here
+sys_t = RateSystem(sys, forcing, [2]; forcing_duration=5.0)
 
 # ... and more, check out the documentation!
 ```

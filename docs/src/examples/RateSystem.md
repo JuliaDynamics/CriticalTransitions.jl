@@ -82,7 +82,7 @@ Note that the `interval` is given in arbitrary units - the profile is rescaled t
 Now, specify how the forcing profile `fp` should be applied to the `pidx`-th parameter of your system `ds` by constructing a `RateSystem`.
 
 ```@example MAIN
-pidx = 1                    # parameter index
+pidx = [1]                  # parameter index (vector form)
 forcing_start_time = 20.0   # system time units
 forcing_duration = 105.0    # system time units
 forcing_scale = 3.0
@@ -100,7 +100,7 @@ In the `RateSystem`, the time dependence of the parameter `p[pidx]` thus looks l
 T = forcing_duration + 40.0 # Total time
 t_points = range(t0, t0+T, length=100)
 
-parameter(t) = parameters(rs, t)[pidx] # Returns the parameter value at time t
+parameter(t) = parameters(rs, t)[pidx[1]] # Returns the first parameter value at time t
 
 fig = Figure();
 ax = Axis(fig[1, 1]; xlabel="Time (system units)", ylabel="p[1]");

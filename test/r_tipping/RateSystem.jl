@@ -41,7 +41,7 @@ rs = RateSystem(ds, fp, pidx; forcing_start_time, forcing_duration, forcing_scal
     t = 10.0
     du_frozen = dynamic_rule(frozen)(u, current_parameters(frozen), t)
     du_orig = dynamic_rule(ds)(u, current_parameters(ds), t)
-    du_unforced = unforced(u, [rs.forcing.p0], t)
+    du_unforced = unforced(u, rs.forcing.p0, t)
 
     @test du_frozen == du_orig
     @test du_frozen == du_unforced
