@@ -72,9 +72,12 @@ x_initial = Matrix([xx yy]')
 
 # The optimisation is the performed by the `minimize_simple_geometric_action` function:
 
-optimizer = GeometricGradient(; stepsize=1e3)
 MLP = minimize_simple_geometric_action(
-    sys, x_initial, optimizer; maxiters=1_000, show_progress=false
+    sys,
+    x_initial,
+    GeometricGradient(; stepsize=10e2, max_backtracks=0);
+    maxiters=1_000,
+    show_progress=false,
 )
 x_min = MLP.path;
 

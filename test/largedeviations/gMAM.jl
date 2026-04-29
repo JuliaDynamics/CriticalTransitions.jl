@@ -44,12 +44,50 @@ end
     @test all(isapprox.(action_val, 0.3375, atol=1e-3))
 end # GeometricGradient
 
+@testset "gMAM backtracking" begin
+    function meier_stein(u, p, t)
+        x, y = u
+        dx = x - x^3 - 10 * x * y^2
+        dy = -(1 + x^2) * y
+        return SA[dx, dy]
+    end
+    σ = 0.25
+    sys = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
+
+    xx = range(-1.0, 1.0; length=30)
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    init = Matrix([xx yy]')
+
+    # Huge stepsize with backtracking should not crash
+    res_bt = minimize_geometric_action(
+        sys, init, GeometricGradient(; stepsize=1e6); maxiters=100, show_progress=false
+    )
+    @test isfinite(res_bt.action)
+
+    # Step-size insensitivity: different starting stepsizes give similar action
+    actions = Float64[]
+    for ss in [0.01, 1.0, 1e3]
+        res = minimize_geometric_action(
+            sys, init, GeometricGradient(; stepsize=ss); maxiters=500, show_progress=false
+        )
+        push!(actions, res.action)
+    end
+    @test maximum(actions) / minimum(actions) < 1.05
+end
+
 @testset "GeometricGradient constructor" begin
+    # Default
     opt = GeometricGradient()
     @test opt.stepsize isa Float64
-    @test opt.stepsize == 0.01
+    @test opt.max_backtracks == 10
 
-    opt2 = GeometricGradient(; stepsize=1)
+    # Type promotion: mixing Int and Float64
+    opt2 = GeometricGradient(; stepsize=1, shrink=0.5)
     @test opt2.stepsize isa Float64
     @test opt2.stepsize == 1.0
+
+    # Fixed step (no backtracking)
+    opt3 = GeometricGradient(; max_backtracks=0, stepsize=42.0)
+    @test opt3.max_backtracks == 0
+    @test opt3.stepsize == 42.0
 end

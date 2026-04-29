@@ -105,11 +105,150 @@ end
     x_initial = Matrix([xx yy]')
 
     res_small = minimize_simple_geometric_action(
-        sys, x_initial, GeometricGradient(; stepsize=1e-6); maxiters=2, show_progress=false
+        sys,
+        x_initial,
+        GeometricGradient(; stepsize=1e-6, max_backtracks=0);
+        maxiters=2,
+        show_progress=false,
     )
     res_large = minimize_simple_geometric_action(
-        sys, x_initial, GeometricGradient(; stepsize=1.0); maxiters=2, show_progress=false
+        sys,
+        x_initial,
+        GeometricGradient(; stepsize=1.0, max_backtracks=0);
+        maxiters=2,
+        show_progress=false,
     )
 
     @test res_small.action != res_large.action
+end
+
+@testset "sgMAM GeometricGradient Backtracking" begin
+    CT = CriticalTransitions
+
+    function meier_stein(u, p, t) # out-of-place
+        x, y = u
+        dx = x - x^3 - 10 * x * y^2
+        dy = -(1 + x^2) * y
+        return SA[dx, dy]
+    end
+
+    σ = 0.25
+    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
+    sys = ExtendedPhaseSpace(ds)
+
+    xx = range(-1.0, 1.0; length=60)
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    x_initial = Matrix([xx yy]')
+
+    # Baseline action on an arclength-reparameterized path
+    x0 = deepcopy(x_initial)
+    Nt = size(x0, 2)
+    s = range(0; stop=1, length=Nt)
+    α = zeros(Nt)
+    CT.interpolate_path!(x0, α, s)
+    xdot = zeros(size(x0))
+    p = zeros(size(x0))
+    λ = zeros(1, Nt)
+    CT.central_diff!(xdot, x0)
+    CT.update_p!(p, λ, x0, xdot, sys.H_p)
+    S0 = CT.FW_action(xdot, p)
+    @test isfinite(S0)
+
+    # Single iteration with huge stepsize: backtracking should prevent blowup
+    opt = GeometricGradient(; max_backtracks=20, stepsize=1e6)
+    res = minimize_simple_geometric_action(
+        sys, x_initial, opt; maxiters=1, show_progress=false
+    )
+    @test isfinite(res.action)
+    @test res.action <= S0 + 1e-10
+
+    # Multi-iteration: backtracking should converge to a lower action than the initial path
+    res_bt = minimize_simple_geometric_action(
+        sys,
+        x_initial,
+        GeometricGradient(; max_backtracks=20, stepsize=1.0);
+        maxiters=200,
+        show_progress=false,
+    )
+    @test res_bt.action < S0
+
+    # No-backtracking baseline with the same stepsize and iterations
+    res_no_bt = minimize_simple_geometric_action(
+        sys,
+        x_initial,
+        GeometricGradient(; max_backtracks=0, stepsize=1.0);
+        maxiters=200,
+        show_progress=false,
+    )
+    # Backtracking should reach at least as good (or better) action
+    @test res_bt.action <= res_no_bt.action + 1e-6
+end
+
+@testset "sgMAM step-size insensitivity" begin
+    function meier_stein(u, p, t)
+        x, y = u
+        dx = x - x^3 - 10 * x * y^2
+        dy = -(1 + x^2) * y
+        return SA[dx, dy]
+    end
+    σ = 0.25
+    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
+    sys = ExtendedPhaseSpace(ds)
+
+    xx = range(-1.0, 1.0; length=60)
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    x_initial = Matrix([xx yy]')
+
+    # Different starting stepsizes should converge to the same action
+    actions = Float64[]
+    for ss in [1.0, 100.0, 1e4]
+        res = minimize_simple_geometric_action(
+            sys,
+            x_initial,
+            GeometricGradient(; stepsize=ss);
+            maxiters=500,
+            show_progress=false,
+        )
+        push!(actions, res.action)
+    end
+    # All actions should be within 5% of each other
+    @test maximum(actions) / minimum(actions) < 1.05
+end
+
+@testset "sgMAM convergence tolerances" begin
+    function meier_stein(u, p, t)
+        x, y = u
+        dx = x - x^3 - 10 * x * y^2
+        dy = -(1 + x^2) * y
+        return SA[dx, dy]
+    end
+    σ = 0.25
+    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
+    sys = ExtendedPhaseSpace(ds)
+
+    xx = range(-1.0, 1.0; length=60)
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    x_initial = Matrix([xx yy]')
+
+    # With a tight reltol, should converge and get a finite action
+    res_tol = minimize_simple_geometric_action(
+        sys,
+        x_initial,
+        GeometricGradient(; stepsize=100.0);
+        maxiters=10_000,
+        reltol=1e-6,
+        show_progress=false,
+        verbose=false,
+    )
+    @test isfinite(res_tol.action)
+
+    # Without reltol and more iterations should get same or better action
+    res_notol = minimize_simple_geometric_action(
+        sys,
+        x_initial,
+        GeometricGradient(; stepsize=100.0);
+        maxiters=10_000,
+        show_progress=false,
+    )
+    @test res_notol.action <= res_tol.action + 1e-10
 end

@@ -52,9 +52,9 @@ function benchmark_KPO!(SUITE)
     yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
     x_initial = Matrix([xx yy]')
 
-    opt = GeometricGradient(; stepsize=10e2)
+    sgmam_opt = GeometricGradient(; max_backtracks=0, stepsize=10e2)
     SUITE["Large deviation"]["Simple geometric minimal action"]["KPO"] = @benchmarkable minimize_simple_geometric_action(
-        $sys, $x_initial, $opt; maxiters=10_000, show_progress=false
+        $sys, $x_initial, $sgmam_opt; maxiters=10_000, show_progress=false
     ) seconds = 10
 
     SUITE["Large deviation"]["String method"]["Kerr parametric resonator"] = @benchmarkable string_method(

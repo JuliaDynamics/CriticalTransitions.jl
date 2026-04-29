@@ -69,12 +69,17 @@ The function returns a [`MinimumActionPath`](@ref) containing the final path, th
 the Lagrange multipliers (`.λ`), the momentum (`.generalized_momentum`), and the state derivatives (`.path_velocity`).
 The implementation is based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html).
 
-The optional positional argument `optimizer` configures the projected-gradient update. The
-step size is set via `GeometricGradient(; stepsize=...)`.
+The optional positional argument `optimizer` controls step-size adaptation. It defaults to
+`GeometricGradient()`, which enables backtracking step-size control (see [`GeometricGradient`](@ref)).
+Pass `GeometricGradient(; max_backtracks=0)` to use a fixed step size.
+
+The step size is configured via `GeometricGradient(; stepsize=...)`.
 
 ## Keyword arguments
 
-  - `maxiters::Int=1000`: maximum number of iterations before the algorithm stops
+  - `maxiters::Int=1000`: maximum number of *outer* iterations (path updates). When
+    backtracking is enabled, each outer iteration may perform up to
+    `optimizer.max_backtracks + 1` trial steps.
   - `show_progress::Bool=false`: if true, display a progress bar
   - `verbose::Bool=false`: if true, print additional output
   - `abstol::Real=NaN`: absolute tolerance for early stopping based on action change
@@ -83,7 +88,7 @@ step size is set via `GeometricGradient(; stepsize=...)`.
 function minimize_simple_geometric_action(
     sys::ExtendedPhaseSpace,
     x_initial::Matrix{T},
-    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
+    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e3);
     maxiters::Int=1000,
     show_progress::Bool=false,
     verbose::Bool=false,
@@ -97,38 +102,49 @@ function minimize_simple_geometric_action(
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
     xdotdot = zeros(size(xdot))
 
-    S = CircularBuffer{T}(2)
-    fill!(S, Inf)
+    x_prev = similar(x)
 
-    progress = Progress(maxiters; dt=0.5, enabled=show_progress)
-    for i in 1:maxiters
-        update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, optimizer.stepsize)
+    # Ensure a consistent starting path for action comparisons
+    interpolate_path!(x, alpha, s)
+    _sgmam_refresh!(xdot, p, lambda, x, H_p)
+    initial_action = FW_action(xdot, p)
 
-        # reparameterize to arclength
+    function try_step!(ϵ)
+        update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ)
         interpolate_path!(x, alpha, s)
-        push!(S, FW_action(xdot, p))
-
-        abs_change = abs(S[end] - S[1])
-        rel_change = S[end] == 0 ? abs_change : abs_change / abs(S[end])
-        if (isfinite(abstol) && abs_change < abstol) ||
-            (isfinite(reltol) && rel_change < reltol)
-            verbose &&
-                @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
-            break
-        end
-        next!(
-            progress;
-            showvalues=[("iterations", i), ("Stol", round(rel_change; sigdigits=3))],
-        )
+        _sgmam_refresh!(xdot, p, lambda, x, H_p)
+        return FW_action(xdot, p)
     end
+    save!() = copyto!(x_prev, x)
+    function restore!()
+        copyto!(x, x_prev)
+        _sgmam_refresh!(xdot, p, lambda, x, H_p)
+    end
+
+    current_action, _ = backtracking_optimize!(
+        optimizer,
+        try_step!,
+        save!,
+        restore!,
+        initial_action;
+        maxiters,
+        abstol,
+        reltol,
+        verbose,
+        show_progress,
+    )
     return MinimumActionPath(
-        StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
+        StateSpaceSet(x'),
+        current_action;
+        λ=lambda,
+        generalized_momentum=p,
+        path_velocity=xdot,
     )
 end
 function minimize_simple_geometric_action(
     sys,
     x_initial::StateSpaceSet,
-    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
+    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e3);
     kwargs...,
 )
     return minimize_simple_geometric_action(
@@ -138,7 +154,7 @@ end
 function minimize_simple_geometric_action(
     sys::ContinuousTimeDynamicalSystem,
     x_initial::Matrix{<:Real},
-    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
+    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e3);
     kwargs...,
 )
     return minimize_simple_geometric_action(
@@ -158,10 +174,8 @@ function init_allocation(x_initial, Nt)
 end
 
 function update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ)
-    central_diff!(xdot, x)
-
-    update_p!(p, lambda, x, xdot, H_p)
-
+    # xdot, p, and lambda are assumed to be pre-computed and consistent with x
+    # (via _sgmam_refresh! or central_diff! + update_p!)
     central_diff!(pdot, p)
     Hx = H_x(x, p)
 
@@ -230,11 +244,17 @@ end
 
 function central_diff!(xdot, x)
     # ̇xₙ = 0.5(xₙ₊₁ - xₙ₋₁) central finite difference
-    xdot[:, 2:(end - 1)] = 0.5 * (x[:, 3:end] - x[:, 1:(end - 2)])
+    @views xdot[:, 2:(end - 1)] .= 0.5 .* (x[:, 3:end] .- x[:, 1:(end - 2)])
     return nothing
 end
 
-FW_action(xdot, p) = sum(sum(xdot .* p; dims=1)) / 2
+function _sgmam_refresh!(xdot, p, lambda, x, H_p)
+    central_diff!(xdot, x)
+    update_p!(p, lambda, x, xdot, H_p)
+    return nothing
+end
+
+FW_action(xdot, p) = dot(xdot, p) / 2
 
 function proper_sgMAM_system(ds::CoupledSDEs)
     proper_MAM_system(ds)

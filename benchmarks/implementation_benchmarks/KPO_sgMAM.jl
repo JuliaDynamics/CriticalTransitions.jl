@@ -44,6 +44,7 @@ function H_p(x, p) # ℜ² → ℜ²
 end
 
 sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
+sgmam_opt = GeometricGradient(; max_backtracks=0, stepsize=10e2)
 
 # setup
 Nt = 500  # number of discrete time steps
@@ -58,9 +59,8 @@ xx = @. (xb[1] - xa[1]) * s + xa[1] + 4 * s * (1 - s) * xsaddle[1]
 yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
 x_initial = Matrix([xx yy]')
 
-opt = GeometricGradient(; stepsize=10e2)
 MLP = minimize_simple_geometric_action(
-    sys, x_initial, opt; maxiters=100_000, show_progress=true
+    sys, x_initial, sgmam_opt; maxiters=100_000, show_progress=true
 )
 x_min = MLP.path
 S_min = MLP.action
@@ -74,10 +74,10 @@ string_path = permutedims(Matrix(string))
 plot!(string_path[1, :], string_path[2, :]; label="string", lw=3, c=:blue)
 
 @btime $minimize_simple_geometric_action(
-    $sys, $x_initial, $opt; maxiters=100, show_progress=false
+    $sys, $x_initial, $sgmam_opt; maxiters=100, show_progress=false
 ) # 25.803 ms (29024 allocations: 105.69 MiB)
 @profview minimize_simple_geometric_action(
-    sys, x_initial, opt; maxiters=100, show_progress=false
+    sys, x_initial, sgmam_opt; maxiters=100, show_progress=false
 )
 
 # The bottleneck is atm at the LinearSolve call to update the x in the new iteration. So the more improve, one needs to write it own LU factorization.

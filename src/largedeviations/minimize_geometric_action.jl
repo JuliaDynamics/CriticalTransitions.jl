@@ -24,14 +24,15 @@ Returns a [`MinimumActionPath`](@ref) object.
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
+The optional positional argument `optimizer` selects the minimization algorithm. It defaults to
+`GeometricGradient()`, which enables backtracking step-size control (see [`GeometricGradient`](@ref)).
+Pass `GeometricGradient(; max_backtracks=0)` to use a fixed step size, or any
+Optimization.jl optimizer to use Optimization.jl (`ad_type` is only used in that case).
+
 ## Minimization algorithms
 
-The optional positional argument `optimizer` selects the minimization algorithm. It defaults to
-`GeometricGradient()`. Pass any Optimization.jl optimizer to use Optimization.jl; `ad_type` is only
-used in that case.
-
 The `optimizer` argument accepts:
-  - `GeometricGradient()`: runs a projected-gradient gradient descent [heymann_pathways_2008](@citet)
+  - `GeometricGradient()`: projected-gradient descent with backtracking [heymann_pathways_2008](@citet)
   - Any solver from [`Optimization.jl`](https://docs.sciml.ai/Optimization/) (e.g., `OptimizationOptimisers.Adam()`)
 
 ## Notes
@@ -90,32 +91,33 @@ function minimize_geometric_action(
     verbose=false,
     show_progress=true,
 )
-    path, N, alpha, arc, S, prog = _gmam_setup(sys, init, maxiters, show_progress)
+    path, _, alpha, arc, S, _ = _gmam_setup(sys, init, maxiters, false)
 
     ws = geometric_gradient_workspace(sys, path)
-    check_convergence = isfinite(abstol) || isfinite(reltol)
-    prev_action = check_convergence ? S(path) : NaN
-    for i in 1:maxiters
-        geometric_gradient_step!(ws, sys, path; stepsize=optimizer.stepsize)
+    path_prev = similar(path)
+
+    function try_step!(ϵ)
+        geometric_gradient_step!(ws, sys, path; stepsize=ϵ)
         path .= ws.update
         interpolate_path!(path, alpha, arc)
-        next!(prog)
-        if check_convergence
-            curr_action = S(path)
-            if isfinite(curr_action) && isfinite(prev_action)
-                abs_change = abs(curr_action - prev_action)
-                rel_change = curr_action == 0 ? abs_change : abs_change / abs(curr_action)
-                if (isfinite(abstol) && abs_change < abstol) ||
-                    (isfinite(reltol) && rel_change < reltol)
-                    verbose &&
-                        @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
-                    break
-                end
-            end
-            prev_action = curr_action
-        end
+        return S(path)
     end
-    return MinimumActionPath(StateSpaceSet(path'), S(path))
+    save!() = copyto!(path_prev, path)
+    restore!() = copyto!(path, path_prev)
+
+    current_action, _ = backtracking_optimize!(
+        optimizer,
+        try_step!,
+        save!,
+        restore!,
+        S(path);
+        maxiters,
+        abstol,
+        reltol,
+        verbose,
+        show_progress,
+    )
+    return MinimumActionPath(StateSpaceSet(path'), current_action)
 end
 
 function minimize_geometric_action(
