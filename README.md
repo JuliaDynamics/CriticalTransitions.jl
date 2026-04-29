@@ -9,66 +9,24 @@
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![JET](https://img.shields.io/badge/%E2%9C%88%EF%B8%8F%20tested%20with%20-%20JET.jl%20-%20red)](https://github.com/aviatesk/JET.jl)
 
+**CriticalTransitions.jl** is a first-of-its-kind software for formalizing, automating, and making extendable, the analysis of critical transitions in dynamical systems.
+Current content exists along two independent paths: noise- and rate- induced transitions.
 
-A Julia package for the numerical investigation of **noise- and rate-induced transitions in dynamical systems**.
+The main software highlights are:
 
-Building on [DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystems.jl/stable/) and [DifferentialEquations.jl](https://diffeq.sciml.ai/stable/), this package aims to provide a toolbox for dynamical systems under time-dependent forcing, with a focus on tipping phenomena and metastability.
+- easily construct stochastic and nonautonomous dynamical systems
+- efficiently sample transition path ensembles
+- calculate minimum action paths and critical forcing rates
+- use a growing toolbox of tested and documented functions implementing concepts
+  of large deviation theory, transition path theory, and rate-induced tipping
+- and more features shown in the documentation and planned for the future!
 
-## Installation
-`CriticalTransitions` is a registered Julia package.
+CriticalTransitions.jl can be used as a standalone package, or as part of
+[DynamicalSystems.jl](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/dynamicalsystems/stable/).
 
-```julia
-julia> ] add CriticalTransitions
-```
+To install it, run `import Pkg; Pkg.add("CriticalTransitions")`.
 
-or
-
-```julia
-using Pkg; Pkg.add("CriticalTransitions")
-```
-
-## Usage
-See [package documentation](https://juliadynamics.github.io/CriticalTransitions.jl/stable/).
-
-> Check out the new [`RateSystem`](https://juliadynamics.github.io/CriticalTransitions.jl/dev/man/system_construction/#Non-autonomous:-RateSystem) type for nonautonomous dynamics, released with v0.7! 🚀
-
-## Example: Bistable FitzHugh-Nagumo model
-```julia
-using CriticalTransitions
-
-# Define your system dynamics
-function fitzhugh_nagumo(u, p, t)
-    x, y = u
-    ϵ, β = p
-
-    dx = (-x^3 + x - y)/ϵ
-    dy = -β*y + x
-
-    return SVector{2}([dx, dy])
-end
-
-# System parameters (ε, β)
-params = [0.1, 3.0]
-noise_strength = 0.02
-initial_state = zeros(2)
-
-# Construct a stochastic system
-# (here with isotropic Gaussian noise)
-sys = CoupledSDEs(fitzhugh_nagumo, initial_state, params; noise_strength)
-
-# Run a sample trajectory
-traj = trajectory(sys, 10.0)
-
-# Compute minimum action path using gMAM algorithm
-instanton = minimize_geometric_action(sys, initial_state, current_state(sys))
-
-# Turn into a non-autonomous dynamical system
-# where the parameter β changes in time
-forcing = ForcingProfile(:tanh)
-sys_t = RateSystem(sys, forcing, 2; forcing_duration=5.0)
-
-# ... and more, check out the documentation!
-```
+All further information is provided in the documentation, which you can either find [online](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/criticaltransitions/stable/) or build locally by running the `docs/make.jl` file.
 
 ---
 

@@ -1,5 +1,12 @@
 module CriticalTransitions
 
+# Use the README as the module docs
+@doc let
+    path = joinpath(dirname(@__DIR__), "README.md")
+    include_dependency(path)
+    read(path, String)
+end CriticalTransitions
+
 # Base
 using Statistics: Statistics, mean
 using LinearAlgebra: LinearAlgebra, norm, dot, tr, det
@@ -66,7 +73,6 @@ include("largedeviations/minimize_geometric_action.jl")
 include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
 
-include("r_tipping/ForcingProfile.jl")
 include("r_tipping/RateSystem.jl")
 
 # Experimental features
@@ -97,13 +103,5 @@ export transition, transitions
 export ForcingProfile, RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
 export frozen_system, parameters
-
-# Error hint for extensions stubs
-function __init__()
-    Base.Experimental.register_error_hint(
-        _basin_error_hinter(intervals_to_box), MethodError
-    )
-    return nothing
-end
 
 end # module CriticalTransitions

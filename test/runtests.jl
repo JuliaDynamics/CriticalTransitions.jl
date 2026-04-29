@@ -50,10 +50,6 @@ end
 end
 
 @testset "Extensions" begin
-    @testset "ChaosToolsExt" begin
-        include("ext/ChaosToolsExt.jl")
-    end
-
     @testset "DistMesh2D" begin
         include("ext/DistMesh2D.jl")
     end
