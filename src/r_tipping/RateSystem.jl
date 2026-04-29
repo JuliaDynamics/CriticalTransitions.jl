@@ -50,6 +50,7 @@ mutable struct RateSystemSpecs{R,F,P,T} <: Function
     pidx::P # make this a vector
     "Forcing profile"
     fp::ForcingProfile{F,T}
+    # TODO: Change all of these into dictionaries, same style as forcers
     "Start time of parametric forcing"
     forcing_start_time::T
     "Duration of parametric forcing"
@@ -60,6 +61,8 @@ mutable struct RateSystemSpecs{R,F,P,T} <: Function
     p0::T # make this a vector
     "Initial time (of system initiation)"
     t0::T
+    "Dummy container"
+    pdummy::Something
 end
 
 """
@@ -71,7 +74,7 @@ forcing protocol(s) to an underlying autonomous continuous-time dynamical system
 
 The parameter of the system with index `pidx` will be forced according to the given
 [`ForcingProfile`](@ref). The `ForcingProfile` describes the functional form of the parameter
-evolution over a given `interval`.
+evolution over a given `interval`. See below for forcing multiple parameters.
 
 ## Keyword arguments
 
@@ -80,6 +83,9 @@ evolution over a given `interval`.
    Duration of the parameter change (in system time units).
 - `forcing_scale = 1.0`: Amplitude multiplication factor of the forcing protocol.
 - `t0 = 0.0`: Initial time of the system.
+
+The functions [`set_forcing_start!`](@ref), [`set_forcing_duration`](@ref), and
+[`set_forcing_scale`](@ref) can be used to update the forcing after system creation.
 
 ## Description
 
@@ -102,7 +108,8 @@ value and thereafter the system is again autonomous.
 
 Use the above signature with `forcing_profiles` a dictionary mapping parameter indices
 (anything valid for `set_parameter!`) to [`ForcingProfile`](@ref) instances, one
-for each parameter.
+for each parameter. In this scenario the keywords `forcing_start_time, forcing_duration,
+forcing_scale` also become dictionaries mapping parameter indices to the respective values.
 """
 struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
@@ -114,12 +121,29 @@ end
 function RateSystem(
         ds::ContinuousTimeDynamicalSystem,
         fp::ForcingProfile,
-        pidx;
+        pidx; kw...
+    )
+
+    forcer = Dict(pidx => fp)
+
+    return RateSystem(ds, forcer; kw...)
+end
+
+function RateSystem(
+        ds::ContinuousTimeDynamicalSystem,
+        forcer::Dict;
         forcing_start_time=initial_time(ds),
         forcing_duration=(fp.interval[2] - fp.interval[1]),
         forcing_scale=1.0,
         t0=initial_time(ds),
     )
+
+    # TODO:
+    starting_times = Dict(k => number for k in keys(forcer))
+
+
+    error("Complete this using `forcer`.")
+
     (forcing_start_time >= t0) ||
         throw("The forcing cannot start before the system's initial time `t0`
               but your forcing_start_time ($(forcing_start_time)) < t0 ($(t0)).")
@@ -151,45 +175,64 @@ end
 # otherwise it doens't work with ModelingToolkit.jl;
 # Or better yet, use `set_parameters!` and give a dict of parameters to set?
 function (rss::RateSystemSpecs)(u, p, t)
-    p_at_t = p_modified(rss, t)
-    if p isa Union{AbstractArray,AbstractDict}
-        setindex!(p, p_at_t, rss.pidx)
-    else
-        setproperty!(p, rss.pidx, p_at_t)
-    end
-    # TODO: This doesn't work if the dynamical system is in-place...
-    # We need to multi-dispatch one more version of `(rss::)` function with 4 arguments
-    return rss.unforced_rule(u, p, rss.t0)
+    p_modified!(rss, t)
+    return rss.unforced_rule(u, rss.p, rss.t0)
+end
+
+function (rss::RateSystemSpecs)(du, u, p, t)
+    p_modified!(rss, t)
+    return rss.unforced_rule(du, u, rss.p, rss.t0)
 end
 
 # Returns the non-autonomous system's parameter value at time t
-function p_modified(rss::RateSystemSpecs, t::Real)
+function p_modified!(rss::RateSystemSpecs, t::Real)
+    error("fix me")
+    pdummy = rss.pdummy
+    rss.p0
+    # update p dummy to its time dependent version
+
+    error("fix me")
+
     # TODO: Make `p0` vector, and make the function re-write a dummy vector of time dependent parameters
-    p0 = rss.p0
-    f = rss.fp.profile
-    section_start = rss.fp.interval[1]
-    section_end = rss.fp.interval[2]
-    # making the function piecewise constant with range [p0, p0+forcing_scale]
-    if t ≤ rss.forcing_start_time
-        return p0
-    else
-        if t < rss.forcing_start_time + rss.forcing_duration
-            # performing the time shift corresponding to stretching/squeezing
-            time_shift =
-                ((section_end - section_start) / rss.forcing_duration) *
-                (t - rss.forcing_start_time) + section_start
-            return p0 + rss.forcing_scale*(f(time_shift) - f(section_start))
+
+    for (pkey, profile) in rss.forcers
+        p0 = current_parameter(ds, pkey)
+        f = profile.profile
+
+            # rest is the same
+
+        section_start = rss.fp.interval[1]
+        section_end = rss.fp.interval[2]
+        # making the function piecewise constant with range [p0, p0+forcing_scale]
+        if t ≤ rss.forcing_start_time
+            pt = p0
         else
-            return p0 + rss.forcing_scale*(f(section_end) - f(section_start))
+            if t < rss.forcing_start_time + rss.forcing_duration
+                # performing the time shift corresponding to stretching/squeezing
+                time_shift =
+                    ((section_end - section_start) / rss.forcing_duration) *
+                    (t - rss.forcing_start_time) + section_start
+                pt = p0 + rss.forcing_scale*(f(time_shift) - f(section_start))
+            else
+                pt = p0 + rss.forcing_scale*(f(section_end) - f(section_start))
+            end
         end
+
+        # update pdummy `pkey` entry to `pt`
     end
+    # and p is the actual parametr container of the ds
+    set_parameters!(ds, pdummy, rss.p) # not sure if the correct container is rss.p
+    return
 end
 
+# TODO: ensure all three key update functions follow the optional [, pidx] syntax
+# for multi parameters.
 """
-$(TYPEDSIGNATURES)
+    set_forcing_scale!(rs::RateSystem, scale [, pidx])
 
-Sets the amplitude (`forcing_scale`) of the forcing protocol applied to
-the [`RateSystem`](@ref) `rs`.
+Sets the amplitude (`forcing_scale`) of the forcing of the [`RateSystem`](@ref) to `scale`.
+For multiple parameters, if `pidx` is given, change the forcing only corresponding to
+the specified parameter, otherwise update the forcing scale of _all_ parameters to `scale.`
 """
 function set_forcing_scale!(rs::RateSystem, scale)
     rs.forcing.forcing_scale = scale
