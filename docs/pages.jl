@@ -1,7 +1,7 @@
 #! format: off
 pages = [
     "Home" => "index.md",
-    "Getting started" => "quickstart.md",
+    "Tutorial" => "quickstart.md",
     "Examples" => Any[
         "Tutorial" => "examples/tutorial.md",
         "Defining a system" => Any[
@@ -27,6 +27,7 @@ pages = [
     ],
     # "Predefined systems" => "man/systems.md",
     # "Development stage" => "man/dev.md",
-    "References" => "refs.md"
+    "API" => "api.md",
+    "References" => "refs.md",
 ]
 #! format: on

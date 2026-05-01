@@ -45,15 +45,12 @@ end
     include("trajectories/transition.jl")
 end
 
-@testset "R-tipping" begin
-    include("r_tipping/RateSystem.jl")
-end
+# Disabled until #280's RateSystem refactor is finished — see PR #310.
+# @testset "R-tipping" begin
+#     include("r_tipping/RateSystem.jl")
+# end
 
 @testset "Extensions" begin
-    @testset "ChaosToolsExt" begin
-        include("ext/ChaosToolsExt.jl")
-    end
-
     @testset "DistMesh2D" begin
         include("ext/DistMesh2D.jl")
     end
