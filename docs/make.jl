@@ -36,6 +36,10 @@ links = InterLinks(
 
 # TODO: What is this? What is this remotes? Why do we need it? Seems like really complex code.
 using Pkg
+project_toml = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
+package_version = project_toml["version"]
+authors = join(project_toml["authors"], ", ") * " and contributors"
+
 remote_pairs = map(["DynamicalSystemsBase", "Attractors"]) do pkg_name
     status = sprint(io -> Pkg.status(pkg_name; io=io))
     version = match(r"(v[0-9].[0-9]+.[0-9]+)", status)[1]
@@ -59,14 +63,14 @@ if Documenter.DOCUMENTER_VERSION >= v"1.3.0"
     html_options[:inventory_version] = package_version
 end
 
-modules=[
+modules = [
     CriticalTransitions,
     DynamicalSystemsBase,
     Attractors,
     Base.get_extension(CriticalTransitions, :ChaosToolsExt),
     Base.get_extension(CriticalTransitions, :AttractorsExt),
     Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
-],
+]
 
 # Build docs
 build_docs_with_style(
@@ -74,7 +78,6 @@ build_docs_with_style(
     modules...;
     plugins=[bib, links],
     warnonly=[:doctest],
-    htmlkw=(; size_threshold_ignore),
     authors,
     htmlkw=html_options,
     checkdocs_ignored_modules=[CriticalTransitions.CTLibrary],

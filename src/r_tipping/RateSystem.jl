@@ -118,96 +118,67 @@ struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
     forcing::RateSystemSpecs{F,P,T}
 end
 
-function RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kw...)
-    forcer = Dict(pidx => fp)
-
-    return RateSystem(ds, forcer; kw...)
-end
-
 function RateSystem(
     ds::ContinuousTimeDynamicalSystem,
-    forcer::Dict;
-    forcing_start_time=initial_time(ds),
-    forcing_duration=(fp.interval[2] - fp.interval[1]),
-    forcing_scale=1.0,
-    t0=initial_time(ds),
-)
-
-    # TODO:
-    starting_times = Dict(k => number for k in keys(forcer))
-
-    error("Complete this using `forcer`.")
-
+    fp::ForcingProfile,
+    pidx::P;
+    forcing_start_time::T=initial_time(ds),
+    forcing_duration::T=(fp.interval[2] - fp.interval[1]),
+    forcing_scale::T=1.0,
+    t0::T=initial_time(ds),
+) where {P,T<:Real}
     (forcing_start_time >= t0) ||
         throw("The forcing cannot start before the system's initial time `t0`
-              but your forcing_start_time ($(forcing_start_time)) < t0 ($(t0)).")
+                    but your forcing_start_time ($(forcing_start_time)) < t0 ($(t0)).")
 
-    # TODO: allow multi parameter
     p0 = current_parameter(ds, pidx)
-    # promote
-    a, b, c = float.((forcing_start_time, forcing_duration, forcing_scale))
-    rss = RateSystemSpecs(dynamic_rule(ds), pidx, fp, a, b, c, p0, t0)
+    rss = RateSystemSpecs(
+        dynamic_rule(ds),
+        pidx,
+        fp,
+        forcing_start_time,
+        forcing_duration,
+        forcing_scale,
+        p0,
+        t0,
+        nothing,
+    )
 
-    # TODO: Do we want the rate system to have the same parameter container,
-    # or a deep copy of it...? Derivative systems in DynamicalSystems.jl
-    # typically have the same parameter container, however this one is special,
-    # as it constantly alters the parameter container...
     newds = CoupledODEs(rss, current_state(ds), deepcopy(current_parameters(ds)); t0)
     return RateSystem(newds, rss)
 end
 
-# TODO: this must be rewritten using `set_parameter!` or its source code.
-# otherwise it doesn't work with ModelingToolkit.jl;
-# Or better yet, use `set_parameters!` and give a dict of parameters to set?
+function RateSystem(::ContinuousTimeDynamicalSystem, ::Dict; kw...)
+    return error("Multi-parameter `RateSystem(ds, ::Dict)` is WIP — see #280.")
+end
+
 function (rss::RateSystemSpecs)(u, p, t)
-    p_modified!(rss, t)
-    return rss.unforced_rule(u, rss.p, rss.t0)
-end
-
-function (rss::RateSystemSpecs)(du, u, p, t)
-    p_modified!(rss, t)
-    return rss.unforced_rule(du, u, rss.p, rss.t0)
-end
-
-# Returns the non-autonomous system's parameter value at time t
-function p_modified!(rss::RateSystemSpecs, t::Real)
-    error("fix me")
-    pdummy = rss.pdummy
-    rss.p0
-    # update p dummy to its time dependent version
-
-    error("fix me")
-
-    # TODO: Make `p0` vector, and make the function re-write a dummy vector of time dependent parameters
-
-    for (pkey, profile) in rss.forcers
-        p0 = current_parameter(ds, pkey)
-        f = profile.profile
-
-        # rest is the same
-
-        section_start = rss.fp.interval[1]
-        section_end = rss.fp.interval[2]
-        # making the function piecewise constant with range [p0, p0+forcing_scale]
-        if t ≤ rss.forcing_start_time
-            pt = p0
-        else
-            if t < rss.forcing_start_time + rss.forcing_duration
-                # performing the time shift corresponding to stretching/squeezing
-                time_shift =
-                    ((section_end - section_start) / rss.forcing_duration) *
-                    (t - rss.forcing_start_time) + section_start
-                pt = p0 + rss.forcing_scale*(f(time_shift) - f(section_start))
-            else
-                pt = p0 + rss.forcing_scale*(f(section_end) - f(section_start))
-            end
-        end
-
-        # update pdummy `pkey` entry to `pt`
+    p_at_t = p_modified(rss, t)
+    if p isa Union{AbstractArray,AbstractDict}
+        setindex!(p, p_at_t, rss.pidx)
+    else
+        setproperty!(p, rss.pidx, p_at_t)
     end
-    # and p is the actual parameter container of the ds
-    set_parameters!(ds, pdummy, rss.p) # not sure if the correct container is rss.p
-    return nothing
+    return rss.unforced_rule(u, p, rss.t0)
+end
+
+function p_modified(rss::RateSystemSpecs, t::Real)
+    p0 = rss.p0
+    f = rss.fp.profile
+    section_start = rss.fp.interval[1]
+    section_end = rss.fp.interval[2]
+    if t ≤ rss.forcing_start_time
+        return p0
+    else
+        if t < rss.forcing_start_time + rss.forcing_duration
+            time_shift =
+                ((section_end - section_start) / rss.forcing_duration) *
+                (t - rss.forcing_start_time) + section_start
+            return p0 + rss.forcing_scale*(f(time_shift) - f(section_start))
+        else
+            return p0 + rss.forcing_scale*(f(section_end) - f(section_start))
+        end
+    end
 end
 
 # TODO: ensure all three key update functions follow the optional [, pidx] syntax
@@ -267,7 +238,7 @@ corresponding to the frozen system of the non-autonomous [`RateSystem`](@ref) `r
 time `t`.
 """
 function frozen_system(rs::RateSystem, t)
-    ds = CoupledODEs(rs.forcing.unforced_rule, current_state(rs), parameters(rs, t))
+    ds = CoupledODEs(rs.forcing.unforced_rule, current_state(rs), current_parameters(rs, t))
     return ds
 end
 
