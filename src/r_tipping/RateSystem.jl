@@ -62,7 +62,7 @@ mutable struct RateSystemSpecs{R,F,P,T} <: Function
     "Initial time (of system initiation)"
     t0::T
     "Dummy container"
-    pdummy::Something
+    pdummy::Any
 end
 
 """
@@ -118,29 +118,23 @@ struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
     forcing::RateSystemSpecs{F,P,T}
 end
 
-function RateSystem(
-        ds::ContinuousTimeDynamicalSystem,
-        fp::ForcingProfile,
-        pidx; kw...
-    )
-
+function RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kw...)
     forcer = Dict(pidx => fp)
 
     return RateSystem(ds, forcer; kw...)
 end
 
 function RateSystem(
-        ds::ContinuousTimeDynamicalSystem,
-        forcer::Dict;
-        forcing_start_time=initial_time(ds),
-        forcing_duration=(fp.interval[2] - fp.interval[1]),
-        forcing_scale=1.0,
-        t0=initial_time(ds),
-    )
+    ds::ContinuousTimeDynamicalSystem,
+    forcer::Dict;
+    forcing_start_time=initial_time(ds),
+    forcing_duration=(fp.interval[2] - fp.interval[1]),
+    forcing_scale=1.0,
+    t0=initial_time(ds),
+)
 
     # TODO:
     starting_times = Dict(k => number for k in keys(forcer))
-
 
     error("Complete this using `forcer`.")
 
@@ -152,16 +146,7 @@ function RateSystem(
     p0 = current_parameter(ds, pidx)
     # promote
     a, b, c = float.((forcing_start_time, forcing_duration, forcing_scale))
-    rss = RateSystemSpecs(
-        dynamic_rule(ds),
-        pidx,
-        fp,
-        a,
-        b,
-        c,
-        p0,
-        t0,
-    )
+    rss = RateSystemSpecs(dynamic_rule(ds), pidx, fp, a, b, c, p0, t0)
 
     # TODO: Do we want the rate system to have the same parameter container,
     # or a deep copy of it...? Derivative systems in DynamicalSystems.jl
@@ -172,7 +157,7 @@ function RateSystem(
 end
 
 # TODO: this must be rewritten using `set_parameter!` or its source code.
-# otherwise it doens't work with ModelingToolkit.jl;
+# otherwise it doesn't work with ModelingToolkit.jl;
 # Or better yet, use `set_parameters!` and give a dict of parameters to set?
 function (rss::RateSystemSpecs)(u, p, t)
     p_modified!(rss, t)
@@ -199,7 +184,7 @@ function p_modified!(rss::RateSystemSpecs, t::Real)
         p0 = current_parameter(ds, pkey)
         f = profile.profile
 
-            # rest is the same
+        # rest is the same
 
         section_start = rss.fp.interval[1]
         section_end = rss.fp.interval[2]
@@ -220,9 +205,9 @@ function p_modified!(rss::RateSystemSpecs, t::Real)
 
         # update pdummy `pkey` entry to `pt`
     end
-    # and p is the actual parametr container of the ds
+    # and p is the actual parameter container of the ds
     set_parameters!(ds, pdummy, rss.p) # not sure if the correct container is rss.p
-    return
+    return nothing
 end
 
 # TODO: ensure all three key update functions follow the optional [, pidx] syntax

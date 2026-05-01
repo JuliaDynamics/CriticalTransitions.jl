@@ -27,7 +27,7 @@ pages = [
     ],
     # "Predefined systems" => "man/systems.md",
     # "Development stage" => "man/dev.md",
-    "API" => "api.md"
-    "References" => "refs.md"
+    "API" => "api.md",
+    "References" => "refs.md",
 ]
 #! format: on
