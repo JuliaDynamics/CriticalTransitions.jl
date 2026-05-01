@@ -96,6 +96,10 @@ function minimize_geometric_action(
     ws = geometric_gradient_workspace(sys, path)
     path_prev = similar(path)
 
+    # Ensure a consistent starting path for action comparisons
+    interpolate_path!(path, alpha, arc)
+    initial_action = S(path)
+
     function try_step!(ϵ)
         geometric_gradient_step!(ws, sys, path; stepsize=ϵ)
         path .= ws.update
@@ -110,7 +114,7 @@ function minimize_geometric_action(
         try_step!,
         save!,
         restore!,
-        S(path);
+        initial_action;
         maxiters,
         abstol,
         reltol,

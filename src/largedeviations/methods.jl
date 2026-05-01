@@ -43,11 +43,11 @@ function GeometricGradient(;
     stepsize_max::Real=Inf,
 )
     T = promote_type(
-        typeof(stepsize),
-        typeof(shrink),
-        typeof(grow),
-        typeof(stepsize_min),
-        typeof(stepsize_max),
+        typeof(float(stepsize)),
+        typeof(float(shrink)),
+        typeof(float(grow)),
+        typeof(float(stepsize_min)),
+        typeof(float(stepsize_max)),
     )
     return GeometricGradient{T}(
         T(stepsize), T(shrink), T(grow), max_backtracks, T(stepsize_min), T(stepsize_max)
@@ -147,7 +147,11 @@ function backtracking_optimize!(
         end
 
         abs_change = accepted ? abs(current_action - S_old) : Inf
-        rel_change = accepted ? (S_old == 0 ? abs_change : abs_change / abs(S_old)) : Inf
+        rel_change = if accepted
+            current_action == 0 ? abs_change : abs_change / abs(current_action)
+        else
+            Inf
+        end
 
         if accepted && (
             (isfinite(abstol) && abs_change < abstol) ||

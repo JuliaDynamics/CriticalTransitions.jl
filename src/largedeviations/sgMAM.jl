@@ -70,8 +70,9 @@ the Lagrange multipliers (`.λ`), the momentum (`.generalized_momentum`), and th
 The implementation is based on the work of [Grafke et al. (2019)](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html).
 
 The optional positional argument `optimizer` controls step-size adaptation. It defaults to
-`GeometricGradient()`, which enables backtracking step-size control (see [`GeometricGradient`](@ref)).
-Pass `GeometricGradient(; max_backtracks=0)` to use a fixed step size.
+`GeometricGradient(; stepsize=1e3)`, which enables backtracking step-size control with an
+initial step of `1e3` (see [`GeometricGradient`](@ref)). Pass
+`GeometricGradient(; max_backtracks=0)` to use a fixed step size.
 
 The step size is configured via `GeometricGradient(; stepsize=...)`.
 
