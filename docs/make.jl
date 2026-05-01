@@ -13,10 +13,10 @@ CoupledSDEsBasin = Base.get_extension(CriticalTransitions, :CoupledSDEsBasin)
 include("pages.jl")
 
 # Install style  of JuliaDynamics
-import Downloads
+using Downloads: Downloads
 Downloads.download(
     "https://raw.githubusercontent.com/JuliaDynamics/doctheme/master/build_docs_with_style.jl",
-    joinpath(@__DIR__, "build_docs_with_style.jl")
+    joinpath(@__DIR__, "build_docs_with_style.jl"),
 )
 include("build_docs_with_style.jl")
 
@@ -24,10 +24,7 @@ include("build_docs_with_style.jl")
 using DocumenterCitations
 using DocumenterInterLinks
 
-bib = CitationBibliography(
-    joinpath(@__DIR__, "refs.bib");
-    style = :authoryear
-)
+bib = CitationBibliography(joinpath(@__DIR__, "refs.bib"); style=:authoryear)
 
 links = InterLinks(
     "DynamicalSystemsBase" => "https://juliadynamics.github.io/DynamicalSystemsBase.jl/stable/",
@@ -73,9 +70,13 @@ modules=[
 
 # Build docs
 build_docs_with_style(
-    pages, modules...;
-    plugins = [bib, links], warnonly = [:doctest,],
-    htmlkw = (; size_threshold_ignore), authors, htmlkw = html_options,
+    pages,
+    modules...;
+    plugins=[bib, links],
+    warnonly=[:doctest],
+    htmlkw=(; size_threshold_ignore),
+    authors,
+    htmlkw=html_options,
     checkdocs_ignored_modules=[CriticalTransitions.CTLibrary],
     remotes,
 )

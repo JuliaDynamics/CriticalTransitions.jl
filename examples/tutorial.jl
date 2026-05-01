@@ -35,10 +35,10 @@
 
 using CriticalTransitions # re-exports `DynamicalSystemsBase`
 using CairoMakie
-import Random # hide
+using Random: Random # hide
 Random.seed!(1) # hide
 
-function fitzhugh_nagumo(u,p,t)
+function fitzhugh_nagumo(u, p, t)
     u, v = u
     ϵ, β, α, γ, κ, I = p
     du = (-α*u^3 + γ*u - κ*v + I)/ϵ
@@ -64,11 +64,7 @@ fp = ForcingProfile(:linear)
 # The remaining information is encoded when creating the `RateSystem`:
 
 pidx = 6 # which parameter changes
-rs = RateSystem(ds, fp, pidx;
-    forcing_start_time = 10,
-    forcing_duration = 10,
-    forcing_scale = 5
-)
+rs = RateSystem(ds, fp, pidx; forcing_start_time=10, forcing_duration=10, forcing_scale=5)
 
 # In the above example the current `I` will linearly ramp from 0 to 5 in the time window 10 to 20.
 # Being explicit, this is what's going on, given time `t`:
@@ -84,13 +80,13 @@ rs = RateSystem(ds, fp, pidx;
 # Let's simulate both the autonomous and non-autonomous systems to see the difference:
 
 T = 50.0 # Total time
-traj_ds, = trajectory(ds, T; Δt = 0.01)
-traj_rs, = trajectory(rs, T; Δt = 0.01)
+traj_ds, = trajectory(ds, T; Δt=0.01)
+traj_rs, = trajectory(rs, T; Δt=0.01)
 fig = Figure()
 tvec = 0:0.01:T
 ax = Axis(fig[1, 1]; ylabel="u")
-lines!(ax, tvec, traj_ds[:, 1]; label = "autonomous")
-lines!(ax, tvec, traj_rs[:, 1]; label = "rate-forced")
+lines!(ax, tvec, traj_ds[:, 1]; label="autonomous")
+lines!(ax, tvec, traj_rs[:, 1]; label="rate-forced")
 axislegend(ax)
 fig
 
@@ -139,7 +135,7 @@ profiles = Dict(
 # to all variables:
 
 using StochasticDiffEq # required for `CoupledSDEs`
-sds = CoupledSDEs(ds, p; noise_strength = 0.2)
+sds = CoupledSDEs(ds, p; noise_strength=0.2)
 
 # Now that have our stochastic system let's visualize a couple of
 # trajectories (as this is a stochastic system each one will have different noise
@@ -148,7 +144,7 @@ sds = CoupledSDEs(ds, p; noise_strength = 0.2)
 fig = Figure()
 ax = Axis(fig[1, 1]; xlabel="time", ylabel="u")
 for _ in 1:3
-    traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
+    traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt=0.1)
     lines!(ax, 0:0.1:T, traj_sds[:, 1])
 end
 fig
@@ -162,15 +158,15 @@ fig
 function g(u, p, t)
     return @. p[6] .* u ./ (1 + t)
 end
-p2 = [1., 3., 1., 1., 1., 1.5] # Parameters (ϵ, β, α, γ, κ, I)
-sds_advanced = CoupledSDEs(fitzhugh_nagumo, u, p2; g = g)
+p2 = [1.0, 3.0, 1.0, 1.0, 1.0, 1.5] # Parameters (ϵ, β, α, γ, κ, I)
+sds_advanced = CoupledSDEs(fitzhugh_nagumo, u, p2; g=g)
 
 #
 
 fig = Figure()
-ax = Axis(fig[1, 1]; xlabel="time", ylabel="u", title = "advanced SDE")
+ax = Axis(fig[1, 1]; xlabel="time", ylabel="u", title="advanced SDE")
 for _ in 1:3
-    traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
+    traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt=0.1)
     lines!(ax, 0:0.1:T, traj_sds[:, 1])
 end
 fig
@@ -184,18 +180,18 @@ fig
 
 using Attractors
 
-grid = (range(-2, 2; length = 100), range(-2, 2; length = 100),)
+grid = (range(-2, 2; length=100), range(-2, 2; length=100))
 mapper = AttractorsViaRecurrences(ds, grid)
 boa = basins_of_attraction(mapper, grid)
 fig = heatmap_basins_attractors(boa)
 
 # We can visualize a couple of stochastic trajectories on top of the basins of attraction:
 
-ax = content(fig[1,1])
+ax = content(fig[1, 1])
 for _ in 1:4
-    traj_sds, = trajectory(sds, 400, [0.5, 0]; Δt = 0.1)
-    lines!(ax, traj_sds; color = (:green, 0.25))
-    scatter!(ax, traj_sds[1]; color = :green)
+    traj_sds, = trajectory(sds, 400, [0.5, 0]; Δt=0.1)
+    lines!(ax, traj_sds; color=(:green, 0.25))
+    scatter!(ax, traj_sds[1]; color=:green)
 end
 fig
 
@@ -211,7 +207,6 @@ fig
 # Compute minimum action path using gMAM algorithm:
 
 instanton = geometric_min_action_method(sys, initial_state, current_state(sys))
-
 
 # TODO: probable escale path something something.
 
