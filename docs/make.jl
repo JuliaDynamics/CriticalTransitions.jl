@@ -63,14 +63,17 @@ if Documenter.DOCUMENTER_VERSION >= v"1.3.0"
     html_options[:inventory_version] = package_version
 end
 
-modules = filter(!isnothing, [
-    CriticalTransitions,
-    DynamicalSystemsBase,
-    Attractors,
-    Base.get_extension(CriticalTransitions, :ChaosToolsExt),
-    Base.get_extension(CriticalTransitions, :AttractorsExt),
-    Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
-])
+modules = filter(
+    !isnothing,
+    [
+        CriticalTransitions,
+        DynamicalSystemsBase,
+        Attractors,
+        Base.get_extension(CriticalTransitions, :ChaosToolsExt),
+        Base.get_extension(CriticalTransitions, :AttractorsExt),
+        Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
+    ],
+)
 
 # Build docs
 build_docs_with_style(
