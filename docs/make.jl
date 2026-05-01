@@ -10,6 +10,10 @@ StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSyst
 ChaosToolsExt = Base.get_extension(CriticalTransitions, :ChaosToolsExt)
 CoupledSDEsBasin = Base.get_extension(CriticalTransitions, :CoupledSDEsBasin)
 
+if get(ENV, "CI", nothing) == "true"
+    include("make_md_examples.jl")
+end
+
 include("pages.jl")
 
 # Install style  of JuliaDynamics
