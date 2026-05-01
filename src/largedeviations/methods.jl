@@ -40,7 +40,7 @@ function GeometricGradient(;
     grow::Real=1.1,
     max_backtracks::Int=10,
     stepsize_min::Real=1e-12,
-    stepsize_max::Real=1e3,
+    stepsize_max::Real=Inf,
 )
     T = promote_type(
         typeof(stepsize),
@@ -85,8 +85,10 @@ function backtracking_optimize!(
 )
     backtracking = optimizer.max_backtracks > 0
     ntries = backtracking ? optimizer.max_backtracks + 1 : 1
-    stepsize = Float64(optimizer.stepsize)
-    current_action = Float64(initial_action)
+    stepsize = optimizer.stepsize
+    current_action = oftype(stepsize, initial_action)
+    consecutive_failures = 0
+    max_consecutive_failures = 5
 
     progress = Progress(maxiters; dt=0.5, enabled=show_progress)
     for i in 1:maxiters
@@ -104,7 +106,7 @@ function backtracking_optimize!(
                 restore!()
             end
 
-            S_trial = try_step!(ϵ_try)
+            S_trial = oftype(stepsize, try_step!(ϵ_try))
 
             if !backtracking || (isfinite(S_trial) && S_trial <= S_old)
                 accepted = true
@@ -123,14 +125,24 @@ function backtracking_optimize!(
             end
         end
 
-        if backtracking && !accepted
-            restore!()
-            current_action = S_old
-            stepsize = max(optimizer.stepsize_min, ϵ_try)
-            if stepsize <= optimizer.stepsize_min
-                verbose &&
-                    @info "Step-size search stalled at stepsize_min=$(optimizer.stepsize_min) after $i iterations."
-                break
+        if backtracking
+            if accepted
+                consecutive_failures = 0
+            else
+                restore!()
+                current_action = S_old
+                stepsize = max(optimizer.stepsize_min, ϵ_try)
+                consecutive_failures += 1
+                if stepsize <= optimizer.stepsize_min
+                    verbose &&
+                        @info "Step-size search stalled at stepsize_min=$(optimizer.stepsize_min) after $i iterations."
+                    break
+                end
+                if consecutive_failures >= max_consecutive_failures
+                    verbose &&
+                        @info "Step-size search stalled: $consecutive_failures consecutive backtrack failures after $i iterations."
+                    break
+                end
             end
         end
 

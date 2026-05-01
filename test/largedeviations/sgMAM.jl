@@ -163,21 +163,24 @@ end
     @test res.action <= S0 + 1e-10
 
     # Multi-iteration: backtracking should converge to a lower action than the initial path
+    bt_max_backtracks = 20
+    bt_maxiters = 200
     res_bt = minimize_simple_geometric_action(
         sys,
         x_initial,
-        GeometricGradient(; max_backtracks=20, stepsize=1.0);
-        maxiters=200,
+        GeometricGradient(; max_backtracks=bt_max_backtracks, stepsize=1.0);
+        maxiters=bt_maxiters,
         show_progress=false,
     )
     @test res_bt.action < S0
 
-    # No-backtracking baseline with the same stepsize and iterations
+    # Fairness baseline: no-backtracking gets the same total trial-step budget
+    # as the backtracking run could consume (max_backtracks+1 trials per outer iter).
     res_no_bt = minimize_simple_geometric_action(
         sys,
         x_initial,
         GeometricGradient(; max_backtracks=0, stepsize=1.0);
-        maxiters=200,
+        maxiters=bt_maxiters * (bt_max_backtracks + 1),
         show_progress=false,
     )
     # Backtracking should reach at least as good (or better) action
