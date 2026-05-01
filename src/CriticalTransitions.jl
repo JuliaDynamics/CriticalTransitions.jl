@@ -31,6 +31,7 @@ using DynamicalSystemsBase:
     initial_parameters,
     current_parameter,
     current_parameters,
+    set_parameters!,
     initial_time,
     integrator
 
@@ -102,6 +103,6 @@ export transition, transitions
 
 export ForcingProfile, RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
-export frozen_system
+export frozen_system, parameters
 
 end # module CriticalTransitions
