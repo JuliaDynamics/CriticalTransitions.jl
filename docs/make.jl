@@ -24,7 +24,7 @@ include("build_docs_with_style.jl")
 using DocumenterCitations
 using DocumenterInterLinks
 
-bib = CitationBibliography(joinpath(@__DIR__, "refs.bib"); style=:authoryear)
+bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style=:authoryear)
 
 links = InterLinks(
     "DynamicalSystemsBase" => "https://juliadynamics.github.io/DynamicalSystemsBase.jl/stable/",
