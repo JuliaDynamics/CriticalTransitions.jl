@@ -1,11 +1,38 @@
-# TODO: Generalize to multi-parameter
-# In general, all instances of parameters that are just `Real`
-# must be made into `Vector{Pair{IDX, Real}}` with `IDX` the index type
-# This also decreases the number of fields as we dont need different fields
-# for different parameters. we can have a single `pspec` for pawrameter specification
-# that is `Vector{Pair{IDX, Real}}`. Or it can be a `Vector{Dict}`. In
-# general anything that can be given to `set_parameters!`. So we cross ref that
-# docstring and everything becomes simple and unified and harmonious...
+"""
+    ForcingProfile(profile::Function, interval)
+
+Time-dependent forcing profile ``p(t)`` describing the evolution of a parameter over a
+domain interval `interval = (start, end)`. Used to define a parametric forcing when
+constructing a non-autonomous [`RateSystem`](@ref).
+
+## Keyword arguments
+
+- `profile`: function ``p(t)`` from ``ℝ → ℝ`` describing the parameter change
+- `interval`: domain interval over which the `profile` is considered
+
+Note: The units of ``t`` are arbitrary; the forcing profile is rescaled to system time units.
+
+## Convenience functions
+
+- `ForcingProfile(:linear)`: Create a linear ramp from 0 to 1.
+- `ForcingProfile(:tanh)`: Create a hyperbolic tangent ramping
+  from 0 to 1 with interval (-3, 3).
+"""
+struct ForcingProfile{F,T<:Real}
+    profile::F
+    interval::Tuple{T,T}
+end
+
+# Convenience constructors for ForcingProfile
+function ForcingProfile(sym::Symbol)
+    if sym == :linear
+        return ForcingProfile(x -> x, (0.0, 1.0))
+    elseif sym == :tanh
+        return ForcingProfile(x -> tanh(x)/2 + 0.5, (-3.0, 3.0))
+    else
+        error("Only :linear or :tanh are supported input arguments.")
+    end
+end
 
 """
     RateSystemSpecs <: Function
@@ -23,6 +50,7 @@ mutable struct RateSystemSpecs{R,F,P,T} <: Function
     pidx::P # make this a vector
     "Forcing profile"
     fp::ForcingProfile{F,T}
+    # TODO: Change all of these into dictionaries, same style as forcers
     "Start time of parametric forcing"
     forcing_start_time::T
     "Duration of parametric forcing"
@@ -33,34 +61,55 @@ mutable struct RateSystemSpecs{R,F,P,T} <: Function
     p0::T # make this a vector
     "Initial time (of system initiation)"
     t0::T
+    "Dummy container"
+    pdummy::Any
 end
 
 """
     RateSystem <: ContinuousTimeDynamicalSystem
-    RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kwargs...)
+    RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kw...)
 
 A non-autonomous dynamical system constructed by applying a time-dependent parametric
-forcing protocol ([`ForcingProfile`](@ref)) to an underlying autonomous continuous-time
-dynamical system `ds`.
+forcing protocol(s) to an underlying autonomous continuous-time dynamical system `ds`.
 
-The `ForcingProfile`, applied to the parameter with index `pidx`, describes the functional
-form of the parameter evolution over a given `interval`. This interval is rescaled
-in system time units by defining its start time (`forcing_start_time`) and duration
-(`forcing_duration`). The magnitude of the forcing can be adjusted by scaling the
-forcing profile by a factor `forcing_scale`.
+The parameter of the system with index `pidx` will be forced according to the given
+[`ForcingProfile`](@ref). The `ForcingProfile` describes the functional form of the parameter
+evolution over a given `interval`. See below for forcing multiple parameters.
 
-The integer `pidx` refers to the relevant index of the parameter container `p` of `ds`.
+## Keyword arguments
+
+- `forcing_start_time = fp.interval[1]`: Time when parameter change starts.
+- `forcing_duration = fp.interval[2] - fp.interval[1]`:
+   Duration of the parameter change (in system time units).
+- `forcing_scale = 1.0`: Amplitude multiplication factor of the forcing protocol.
+- `t0 = 0.0`: Initial time of the system.
+
+The functions [`set_forcing_start!`](@ref), [`set_forcing_duration`](@ref), and
+[`set_forcing_scale`](@ref) can be used to update the forcing after system creation.
+
+## Description
+
+The time interval (in units of `ds`) where forcing applied is from
+`forcing_start_time` to `forcing_duration`. As such, the `interval` given
+of the [`ForcingProfile`](@ref) is rescaled in system time units; its purpose is only
+to establish the functional form of the forcing.
+The parameter value starts at `p0 = current_parameter(ds, pidx)`.
+Its maximum value is given by the maximum of the forcing function given to the
+[`ForcingProfile`](@ref), multiplied by `forcing_scale`.
 
 Before `t = forcing_start_time`, the system parameters correspond to that of the
 underlying autonomous system `ds`. At the end of the forcing interval
-(`t = forcing_start_time + forcing_duration`), the parameters are frozen at their current
+(`t = forcing_start_time + forcing_duration`), the parameters are frozen at their final
 value and thereafter the system is again autonomous.
 
-## Keyword arguments
-- `forcing_start_time = fp.interval[1]`: Time when parameter change starts
-- `forcing_duration = fp.interval[2] - fp.interval[1]`: Duration of the parameter change (in system time units)
-- `forcing_scale = 1.0`: Amplitude multiplication factor of the forcing protocol
-- `t0 = 0.0`: Initial time of the system
+## Multiple parameters
+
+    RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profiles::Dict; kw...)
+
+Use the above signature with `forcing_profiles` a dictionary mapping parameter indices
+(anything valid for `set_parameter!`) to [`ForcingProfile`](@ref) instances, one
+for each parameter. In this scenario the keywords `forcing_start_time, forcing_duration,
+forcing_scale` also become dictionaries mapping parameter indices to the respective values.
 """
 struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
@@ -69,31 +118,35 @@ struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
     forcing::RateSystemSpecs{F,P,T}
 end
 
+function RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kw...)
+    forcer = Dict(pidx => fp)
+
+    return RateSystem(ds, forcer; kw...)
+end
+
 function RateSystem(
     ds::ContinuousTimeDynamicalSystem,
-    fp::ForcingProfile,
-    pidx::P;
-    forcing_start_time::T=initial_time(ds),
-    forcing_duration::T=(fp.interval[2] - fp.interval[1]),
-    forcing_scale::T=1.0,
-    t0::T=initial_time(ds),
-) where {P,T<:Real}
+    forcer::Dict;
+    forcing_start_time=initial_time(ds),
+    forcing_duration=(fp.interval[2] - fp.interval[1]),
+    forcing_scale=1.0,
+    t0=initial_time(ds),
+)
+
+    # TODO:
+    starting_times = Dict(k => number for k in keys(forcer))
+
+    error("Complete this using `forcer`.")
+
     (forcing_start_time >= t0) ||
         throw("The forcing cannot start before the system's initial time `t0`
               but your forcing_start_time ($(forcing_start_time)) < t0 ($(t0)).")
 
-    # TODO: Make p0 a vector
+    # TODO: allow multi parameter
     p0 = current_parameter(ds, pidx)
-    rss = RateSystemSpecs(
-        dynamic_rule(ds),
-        pidx,
-        fp,
-        forcing_start_time,
-        forcing_duration,
-        forcing_scale,
-        p0,
-        t0,
-    )
+    # promote
+    a, b, c = float.((forcing_start_time, forcing_duration, forcing_scale))
+    rss = RateSystemSpecs(dynamic_rule(ds), pidx, fp, a, b, c, p0, t0)
 
     # TODO: Do we want the rate system to have the same parameter container,
     # or a deep copy of it...? Derivative systems in DynamicalSystems.jl
@@ -103,47 +156,68 @@ function RateSystem(
     return RateSystem(newds, rss)
 end
 
+# TODO: this must be rewritten using `set_parameter!` or its source code.
+# otherwise it doesn't work with ModelingToolkit.jl;
+# Or better yet, use `set_parameters!` and give a dict of parameters to set?
 function (rss::RateSystemSpecs)(u, p, t)
-    # TODO: this should be rewritten with `current_parameter`
-    p_at_t = p_modified(rss, t)
-    if p isa Union{AbstractArray,AbstractDict}
-        setindex!(p, p_at_t, rss.pidx)
-    else
-        setproperty!(p, rss.pidx, p_at_t)
-    end
-    # TODO: This doesn't work if the dynamical system is in-place...
-    # We need to multi-dispatch one more version of `(rss::)` function with 4 arguments
-    return rss.unforced_rule(u, p, rss.t0)
+    p_modified!(rss, t)
+    return rss.unforced_rule(u, rss.p, rss.t0)
+end
+
+function (rss::RateSystemSpecs)(du, u, p, t)
+    p_modified!(rss, t)
+    return rss.unforced_rule(du, u, rss.p, rss.t0)
 end
 
 # Returns the non-autonomous system's parameter value at time t
-function p_modified(rss::RateSystemSpecs, t::Real)
+function p_modified!(rss::RateSystemSpecs, t::Real)
+    error("fix me")
+    pdummy = rss.pdummy
+    rss.p0
+    # update p dummy to its time dependent version
+
+    error("fix me")
+
     # TODO: Make `p0` vector, and make the function re-write a dummy vector of time dependent parameters
-    p0 = rss.p0
-    f = rss.fp.profile
-    section_start = rss.fp.interval[1]
-    section_end = rss.fp.interval[2]
-    # making the function piecewise constant with range [p0,p0+forcing_scale]
-    if t ≤ rss.forcing_start_time
-        return p0
-    else
-        if t < rss.forcing_start_time + rss.forcing_duration
-            # performing the time shift corresponding to stretching/squeezing
-            time_shift =
-                ((section_end - section_start) / rss.forcing_duration) *
-                (t - rss.forcing_start_time) + section_start
-            return p0 + rss.forcing_scale*(f(time_shift) - f(section_start))
+
+    for (pkey, profile) in rss.forcers
+        p0 = current_parameter(ds, pkey)
+        f = profile.profile
+
+        # rest is the same
+
+        section_start = rss.fp.interval[1]
+        section_end = rss.fp.interval[2]
+        # making the function piecewise constant with range [p0, p0+forcing_scale]
+        if t ≤ rss.forcing_start_time
+            pt = p0
         else
-            return p0 + rss.forcing_scale*(f(section_end) - f(section_start))
+            if t < rss.forcing_start_time + rss.forcing_duration
+                # performing the time shift corresponding to stretching/squeezing
+                time_shift =
+                    ((section_end - section_start) / rss.forcing_duration) *
+                    (t - rss.forcing_start_time) + section_start
+                pt = p0 + rss.forcing_scale*(f(time_shift) - f(section_start))
+            else
+                pt = p0 + rss.forcing_scale*(f(section_end) - f(section_start))
+            end
         end
+
+        # update pdummy `pkey` entry to `pt`
     end
+    # and p is the actual parameter container of the ds
+    set_parameters!(ds, pdummy, rss.p) # not sure if the correct container is rss.p
+    return nothing
 end
 
+# TODO: ensure all three key update functions follow the optional [, pidx] syntax
+# for multi parameters.
 """
-$(TYPEDSIGNATURES)
+    set_forcing_scale!(rs::RateSystem, scale [, pidx])
 
-Sets the amplitude (`forcing_scale`) of the forcing protocol applied to
-the [`RateSystem`](@ref) `rs`.
+Sets the amplitude (`forcing_scale`) of the forcing of the [`RateSystem`](@ref) to `scale`.
+For multiple parameters, if `pidx` is given, change the forcing only corresponding to
+the specified parameter, otherwise update the forcing scale of _all_ parameters to `scale.`
 """
 function set_forcing_scale!(rs::RateSystem, scale)
     rs.forcing.forcing_scale = scale
@@ -173,13 +247,14 @@ function set_forcing_start!(rs::RateSystem, start_time)
 end
 
 """
-$(TYPEDSIGNATURES)
+    current_parameters(rs::RateSystem, t)
 
 Returns the parameter vector of a [`RateSystem`](@ref) at time `t` (in system time units).
+Note: this function returns a copy of the original parameter container.
 """
-function parameters(rs::RateSystem, t)
+function DynamicalSystemsBase.current_parameters(rs::RateSystem, t)
     p = deepcopy(current_parameters(rs))
-    # TODO: Doesn't work for vector parameters
+    # TODO: Doesn't work for struct parameters, use generic function from DynamicalSystemsBase
     p[rs.forcing.pidx] = p_modified(rs.forcing, t)
     return p
 end
@@ -187,7 +262,7 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Returns an autonomous dynamical system of type [`DynamicalSystemsBase.CoupledODEs`](@ref) 
+Returns an autonomous dynamical system of type [`DynamicalSystemsBase.CoupledODEs`](@ref)
 corresponding to the frozen system of the non-autonomous [`RateSystem`](@ref) `rs` at
 time `t`.
 """
