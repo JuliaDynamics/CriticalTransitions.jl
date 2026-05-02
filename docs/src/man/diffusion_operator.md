@@ -149,6 +149,15 @@ Each axis is `(lo, hi, N)`. Per-axis spacing may differ.
 CartesianGrid
 ```
 
+A handful of small accessors are available (non-exported — use them via
+`CriticalTransitions.ncells(grid)` or import explicitly):
+
+```@docs
+CriticalTransitions.ncells
+CriticalTransitions.cell_volume
+CriticalTransitions.cell_center
+```
+
 ### Layer 2 — the discretised operator
 
 ```julia
@@ -206,6 +215,8 @@ matrix-exponential action `ρ(t) = exp(t·Qᵀ)·ρ₀`. The signature mirrors
 interval `Δt`, optional transient `Ttr`:
 
 ```julia
+using CriticalTransitions: ncells, cell_volume
+
 ρ_0 = zeros(ncells(gen)); ρ_0[i_start] = 1 / cell_volume(gen)   # point mass
 
 ρs, t = propagate_density(gen, 5.0, ρ_0)               # endpoints only: t = [0, 5]

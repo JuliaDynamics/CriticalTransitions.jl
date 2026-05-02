@@ -119,6 +119,22 @@ end
 @inline forward_committor(r::ReactiveTransition) = r.qplus
 @inline backward_committor(r::ReactiveTransition) = r.qminus
 @inline stationary_distribution(r::ReactiveTransition) = r.ρ
+
+"""
+$(TYPEDSIGNATURES)
+
+A → B **reactive transition rate** ``k_{AB}``: events per unit time, the
+rate at which probability leaves `A` along reactive trajectories. Cached
+on the [`ReactiveTransition`](@ref) — constant-time field read.
+
+In CTMC form,
+
+    k_{AB} = ∑_{i ∈ A, j ∉ A} ρ[i] · v · q⁻[i] · Q[i, j] · q⁺[j] ,
+
+with `v = cell_volume(grid)`. By Vanden-Eijnden's identity the sum over
+`{i ∉ B, j ∈ B}` (the boundary of `B`) gives the same value to solver
+tolerance.
+"""
 @inline reactive_rate(r::ReactiveTransition) = r.rate
 
 """
