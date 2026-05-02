@@ -15,7 +15,7 @@ using Plots, Printf
 # The system's deterministic dynamics are given by:
 
 # Define the vector field
-f(u, v) = [u - u^3 - 10*u*v^2, -(1 - u^2)*v]
+f(u, v) = [u - u^3 - 10 * u * v^2, -(1 - u^2) * v]
 f(x) = f(x...)
 nothing # hide
 
@@ -43,21 +43,21 @@ nothing # hide
 
 T = 50 # Time horizon
 
-x1(t) = -(1 - t/T) + t/T # Linear interpolation for x₁
+x1(t) = -(1 - t / T) + t / T # Linear interpolation for x₁
 x2(t) = 0.3(-x1(t)^2 + 1) # Parabolic guess for x₂
 
 x(t) = [x1(t), x2(t)]
 u(t) = f(x(t))
 
-init = (state=x, control=u) # Initial guess
+init = (state = x, control = u) # Initial guess
 nothing # hide
 
 # ## Solving the Problem
 
 # We solve the problem in two steps for better accuracy:
 
-sol = solve(ocp(T); init=init, grid_size=50) # First solve with coarse grid
-sol = solve(ocp(T); init=sol, grid_size=1000) # Refine solution
+sol = solve(ocp(T); init = init, grid_size = 50) # First solve with coarse grid
+sol = solve(ocp(T); init = sol, grid_size = 1000) # Refine solution
 objective(sol) # Objective value
 
 # ## Visualizing Results
@@ -70,10 +70,10 @@ MLP = state(sol).(time_grid(sol))
 scatter(
     first.(MLP),
     last.(MLP);
-    title="Minimal Action Path",
-    xlabel="u",
-    ylabel="v",
-    label="Transition path",
+    title = "Minimal Action Path",
+    xlabel = "u",
+    ylabel = "v",
+    label = "Transition path",
 ) # Phase space plot
 
 # The resulting path shows the most likely transition between the two stable states given a transient time $T=50$, minimizing the action functional while respecting the system's dynamics.
@@ -84,10 +84,10 @@ scatter(
 
 objectives = []
 Ts = range(1, 100, 30)
-sol = solve(ocp(Ts[1]); display=false, init=init, grid_size=50)
+sol = solve(ocp(Ts[1]); display = false, init = init, grid_size = 50)
 println(" Time   Objective     Iterations")
 for T in Ts
-    global sol = solve(ocp(T); display=false, init=sol, grid_size=1000, tol=1e-8)
+    global sol = solve(ocp(T); display = false, init = sol, grid_size = 1000, tol = 1.0e-8)
     @printf("%6.2f  %9.6e  %d\n", T, objective(sol), iterations(sol))
     push!(objectives, objective(sol))
 end
@@ -95,10 +95,10 @@ end
 #
 
 T_min = Ts[argmin(objectives)]
-plt1 = scatter(Ts, log10.(objectives); xlabel="Time", label="Objective (log10)")
-vline!(plt1, [T_min]; label="Minimum", z_order=:back)
+plt1 = scatter(Ts, log10.(objectives); xlabel = "Time", label = "Objective (log10)")
+vline!(plt1, [T_min]; label = "Minimum", z_order = :back)
 plt2 = scatter(
-    Ts[10:30], log10.(objectives[10:30]); xlabel="Time", label="Objective (log10)"
+    Ts[10:30], log10.(objectives[10:30]); xlabel = "Time", label = "Objective (log10)"
 )
-vline!(plt2, [T_min]; label="Minimum", z_order=:back)
-plot(plt1, plt2; layout=(2, 1), size=(800, 800))
+vline!(plt2, [T_min]; label = "Minimum", z_order = :back)
+plot(plt1, plt2; layout = (2, 1), size = (800, 800))

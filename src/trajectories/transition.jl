@@ -25,21 +25,21 @@ is initialized with this seed. To change the seed you can pass a new seed to the
 See also [`transitions`](@ref), [`trajectory`](@ref).
 """
 function transition(
-    sys::CoupledSDEs,
-    x_i,
-    x_f;
-    radii::NTuple{2}=(0.1, 0.1),
-    tmax=1e3,
-    radius_directions=1:length(current_state(sys)),
-    cut_start=true,
-    kwargs...,
-)
+        sys::CoupledSDEs,
+        x_i,
+        x_f;
+        radii::NTuple{2} = (0.1, 0.1),
+        tmax = 1.0e3,
+        radius_directions = 1:length(current_state(sys)),
+        cut_start = true,
+        kwargs...,
+    )
     rad_i, rad_f = radii
     prob, cb_ball = prepare_transition_problem(
         sys, (x_i, x_f), radii, radius_directions, tmax
     )
 
-    sim = solve(prob, solver(sys); callback=cb_ball, kwargs...)
+    sim = solve(prob, solver(sys); callback = cb_ball, kwargs...)
     success = sim.retcode == SciMLBase.ReturnCode.Terminated
 
     if success && cut_start
@@ -52,15 +52,15 @@ end
 function prepare_transition_problem(sys, x, radii, radius_directions, tmax)
     x_i, x_f = x
     _, rad_f = radii
-    condition(u, t, integrator) = subnorm(u - x_f; directions=radius_directions) < rad_f
+    condition(u, t, integrator) = subnorm(u - x_f; directions = radius_directions) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
-    prob = remake(sys.integ.sol.prob; u0=x_i, tspan=(0, tmax))
+    prob = remake(sys.integ.sol.prob; u0 = x_i, tspan = (0, tmax))
     return prob, cb_ball
 end
 
 function remove_start(sol, idx)
-    ConstructionBase.setproperties(sol; u=sol.u[idx:end], t=sol.t[idx:end])
+    return ConstructionBase.setproperties(sol; u = sol.u[idx:end], t = sol.t[idx:end])
 end
 function remove_start(sol, x_i, rad_i)
     idx = size(sol)[2]
@@ -102,19 +102,19 @@ Returns a [`TransitionEnsemble`](@ref) object.
 
 """
 function transitions(
-    sys::CoupledSDEs,
-    x_i,
-    x_f,
-    N::Int=1;
-    radii::NTuple{2}=(0.1, 0.1),
-    tmax=1e3,
-    Nmax=100,
-    cut_start=true,
-    radius_directions=1:length(current_state(sys)),
-    show_progress::Bool=true,
-    EnsembleAlg=EnsembleThreads()::SciMLBase.EnsembleAlgorithm,
-    kwargs...,
-)
+        sys::CoupledSDEs,
+        x_i,
+        x_f,
+        N::Int = 1;
+        radii::NTuple{2} = (0.1, 0.1),
+        tmax = 1.0e3,
+        Nmax = 100,
+        cut_start = true,
+        radius_directions = 1:length(current_state(sys)),
+        show_progress::Bool = true,
+        EnsembleAlg = EnsembleThreads()::SciMLBase.EnsembleAlgorithm,
+        kwargs...,
+    )
     prob, cb_ball = prepare_transition_problem(
         sys, (x_i, x_f), radii, radius_directions, tmax
     )
@@ -143,18 +143,18 @@ function transitions(
     function prob_func(prob, i, repeat)
         return remake(
             prob;
-            seed=rand(Random.MersenneTwister(seed + i + repeat), UInt32),
-            tspan=(0, tmax),
+            seed = rand(Random.MersenneTwister(seed + i + repeat), UInt32),
+            tspan = (0, tmax),
         )
     end
 
-    ensemble = SciMLBase.EnsembleProblem(prob; output_func=output_func, prob_func=prob_func)
+    ensemble = SciMLBase.EnsembleProblem(prob; output_func = output_func, prob_func = prob_func)
     sim = solve(
         ensemble,
         solver(sys),
         EnsembleAlg;
-        callback=cb_ball,
-        trajectories=min(N, Nmax),
+        callback = cb_ball,
+        trajectories = min(N, Nmax),
         kwargs...,
     )
 

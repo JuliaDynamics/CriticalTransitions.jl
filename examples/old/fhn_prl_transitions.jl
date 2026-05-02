@@ -10,8 +10,8 @@ sigmas = [0.0784, 0.119, 0.1199, 0.08];
 start = [sqrt(2 / 3), sqrt(2 / 27)];
 final = -start;
 N = 100;
-dt = [2e-3, 1e-2, 1e-2, 1e-2];
-tmax = 1e3;
+dt = [2.0e-3, 1.0e-2, 1.0e-2, 1.0e-2];
+tmax = 1.0e3;
 Nmax = 100000;
 rad_i = 0.03;
 rad_f = 0.1;
@@ -28,12 +28,12 @@ for i in 1:length(epsilons)
         start,
         final,
         N;
-        dt=dt[i],
-        tmax=tmax,
-        Nmax=Nmax,
-        rad_i=rad_i,
-        rad_f=rad_f,
-        output_level=2,
+        dt = dt[i],
+        tmax = tmax,
+        Nmax = Nmax,
+        rad_i = rad_i,
+        rad_f = rad_f,
+        output_level = 2,
     )
     save_object("230411_fhn_prl_transitions_eps$(epsilons[i]).jld", res[epsilons[i]])
 end

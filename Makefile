@@ -3,10 +3,11 @@ JULIA:=julia
 default: help
 
 setup:
-	${JULIA} -e 'import Pkg; Pkg.add(["JuliaFormatter", "Changelog", "LiveServer", "BenchmarkTools"])'
+	${JULIA} -e 'import Pkg; Pkg.Apps.add("Runic")'
+	${JULIA} -e 'import Pkg; Pkg.add(["Changelog", "LiveServer", "BenchmarkTools"])'
 
 format:
-	${JULIA} -e 'using JuliaFormatter; format(".")'
+	git ls-files -z -- '*.jl' | xargs -0 --no-run-if-empty runic --inplace
 
 servedocs:
 	${JULIA} --project=docs -e 'using LiveServer; LiveServer.servedocs()'
@@ -27,7 +28,7 @@ all: setup format test docs bench
 help:
 	@echo "The following make commands are available:"
 	@echo " - make setup: install the dependencies for make command"
-	@echo " - make format: format codes with JuliaFormatter"
+	@echo " - make format: format codes with Runic"
 	@echo " - make test: run the tests"
 	@echo " - make docs: instantiate and build the documentation"
 	@echo " - make servedocs: serve the documentation locally"

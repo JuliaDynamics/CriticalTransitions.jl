@@ -84,8 +84,14 @@ ii) documentation, iii) a note in the [CHANGELOG.md](CHANGELOG.md) file.
 
 ### Code formatting
 
-CriticalTransitions uses [JuliaFormatter.jl][juliaformatter] for code formatting. You can
-format the code by running:
+CriticalTransitions uses [Runic.jl][runic] for code formatting. Install Runic once as a Pkg
+app (Julia 1.12+) so the `runic` binary is available in any environment:
+
+```julia
+using Pkg; Pkg.Apps.add("Runic")
+```
+
+Make sure `~/.julia/bin` is on your `PATH`. Then format the code with:
 
 ```shell
 make format
@@ -93,13 +99,12 @@ make format
 
 or manually with:
 
-```julia
-using JuliaFormatter; format(".")
+```shell
+runic --inplace .
 ```
 
-The project uses the Blue style guide (see [`.JuliaFormatter.toml`](.JuliaFormatter.toml)
-for configuration). All pull requests are automatically checked for proper formatting via
-GitHub Actions.
+Runic enforces a single fixed style with no configuration options. All pull requests are
+automatically checked for proper formatting via GitHub Actions.
 
 ### Testing
 
@@ -122,8 +127,8 @@ please include appropriate tests to verify the new code works as expected.
 [first-contributions]: https://github.com/firstcontributions/first-contributions
 [gh-edit-files]: https://docs.github.com/en/repositories/working-with-files/managing-files/editing-files#editing-files-in-another-users-repository
 [julia-doc]: https://docs.julialang.org/en/v1/manual/documentation/
-[juliaformatter]: https://github.com/domluna/JuliaFormatter.jl
 [literate]: https://fredrikekre.github.io/Literate.jl/v2/
+[runic]: https://github.com/fredrikekre/Runic.jl
 [liveserver]: https://github.com/tlienart/LiveServer.jl
 [new-discussion]: https://github.com/JuliaDynamics/CriticalTransitions.jl/discussions/new
 [new-issue]: https://github.com/JuliaDynamics/CriticalTransitions.jl/issues/new

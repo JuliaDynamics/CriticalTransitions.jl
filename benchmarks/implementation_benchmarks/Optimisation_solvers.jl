@@ -12,10 +12,10 @@ function callback(state, loss)
     return false
 end
 sol = solve(prob, Optimization.LBFGS()) # changes state
-sol = solve(prob, Optimization.LBFGS(); callback=callback) # changes state
-sol = solve(prob, Optimisers.Adam(); callback=callback, maxiters=100_000) # changes state
-sol = solve(prob, Optimisers.AdamW(); callback=callback, maxiters=100_000) # changes state
-sol = solve(prob, NLopt.LD_LBFGS(); callback=callback, maxiters=100_000) # changes state
-sol = solve(prob, Optim.LBFGS(); callback=callback, maxiters=100_000) # does not change state
-sol = solve(prob, Optim.GradientDescent(); callback=callback, maxiters=100_000) # does not change state
-sol = solve(prob, OptimizationOptimJL.LBFGS(); callback=callback) # does not change state
+sol = solve(prob, Optimization.LBFGS(); callback = callback) # changes state
+sol = solve(prob, Optimisers.Adam(); callback = callback, maxiters = 100_000) # changes state
+sol = solve(prob, Optimisers.AdamW(); callback = callback, maxiters = 100_000) # changes state
+sol = solve(prob, NLopt.LD_LBFGS(); callback = callback, maxiters = 100_000) # changes state
+sol = solve(prob, Optim.LBFGS(); callback = callback, maxiters = 100_000) # does not change state
+sol = solve(prob, Optim.GradientDescent(); callback = callback, maxiters = 100_000) # does not change state
+sol = solve(prob, OptimizationOptimJL.LBFGS(); callback = callback) # does not change state

@@ -28,20 +28,20 @@ action via [`geometric_action`](@ref). For drift-only systems (e.g. `sys::Functi
 same geometric action is computed assuming an identity noise covariance.
 """
 function string_method(
-    sys::Union{ExtendedPhaseSpace,Function},
-    x_initial::Matrix;
-    stepsize::Real=1e-1,
-    integrator=Euler(),
-    maxiters::Int=1000,
-    show_progress::Bool=false,
-)
+        sys::Union{ExtendedPhaseSpace, Function},
+        x_initial::Matrix;
+        stepsize::Real = 1.0e-1,
+        integrator = Euler(),
+        maxiters::Int = 1000,
+        show_progress::Bool = false,
+    )
     Nx, Nt = size(x_initial)
-    s = range(0; stop=1, length=Nt)
+    s = range(0; stop = 1, length = Nt)
     x, alpha = init_allocation_string(x_initial, Nt)
 
-    integ = _init_string_integrator(sys, x; ϵ=stepsize, alg=integrator)
+    integ = _init_string_integrator(sys, x; ϵ = stepsize, alg = integrator)
 
-    progress = Progress(maxiters; dt=0.5, enabled=show_progress)
+    progress = Progress(maxiters; dt = 0.5, enabled = show_progress)
     for i in 1:maxiters
         _sciml_step!(x, integ, stepsize)
         # reset initial and final points to allow for string computation
@@ -52,7 +52,7 @@ function string_method(
         # reparameterize to arclength
         interpolate_path!(x, alpha, s)
 
-        next!(progress; showvalues=[("iterations", i)])
+        next!(progress; showvalues = [("iterations", i)])
     end
 
     path_sss = StateSpaceSet(x')
@@ -108,20 +108,20 @@ function string_method(sys::CoupledSDEs, init; kwargs...)
 end
 
 function string_method(
-    b::Union{ExtendedPhaseSpace,Function},
-    x_initial::StateSpaceSet{D};
-    stepsize::Real=1e-1,
-    integrator=Euler(),
-    maxiters::Int=1000,
-    show_progress::Bool=false,
-) where {D}
+        b::Union{ExtendedPhaseSpace, Function},
+        x_initial::StateSpaceSet{D};
+        stepsize::Real = 1.0e-1,
+        integrator = Euler(),
+        maxiters::Int = 1000,
+        show_progress::Bool = false,
+    ) where {D}
     x_initial_m, Nt = _string_matrix(x_initial)
-    s = range(0; stop=1, length=Nt)
+    s = range(0; stop = 1, length = Nt)
 
     x, alpha = init_allocation_string(x_initial_m, Nt)
-    integ = _init_string_integrator(b, x; ϵ=stepsize, alg=integrator)
+    integ = _init_string_integrator(b, x; ϵ = stepsize, alg = integrator)
 
-    progress = Progress(maxiters; dt=0.5, enabled=show_progress)
+    progress = Progress(maxiters; dt = 0.5, enabled = show_progress)
     for i in 1:maxiters
         _sciml_step!(x, integ, stepsize)
 
@@ -133,7 +133,7 @@ function string_method(
         # reparameterize to arclength
         interpolate_path!(x, alpha, s)
 
-        next!(progress; showvalues=[("iterations", i)])
+        next!(progress; showvalues = [("iterations", i)])
     end
 
     path_sss = StateSpaceSet(x')
@@ -221,12 +221,12 @@ function _init_string_integrator(sys::Function, x::Matrix; ϵ::Real, alg)
     return SciMLBase.init(
         prob,
         alg;
-        adaptive=false,
-        dt=float(ϵ),
-        save_everystep=false,
-        save_start=false,
-        save_end=false,
-        dense=false,
+        adaptive = false,
+        dt = float(ϵ),
+        save_everystep = false,
+        save_start = false,
+        save_end = false,
+        dense = false,
     )
 end
 
@@ -257,17 +257,17 @@ function _init_string_integrator(sys::ExtendedPhaseSpace, x::Matrix; ϵ::Real, a
     return SciMLBase.init(
         prob,
         alg;
-        adaptive=false,
-        dt=float(ϵ),
-        save_everystep=false,
-        save_start=false,
-        save_end=false,
-        dense=false,
+        adaptive = false,
+        dt = float(ϵ),
+        save_everystep = false,
+        save_start = false,
+        save_end = false,
+        dense = false,
     )
 end
 
 function _sciml_step!(x::Matrix, integ, ϵ::Real)
-    SciMLBase.reinit!(integ, x; t0=0.0, tf=float(ϵ), erase_sol=true, reset_dt=false)
+    SciMLBase.reinit!(integ, x; t0 = 0.0, tf = float(ϵ), erase_sol = true, reset_dt = false)
     SciMLBase.step!(integ, float(ϵ), true)
     copyto!(x, integ.u)
     return nothing

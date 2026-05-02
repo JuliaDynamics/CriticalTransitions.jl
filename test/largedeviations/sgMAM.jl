@@ -5,19 +5,19 @@ using LinearAlgebra
 
 @testset "ExtendedPhaseSpace KPO" begin
     λ = 3 / 1.21 * 2 / 295
-    ω0 = 1.000
-    ω = 1.000
+    ω0 = 1.0
+    ω = 1.0
     γ = 1 / 295
     η = 0
     α = -1
 
     function fu(u, v)
         return (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
-               (8 * ω)
+            (8 * ω)
     end
     function fv(u, v)
         return (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
-               (8 * ω)
+            (8 * ω)
     end
 
     dfvdv(u, v) = (-4 * γ * ω + 6 * α * u * v) / (8 * ω)
@@ -48,10 +48,10 @@ using LinearAlgebra
 
     eqs = [D(u) ~ fu(u, v), D(v) ~ fv(u, v)]
     @mtkcompile sysMTK = System(eqs, t)
-    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac=true)
+    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac = true)
     ds = CoupledODEs(prob)
 
-    sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
+    sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
     sys′ = ExtendedPhaseSpace(ds)
 
     Nt = 500  # number of discrete time steps
@@ -80,14 +80,14 @@ end
 
     eqs = [
         D(u) ~
-        (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
-        (8 * ω),
+            (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
+            (8 * ω),
         D(v) ~
-        (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
-        (8 * ω),
+            (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
+            (8 * ω),
     ]
     @mtkcompile sysMTK = System(eqs, t)
-    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac=true)
+    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac = true)
     ds = CoupledODEs(prob)
     sys = ExtendedPhaseSpace(ds)
 
@@ -98,17 +98,17 @@ end
 @testset "sgMAM GeometricGradient" begin
     H_x(x, p) = zeros(size(x))
     H_p(x, p) = ones(size(x))
-    sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
+    sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
 
-    xx = collect(range(-1.0, 1.0; length=20))
+    xx = collect(range(-1.0, 1.0; length = 20))
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     x_initial = Matrix([xx yy]')
 
     res_small = minimize_simple_geometric_action(
-        sys, x_initial, GeometricGradient(; stepsize=1e-6); maxiters=2, show_progress=false
+        sys, x_initial, GeometricGradient(; stepsize = 1.0e-6); maxiters = 2, show_progress = false
     )
     res_large = minimize_simple_geometric_action(
-        sys, x_initial, GeometricGradient(; stepsize=1.0); maxiters=2, show_progress=false
+        sys, x_initial, GeometricGradient(; stepsize = 1.0); maxiters = 2, show_progress = false
     )
 
     @test res_small.action != res_large.action

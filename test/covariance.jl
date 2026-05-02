@@ -19,7 +19,7 @@ end
     p0 = [10, 28, 8 / 3]
     A = sqrt(Γ)
     u0 = [0, 10.0, 0]
-    lorenz_oop = CoupledSDEs(lorenz_rule, u0, p0; covariance=Γ)
+    lorenz_oop = CoupledSDEs(lorenz_rule, u0, p0; covariance = Γ)
     @test A ≈ diffusion_matrix(lorenz_oop)
     @test A isa AbstractMatrix
     @test Γ ≈ A * A'
@@ -44,23 +44,23 @@ end
         noise_prototype = zeros(2, 2)
 
         sdeprob = SDEProblem(
-            f, g, zeros(2), (0.0, 100_000); noise_rate_prototype=noise_prototype
+            f, g, zeros(2), (0.0, 100_000); noise_rate_prototype = noise_prototype
         )
-        sol = solve(sdeprob, EM(); saveat=0.1, dt=0.1)
-        approx = cov(diff(reduce(hcat, sol.u); dims=2) ./ sqrt(0.1); dims=2)
-        @test approx ≈ Γ atol = 1e-1
+        sol = solve(sdeprob, EM(); saveat = 0.1, dt = 0.1)
+        approx = cov(diff(reduce(hcat, sol.u); dims = 2) ./ sqrt(0.1); dims = 2)
+        @test approx ≈ Γ atol = 1.0e-1
     end
     @testset "CT" begin
         using Statistics: cov
-        diffeq_cov = (alg=EM(), abstol=1e-2, reltol=1e-2, dt=0.1)
+        diffeq_cov = (alg = EM(), abstol = 1.0e-2, reltol = 1.0e-2, dt = 0.1)
 
         Γ = [1.0 0.3; 0.3 1]
         f(u, p, t) = [0.0, 0.0]
-        ds = CoupledSDEs(f, zeros(2), (); covariance=Γ, diffeq=diffeq_cov)
+        ds = CoupledSDEs(f, zeros(2), (); covariance = Γ, diffeq = diffeq_cov)
 
-        tr, _ = trajectory(ds, 1_000; Δt=0.1)
-        approx = cov(diff(reduce(hcat, tr.data); dims=2) ./ sqrt(0.1); dims=2)
-        @test approx ≈ Γ atol = 1e-1
+        tr, _ = trajectory(ds, 1_000; Δt = 0.1)
+        approx = cov(diff(reduce(hcat, tr.data); dims = 2) ./ sqrt(0.1); dims = 2)
+        @test approx ≈ Γ atol = 1.0e-1
     end
 end
 
@@ -71,7 +71,7 @@ end
         Γ = [1.0 p[1]; p[1] 1.0]
         return sqrt(Γ)
     end
-    ds = CoupledSDEs(f, zeros(2), [0.3]; g=diffusion, noise_prototype=zeros(2, 2))
+    ds = CoupledSDEs(f, zeros(2), [0.3]; g = diffusion, noise_prototype = zeros(2, 2))
     A = diffusion_matrix(ds)
     @test Γ ≈ A * A'
     set_parameter!(ds, 1, 0.5)

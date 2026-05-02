@@ -18,9 +18,9 @@ Note: The units of ``t`` are arbitrary; the forcing profile is rescaled to syste
 - `ForcingProfile(:tanh)`: Create a hyperbolic tangent ramping
   from 0 to 1 with interval (-3, 3).
 """
-struct ForcingProfile{F,T<:Real}
+struct ForcingProfile{F, T <: Real}
     profile::F
-    interval::Tuple{T,T}
+    interval::Tuple{T, T}
 end
 
 # Convenience constructors for ForcingProfile
@@ -28,7 +28,7 @@ function ForcingProfile(sym::Symbol)
     if sym == :linear
         return ForcingProfile(x -> x, (0.0, 1.0))
     elseif sym == :tanh
-        return ForcingProfile(x -> tanh(x)/2 + 0.5, (-3.0, 3.0))
+        return ForcingProfile(x -> tanh(x) / 2 + 0.5, (-3.0, 3.0))
     else
         error("Only :linear or :tanh are supported input arguments.")
     end
@@ -43,13 +43,13 @@ A mutable data structure storing information needed to construct and modify a
 Calling `(::RateSystemSpecs)(u,p,t)` returns the nonautonomous drift of the `RateSystem`
 at time `t`, where `p` is the parameter container of the underlying autonomous system.
 """
-mutable struct RateSystemSpecs{R,F,P,T} <: Function
+mutable struct RateSystemSpecs{R, F, P, T} <: Function
     "Dynamic rule of the underlying autonomous system"
     unforced_rule::R
     "Parameter index of the time-dependent parameter"
     pidx::P # make this a vector
     "Forcing profile"
-    fp::ForcingProfile{F,T}
+    fp::ForcingProfile{F, T}
     # TODO: Change all of these into dictionaries, same style as forcers
     "Start time of parametric forcing"
     forcing_start_time::T
@@ -111,11 +111,11 @@ Use the above signature with `forcing_profiles` a dictionary mapping parameter i
 for each parameter. In this scenario the keywords `forcing_start_time, forcing_duration,
 forcing_scale` also become dictionaries mapping parameter indices to the respective values.
 """
-struct RateSystem{S,F,P,T} <: ContinuousTimeDynamicalSystem
+struct RateSystem{S, F, P, T} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
     system::S
     "Data structure representing the system and forcing specifications in system units"
-    forcing::RateSystemSpecs{F,P,T}
+    forcing::RateSystemSpecs{F, P, T}
 end
 
 function RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kw...)
@@ -125,13 +125,13 @@ function RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx;
 end
 
 function RateSystem(
-    ds::ContinuousTimeDynamicalSystem,
-    forcer::Dict;
-    forcing_start_time=initial_time(ds),
-    forcing_duration=(fp.interval[2] - fp.interval[1]),
-    forcing_scale=1.0,
-    t0=initial_time(ds),
-)
+        ds::ContinuousTimeDynamicalSystem,
+        forcer::Dict;
+        forcing_start_time = initial_time(ds),
+        forcing_duration = (fp.interval[2] - fp.interval[1]),
+        forcing_scale = 1.0,
+        t0 = initial_time(ds),
+    )
 
     # TODO:
     starting_times = Dict(k => number for k in keys(forcer))
@@ -197,9 +197,9 @@ function p_modified!(rss::RateSystemSpecs, t::Real)
                 time_shift =
                     ((section_end - section_start) / rss.forcing_duration) *
                     (t - rss.forcing_start_time) + section_start
-                pt = p0 + rss.forcing_scale*(f(time_shift) - f(section_start))
+                pt = p0 + rss.forcing_scale * (f(time_shift) - f(section_start))
             else
-                pt = p0 + rss.forcing_scale*(f(section_end) - f(section_start))
+                pt = p0 + rss.forcing_scale * (f(section_end) - f(section_start))
             end
         end
 
@@ -273,25 +273,25 @@ end
 
 # Extensions
 for f in (
-    :initial_state,
-    :initial_parameters,
-    :current_parameter,
-    :current_parameters,
-    :dynamic_rule,
-    :current_time,
-    :current_state,
-    :initial_time,
-    :successful_step,
-    :set_parameter!,
-    :set_parameters!,
-    :trajectory,
-) # all api functions here
+        :initial_state,
+        :initial_parameters,
+        :current_parameter,
+        :current_parameters,
+        :dynamic_rule,
+        :current_time,
+        :current_state,
+        :initial_time,
+        :successful_step,
+        :set_parameter!,
+        :set_parameters!,
+        :trajectory,
+    ) # all api functions here
     @eval DynamicalSystemsBase.$(f)(rs::RateSystem, args...; kw...) = $(f)(
         rs.system, args...; kw...
     )
 end
 
-reinit!(rs::RateSystem, u=initial_state(rs); kw...) = reinit!(rs.system, u; kw...)
+reinit!(rs::RateSystem, u = initial_state(rs); kw...) = reinit!(rs.system, u; kw...)
 
 function DynamicalSystemsBase.set_state!(rs::RateSystem, u::AbstractArray)
     return (DynamicalSystemsBase.set_state!(rs.system, u); rs)
