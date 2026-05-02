@@ -1,25 +1,11 @@
 using Test
-using LinearAlgebra: diag
-using SparseArrays: rowvals, nonzeros, nzrange, SparseMatrixCSC
+using SparseArrays: rowvals, nonzeros, nzrange
 
 using CriticalTransitions
 
 # =====================================================================
 # Helpers
 # =====================================================================
-
-function _offdiag_extrema(A)
-    rv = rowvals(A)
-    nz = nonzeros(A)
-    omin, omax = Inf, -Inf
-    for col in 1:size(A, 2), p in nzrange(A, col)
-        row = rv[p]
-        row != col || continue
-        omin = min(omin, nz[p])
-        omax = max(omax, nz[p])
-    end
-    return omin, omax
-end
 
 # Cross-check the cached rate against an independent sum over the B boundary:
 # k_AB = ∑_{i ∉ B, j ∈ B} ρ[i] v[i] q⁻[i] Q[i, j] q⁺[j].
@@ -40,85 +26,6 @@ function _rate_into_B(res::ReactiveTransition)
         end
     end
     return k
-end
-
-# =====================================================================
-# DiffusionGenerator: shape and sign conventions
-# =====================================================================
-
-@testset "DiffusionGenerator (1D OU): rate-matrix structure" begin
-    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength=1.0)
-    grid = CartesianGrid((-4.0, 4.0, 200))
-    gen = DiffusionGenerator(sys, grid)
-    @test gen isa DiffusionGenerator
-    Q = gen.Q
-    @test Q isa SparseMatrixCSC{Float64,Int}
-    @test size(Q) == (200, 200)
-    @test maximum(abs, vec(sum(Q; dims=2))) < 1e-12
-    omin, omax = _offdiag_extrema(Q)
-    @test omin >= 0           # rate matrix: off-diagonals = transition rates ≥ 0
-    @test isfinite(omax)
-    @test all(diag(Q) .<= 0)  # rate matrix: diagonal = -escape rate ≤ 0
-end
-
-@testset "rate_matrix and m_matrix accessors" begin
-    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength=1.0)
-    grid = CartesianGrid((-4.0, 4.0, 200))
-    gen = DiffusionGenerator(sys, grid)
-    Q = rate_matrix(gen)
-    L = m_matrix(gen)
-    @test Q === gen.Q                              # alias for the field
-    @test maximum(abs, L + Q) < 1e-12              # M-matrix is the negation
-    omin, omax = _offdiag_extrema(L)
-    @test omax <= 0           # M-matrix: off-diagonals ≤ 0
-    @test all(diag(L) .>= 0)  # M-matrix: diagonal ≥ 0
-end
-
-# =====================================================================
-# Stationary density
-# =====================================================================
-
-@testset "Invariant density (1D OU)" begin
-    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength=1.0)
-    grid = CartesianGrid((-4.0, 4.0, 200))
-    res = ReactiveTransition(sys, grid, x -> x[1] < -2.0, x -> x[1] > 2.0)
-    @test res isa ReactiveTransition
-    ρ = stationary_distribution(res)
-    @test sum(ρ) * grid.h[1] ≈ 1.0 atol = 1e-12
-    xs = collect(grid.centers[1])
-    ρ_analytic = exp.(-xs .^ 2) ./ sqrt(pi)
-    @test sum(abs.(ρ .- ρ_analytic)) * grid.h[1] < 5e-3
-end
-
-@testset "Invariant density (2D OU)" begin
-    sys = CoupledSDEs((u, p, t) -> [-u[1], -u[2]], [0.0, 0.0]; noise_strength=1.0)
-    grid = CartesianGrid((-4.0, 4.0, 81), (-4.0, 4.0, 81))
-    res = ReactiveTransition(sys, grid, x -> x[1] < -2.0, x -> x[1] > 2.0)
-    ρ = stationary_distribution(res)
-    @test sum(ρ) * prod(grid.h) ≈ 1.0 atol = 1e-12
-    xs = [grid.centers[1][I[1]] for I in CartesianIndices(grid.nbox)]
-    ys = [grid.centers[2][I[2]] for I in CartesianIndices(grid.nbox)]
-    ρ_analytic = vec(exp.(-(xs .^ 2 .+ ys .^ 2)) ./ pi)
-    @test sum(abs.(ρ .- ρ_analytic)) * prod(grid.h) < 5e-3
-end
-
-# =====================================================================
-# Committor: BCs and reversibility
-# =====================================================================
-
-@testset "Committor BCs and reversibility (1D double-well)" begin
-    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength=0.7)
-    grid = CartesianGrid((-2.0, 2.0, 200))
-    res = ReactiveTransition(sys, grid, x -> x[1] < -0.7, x -> x[1] > 0.7)
-    qp = forward_committor(res)
-    qm = backward_committor(res)
-    @test all(qp[res.A_mask] .== 0)
-    @test all(qp[res.B_mask] .== 1)
-    @test all(qm[res.A_mask] .== 1)
-    @test all(qm[res.B_mask] .== 0)
-    @test extrema(qp) == (0.0, 1.0)
-    @test extrema(qm) == (0.0, 1.0)
-    @test maximum(abs.(qm .- (1 .- qp))) < 1e-6
 end
 
 # =====================================================================
@@ -205,64 +112,98 @@ end
 end
 
 # =====================================================================
-# Layer-3 analyses on a DiffusionGenerator
+# Reactive current decomposition
 # =====================================================================
 
-@testset "Layer-3 analyses" begin
+@testset "reactive_current with Periodic BCs includes wraparound face" begin
+    sys = CoupledSDEs((u, p, t) -> [0.0], [0.0]; noise_strength=0.5)
+    grid = CartesianGrid((-pi, pi, 60))
+
+    # A near -π and B near +π so the geometry forces flux through the
+    # wraparound face on the ring.
+    A = x -> -3.0 < x[1] < -2.7
+    B = x -> 2.7 < x[1] < 3.0
+    res = ReactiveTransition(sys, grid, A, B; bc=Periodic())
+
+    J_nodes, J_faces = reactive_current(res)
+    @test size(J_faces[1]) == (60,)        # nbox[1] (not nbox[1] - 1)
+    @test size(J_nodes[1]) == (60,)
+    # Wraparound face carries a non-trivial flux.
+    @test abs(J_faces[1][end]) > 1e-3
+
+    # Reflecting BC keeps the old shape (nbox[k] - 1 along axis k).
+    res_ref = ReactiveTransition(sys, grid, A, B)
+    _, J_faces_ref = reactive_current(res_ref)
+    @test size(J_faces_ref[1]) == (59,)
+end
+
+@testset "ReactiveTransition rejects Absorbing BC" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength=1.0)
+    grid = CartesianGrid((-3.0, 3.0, 30))
+    gen_abs = DiffusionGenerator(sys, grid; bc=Absorbing())
+    @test_throws ArgumentError ReactiveTransition(gen_abs, x -> x[1] < -1, x -> x[1] > 1)
+    @test_throws ArgumentError ReactiveTransition(
+        sys, grid, x -> x[1] < -1, x -> x[1] > 1; bc=Absorbing()
+    )
+end
+
+@testset "reactive_current rev/irr decomposition" begin
+    # Reversible system: irreversible part should vanish.
+    sys_rev = CoupledSDEs(
+        (u, p, t) -> [u[1] - u[1]^3, -u[2]], [0.0, 0.0]; noise_strength=0.4
+    )
+    grid = CartesianGrid((-1.6, 1.6, 41), (-1.0, 1.0, 27))
+    A = x -> sum((x .- (-1.0, 0.0)) .^ 2) < 0.25^2
+    B = x -> sum((x .- (1.0, 0.0)) .^ 2) < 0.25^2
+    res = ReactiveTransition(sys_rev, grid, A, B)
+
+    Jn_full, Jf_full = reactive_current(res)
+    Jn_rev, Jf_rev = reactive_current_reversible(res)
+    Jn_irr, Jf_irr = reactive_current_irreversible(res)
+
+    # Additivity
+    for k in 1:2
+        @test maximum(abs.(Jf_full[k] .- Jf_rev[k] .- Jf_irr[k])) < 1e-12
+        @test maximum(abs.(Jn_full[k] .- Jn_rev[k] .- Jn_irr[k])) < 1e-12
+    end
+    # For reversible system, irrev part is essentially zero
+    scale = maximum(maximum(abs, Jf_full[k]) for k in 1:2)
+    @test maximum(maximum(abs, Jf_irr[k]) for k in 1:2) < 1e-10 * scale
+
+    # Non-equilibrium system: irrev part should be substantial.
+    sys_nq = CoupledSDEs(
+        (u, p, t) -> [u[1] - u[1]^3 - 10 * u[1] * u[2]^2, -(1 + u[1]^2) * u[2]],
+        [0.0, 0.0]; noise_strength=0.4,
+    )
+    res_nq = ReactiveTransition(sys_nq, grid, A, B)
+    _, Jf_full_nq = reactive_current(res_nq)
+    _, Jf_irr_nq = reactive_current_irreversible(res_nq)
+    scale_nq = maximum(maximum(abs, Jf_full_nq[k]) for k in 1:2)
+    @test maximum(maximum(abs, Jf_irr_nq[k]) for k in 1:2) > 0.05 * scale_nq
+end
+
+# =====================================================================
+# Krylov solver via LinearSolve
+# =====================================================================
+
+@testset "ReactiveTransition with Krylov solver" begin
+    using LinearSolve: KrylovJL_GMRES
     sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength=0.6)
     grid = CartesianGrid((-2.0, 2.0, 200))
     gen = DiffusionGenerator(sys, grid)
+    A = x -> x[1] < -0.7
+    B = x -> x[1] > 0.7
 
-    @testset "stationary_distribution(gen) matches ReactiveTransition.ρ" begin
-        ρ_gen = stationary_distribution(gen)
-        res = ReactiveTransition(gen, x -> x[1] < -0.7, x -> x[1] > 0.7)
-        @test maximum(abs.(ρ_gen .- res.ρ)) < 1e-12
-    end
-
-    @testset "forward_committor(gen, A, B) matches ReactiveTransition.qplus" begin
-        A = x -> x[1] < -0.7
-        B = x -> x[1] > 0.7
-        qp = forward_committor(gen, A, B)
-        res = ReactiveTransition(gen, A, B)
-        @test maximum(abs.(qp .- res.qplus)) < 1e-12
-        @test extrema(qp) == (0.0, 1.0)
-    end
-
-    @testset "backward_committor(gen, A, B) matches ReactiveTransition.qminus" begin
-        A = x -> x[1] < -0.7
-        B = x -> x[1] > 0.7
-        qm = backward_committor(gen, A, B)
-        res = ReactiveTransition(gen, A, B)
-        @test maximum(abs.(qm .- res.qminus)) < 1e-12
-    end
-
-    @testset "backward_committor with explicit reverse generator" begin
-        A = x -> x[1] < -0.7
-        B = x -> x[1] > 0.7
-        qm_explicit = backward_committor(gen, A, B; reverse=gen)
-        qm_adjoint = backward_committor(gen, A, B)
-        @test maximum(abs.(qm_explicit .- qm_adjoint)) < 1e-6
-    end
-
-    @testset "mean_first_passage_time" begin
-        sys_ou = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength=1.0)
-        grid_ou = CartesianGrid((-4.0, 4.0, 200))
-        gen_ou = DiffusionGenerator(sys_ou, grid_ou)
-        τ = mean_first_passage_time(gen_ou, x -> abs(x[1]) > 2)
-        @test all(τ .>= 0)
-        target_mask = [abs(x) > 2 for x in grid_ou.centers[1]]
-        @test maximum(abs.(τ[target_mask])) < 1e-10
-        @test minimum(τ[.!target_mask]) > 0
-        i0 = findfirst(x -> x >= 0, grid_ou.centers[1])
-        @test τ[i0] ≈ maximum(τ) atol = 1e-3 * maximum(τ)
-    end
+    res_lu = ReactiveTransition(gen, A, B)
+    res_kr = ReactiveTransition(gen, A, B; alg=KrylovJL_GMRES())
+    @test reactive_rate(res_kr) ≈ reactive_rate(res_lu) rtol = 1e-8
 end
 
 # =====================================================================
 # Type stability
 # =====================================================================
 
-@testset "Type stability" begin
+@testset "Type stability (ReactiveTransition)" begin
     sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength=1.0)
     grid = CartesianGrid((-4.0, 4.0, 50))
     gen = DiffusionGenerator(sys, grid)
@@ -274,6 +215,4 @@ end
     @test (@inferred reactive_rate(res)) isa Float64
     @test (@inferred probability_reactive(res)) isa Float64
     @test (@inferred probability_last_A(res)) isa Float64
-    @test (@inferred stationary_distribution(gen)) isa Vector{Float64}
-    @test (@inferred mean_first_passage_time(gen, x -> abs(x[1]) > 2)) isa Vector{Float64}
 end

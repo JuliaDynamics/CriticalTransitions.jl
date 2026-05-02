@@ -9,7 +9,7 @@ end CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra: LinearAlgebra, norm, dot, tr, diag
+using LinearAlgebra: LinearAlgebra, norm, dot, tr, diag, eigen
 using StaticArrays: StaticArrays, SVector
 using DataStructures: CircularBuffer
 using Random: Random
@@ -78,11 +78,15 @@ include("largedeviations/string_method.jl")
 
 include("r_tipping/RateSystem.jl")
 
-# Transition Path Theory
-include("transition_path_theory/core.jl")
-include("transition_path_theory/cartesian_grid.jl")
-include("transition_path_theory/diffusion_generator.jl")
-include("transition_path_theory/generator_analyses.jl")
+# Diffusion operator (general SDE machinery: discrete generator + analyses)
+include("diffusion_operator/utils.jl")
+include("diffusion_operator/cartesian_grid.jl")
+include("diffusion_operator/diffusion_generator.jl")
+include("diffusion_operator/generator_analyses.jl")
+include("diffusion_operator/spectral.jl")
+
+# Transition Path Theory (reactive-trajectory observables on top of the generator)
+include("transition_path_theory/reactive_helpers.jl")
 include("transition_path_theory/reactive_transition.jl")
 
 include("../systems/CTLibrary.jl")
@@ -106,12 +110,18 @@ export ForcingProfile, RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
 export frozen_system, parameters
 
-# Transition Path Theory
-export CartesianGrid, DiffusionGenerator, ReactiveTransition
-export rate_matrix, m_matrix
+# Diffusion operator
+export CartesianGrid, DiffusionGenerator
+export BoundaryCondition, Reflecting, Periodic, Absorbing
+export rate_matrix, m_matrix, fokker_planck_operator
 export forward_committor, backward_committor, stationary_distribution
 export mean_first_passage_time
-export reactive_rate, reactive_current, reactive_density
+export eigenmodes
+
+# Transition Path Theory
+export ReactiveTransition
+export reactive_rate, reactive_density
+export reactive_current, reactive_current_reversible, reactive_current_irreversible
 export probability_reactive, probability_last_A
 
 end # module CriticalTransitions

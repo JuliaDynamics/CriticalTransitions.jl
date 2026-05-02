@@ -33,6 +33,11 @@ If `reverse` is provided (a `CoupledSDEs` for the high-level form, a
 `DiffusionGenerator` for the generator form), the backward committor is
 computed on that physical reverse-drift generator instead of the discrete
 adjoint.
+
+`alg = nothing` (default) uses sparse direct LU for all internal solves.
+Pass a LinearSolve.jl algorithm (e.g. `KrylovJL_GMRES()`) to use an
+iterative solver instead — useful for large grids where direct LU runs
+out of memory.
 """
 struct ReactiveTransition{D}
     "The diffusion generator the analysis was built on."
@@ -58,7 +63,15 @@ function ReactiveTransition(
     A,
     B;
     reverse::Union{Nothing,DiffusionGenerator{D}}=nothing,
+    alg=nothing,
 ) where {D}
+    any(b -> b isa Absorbing, gen.bc) && throw(
+        ArgumentError(
+            "ReactiveTransition is undefined for absorbing boundary " *
+            "conditions: the chain has mass loss and admits no nontrivial " *
+            "invariant density. Use Reflecting() or Periodic() instead.",
+        ),
+    )
     grid = gen.grid
     A_mask = _to_mask(A, grid)
     B_mask = _to_mask(B, grid)
@@ -69,14 +82,14 @@ function ReactiveTransition(
     Q = gen.Q
     weights = fill(cell_volume(grid), ncells(gen))
 
-    ρ = _invariant_density(Q, weights)
-    qplus = _forward_committor(Q, A_mask, B_mask)
+    ρ = _invariant_density(Q, weights; alg=alg)
+    qplus = _forward_committor(Q, A_mask, B_mask; alg=alg)
 
     if reverse === nothing
-        qminus = _backward_committor_adjoint(Q, ρ, A_mask, B_mask)
+        qminus = _backward_committor_adjoint(Q, ρ, A_mask, B_mask; alg=alg)
         physical_reverse = false
     else
-        qminus = _backward_committor_explicit(reverse.Q, A_mask, B_mask)
+        qminus = _backward_committor_explicit(reverse.Q, A_mask, B_mask; alg=alg)
         physical_reverse = true
     end
 
@@ -90,10 +103,13 @@ function ReactiveTransition(
     A,
     B;
     reverse::Union{Nothing,CoupledSDEs}=nothing,
+    bc=Reflecting(),
+    alg=nothing,
 ) where {D}
-    gen = DiffusionGenerator(sys, grid)
-    gen_rev = reverse === nothing ? nothing : DiffusionGenerator(reverse, grid)
-    return ReactiveTransition(gen, A, B; reverse=gen_rev)
+    gen = DiffusionGenerator(sys, grid; bc=bc)
+    gen_rev =
+        reverse === nothing ? nothing : DiffusionGenerator(reverse, grid; bc=bc)
+    return ReactiveTransition(gen, A, B; reverse=gen_rev, alg=alg)
 end
 
 # =====================================================================
@@ -144,34 +160,97 @@ $(TYPEDSIGNATURES)
 Reactive probability current as `(J_nodes, J_faces)`:
 
 - `J_faces :: NTuple{D, Array{Float64, D}}` — net signed flux across each
-  axis-aligned face, divided by the corresponding axis spacing. Element `k`
-  has shape `nbox` with `nbox[k] - 1` along axis `k` (one entry per face).
+  axis-aligned face, divided by the corresponding axis spacing. Element
+  `k` has shape `nbox` along all axes except axis `k`, where it has
+  `nbox[k] - 1` entries for **reflecting / absorbing** boundary conditions
+  (one per interior face), or `nbox[k]` entries for **periodic** boundary
+  conditions (the extra slot is the wraparound face from cell `nbox[k]`
+  back to cell `1`).
 - `J_nodes :: NTuple{D, Array{Float64, D}}` — face fluxes averaged onto
   cell centers along each axis; element `k` has shape `nbox`.
 
 The face flux from `n` to `m` is `μ[n] · q⁻[n] · Q[n, m] · q⁺[m]`, where
 `μ = ρ · v` and `Q` is the rate matrix.
+
+For non-equilibrium systems the current splits into a reversible
+(gradient-flow) part and an irreversible (cyclic) part — see
+[`reactive_current_reversible`](@ref) and
+[`reactive_current_irreversible`](@ref). The three currents satisfy
+`J_full = J_rev + J_irr` componentwise.
 """
-function reactive_current(r::ReactiveTransition{D}) where {D}
-    grid = r.generator.grid
+function reactive_current(r::ReactiveTransition)
+    return _reactive_current_from_Q(
+        r.generator.Q, r.ρ, r.qplus, r.qminus, r.generator.grid, r.generator.bc,
+    )
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Reversible (gradient-flow) part of the reactive current. Built from the
+symmetric part of the generator, `Q_sym = (Q + Q̃)/2`, where `Q̃` is the
+discrete adjoint with respect to the invariant density. For a reversible
+system this equals the full [`reactive_current`](@ref).
+
+Returns `(J_nodes, J_faces)` with the same shapes as
+[`reactive_current`](@ref).
+"""
+function reactive_current_reversible(r::ReactiveTransition)
+    Qadj = _adjoint_generator(r.generator.Q, r.ρ)
+    Qsym = (r.generator.Q + Qadj) ./ 2
+    return _reactive_current_from_Q(
+        Qsym, r.ρ, r.qplus, r.qminus, r.generator.grid, r.generator.bc,
+    )
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+Irreversible (cyclic / time-asymmetric) part of the reactive current.
+Built from the antisymmetric part of the generator,
+`Q_antisym = (Q − Q̃)/2`. Vanishes for systems satisfying detailed
+balance; for non-equilibrium systems it exposes the circulating component
+of the reactive flow.
+
+Returns `(J_nodes, J_faces)` with the same shapes as
+[`reactive_current`](@ref).
+"""
+function reactive_current_irreversible(r::ReactiveTransition)
+    Qadj = _adjoint_generator(r.generator.Q, r.ρ)
+    Qanti = (r.generator.Q - Qadj) ./ 2
+    return _reactive_current_from_Q(
+        Qanti, r.ρ, r.qplus, r.qminus, r.generator.grid, r.generator.bc,
+    )
+end
+
+function _reactive_current_from_Q(
+    Q::SparseMatrixCSC{Float64,Int},
+    ρ::Vector{Float64},
+    qplus::Vector{Float64},
+    qminus::Vector{Float64},
+    grid::CartesianGrid{D},
+    bc::Tuple,
+) where {D}
     nbox = grid.nbox
     LI = LinearIndices(nbox)
     v = cell_volume(grid)
-    Q = r.generator.Q
-    qplus = r.qplus
-    qminus = r.qminus
-    ρ = r.ρ
 
-    J_faces = ntuple(
-        k -> zeros(Float64, ntuple(d -> d == k ? nbox[d] - 1 : nbox[d], D)...), D
-    )
+    # Periodic axes get one extra face slot (the wraparound face).
+    J_faces = ntuple(D) do k
+        len_k = bc[k] isa Periodic ? nbox[k] : nbox[k] - 1
+        zeros(Float64, ntuple(d -> d == k ? len_k : nbox[d], D)...)
+    end
 
     @inbounds for k in 1:D
         hk = grid.h[k]
         Jk = J_faces[k]
+        periodic_k = bc[k] isa Periodic
         for I in CartesianIndices(nbox)
-            I[k] == nbox[k] && continue
-            J = CartesianIndex(ntuple(d -> d == k ? I[d] + 1 : I[d], D))
+            if I[k] == nbox[k] && !periodic_k
+                continue
+            end
+            j_k = I[k] == nbox[k] ? 1 : I[k] + 1            # wraparound index
+            J = CartesianIndex(ntuple(d -> d == k ? j_k : I[d], D))
             n = LI[I]
             m = LI[J]
             μn = ρ[n] * v
@@ -187,15 +266,27 @@ function reactive_current(r::ReactiveTransition{D}) where {D}
         Jface = J_faces[k]
         Jnode = J_nodes[k]
         nk = nbox[k]
+        periodic_k = bc[k] isa Periodic
         for I in CartesianIndices(nbox)
             s = 0.0
             c = 0
+            # Previous face: between cell I-e_k and cell I.
             if I[k] > 1
                 Iprev = CartesianIndex(ntuple(d -> d == k ? I[d] - 1 : I[d], D))
                 s += Jface[Iprev]
                 c += 1
+            elseif periodic_k
+                # Wraparound: prev face stored at index nbox[k] of axis k.
+                Iprev = CartesianIndex(ntuple(d -> d == k ? nk : I[d], D))
+                s += Jface[Iprev]
+                c += 1
             end
+            # Next face: between cell I and cell I+e_k.
             if I[k] < nk
+                s += Jface[I]
+                c += 1
+            elseif periodic_k
+                # Wraparound: next face stored at index nbox[k] (== I[k]).
                 s += Jface[I]
                 c += 1
             end

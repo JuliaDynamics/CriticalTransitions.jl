@@ -1,12 +1,13 @@
 # =====================================================================
-# Layer-3 analyses on a DiffusionGenerator. Each function below is a
+# Analyses on a DiffusionGenerator. Each function below is a
 # self-contained problem on the generator — it takes a generator plus a
 # problem spec (sets, target, observable, …) and returns the answer.
-# These are the building blocks; bundled analyses like [`TPT`](@ref)
-# call into them.
+# These are the building blocks consumed by bundled analyses like
+# [`ReactiveTransition`](@ref).
 #
 # Future extensions (spectrum, autocorrelation, semigroup propagation,
-# …) plug in here without touching TPT or the discretisation.
+# …) plug in here without touching the discretisation or higher-level
+# bundles.
 # =====================================================================
 
 # ---------------------------------------------------------------------
@@ -69,10 +70,26 @@ augmented with the normalisation `∫ ρ dV = 1`, where `Q = gen.Q` is the
 rate matrix.
 
 Returns a length-`ncells(gen)` vector with `dot(ρ, fill(cell_volume(grid), N)) = 1`.
+
+Throws `ArgumentError` if any axis uses absorbing boundary conditions —
+the resulting chain has mass loss and admits no nontrivial normalised
+invariant.
+
+`alg = nothing` (default) uses sparse direct LU. Pass a LinearSolve.jl
+algorithm (e.g. `KrylovJL_GMRES()`) to use an iterative solver.
 """
-function stationary_distribution(gen::DiffusionGenerator)::Vector{Float64}
+function stationary_distribution(
+    gen::DiffusionGenerator; alg=nothing
+)::Vector{Float64}
+    any(b -> b isa Absorbing, gen.bc) && throw(
+        ArgumentError(
+            "stationary_distribution is undefined for absorbing boundary " *
+            "conditions: the chain leaks probability through the boundary " *
+            "and has no nontrivial normalised invariant.",
+        ),
+    )
     weights = fill(cell_volume(gen.grid), ncells(gen))
-    return _invariant_density(gen.Q, weights)
+    return _invariant_density(gen.Q, weights; alg=alg)
 end
 
 # ---------------------------------------------------------------------
@@ -89,18 +106,22 @@ on `A` and `q⁺ = 1` on `B`.
 
 `A` and `B` accept a predicate `x -> Bool`, a `BitVector` of length
 `ncells(gen)`, or a vector of linear cell indices.
+
+`alg = nothing` (default) uses sparse direct LU. Pass a LinearSolve.jl
+algorithm (e.g. `KrylovJL_GMRES()`) to use an iterative solver.
 """
 function forward_committor(
-    gen::DiffusionGenerator, A, B
+    gen::DiffusionGenerator, A, B; alg=nothing
 )::Vector{Float64}
     grid = gen.grid
     A_mask = _to_mask(A, grid)
     B_mask = _to_mask(B, grid)
-    return _forward_committor(gen.Q, A_mask, B_mask)
+    return _forward_committor(gen.Q, A_mask, B_mask; alg=alg)
 end
 
 function _forward_committor(
-    Q::SparseMatrixCSC{Float64,Int}, A_mask::BitVector, B_mask::BitVector
+    Q::SparseMatrixCSC{Float64,Int}, A_mask::BitVector, B_mask::BitVector;
+    alg=nothing,
 )::Vector{Float64}
     any(A_mask) || throw(ArgumentError("set A is empty"))
     any(B_mask) || throw(ArgumentError("set B is empty"))
@@ -111,7 +132,7 @@ function _forward_committor(
     @inbounds for n in eachindex(B_mask)
         B_mask[n] && (bc_values[n] = 1.0)
     end
-    return _solve_dirichlet(Q, mask_bc, bc_values)
+    return _solve_dirichlet(Q, mask_bc, bc_values; alg=alg)
 end
 
 """
@@ -126,18 +147,22 @@ stationary distribution as well). Pass `reverse::DiffusionGenerator` to
 instead solve on a separately-supplied physical reverse-drift generator;
 useful as a cross-check or for non-reversible systems where the exact
 reverse SDE is known.
+
+`alg = nothing` (default) uses sparse direct LU. Pass a LinearSolve.jl
+algorithm (e.g. `KrylovJL_GMRES()`) to use an iterative solver.
 """
 function backward_committor(
-    gen::DiffusionGenerator, A, B; reverse::Union{Nothing,DiffusionGenerator}=nothing
+    gen::DiffusionGenerator, A, B;
+    reverse::Union{Nothing,DiffusionGenerator}=nothing, alg=nothing,
 )::Vector{Float64}
     grid = gen.grid
     A_mask = _to_mask(A, grid)
     B_mask = _to_mask(B, grid)
     if reverse === nothing
-        ρ = stationary_distribution(gen)
-        return _backward_committor_adjoint(gen.Q, ρ, A_mask, B_mask)
+        ρ = stationary_distribution(gen; alg=alg)
+        return _backward_committor_adjoint(gen.Q, ρ, A_mask, B_mask; alg=alg)
     else
-        return _backward_committor_explicit(reverse.Q, A_mask, B_mask)
+        return _backward_committor_explicit(reverse.Q, A_mask, B_mask; alg=alg)
     end
 end
 
@@ -145,17 +170,19 @@ function _backward_committor_adjoint(
     Q::SparseMatrixCSC{Float64,Int},
     ρ::Vector{Float64},
     A_mask::BitVector,
-    B_mask::BitVector,
+    B_mask::BitVector;
+    alg=nothing,
 )::Vector{Float64}
     any(A_mask) || throw(ArgumentError("set A is empty"))
     any(B_mask) || throw(ArgumentError("set B is empty"))
     any(A_mask .& B_mask) && throw(ArgumentError("sets A and B overlap"))
     Qadj = _adjoint_generator(Q, ρ)
-    return _backward_committor_explicit(Qadj, A_mask, B_mask)
+    return _backward_committor_explicit(Qadj, A_mask, B_mask; alg=alg)
 end
 
 function _backward_committor_explicit(
-    Qrev::SparseMatrixCSC{Float64,Int}, A_mask::BitVector, B_mask::BitVector
+    Qrev::SparseMatrixCSC{Float64,Int}, A_mask::BitVector, B_mask::BitVector;
+    alg=nothing,
 )::Vector{Float64}
     N = size(Qrev, 1)
     mask_bc = A_mask .| B_mask
@@ -163,7 +190,7 @@ function _backward_committor_explicit(
     @inbounds for n in eachindex(A_mask)
         A_mask[n] && (bc_values[n] = 1.0)
     end
-    return _solve_dirichlet(Qrev, mask_bc, bc_values)
+    return _solve_dirichlet(Qrev, mask_bc, bc_values; alg=alg)
 end
 
 # ---------------------------------------------------------------------
@@ -180,9 +207,12 @@ Dirichlet condition `τ = 0` on `target`.
 
 `target` accepts a predicate, a `BitVector`, or a vector of linear cell
 indices.
+
+`alg = nothing` (default) uses sparse direct LU. Pass a LinearSolve.jl
+algorithm (e.g. `KrylovJL_GMRES()`) to use an iterative solver.
 """
 function mean_first_passage_time(
-    gen::DiffusionGenerator, target
+    gen::DiffusionGenerator, target; alg=nothing
 )::Vector{Float64}
     target_mask = _to_mask(target, gen.grid)
     any(target_mask) || throw(ArgumentError("target set is empty"))
@@ -190,5 +220,5 @@ function mean_first_passage_time(
     N = size(Q, 1)
     bc_values = zeros(Float64, N)
     source = fill(-1.0, N)
-    return _solve_dirichlet(Q, target_mask, bc_values; source=source)
+    return _solve_dirichlet(Q, target_mask, bc_values; source=source, alg=alg)
 end

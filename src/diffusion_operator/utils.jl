@@ -1,12 +1,10 @@
 # =====================================================================
-# Internal numerical helpers shared across [`DiffusionChain`](@ref) and
-# [`TPT`](@ref). Operators are passed in CTMC convention: positive
-# off-diagonals (transition rates), negative diagonal, row sums zero.
-# Most helpers are sign-agnostic — they work on any sparse matrix that
-# annihilates the constant function — so they can also be used directly
-# on the M-matrix view (`-chain.generator`) when convenient. Only
-# [`_reactive_rate`](@ref) depends on the sign convention; it expects
-# the CTMC form.
+# Internal numerical helpers used by [`DiffusionGenerator`](@ref) and the
+# Layer-3 analyses on it. Operators are passed in CTMC convention:
+# positive off-diagonals (transition rates), negative diagonal, row sums
+# zero. The helpers here are sign-agnostic — they work on any sparse
+# matrix that annihilates the constant function — so they apply equally
+# to the M-matrix view (`-gen.Q`).
 # =====================================================================
 
 """
@@ -62,12 +60,17 @@ Solve the linear system `A q = b` subject to Dirichlet conditions
 defaults to zero (i.e. solves the homogeneous problem `A q = 0` with
 Dirichlet BCs). Sign-agnostic — works for both CTMC generators and PDE
 M-matrices.
+
+`alg = nothing` (default) uses sparse direct LU (`\\`). Pass any
+LinearSolve.jl algorithm (e.g. `KrylovJL_GMRES()`, `KrylovJL_BICGSTAB()`)
+to use an iterative solver instead.
 """
 function _solve_dirichlet(
     A::SparseMatrixCSC{Float64,Int},
     mask::BitVector,
     values::Vector{Float64};
     source::Union{Nothing,Vector{Float64}}=nothing,
+    alg=nothing,
 )::Vector{Float64}
     M = copy(A)
     rhs = source === nothing ? zeros(Float64, size(A, 1)) : copy(source)
@@ -75,7 +78,7 @@ function _solve_dirichlet(
     @inbounds for n in eachindex(mask)
         mask[n] && (rhs[n] = values[n])
     end
-    return M \ rhs
+    return alg === nothing ? (M \ rhs) : solve(LinearProblem(M, rhs), alg).u
 end
 
 """
@@ -84,9 +87,13 @@ $(TYPEDSIGNATURES)
 Solve for the invariant probability density `ρ` of a CTMC with generator
 `G` and per-cell volume vector `weights`: `ρᵀ G = 0` augmented with the
 normalisation `dot(ρ, weights) = 1`. Sign-agnostic.
+
+`alg = nothing` (default) uses sparse direct LU (`\\`). Pass any
+LinearSolve.jl algorithm to use an iterative solver instead.
 """
 function _invariant_density(
-    G::SparseMatrixCSC{Float64,Int}, weights::Vector{Float64}
+    G::SparseMatrixCSC{Float64,Int}, weights::Vector{Float64};
+    alg=nothing,
 )::Vector{Float64}
     N = size(G, 1)
     length(weights) == N || throw(
@@ -98,7 +105,7 @@ function _invariant_density(
     A[1, :] .= weights
     rhs[1] = 1.0
 
-    ρ = A \ rhs
+    ρ = alg === nothing ? (A \ rhs) : solve(LinearProblem(A, rhs), alg).u
     clamp!(ρ, 0.0, Inf)
     tot = dot(ρ, weights)
     tot > 0 && (@. ρ = ρ / tot)
@@ -141,38 +148,4 @@ function _adjoint_generator(
         Gtil[n, n] = diagacc[n]
     end
     return Gtil
-end
-
-"""
-$(TYPEDSIGNATURES)
-
-A → B reactive transition rate from a CTMC generator `G` (positive
-off-diagonals = transition rates):
-
-    k_{AB} = ∑_{i ∈ A, j ∉ A} ρ[i] · v[i] · q⁻[i] · G[i, j] · q⁺[j] .
-
-Computed in `O(nnz(G))` by walking sparse columns once.
-"""
-function _reactive_rate(
-    G::SparseMatrixCSC{Float64,Int},
-    ρ::Vector{Float64},
-    qplus::Vector{Float64},
-    qminus::Vector{Float64},
-    weights::Vector{Float64},
-    A_mask::BitVector,
-)::Float64
-    rv = rowvals(G)
-    nz = nonzeros(G)
-    rate = 0.0
-    @inbounds for col in 1:size(G, 2)
-        A_mask[col] && continue
-        qpc = qplus[col]
-        for p in nzrange(G, col)
-            row = rv[p]
-            row != col || continue
-            A_mask[row] || continue
-            rate += ρ[row] * weights[row] * qminus[row] * nz[p] * qpc
-        end
-    end
-    return rate
 end
