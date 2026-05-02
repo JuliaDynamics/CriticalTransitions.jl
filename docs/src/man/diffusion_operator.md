@@ -195,6 +195,30 @@ stationary_distribution
 forward_committor
 backward_committor
 mean_first_passage_time
+first_passage_variance
+```
+
+### Time evolution
+
+The discrete Fokker–Planck equation `dρ/dt = Qᵀ ρ` is propagated via the
+matrix-exponential action `ρ(t) = exp(t·Qᵀ)·ρ₀`. The signature mirrors
+`DynamicalSystemsBase.trajectory` — total time `T`, optional sampling
+interval `Δt`, optional transient `Ttr`:
+
+```julia
+ρ_0 = zeros(ncells(gen)); ρ_0[i_start] = 1 / cell_volume(gen)   # point mass
+
+ρs, t = propagate_density(gen, 5.0, ρ_0)               # endpoints only: t = [0, 5]
+ρs, t = propagate_density(gen, 5.0, ρ_0; Δt = 0.1)     # snapshots every 0.1
+ρs, t = propagate_density(gen, 5.0, ρ_0; Δt = 0.1, Ttr = 2.0)   # skip transient
+```
+
+`ρs[:, i]` is the density at `t[i]`. Internal substepping is adaptive;
+`tol`, `m`, and `adaptive` kwargs control the Krylov-subspace
+matrix-exponential algorithm.
+
+```@docs
+propagate_density
 ```
 
 ### Spectral analysis
@@ -216,7 +240,33 @@ eigenmodes
 
 ---
 
-## 4. Limitations
+## 4. Convenience helpers
+
+Predicate builders for `A` / `B` / `target` arguments and a vector →
+grid-shape reshaper, kept **non-exported** to keep the top-level
+namespace tight. Import explicitly:
+
+```julia
+using CriticalTransitions: ball, cuboid, sublevel, reshape_to_grid
+
+A = ball((-1.0, 0.0), 0.25)
+B = ball(( 1.0, 0.0), 0.25)
+result = ReactiveTransition(sys, grid, A, B)
+
+ρ_grid = reshape_to_grid(stationary_distribution(result), result.generator)
+heatmap(grid.centers[1], grid.centers[2], ρ_grid')
+```
+
+```@docs
+CriticalTransitions.ball
+CriticalTransitions.cuboid
+CriticalTransitions.sublevel
+CriticalTransitions.reshape_to_grid
+```
+
+---
+
+## 5. Limitations
 
 The implementation targets one specific point in design space — uniform
 Cartesian grid, Scharfetter–Gummel finite volume, sparse direct LU.

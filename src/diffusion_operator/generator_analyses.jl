@@ -222,3 +222,33 @@ function mean_first_passage_time(
     source = fill(-1.0, N)
     return _solve_dirichlet(Q, target_mask, bc_values; source=source, alg=alg)
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Variance `Var[τ | X_0 = i] = E[τ²] − E[τ]²` of the first-passage time
+to `target`, as a function of starting cell `i`.
+
+The first moment `τ_1 = E[τ]` solves `Q τ_1 = -1` with `τ_1|_target = 0`
+([`mean_first_passage_time`](@ref)); the second moment `τ_2 = E[τ²]`
+solves `Q τ_2 = -2 τ_1` with `τ_2|_target = 0`. The variance follows
+from `Var[τ] = τ_2 − τ_1²`.
+
+Returns a length-`ncells(gen)` vector of variances, all `≥ 0`.
+
+`alg = nothing` (default) uses sparse direct LU. Pass a LinearSolve.jl
+algorithm to use an iterative solver.
+"""
+function first_passage_variance(
+    gen::DiffusionGenerator, target; alg=nothing
+)::Vector{Float64}
+    target_mask = _to_mask(target, gen.grid)
+    any(target_mask) || throw(ArgumentError("target set is empty"))
+    Q = gen.Q
+    N = size(Q, 1)
+    bc_values = zeros(Float64, N)
+
+    τ_1 = _solve_dirichlet(Q, target_mask, bc_values; source=fill(-1.0, N), alg=alg)
+    τ_2 = _solve_dirichlet(Q, target_mask, bc_values; source=-2 .* τ_1, alg=alg)
+    return τ_2 .- τ_1 .^ 2
+end

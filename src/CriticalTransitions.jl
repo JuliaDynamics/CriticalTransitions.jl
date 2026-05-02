@@ -46,6 +46,7 @@ using Interpolations: linear_interpolation
 using Optimization: Optimization
 using OptimizationOptimisers: Optimisers
 using LinearSolve: LinearProblem, LUFactorization, init, solve, solve!
+using ExponentialUtilities: expv_timestep
 
 # io and documentation
 using Format: Format
@@ -84,6 +85,8 @@ include("diffusion_operator/cartesian_grid.jl")
 include("diffusion_operator/diffusion_generator.jl")
 include("diffusion_operator/generator_analyses.jl")
 include("diffusion_operator/spectral.jl")
+include("diffusion_operator/propagator.jl")
+include("diffusion_operator/grid_helpers.jl")
 
 # Transition Path Theory (reactive-trajectory observables on top of the generator)
 include("transition_path_theory/reactive_helpers.jl")
@@ -115,8 +118,9 @@ export CartesianGrid, DiffusionGenerator
 export BoundaryCondition, Reflecting, Periodic, Absorbing
 export rate_matrix, m_matrix, fokker_planck_operator
 export forward_committor, backward_committor, stationary_distribution
-export mean_first_passage_time
+export mean_first_passage_time, first_passage_variance
 export eigenmodes
+export propagate_density
 
 # Transition Path Theory
 export ReactiveTransition
