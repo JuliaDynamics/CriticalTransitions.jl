@@ -13,11 +13,11 @@ using CriticalTransitions, Test
         σ = 0.2
         param = [1.0, 3, 1, 1, 1, 0]
         u0 = zeros(2)
-        sys = CoupledSDEs(fitzhugh_nagumo, u0, param; noise_strength=σ)
+        sys = CoupledSDEs(fitzhugh_nagumo, u0, param; noise_strength = σ)
 
         using CriticalTransitions: drift
         drift_vector = drift(sys, [0, 0])
-        drift_vector isa SVector{2,Float64}
+        drift_vector isa SVector{2, Float64}
         @test drift_vector == [0, 0]
     end
 
@@ -59,11 +59,11 @@ using CriticalTransitions, Test
     lor_iip = CoupledSDEs(
         SDEProblem(lorenz_rule_iip, diagonal_noise!(σ), copy(u0), (0.0, Inf), p0)
     )
-    lor_SRA = CoupledSDEs(lorenz_rule, u0, p0; diffeq=(alg=SRA(), abstol=1e-2, reltol=1e-2))
+    lor_SRA = CoupledSDEs(lorenz_rule, u0, p0; diffeq = (alg = SRA(), abstol = 1.0e-2, reltol = 1.0e-2))
 
-    diffeq_cov = (alg=LambaEM(), abstol=1e-2, reltol=1e-2, dt=0.1)
-    lor_oop_cov = CoupledSDEs(lorenz_rule, u0, p0; covariance=Γ, diffeq=diffeq_cov)
-    lor_iip_cov = CoupledSDEs(lorenz_rule_iip, u0, p0; covariance=Γ, diffeq=diffeq_cov)
+    diffeq_cov = (alg = LambaEM(), abstol = 1.0e-2, reltol = 1.0e-2, dt = 0.1)
+    lor_oop_cov = CoupledSDEs(lorenz_rule, u0, p0; covariance = Γ, diffeq = diffeq_cov)
+    lor_iip_cov = CoupledSDEs(lorenz_rule_iip, u0, p0; covariance = Γ, diffeq = diffeq_cov)
 
     @testset "correct SDE propagation" begin
         u0 = [0, 10.0, 0]
@@ -72,18 +72,18 @@ using CriticalTransitions, Test
         @test lorenz_oop.integ.alg isa SOSRA
 
         lorenz_SRA = CoupledSDEs(
-            lorenz_rule, u0, p0; diffeq=(alg=SRA(), abstol=1e-3, reltol=1e-3, verbose=false)
+            lorenz_rule, u0, p0; diffeq = (alg = SRA(), abstol = 1.0e-3, reltol = 1.0e-3, verbose = false)
         )
         @test lorenz_SRA.integ.alg isa SRA
 
         # also test SDEproblem creation
         prob = lorenz_SRA.integ.sol.prob
 
-        ds = CoupledSDEs(prob, (alg=SRA(), abstol=0.0, reltol=1e-3, verbose=false))
+        ds = CoupledSDEs(prob, (alg = SRA(), abstol = 0.0, reltol = 1.0e-3, verbose = false))
 
         @test ds.integ.alg isa SRA
 
-        @test_throws ArgumentError CoupledSDEs(prob; diffeq=(alg=SRA(),))
+        @test_throws ArgumentError CoupledSDEs(prob; diffeq = (alg = SRA(),))
 
         # CoupledODEs creation
         ds = CoupledODEs(lorenz_oop)
@@ -100,8 +100,8 @@ using CriticalTransitions, Test
         f!(du, u, p, t) = du .= 1.01u
         @testset "covariance" begin
             g(u, p, t) = sqrt([1 0.3; 0.3 1])
-            corr = CoupledSDEs(f, zeros(2); covariance=[1 0.3; 0.3 1])
-            corr_alt = CoupledSDEs(f, zeros(2); g=g, noise_prototype=zeros(2, 2))
+            corr = CoupledSDEs(f, zeros(2); covariance = [1 0.3; 0.3 1])
+            corr_alt = CoupledSDEs(f, zeros(2); g = g, noise_prototype = zeros(2, 2))
             @test corr.noise_type == corr_alt.noise_type
             @test all(
                 corr.integ.g(zeros(2), (), 0.0) .== corr_alt.integ.g(zeros(2), (), 0.0)
@@ -110,19 +110,19 @@ using CriticalTransitions, Test
 
         @testset "ArgumentError" begin
             W = CorrelatedWienerProcess([1 0.3; 0.3 1], 0.0, zeros(2), zeros(2))
-            @test_throws ArgumentError CoupledSDEs(f!, zeros(2); noise_process=W)
+            @test_throws ArgumentError CoupledSDEs(f!, zeros(2); noise_process = W)
 
             g!(du, u, p, t) = du .= u
             @test_throws ArgumentError CoupledSDEs(
-                f!, zeros(2); g=(g!), covariance=[1 0.3; 0.3 1]
+                f!, zeros(2); g = (g!), covariance = [1 0.3; 0.3 1]
             )
 
             g(u, p, t) = u
-            @test_throws AssertionError CoupledSDEs(f!, zeros(2); g=g)
+            @test_throws AssertionError CoupledSDEs(f!, zeros(2); g = g)
 
             Csde = CoupledSDEs(f!, zeros(2))
-            diffeq = (alg=SRA(), abstol=1e-2, reltol=1e-2)
-            @test_throws ArgumentError CoupledSDEs(Csde.integ.sol.prob; diffeq=diffeq)
+            diffeq = (alg = SRA(), abstol = 1.0e-2, reltol = 1.0e-2)
+            @test_throws ArgumentError CoupledSDEs(Csde.integ.sol.prob; diffeq = diffeq)
         end
     end
 end

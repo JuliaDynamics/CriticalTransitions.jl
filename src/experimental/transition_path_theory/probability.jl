@@ -30,7 +30,7 @@ function probability_reactive(sys::LangevinSystem, mesh::Mesh, q, qminus, Z)
         Aux = ones(3, 3)
         Aux[2:3, :] .= transpose(verts)
         tri_area = 0.5 * abs(det(Aux))
-        vmid = reshape(sum(verts; dims=1) / 3, 1, 2) # midpoint of mesh triangle
+        vmid = reshape(sum(verts; dims = 1) / 3, 1, 2) # midpoint of mesh triangle
         mu = exp(-beta * ham(vmid[:, 1], vmid[:, 2])[1])
         prob += tri_area * mu * qmid * qmmid
     end
@@ -74,7 +74,7 @@ function probability_last_A(sys::LangevinSystem, mesh::Mesh, Ames::Mesh, qminus,
         Aux = ones(3, 3)
         Aux[2:3, :] .= transpose(verts)
         tri_area = 0.5 * abs(det(Aux))
-        vmid = reshape(sum(verts; dims=1) / 3, 1, 2) # midpoint of mesh triangle
+        vmid = reshape(sum(verts; dims = 1) / 3, 1, 2) # midpoint of mesh triangle
         mu = exp(-beta * ham(vmid[:, 1], vmid[:, 2])[1])
         prob += tri_area * mu * qmmid
     end
@@ -84,7 +84,7 @@ function probability_last_A(sys::LangevinSystem, mesh::Mesh, Ames::Mesh, qminus,
         Aux = ones(3, 3)
         Aux[2:3, :] .= transpose(verts)
         tri_area = 0.5 * abs(det(Aux))
-        vmid = reshape(sum(verts; dims=1) / 3, 1, 2) # midpoint of mesh triangle
+        vmid = reshape(sum(verts; dims = 1) / 3, 1, 2) # midpoint of mesh triangle
         mu = exp(-beta * ham(vmid[:, 1], vmid[:, 2])[1])
         prob += tri_area * mu
     end

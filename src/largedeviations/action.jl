@@ -61,9 +61,9 @@ function om_action(sys::CoupledSDEs, path, time, noise_strength)
     for i in 1:(size(path, 2) - 1)
         S +=
             σ^2 / 2 * (
-                (div_drift(sys, path[:, i + 1]) + div_drift(sys, path[:, i])) / 2 *
+            (div_drift(sys, path[:, i + 1]) + div_drift(sys, path[:, i])) / 2 *
                 (time[i + 1] - time[i])
-            )
+        )
     end
     return fw_action(sys, path, time) + S / 2
 end;
@@ -77,7 +77,7 @@ Computes the action functional specified by `functional` for a given CoupledSDEs
 * `functional = "FW"`: Returns the Freidlin-Wentzell action ([`fw_action`](@ref))
 * `functional = "OM"`: Returns the Onsager-Machlup action ([`om_action`](@ref))
 """
-function action(sys::CoupledSDEs, path::Matrix, time, functional; noise_strength=nothing)
+function action(sys::CoupledSDEs, path::Matrix, time, functional; noise_strength = nothing)
     S = 0.0
     if functional == "FW"
         S = fw_action(sys, path, time)
@@ -110,7 +110,7 @@ L1 matrix norm.
 
 Returns the value of the geometric action ``\\bar S``.
 """
-function geometric_action(sys::CoupledSDEs, path, arclength=1.0)
+function geometric_action(sys::CoupledSDEs, path, arclength = 1.0)
     A = inv(normalize_covariance!(covariance_matrix(sys)))
     b(x) = drift(sys, x)
     return _geometric_action_from_drift(b, path, arclength, A)
@@ -129,7 +129,7 @@ If `A === nothing`, it defaults to the identity metric.
 
 The `path` must be a `(D × N)` matrix with points in columns.
 """
-function geometric_action(b::Function, path, arclength=1.0; A=nothing)
+function geometric_action(b::Function, path, arclength = 1.0; A = nothing)
     if A === nothing
         D = size(path, 1)
         A = LinearAlgebra.Diagonal(ones(eltype(path), D))
@@ -139,7 +139,7 @@ end
 
 function _geometric_action_from_drift(b::Function, path, arclength::Real, A)
     N = size(path, 2)
-    v = path_velocity(path, range(0, arclength; length=N); order=4)
+    v = path_velocity(path, range(0, arclength; length = N); order = 4)
 
     integrand = zeros(eltype(path), N)
     for i in 1:N
@@ -161,13 +161,13 @@ Computes the squared ``A``-norm ``|| \\dot \\phi_t - b ||^2_A`` (see `fw_action`
 details). Returns a vector of length `N` containing the values of the above squared norm for each time point in the vector `time`.
 """
 function fw_integrand(sys::CoupledSDEs, path, time, A)
-    v = path_velocity(path, time; order=4)
+    v = path_velocity(path, time; order = 4)
     sqnorm = zeros(size(path, 2))
     b(x) = drift(sys, x)
     for i in axes(path, 2)
         # assumes the drift is time independent
         drift = b(path[:, i])
-        sqnorm[i] = anorm(v[:, i] - drift, A; square=true)
+        sqnorm[i] = anorm(v[:, i] - drift, A; square = true)
     end
     return sqnorm
 end;
@@ -183,7 +183,7 @@ Returns the velocity along a given `path` with time points given by `time`.
   In both cases, central differences are used except at the end points, where a forward or
   backward difference is used.
 """
-function path_velocity(path, time; order=4)
+function path_velocity(path, time; order = 4)
     v = zeros(size(path))
 
     if order == 2
@@ -207,7 +207,7 @@ function path_velocity(path, time; order=4)
             v[:, i] .= (
                 (
                     -path[:, i + 2] .+ 8 * path[:, i + 1] .- 8 * path[:, i - 1] .+
-                    path[:, i - 2]
+                        path[:, i - 2]
                 ) / (6 * (time[i + 1] - time[i - 1]))
             )
         end

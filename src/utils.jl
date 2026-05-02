@@ -11,7 +11,7 @@ where `A` is a square matrix of dimension `(length(vec) x length(vec))`.
 # Keyword arguments
 * `square`: if `true`, returns square of norm; else, returns norm.
 """
-function anorm(vec, A; square=false)
+function anorm(vec, A; square = false)
     normsquared = dot(vec, A, vec)
     return square ? normsquared : sqrt(normsquared)
 end;
@@ -33,7 +33,7 @@ of the vector [3,7,4]:
 
 ``\\sqrt{3^2+4^2} = 5``.
 """
-function subnorm(vec; directions=1:length(vec))
+function subnorm(vec; directions = 1:length(vec))
     sum = 0
     for i in directions
         sum += vec[i]^2

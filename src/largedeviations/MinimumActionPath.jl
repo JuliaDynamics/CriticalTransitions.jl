@@ -10,9 +10,9 @@ $(TYPEDFIELDS)
 $(METHODLIST)
 
 """
-struct MinimumActionPath{D,T<:Real,V,Phis,Ahis,Lambda,PV,GPV}
+struct MinimumActionPath{D, T <: Real, V, Phis, Ahis, Lambda, PV, GPV}
     """The path matrix."""
-    path::StateSpaceSet{D,T,V}
+    path::StateSpaceSet{D, T, V}
     """The action value associated to the path."""
     action::T
     """The history of action of the paths in the optimisation algorithm (optional)."""
@@ -27,14 +27,14 @@ struct MinimumActionPath{D,T<:Real,V,Phis,Ahis,Lambda,PV,GPV}
     path_velocity::PV
 
     function MinimumActionPath(
-        path::StateSpaceSet{D,T,V},
-        action;
-        path_history=nothing,
-        action_history=nothing,
-        λ=nothing,
-        generalized_momentum=nothing,
-        path_velocity=nothing,
-    ) where {D,T,V}
+            path::StateSpaceSet{D, T, V},
+            action;
+            path_history = nothing,
+            action_history = nothing,
+            λ = nothing,
+            generalized_momentum = nothing,
+            path_velocity = nothing,
+        ) where {D, T, V}
         return new{
             D,
             T,
