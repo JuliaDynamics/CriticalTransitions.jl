@@ -80,7 +80,8 @@ end
     grid = CartesianGrid((-2.0, 2.0, 200))
     res = ReactiveTransition(sys, grid, x -> x[1] < -0.7, x -> x[1] > 0.7)
     @test probability_reactive(res) >= 0
-    @test probability_last_A(res) ≈ 0.5 atol = 1e-2
+    # Symmetric A, B and symmetric drift → P(last visited A) = 1/2 exactly.
+    @test probability_last_A(res) ≈ 0.5 atol = 1e-10
 end
 
 # =====================================================================
@@ -197,6 +198,163 @@ end
     res_lu = ReactiveTransition(gen, A, B)
     res_kr = ReactiveTransition(gen, A, B; alg=KrylovJL_GMRES())
     @test reactive_rate(res_kr) ≈ reactive_rate(res_lu) rtol = 1e-8
+end
+
+# =====================================================================
+# Analytical TPT identities
+# =====================================================================
+
+# Steady-state flux balance: in any stationary chain, the rate of A→B
+# transitions equals the rate of B→A transitions (otherwise mass would
+# accumulate in one well over time). So `reactive_rate` should be
+# invariant under swapping A and B, regardless of reversibility.
+@testset "Analytical: flux balance k_AB = k_BA" begin
+    using CriticalTransitions: cell_volume
+
+    # Reversible 1D double-well.
+    sys_rev = CoupledSDEs(
+        (u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength=0.6
+    )
+    grid = CartesianGrid((-2.0, 2.0, 200))
+    gen_rev = DiffusionGenerator(sys_rev, grid)
+    A = x -> x[1] < -0.7
+    B = x -> x[1] >  0.7
+    @test reactive_rate(ReactiveTransition(gen_rev, A, B)) ≈
+          reactive_rate(ReactiveTransition(gen_rev, B, A)) rtol = 1e-10
+
+    # Non-reversible Maier-Stein.
+    sys_nq = CoupledSDEs(
+        (u, p, t) -> [u[1] - u[1]^3 - 10 * u[1] * u[2]^2, -(1 + u[1]^2) * u[2]],
+        [0.0, 0.0]; noise_strength=0.4,
+    )
+    grid_2d = CartesianGrid((-1.6, 1.6, 41), (-1.0, 1.0, 27))
+    gen_nq = DiffusionGenerator(sys_nq, grid_2d)
+    A_2d = x -> sum((x .- (-1.0, 0.0)) .^ 2) < 0.25^2
+    B_2d = x -> sum((x .- ( 1.0, 0.0)) .^ 2) < 0.25^2
+    @test reactive_rate(ReactiveTransition(gen_nq, A_2d, B_2d)) ≈
+          reactive_rate(ReactiveTransition(gen_nq, B_2d, A_2d)) rtol = 1e-10
+
+    # Asymmetric A, B on the reversible system.
+    @test reactive_rate(ReactiveTransition(gen_rev, x -> x[1] < -0.5, x -> x[1] > 0.9)) ≈
+          reactive_rate(ReactiveTransition(gen_rev, x -> x[1] > 0.9,  x -> x[1] < -0.5)) rtol = 1e-10
+end
+
+# Internal consistency: the integral of the reactive density equals
+# `probability_reactive` exactly (both are computed from the same
+# `ρ · q⁺ · q⁻` expression).
+@testset "Analytical: probability_reactive = ∫ reactive_density dx" begin
+    using CriticalTransitions: cell_volume
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength=0.6)
+    grid = CartesianGrid((-2.0, 2.0, 200))
+    res = ReactiveTransition(sys, grid, x -> x[1] < -0.7, x -> x[1] > 0.7)
+    P = probability_reactive(res)
+    P_int = sum(reactive_density(res)) * cell_volume(res.generator)
+    @test P ≈ P_int atol = 1e-13
+end
+
+# `q⁻[i]` is the probability that the trajectory at cell `i` last visited
+# `A`. Then `1 − q⁻[i]` is the probability it last visited `B`. Hence
+# `∫ ρ q⁻ dx + ∫ ρ (1 − q⁻) dx = ∫ ρ dx = 1`. The first integral is
+# `probability_last_A`; this is a normalisation identity on the invariant
+# density.
+@testset "Analytical: P(last A) + P(last B) = 1" begin
+    using CriticalTransitions: cell_volume
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength=0.6)
+    grid = CartesianGrid((-2.0, 2.0, 200))
+    res = ReactiveTransition(sys, grid, x -> x[1] < -0.7, x -> x[1] > 0.7)
+    p_last_A = probability_last_A(res)
+    v = cell_volume(res.generator)
+    p_last_B = sum((1 .- res.qminus) .* res.ρ) * v
+    @test p_last_A + p_last_B ≈ 1.0 atol = 1e-12
+end
+
+# In one dimension, conservation of probability at steady state forces
+# the reactive flux through any cross-section between A and B to equal
+# the reactive rate. So `J_faces[1][i]` must be constant across all
+# faces between two free cells, and `J_faces[1][i] · h == k_AB`.
+@testset "Analytical: 1D reactive current is constant and equals k_AB" begin
+    sys = CoupledSDEs((u, p, t) -> [0.0], [0.0]; noise_strength=1.0)
+    grid = CartesianGrid((-1.0, 1.0, 401))
+    gen = DiffusionGenerator(sys, grid)
+    x_A = grid.centers[1][1]
+    x_B = grid.centers[1][end]
+    A = x -> x[1] < x_A + 1e-12
+    B = x -> x[1] > x_B - 1e-12
+    res = ReactiveTransition(gen, A, B)
+
+    _, J_faces = reactive_current(res)
+    interior = J_faces[1][50:350]                    # away from boundary cells
+    @test maximum(interior) - minimum(interior) < 1e-10
+    @test sum(interior) / length(interior) * grid.h[1] ≈ reactive_rate(res) rtol = 1e-10
+end
+
+# =====================================================================
+# Argument validation and structural tests
+# =====================================================================
+
+@testset "ReactiveTransition: argument errors" begin
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength=0.6)
+    grid = CartesianGrid((-2.0, 2.0, 50))
+    gen = DiffusionGenerator(sys, grid)
+
+    # Empty A or B.
+    @test_throws ArgumentError ReactiveTransition(gen, x -> false, x -> x[1] > 0.7)
+    @test_throws ArgumentError ReactiveTransition(gen, x -> x[1] < -0.7, x -> false)
+    # Overlapping A ∩ B.
+    @test_throws ArgumentError ReactiveTransition(
+        gen, x -> abs(x[1]) < 1.0, x -> abs(x[1]) < 1.5,
+    )
+    # Same errors via the high-level (sys, grid) form.
+    @test_throws ArgumentError ReactiveTransition(sys, grid, x -> false, x -> x[1] > 0.7)
+end
+
+@testset "Layer-4 accessors return cached fields" begin
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength=0.6)
+    grid = CartesianGrid((-2.0, 2.0, 100))
+    res = ReactiveTransition(sys, grid, x -> x[1] < -0.7, x -> x[1] > 0.7)
+
+    @test forward_committor(res) === res.qplus
+    @test backward_committor(res) === res.qminus
+    @test stationary_distribution(res) === res.ρ
+    @test reactive_rate(res) === res.rate
+end
+
+# A symmetric drift V'(x) = x³ - x with symmetric A, B (mirror about x = 0)
+# implies the forward committor satisfies q⁺(x) + q⁺(-x) = 1: starting at
+# x or -x is the mirror image of starting at -x or x with A and B swapped.
+@testset "Symmetric system: q⁺(x) + q⁺(-x) = 1" begin
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength=0.5)
+    grid = CartesianGrid((-2.0, 2.0, 200))
+    res = ReactiveTransition(sys, grid, x -> x[1] < -0.7, x -> x[1] > 0.7)
+    qp = forward_committor(res)
+    # grid.centers is symmetric around 0 since (-L, L, even N) gives no cell
+    # at exactly 0; index pairing is (i, N+1-i).
+    N = length(qp)
+    for i in 1:N
+        @test qp[i] + qp[N + 1 - i] ≈ 1 atol = 1e-12
+    end
+    # Reactive density inherits the same symmetry.
+    ρR = reactive_density(res)
+    for i in 1:N
+        @test ρR[i] ≈ ρR[N + 1 - i] atol = 1e-12
+    end
+end
+
+# For a reversible system, supplying `reverse=sys` (same SDE) should give
+# the same result as the default discrete-adjoint path. The
+# `physical_reverse` flag should reflect which path was used.
+@testset "Reversible system: physical and adjoint reverse routes agree" begin
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength=0.5)
+    grid = CartesianGrid((-2.0, 2.0, 200))
+    A = x -> x[1] < -0.7
+    B = x -> x[1] > 0.7
+
+    res_adj = ReactiveTransition(sys, grid, A, B)               # discrete adjoint
+    res_phys = ReactiveTransition(sys, grid, A, B; reverse=sys) # explicit reverse SDE
+    @test !res_adj.physical_reverse
+    @test  res_phys.physical_reverse
+    @test maximum(abs.(res_adj.qminus .- res_phys.qminus)) < 1e-6
+    @test reactive_rate(res_adj) ≈ reactive_rate(res_phys) rtol = 1e-6
 end
 
 # =====================================================================
