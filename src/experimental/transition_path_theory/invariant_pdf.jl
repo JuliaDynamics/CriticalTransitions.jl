@@ -39,7 +39,7 @@ function invariant_pdf(sys::LangevinSystem, mesh::Mesh, Amesh::Mesh, Bmesh::Mesh
         Aux = ones(3, 3)
         Aux[2:3, :] .= transpose(verts)
         tri_area = 0.5 * abs(det(Aux))
-        vmid = reshape(sum(verts; dims=1) / 3, 1, 2)  # midpoint of mesh triangle
+        vmid = reshape(sum(verts; dims = 1) / 3, 1, 2)  # midpoint of mesh triangle
         mu = exp(-beta * ham(vmid[:, 1], vmid[:, 2])[1])
         Z += tri_area * mu
     end
@@ -51,7 +51,7 @@ function invariant_pdf(sys::LangevinSystem, mesh::Mesh, Amesh::Mesh, Bmesh::Mesh
         Aux = ones(3, 3)
         Aux[2:3, :] .= transpose(verts)
         tri_area = 0.5 * abs(det(Aux))
-        vmid = reshape(sum(verts; dims=1) / 3, 1, 2)
+        vmid = reshape(sum(verts; dims = 1) / 3, 1, 2)
         mu = exp(-beta * ham(vmid[:, 1], vmid[:, 2])[1])
         Z += tri_area * mu
     end
@@ -63,7 +63,7 @@ function invariant_pdf(sys::LangevinSystem, mesh::Mesh, Amesh::Mesh, Bmesh::Mesh
         Aux = ones(3, 3)
         Aux[2:3, :] .= transpose(verts)
         tri_area = 0.5 * abs(det(Aux))
-        vmid = reshape(sum(verts; dims=1) / 3, 1, 2)
+        vmid = reshape(sum(verts; dims = 1) / 3, 1, 2)
         mu = exp(-beta * ham(vmid[:, 1], vmid[:, 2])[1])
         Z += tri_area * mu
     end

@@ -2,19 +2,19 @@ using OrdinaryDiffEqLowOrderRK: Euler, RK4
 
 function benchmark_KPO!(SUITE)
     λ = 3 / 1.21 * 2 / 295
-    ω0 = 1.000
-    ω = 1.000
+    ω0 = 1.0
+    ω = 1.0
     γ = 1 / 295
     η = 0
     α = -1
 
     function fu(u, v)
         return (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
-               (8 * ω)
+            (8 * ω)
     end
     function fv(u, v)
         return (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
-               (8 * ω)
+            (8 * ω)
     end
     stream(u, v) = Point2f(fu(u, v), fv(u, v))
     dfvdv(u, v) = (-4 * γ * ω + 6 * α * u * v) / (8 * ω)
@@ -39,10 +39,10 @@ function benchmark_KPO!(SUITE)
         return Matrix([H_pu H_pv]')
     end
 
-    sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
+    sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
 
     Nt = 100  # number of discrete time steps
-    s = collect(range(0; stop=1, length=Nt))
+    s = collect(range(0; stop = 1, length = Nt))
 
     xa = [-0.0208, 0.0991]
     xb = -xa
@@ -52,18 +52,18 @@ function benchmark_KPO!(SUITE)
     yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
     x_initial = Matrix([xx yy]')
 
-    opt = GeometricGradient(; stepsize=10e2)
+    opt = GeometricGradient(; stepsize = 10.0e2)
     SUITE["Large deviation"]["Simple geometric minimal action"]["KPO"] = @benchmarkable minimize_simple_geometric_action(
-        $sys, $x_initial, $opt; maxiters=10_000, show_progress=false
+        $sys, $x_initial, $opt; maxiters = 10_000, show_progress = false
     ) seconds = 10
 
     SUITE["Large deviation"]["String method"]["Kerr parametric resonator"] = @benchmarkable string_method(
         $sys,
         $x_initial;
-        maxiters=10_000,
-        stepsize=0.5,
-        show_progress=false,
-        integrator=Euler(),
+        maxiters = 10_000,
+        stepsize = 0.5,
+        show_progress = false,
+        integrator = Euler(),
     ) seconds = 10
 
     # function KPO_SA(x, p, t)

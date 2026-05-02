@@ -28,7 +28,7 @@ include("build_docs_with_style.jl")
 using DocumenterCitations
 using DocumenterInterLinks
 
-bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style=:authoryear)
+bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style = :authoryear)
 
 links = InterLinks(
     "DynamicalSystemsBase" => "https://juliadynamics.github.io/DynamicalSystemsBase.jl/stable/",
@@ -45,7 +45,7 @@ package_version = project_toml["version"]
 authors = join(project_toml["authors"], ", ") * " and contributors"
 
 remote_pairs = map(["DynamicalSystemsBase", "Attractors"]) do pkg_name
-    status = sprint(io -> Pkg.status(pkg_name; io=io))
+    status = sprint(io -> Pkg.status(pkg_name; io = io))
     version = match(r"(v[0-9].[0-9]+.[0-9]+)", status)[1]
     gh_moi = Documenter.Remotes.GitHub("JuliaDynamics", string(pkg_name, ".jl"))
     (pkgdir(eval(Symbol(pkg_name))) => (gh_moi, version))
@@ -83,12 +83,12 @@ modules = filter(
 build_docs_with_style(
     pages,
     modules...;
-    plugins=[bib, links],
+    plugins = [bib, links],
     # Broad warnonly until #280's docs cleanup lands; some example pages have
     # stale code that errors at @example evaluation.
-    warnonly=true,
+    warnonly = true,
     authors,
-    htmlkw=html_options,
-    checkdocs_ignored_modules=[CriticalTransitions.CTLibrary],
+    htmlkw = html_options,
+    checkdocs_ignored_modules = [CriticalTransitions.CTLibrary],
     remotes,
 )

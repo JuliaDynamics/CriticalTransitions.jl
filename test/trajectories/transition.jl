@@ -1,4 +1,3 @@
-
 @testset "fitzhugh_nagumo" begin
     using Random, LinearAlgebra
     Random.seed!(SEED)
@@ -9,13 +8,13 @@
     σ = 0.315 # noise strength
 
     # CoupledSDEs
-    sys = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ, seed=SEED)
+    sys = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength = σ, seed = SEED)
 
     fp1 = [0.816, 0.272]
     fp2 = [-0.816, -0.272]
     tr, time, success = CT.transition(sys, fp1, fp2)
     @test success
-    @test time[end] < 1e3
+    @test time[end] < 1.0e3
     @test norm(tr[1, :] - fp1) < 0.1
     @test norm(tr[end, :] - fp2) < 0.1
 
@@ -35,12 +34,12 @@
         σ = 0.215 # noise strength
 
         # CoupledSDEs
-        sys = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ, seed=SEED)
+        sys = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength = σ, seed = SEED)
         fp1 = [0.816, 0.272]
         fp2 = [-0.816, -0.272]
 
         @test_warn "Maximum number of attempts " ensemble_fail = transitions(
-            sys, fp1, fp2, 10; Nmax=3, tmax=0.01, cut_start=false, show_progress=false
+            sys, fp1, fp2, 10; Nmax = 3, tmax = 0.01, cut_start = false, show_progress = false
         )
     end
 end

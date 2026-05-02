@@ -12,12 +12,12 @@ $(TYPEDFIELDS)
 # Keyword constructors
 $(METHODLIST)
 """
-struct GeometricGradient{T<:Real} <: GMAMOptimizer
+struct GeometricGradient{T <: Real} <: GMAMOptimizer
     """Step size for the projected gradient update."""
     stepsize::T
 end
 
-function GeometricGradient(; stepsize::Real=0.01)
+function GeometricGradient(; stepsize::Real = 0.01)
     T = typeof(float(stepsize))
     return GeometricGradient{T}(T(stepsize))
 end

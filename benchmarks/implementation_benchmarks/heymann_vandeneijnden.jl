@@ -9,14 +9,14 @@ function meier_stein(u, p, t) # out-of-place
 end
 
 σ = 0.25
-sys = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
+sys = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
 
 N = 200
-xx = range(-1.0, 1.0; length=N)
+xx = range(-1.0, 1.0; length = N)
 yy = 0.3 .* (-xx .^ 2 .+ 1)
 init = Matrix([xx yy]')
 
-@btime CriticalTransitions.geometric_gradient_step($sys, $init, $N; stepsize=0.1)
+@btime CriticalTransitions.geometric_gradient_step($sys, $init, $N; stepsize = 0.1)
 @btime minimize_geometric_action(
-    $sys, $init, GeometricGradient(; stepsize=0.1); maxiters=10, show_progress=false
+    $sys, $init, GeometricGradient(; stepsize = 0.1); maxiters = 10, show_progress = false
 )

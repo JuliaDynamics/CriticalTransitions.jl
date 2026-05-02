@@ -57,26 +57,26 @@ nxy = nx * ny
 xmin, xmax = -2.0, 2.0
 ymin, ymax = -2.0, 2.0
 
-x1 = range(xmin, xmax; length=nx)
-y1 = range(ymin, ymax; length=ny)
+x1 = range(xmin, xmax; length = nx)
+y1 = range(ymin, ymax; length = ny)
 
 x_grid = [xx for yy in y1, xx in x1]
 y_grid = [yy for yy in y1, xx in x1]
 
 drift1, drift2 = double_well(x_grid, y_grid)
-dnorm = sqrt.(drift1 .^ 2 .+ drift2 .^ 2 .+ 1e-12)
+dnorm = sqrt.(drift1 .^ 2 .+ drift2 .^ 2 .+ 1.0e-12)
 H_grid = Hamiltonian(x_grid, y_grid)
 
-fig = CairoMakie.contour(x1, y1, H_grid'; colormap=:viridis, levels=-1:0.4:2, linewidth=2)
+fig = CairoMakie.contour(x1, y1, H_grid'; colormap = :viridis, levels = -1:0.4:2, linewidth = 2)
 v(x::Point2) = Point2f(double_well(x[1], x[2])...)
 streamplot!(
     v,
     -2 .. 2,
     -2 .. 2;
-    linewidth=0.5,
-    colormap=[:black, :black],
-    gridsize=(40, 40),
-    arrow_size=8,
+    linewidth = 0.5,
+    colormap = [:black, :black],
+    gridsize = (40, 40),
+    arrow_size = 8,
 )
 fig
 
@@ -95,24 +95,24 @@ function drift!(du, u, p, t)
 end
 
 prob0 = ODEProblem(reverse_drift!, [-0.001, 0.0], (0.0, 100.0))
-sol0 = solve(prob0, Tsit5(); abstol=1e-12, reltol=1e-12)
+sol0 = solve(prob0, Tsit5(); abstol = 1.0e-12, reltol = 1.0e-12)
 
 prob1 = ODEProblem(drift!, [0.001, 0.0], (0.0, 100.0))
-sol1 = solve(prob1, Tsit5(); abstol=1e-12, reltol=1e-12)
+sol1 = solve(prob1, Tsit5(); abstol = 1.0e-12, reltol = 1.0e-12)
 
 fig = streamplot(
     v,
     -2 .. 2,
     -2 .. 2;
-    linewidth=0.5,
-    colormap=[:gray, :gray],
-    gridsize=(40, 40),
-    arrow_size=8,
+    linewidth = 0.5,
+    colormap = [:gray, :gray],
+    gridsize = (40, 40),
+    arrow_size = 8,
 )
 y = sol0
-lines!(y[1, :], y[2, :]; linewidth=2, color=:black)
+lines!(y[1, :], y[2, :]; linewidth = 2, color = :black)
 y = sol1
-lines!(y[1, :], y[2, :]; linewidth=2, color=:black)
+lines!(y[1, :], y[2, :]; linewidth = 2, color = :black)
 fig
 
 # Close to the local minima $(-1.0, 0.0)$ and $(1.0, 0.0)$ of the potential landscape, the system under the drift will dissipate to the corresponding attractor. TPT investigates the "reaction" (the name originates from studies of chemical reactions) between two sets in phase space A and B; here we define the two sets to be an ellipse around these minima:
@@ -142,9 +142,9 @@ pts_outer = reparameterization(p_outer, density);
 Nouter = size(pts_outer, 1)
 Nfix = Na + Nb + Nouter
 
-fig = scatter(ptsA[:, 1], ptsA[:, 2]; label="A points")
-scatter!(ptsB[:, 1], ptsB[:, 2]; label="B points")
-scatter!(pts_outer[:, 1], pts_outer[:, 2]; label="Outer points")
+fig = scatter(ptsA[:, 1], ptsA[:, 2]; label = "A points")
+scatter!(ptsB[:, 1], ptsB[:, 2]; label = "B points")
+scatter!(pts_outer[:, 1], pts_outer[:, 2]; label = "Outer points")
 fig
 
 # We would like to compute the committor, the reactive current, and the reaction rate for the double well with additive Gaussian noise. We compute these quantities on a triangular mesh between the previously computed boundaries.
@@ -174,8 +174,8 @@ for i in 1:size(tri, 1)
         ax,
         [pts[tri[i, j], 1] for j in [1, 2, 3, 1]],
         [pts[tri[i, j], 2] for j in [1, 2, 3, 1]];
-        color=:black,
-        linewidth=0.1,
+        color = :black,
+        linewidth = 0.1,
     )
 end
 fig
@@ -281,7 +281,7 @@ Rcurrent, Rrate = reactive_current(langevin_sys, mesh, q, qminus, Z)
 
 # Plotting the current norm reveals that the current is the strongest around the saddle point.
 
-ARcurrent = vec(sqrt.(sum(Rcurrent .^ 2; dims=2)))
+ARcurrent = vec(sqrt.(sum(Rcurrent .^ 2; dims = 2)))
 ARCmax = maximum(ARcurrent)
 
 tricontourf(Triangulation(mesh.pts', mesh.tri'), ARcurrent)
@@ -294,8 +294,8 @@ arrows2d(
     pts[:, 2],
     Rcurrent[:, 1] ./ ARCmax,
     Rcurrent[:, 2] ./ ARCmax;
-    color=c,
-    lengthscale=0.1,
+    color = c,
+    lengthscale = 0.1,
 )
 
 #
