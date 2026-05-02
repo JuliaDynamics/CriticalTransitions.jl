@@ -38,26 +38,26 @@ using CairoMakie
 # satisfies $q^{-} = 1 - q^{+}$ exactly.
 
 drift(u, p, t) = SA[u[1] - u[1]^3, -u[2]]
-sys = CoupledSDEs(drift, [0.0, 0.0]; noise_strength=0.4)
+sys = CoupledSDEs(drift, [0.0, 0.0]; noise_strength = 0.4)
 
 # Visualise the drift field:
 
-xs = range(-1.8, 1.8; length=40)
-ys = range(-1.0, 1.0; length=24)
-fig = Figure(; size=(640, 360))
-ax = Axis(fig[1, 1]; xlabel="x", ylabel="y", aspect=DataAspect())
+xs = range(-1.8, 1.8; length = 40)
+ys = range(-1.0, 1.0; length = 24)
+fig = Figure(; size = (640, 360))
+ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y", aspect = DataAspect())
 streamplot!(
     ax,
     p -> Point2f(p[1] - p[1]^3, -p[2]),
     -1.8 .. 1.8,
     -1.0 .. 1.0;
-    linewidth=0.6,
-    colormap=[:gray40, :gray40],
-    arrow_size=8,
-    gridsize=(28, 16),
+    linewidth = 0.6,
+    colormap = [:gray40, :gray40],
+    arrow_size = 8,
+    gridsize = (28, 16),
 )
-scatter!(ax, [-1.0, 1.0], [0.0, 0.0]; color=:black, markersize=12)
-text!(ax, [-1.0, 1.0], [0.0, 0.0]; text=["A", "B"], offset=(8, 8))
+scatter!(ax, [-1.0, 1.0], [0.0, 0.0]; color = :black, markersize = 12)
+text!(ax, [-1.0, 1.0], [0.0, 0.0]; text = ["A", "B"], offset = (8, 8))
 fig
 
 # ## Discretisation
@@ -86,7 +86,7 @@ gen = DiffusionGenerator(sys, grid)
 # and the off-diagonals are non-negative.
 
 @show size(gen.Q)
-@show maximum(abs, vec(sum(gen.Q; dims=2)))
+@show maximum(abs, vec(sum(gen.Q; dims = 2)))
 
 # ## Bundled TPT solve
 
@@ -119,11 +119,11 @@ reshape_grid(v) = reshape(v, grid.nbox)
 x_centers = collect(grid.centers[1])
 y_centers = collect(grid.centers[2])
 
-fig = Figure(; size=(640, 360))
-ax = Axis(fig[1, 1]; xlabel="x", ylabel="y", aspect=DataAspect(), title="Forward committor q⁺")
-hm = heatmap!(ax, x_centers, y_centers, reshape_grid(qplus); colormap=:viridis)
+fig = Figure(; size = (640, 360))
+ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y", aspect = DataAspect(), title = "Forward committor q⁺")
+hm = heatmap!(ax, x_centers, y_centers, reshape_grid(qplus); colormap = :viridis)
 contour!(
-    ax, x_centers, y_centers, reshape_grid(qplus); levels=[0.5], color=:white, linewidth=2
+    ax, x_centers, y_centers, reshape_grid(qplus); levels = [0.5], color = :white, linewidth = 2
 )
 Colorbar(fig[1, 2], hm)
 fig
@@ -140,9 +140,9 @@ fig
 
 ρR = reactive_density(result)
 
-fig = Figure(; size=(640, 360))
-ax = Axis(fig[1, 1]; xlabel="x", ylabel="y", aspect=DataAspect(), title="Reactive density ρ·q⁺·q⁻")
-hm = heatmap!(ax, x_centers, y_centers, reshape_grid(ρR); colormap=:magma)
+fig = Figure(; size = (640, 360))
+ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y", aspect = DataAspect(), title = "Reactive density ρ·q⁺·q⁻")
+hm = heatmap!(ax, x_centers, y_centers, reshape_grid(ρR); colormap = :magma)
 Colorbar(fig[1, 2], hm)
 fig
 
@@ -168,17 +168,17 @@ uy = [Jy[i, j] for i in Is, j in Js]
 mag = sqrt.(ux .^ 2 .+ uy .^ 2)
 mmax = maximum(mag)
 
-fig = Figure(; size=(640, 360))
-ax = Axis(fig[1, 1]; xlabel="x", ylabel="y", aspect=DataAspect(), title="Reactive current")
+fig = Figure(; size = (640, 360))
+ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y", aspect = DataAspect(), title = "Reactive current")
 heatmap!(
-    ax, x_centers, y_centers, reshape_grid(ρR); colormap=:magma, alpha=0.6,
+    ax, x_centers, y_centers, reshape_grid(ρR); colormap = :magma, alpha = 0.6,
 )
 arrows2d!(
     ax,
     vec(xq), vec(yq),
     vec(ux ./ mmax), vec(uy ./ mmax);
-    color=:white,
-    lengthscale=0.08,
+    color = :white,
+    lengthscale = 0.08,
 )
 fig
 
@@ -193,9 +193,9 @@ fig
 
 τ = mean_first_passage_time(gen, B)
 
-fig = Figure(; size=(640, 360))
-ax = Axis(fig[1, 1]; xlabel="x", ylabel="y", aspect=DataAspect(), title="Mean first-passage time to B")
-hm = heatmap!(ax, x_centers, y_centers, reshape_grid(τ); colormap=:plasma)
+fig = Figure(; size = (640, 360))
+ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y", aspect = DataAspect(), title = "Mean first-passage time to B")
+hm = heatmap!(ax, x_centers, y_centers, reshape_grid(τ); colormap = :plasma)
 Colorbar(fig[1, 2], hm)
 fig
 
@@ -205,11 +205,11 @@ fig
 # over different choices of $A$ and $B$ at the cost of a single sparse solve
 # each:
 
-for r in (0.20, 0.25, 0.30, 0.35)
+for r in (0.2, 0.25, 0.3, 0.35)
     Ar = x -> norm(x .- SA[-1.0, 0.0]) < r
     Br = x -> norm(x .- SA[1.0, 0.0]) < r
     k = reactive_rate(ReactiveTransition(gen, Ar, Br))
-    println("r = $r → k_AB = $(round(k; sigdigits=4))")
+    println("r = $r → k_AB = $(round(k; sigdigits = 4))")
 end
 
 # Authored by O. Ameye and R. Börner

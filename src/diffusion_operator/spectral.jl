@@ -27,12 +27,12 @@ run an iterative sparse eigensolver (Arpack.jl / KrylovKit.jl) directly
 on [`rate_matrix(gen)`](@ref) — the slowest modes correspond to
 `which = :LR` (largest real part).
 """
-function eigenmodes(gen::DiffusionGenerator, k::Integer=10)
+function eigenmodes(gen::DiffusionGenerator, k::Integer = 10)
     N = size(gen.Q, 1)
     k >= 1 || throw(ArgumentError("k must be ≥ 1"))
     k = min(k, N)
     F = eigen(Matrix(gen.Q))
-    perm = sortperm(F.values; by=real, rev=true)
+    perm = sortperm(F.values; by = real, rev = true)
     inds = perm[1:k]
     return F.values[inds], F.vectors[:, inds]
 end

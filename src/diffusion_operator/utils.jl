@@ -19,9 +19,9 @@ face stencils.
 """
 @inline function _bernoulli(z::Float64)
     az = abs(z)
-    if az < 1e-10
+    if az < 1.0e-10
         return 1.0
-    elseif az < 1e-2
+    elseif az < 1.0e-2
         z2 = z * z
         return 1.0 - z / 2 + z2 / 12 - z2 * z2 / 720
     else
@@ -37,7 +37,7 @@ then set the diagonal of those rows to `1`. Used to impose Dirichlet
 boundary conditions on a sparse linear system without disturbing the
 sparsity pattern of the free rows.
 """
-function _enforce_dirichlet_rows!(A::SparseMatrixCSC{Float64,Int}, mask::BitVector)
+function _enforce_dirichlet_rows!(A::SparseMatrixCSC{Float64, Int}, mask::BitVector)
     rv = rowvals(A)
     nz = nonzeros(A)
     @inbounds for col in 1:size(A, 2)
@@ -66,12 +66,12 @@ LinearSolve.jl algorithm (e.g. `KrylovJL_GMRES()`, `KrylovJL_BICGSTAB()`)
 to use an iterative solver instead.
 """
 function _solve_dirichlet(
-    A::SparseMatrixCSC{Float64,Int},
-    mask::BitVector,
-    values::Vector{Float64};
-    source::Union{Nothing,Vector{Float64}}=nothing,
-    alg=nothing,
-)::Vector{Float64}
+        A::SparseMatrixCSC{Float64, Int},
+        mask::BitVector,
+        values::Vector{Float64};
+        source::Union{Nothing, Vector{Float64}} = nothing,
+        alg = nothing,
+    )::Vector{Float64}
     M = copy(A)
     rhs = source === nothing ? zeros(Float64, size(A, 1)) : copy(source)
     _enforce_dirichlet_rows!(M, mask)
@@ -92,9 +92,9 @@ normalisation `dot(ρ, weights) = 1`. Sign-agnostic.
 LinearSolve.jl algorithm to use an iterative solver instead.
 """
 function _invariant_density(
-    G::SparseMatrixCSC{Float64,Int}, weights::Vector{Float64};
-    alg=nothing,
-)::Vector{Float64}
+        G::SparseMatrixCSC{Float64, Int}, weights::Vector{Float64};
+        alg = nothing,
+    )::Vector{Float64}
     N = size(G, 1)
     length(weights) == N || throw(
         DimensionMismatch("weight vector length $(length(weights)) ≠ N = $N"),
@@ -123,8 +123,8 @@ with diagonal `G̃[i, i] = -∑_{j ≠ i} G̃[i, j]`. Output preserves the
 sparsity pattern of `Gᵀ` and the sign convention of `G`.
 """
 function _adjoint_generator(
-    G::SparseMatrixCSC{Float64,Int}, ρ::Vector{Float64}
-)::SparseMatrixCSC{Float64,Int}
+        G::SparseMatrixCSC{Float64, Int}, ρ::Vector{Float64}
+    )::SparseMatrixCSC{Float64, Int}
     N = size(G, 1)
     Gtil = sparse(transpose(G))
     rv = rowvals(Gtil)

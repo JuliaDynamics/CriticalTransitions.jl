@@ -79,17 +79,17 @@ invariant.
 algorithm (e.g. `KrylovJL_GMRES()`) to use an iterative solver.
 """
 function stationary_distribution(
-    gen::DiffusionGenerator; alg=nothing
-)::Vector{Float64}
+        gen::DiffusionGenerator; alg = nothing
+    )::Vector{Float64}
     any(b -> b isa Absorbing, gen.bc) && throw(
         ArgumentError(
             "stationary_distribution is undefined for absorbing boundary " *
-            "conditions: the chain leaks probability through the boundary " *
-            "and has no nontrivial normalised invariant.",
+                "conditions: the chain leaks probability through the boundary " *
+                "and has no nontrivial normalised invariant.",
         ),
     )
     weights = fill(cell_volume(gen.grid), ncells(gen))
-    return _invariant_density(gen.Q, weights; alg=alg)
+    return _invariant_density(gen.Q, weights; alg = alg)
 end
 
 # ---------------------------------------------------------------------
@@ -111,18 +111,18 @@ on `A` and `q⁺ = 1` on `B`.
 algorithm (e.g. `KrylovJL_GMRES()`) to use an iterative solver.
 """
 function forward_committor(
-    gen::DiffusionGenerator, A, B; alg=nothing
-)::Vector{Float64}
+        gen::DiffusionGenerator, A, B; alg = nothing
+    )::Vector{Float64}
     grid = gen.grid
     A_mask = _to_mask(A, grid)
     B_mask = _to_mask(B, grid)
-    return _forward_committor(gen.Q, A_mask, B_mask; alg=alg)
+    return _forward_committor(gen.Q, A_mask, B_mask; alg = alg)
 end
 
 function _forward_committor(
-    Q::SparseMatrixCSC{Float64,Int}, A_mask::BitVector, B_mask::BitVector;
-    alg=nothing,
-)::Vector{Float64}
+        Q::SparseMatrixCSC{Float64, Int}, A_mask::BitVector, B_mask::BitVector;
+        alg = nothing,
+    )::Vector{Float64}
     any(A_mask) || throw(ArgumentError("set A is empty"))
     any(B_mask) || throw(ArgumentError("set B is empty"))
     any(A_mask .& B_mask) && throw(ArgumentError("sets A and B overlap"))
@@ -132,7 +132,7 @@ function _forward_committor(
     @inbounds for n in eachindex(B_mask)
         B_mask[n] && (bc_values[n] = 1.0)
     end
-    return _solve_dirichlet(Q, mask_bc, bc_values; alg=alg)
+    return _solve_dirichlet(Q, mask_bc, bc_values; alg = alg)
 end
 
 """
@@ -152,45 +152,45 @@ reverse SDE is known.
 algorithm (e.g. `KrylovJL_GMRES()`) to use an iterative solver.
 """
 function backward_committor(
-    gen::DiffusionGenerator, A, B;
-    reverse::Union{Nothing,DiffusionGenerator}=nothing, alg=nothing,
-)::Vector{Float64}
+        gen::DiffusionGenerator, A, B;
+        reverse::Union{Nothing, DiffusionGenerator} = nothing, alg = nothing,
+    )::Vector{Float64}
     grid = gen.grid
     A_mask = _to_mask(A, grid)
     B_mask = _to_mask(B, grid)
     if reverse === nothing
-        ρ = stationary_distribution(gen; alg=alg)
-        return _backward_committor_adjoint(gen.Q, ρ, A_mask, B_mask; alg=alg)
+        ρ = stationary_distribution(gen; alg = alg)
+        return _backward_committor_adjoint(gen.Q, ρ, A_mask, B_mask; alg = alg)
     else
-        return _backward_committor_explicit(reverse.Q, A_mask, B_mask; alg=alg)
+        return _backward_committor_explicit(reverse.Q, A_mask, B_mask; alg = alg)
     end
 end
 
 function _backward_committor_adjoint(
-    Q::SparseMatrixCSC{Float64,Int},
-    ρ::Vector{Float64},
-    A_mask::BitVector,
-    B_mask::BitVector;
-    alg=nothing,
-)::Vector{Float64}
+        Q::SparseMatrixCSC{Float64, Int},
+        ρ::Vector{Float64},
+        A_mask::BitVector,
+        B_mask::BitVector;
+        alg = nothing,
+    )::Vector{Float64}
     any(A_mask) || throw(ArgumentError("set A is empty"))
     any(B_mask) || throw(ArgumentError("set B is empty"))
     any(A_mask .& B_mask) && throw(ArgumentError("sets A and B overlap"))
     Qadj = _adjoint_generator(Q, ρ)
-    return _backward_committor_explicit(Qadj, A_mask, B_mask; alg=alg)
+    return _backward_committor_explicit(Qadj, A_mask, B_mask; alg = alg)
 end
 
 function _backward_committor_explicit(
-    Qrev::SparseMatrixCSC{Float64,Int}, A_mask::BitVector, B_mask::BitVector;
-    alg=nothing,
-)::Vector{Float64}
+        Qrev::SparseMatrixCSC{Float64, Int}, A_mask::BitVector, B_mask::BitVector;
+        alg = nothing,
+    )::Vector{Float64}
     N = size(Qrev, 1)
     mask_bc = A_mask .| B_mask
     bc_values = zeros(Float64, N)
     @inbounds for n in eachindex(A_mask)
         A_mask[n] && (bc_values[n] = 1.0)
     end
-    return _solve_dirichlet(Qrev, mask_bc, bc_values; alg=alg)
+    return _solve_dirichlet(Qrev, mask_bc, bc_values; alg = alg)
 end
 
 # ---------------------------------------------------------------------
@@ -212,15 +212,15 @@ indices.
 algorithm (e.g. `KrylovJL_GMRES()`) to use an iterative solver.
 """
 function mean_first_passage_time(
-    gen::DiffusionGenerator, target; alg=nothing
-)::Vector{Float64}
+        gen::DiffusionGenerator, target; alg = nothing
+    )::Vector{Float64}
     target_mask = _to_mask(target, gen.grid)
     any(target_mask) || throw(ArgumentError("target set is empty"))
     Q = gen.Q
     N = size(Q, 1)
     bc_values = zeros(Float64, N)
     source = fill(-1.0, N)
-    return _solve_dirichlet(Q, target_mask, bc_values; source=source, alg=alg)
+    return _solve_dirichlet(Q, target_mask, bc_values; source = source, alg = alg)
 end
 
 """
@@ -240,15 +240,15 @@ Returns a length-`ncells(gen)` vector of variances, all `≥ 0`.
 algorithm to use an iterative solver.
 """
 function first_passage_variance(
-    gen::DiffusionGenerator, target; alg=nothing
-)::Vector{Float64}
+        gen::DiffusionGenerator, target; alg = nothing
+    )::Vector{Float64}
     target_mask = _to_mask(target, gen.grid)
     any(target_mask) || throw(ArgumentError("target set is empty"))
     Q = gen.Q
     N = size(Q, 1)
     bc_values = zeros(Float64, N)
 
-    τ_1 = _solve_dirichlet(Q, target_mask, bc_values; source=fill(-1.0, N), alg=alg)
-    τ_2 = _solve_dirichlet(Q, target_mask, bc_values; source=-2 .* τ_1, alg=alg)
+    τ_1 = _solve_dirichlet(Q, target_mask, bc_values; source = fill(-1.0, N), alg = alg)
+    τ_2 = _solve_dirichlet(Q, target_mask, bc_values; source = -2 .* τ_1, alg = alg)
     return τ_2 .- τ_1 .^ 2
 end

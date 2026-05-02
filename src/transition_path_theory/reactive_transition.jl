@@ -59,17 +59,17 @@ struct ReactiveTransition{D}
 end
 
 function ReactiveTransition(
-    gen::DiffusionGenerator{D},
-    A,
-    B;
-    reverse::Union{Nothing,DiffusionGenerator{D}}=nothing,
-    alg=nothing,
-) where {D}
+        gen::DiffusionGenerator{D},
+        A,
+        B;
+        reverse::Union{Nothing, DiffusionGenerator{D}} = nothing,
+        alg = nothing,
+    ) where {D}
     any(b -> b isa Absorbing, gen.bc) && throw(
         ArgumentError(
             "ReactiveTransition is undefined for absorbing boundary " *
-            "conditions: the chain has mass loss and admits no nontrivial " *
-            "invariant density. Use Reflecting() or Periodic() instead.",
+                "conditions: the chain has mass loss and admits no nontrivial " *
+                "invariant density. Use Reflecting() or Periodic() instead.",
         ),
     )
     grid = gen.grid
@@ -82,14 +82,14 @@ function ReactiveTransition(
     Q = gen.Q
     weights = fill(cell_volume(grid), ncells(gen))
 
-    ρ = _invariant_density(Q, weights; alg=alg)
-    qplus = _forward_committor(Q, A_mask, B_mask; alg=alg)
+    ρ = _invariant_density(Q, weights; alg = alg)
+    qplus = _forward_committor(Q, A_mask, B_mask; alg = alg)
 
     if reverse === nothing
-        qminus = _backward_committor_adjoint(Q, ρ, A_mask, B_mask; alg=alg)
+        qminus = _backward_committor_adjoint(Q, ρ, A_mask, B_mask; alg = alg)
         physical_reverse = false
     else
-        qminus = _backward_committor_explicit(reverse.Q, A_mask, B_mask; alg=alg)
+        qminus = _backward_committor_explicit(reverse.Q, A_mask, B_mask; alg = alg)
         physical_reverse = true
     end
 
@@ -98,18 +98,18 @@ function ReactiveTransition(
 end
 
 function ReactiveTransition(
-    sys::CoupledSDEs,
-    grid::CartesianGrid{D},
-    A,
-    B;
-    reverse::Union{Nothing,CoupledSDEs}=nothing,
-    bc=Reflecting(),
-    alg=nothing,
-) where {D}
-    gen = DiffusionGenerator(sys, grid; bc=bc)
+        sys::CoupledSDEs,
+        grid::CartesianGrid{D},
+        A,
+        B;
+        reverse::Union{Nothing, CoupledSDEs} = nothing,
+        bc = Reflecting(),
+        alg = nothing,
+    ) where {D}
+    gen = DiffusionGenerator(sys, grid; bc = bc)
     gen_rev =
-        reverse === nothing ? nothing : DiffusionGenerator(reverse, grid; bc=bc)
-    return ReactiveTransition(gen, A, B; reverse=gen_rev, alg=alg)
+        reverse === nothing ? nothing : DiffusionGenerator(reverse, grid; bc = bc)
+    return ReactiveTransition(gen, A, B; reverse = gen_rev, alg = alg)
 end
 
 # =====================================================================
@@ -240,13 +240,13 @@ function reactive_current_irreversible(r::ReactiveTransition)
 end
 
 function _reactive_current_from_Q(
-    Q::SparseMatrixCSC{Float64,Int},
-    ρ::Vector{Float64},
-    qplus::Vector{Float64},
-    qminus::Vector{Float64},
-    grid::CartesianGrid{D},
-    bc::Tuple,
-) where {D}
+        Q::SparseMatrixCSC{Float64, Int},
+        ρ::Vector{Float64},
+        qplus::Vector{Float64},
+        qminus::Vector{Float64},
+        grid::CartesianGrid{D},
+        bc::Tuple,
+    ) where {D}
     nbox = grid.nbox
     LI = LinearIndices(nbox)
     v = cell_volume(grid)

@@ -17,16 +17,16 @@ covering `[lo, hi]`.
 """
 struct CartesianGrid{D}
     "Number of cells along each axis."
-    nbox::NTuple{D,Int}
+    nbox::NTuple{D, Int}
     "Cell width along each axis."
-    h::NTuple{D,Float64}
+    h::NTuple{D, Float64}
     "Cell-center coordinates along each axis (length `N_k`)."
-    centers::NTuple{D,LinRange{Float64,Int}}
+    centers::NTuple{D, LinRange{Float64, Int}}
     "Cell-edge coordinates along each axis (length `N_k + 1`)."
-    edges::NTuple{D,LinRange{Float64,Int}}
+    edges::NTuple{D, LinRange{Float64, Int}}
 end
 
-function CartesianGrid(axes::Vararg{Tuple{Real,Real,Integer},D}) where {D}
+function CartesianGrid(axes::Vararg{Tuple{Real, Real, Integer}, D}) where {D}
     D >= 1 || throw(ArgumentError("CartesianGrid needs at least one axis"))
     nbox = ntuple(k -> Int(axes[k][3]), D)
     @inbounds for k in 1:D
@@ -69,5 +69,5 @@ $(TYPEDSIGNATURES)
 `SVector{D, Float64}` of the center coordinates of cell `I`.
 """
 @inline function cell_center(grid::CartesianGrid{D}, I::CartesianIndex{D}) where {D}
-    return SVector{D,Float64}(ntuple(d -> grid.centers[d][I[d]], D))
+    return SVector{D, Float64}(ntuple(d -> grid.centers[d][I[d]], D))
 end

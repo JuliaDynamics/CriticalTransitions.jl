@@ -15,13 +15,13 @@ off-diagonals = transition rates):
 Computed in `O(nnz(G))` by walking sparse columns once.
 """
 function _reactive_rate(
-    G::SparseMatrixCSC{Float64,Int},
-    ρ::Vector{Float64},
-    qplus::Vector{Float64},
-    qminus::Vector{Float64},
-    weights::Vector{Float64},
-    A_mask::BitVector,
-)::Float64
+        G::SparseMatrixCSC{Float64, Int},
+        ρ::Vector{Float64},
+        qplus::Vector{Float64},
+        qminus::Vector{Float64},
+        weights::Vector{Float64},
+        A_mask::BitVector,
+    )::Float64
     rv = rowvals(G)
     nz = nonzeros(G)
     rate = 0.0

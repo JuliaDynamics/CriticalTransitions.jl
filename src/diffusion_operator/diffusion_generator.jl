@@ -80,11 +80,11 @@ from its two adjacent cell-center values.
   outer faces. `Q` is a sub-generator (row sums on the boundary become
   negative). Useful for survival problems.
 """
-struct DiffusionGenerator{D,BC<:Tuple}
+struct DiffusionGenerator{D, BC <: Tuple}
     "The Cartesian grid the generator lives on."
     grid::CartesianGrid{D}
     "Sparse rate matrix (off-diagonals = transition rates ≥ 0)."
-    Q::SparseMatrixCSC{Float64,Int}
+    Q::SparseMatrixCSC{Float64, Int}
     "Per-axis boundary condition (one [`BoundaryCondition`](@ref) per axis)."
     bc::BC
 end
@@ -99,17 +99,17 @@ function _diagonal_diffusion(sys::CoupledSDEs, ::Val{D}) where {D}
             "covariance matrix size $(size(Σ)) does not match grid dimension $D"
         ),
     )
-    tol = 1e-10 * max(maximum(abs, diag(Σ)), 1.0)
+    tol = 1.0e-10 * max(maximum(abs, diag(Σ)), 1.0)
     @inbounds for i in 1:D, j in 1:D
         if i != j && abs(Σ[i, j]) > tol
             throw(
                 ArgumentError(
-                    "DiffusionGenerator requires diagonal noise covariance; got Σ[$i,$j] = $(Σ[i,j])",
+                    "DiffusionGenerator requires diagonal noise covariance; got Σ[$i,$j] = $(Σ[i, j])",
                 ),
             )
         end
     end
-    return SVector{D,Float64}(ntuple(k -> Σ[k, k], D))
+    return SVector{D, Float64}(ntuple(k -> Σ[k, k], D))
 end
 
 function _normalize_bc(bc::BoundaryCondition, ::Val{D}) where {D}
@@ -119,14 +119,14 @@ function _normalize_bc(bc::Tuple, ::Val{D}) where {D}
     length(bc) == D || throw(
         ArgumentError(
             "expected a single BoundaryCondition or a $D-tuple thereof; " *
-            "got a $(length(bc))-tuple",
+                "got a $(length(bc))-tuple",
         ),
     )
     @inbounds for k in 1:D
         bc[k] isa BoundaryCondition || throw(
             ArgumentError(
                 "bc[$k] must be a BoundaryCondition (Reflecting/Periodic/" *
-                "Absorbing); got $(typeof(bc[k]))",
+                    "Absorbing); got $(typeof(bc[k]))",
             ),
         )
     end
@@ -142,18 +142,18 @@ _normalize_bc(bc, ::Val{D}) where {D} = throw(
 # `sign = +1` produces the rate matrix / generator (off-diagonals ≥ 0).
 # `sign = -1` produces the M-matrix form (off-diagonals ≤ 0).
 function _assemble_generator(
-    sys::CoupledSDEs,
-    grid::CartesianGrid{D},
-    sign::Int,
-    bc::Tuple,
-)::SparseMatrixCSC{Float64,Int} where {D}
+        sys::CoupledSDEs,
+        grid::CartesianGrid{D},
+        sign::Int,
+        bc::Tuple,
+    )::SparseMatrixCSC{Float64, Int} where {D}
     sign == +1 || sign == -1 || throw(ArgumentError("sign must be ±1"))
     diffusion = _diagonal_diffusion(sys, Val(D))
     nbox = grid.nbox
     N = ncells(grid)
     LI = LinearIndices(nbox)
 
-    drift_components = ntuple(_ -> Array{Float64,D}(undef, nbox), D)
+    drift_components = ntuple(_ -> Array{Float64, D}(undef, nbox), D)
     @inbounds for I in CartesianIndices(nbox)
         x = cell_center(grid, I)
         f = drift(sys, x)
@@ -255,11 +255,11 @@ function _assemble_generator(
 end
 
 function DiffusionGenerator(
-    sys::CoupledSDEs, grid::CartesianGrid{D}; bc=Reflecting()
-) where {D}
+        sys::CoupledSDEs, grid::CartesianGrid{D}; bc = Reflecting()
+    ) where {D}
     bc_tuple = _normalize_bc(bc, Val(D))
     Q = _assemble_generator(sys, grid, +1, bc_tuple)
-    return DiffusionGenerator{D,typeof(bc_tuple)}(grid, Q, bc_tuple)
+    return DiffusionGenerator{D, typeof(bc_tuple)}(grid, Q, bc_tuple)
 end
 
 """
