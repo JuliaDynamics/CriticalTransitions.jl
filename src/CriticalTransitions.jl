@@ -9,7 +9,7 @@ end CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra: LinearAlgebra, norm, dot, tr, det
+using LinearAlgebra: LinearAlgebra, norm, dot, tr, diag
 using StaticArrays: StaticArrays, SVector
 using DataStructures: CircularBuffer
 using Random: Random
@@ -39,6 +39,9 @@ using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq
 
+using SparseArrays:
+    SparseArrays, sparse, SparseMatrixCSC, rowvals, nonzeros, nzrange
+
 using Interpolations: linear_interpolation
 using Optimization: Optimization
 using OptimizationOptimisers: Optimisers
@@ -56,7 +59,6 @@ using Reexport: @reexport
 @reexport using StaticArrays
 @reexport using DynamicalSystemsBase
 
-include("extension_functions.jl")
 include("utils.jl")
 include("sde_utils.jl")
 
@@ -76,13 +78,12 @@ include("largedeviations/string_method.jl")
 
 include("r_tipping/RateSystem.jl")
 
-# Experimental features
-include("experimental/transition_path_theory/TransitionPathMesh.jl")
-include("experimental/transition_path_theory/langevin.jl")
-include("experimental/transition_path_theory/committor.jl")
-include("experimental/transition_path_theory/invariant_pdf.jl")
-include("experimental/transition_path_theory/reactive_current.jl")
-include("experimental/transition_path_theory/probability.jl")
+# Transition Path Theory
+include("transition_path_theory/core.jl")
+include("transition_path_theory/cartesian_grid.jl")
+include("transition_path_theory/diffusion_generator.jl")
+include("transition_path_theory/generator_analyses.jl")
+include("transition_path_theory/reactive_transition.jl")
 
 include("../systems/CTLibrary.jl")
 using .CTLibrary
@@ -104,5 +105,13 @@ export transition, transitions
 export ForcingProfile, RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
 export frozen_system, parameters
+
+# Transition Path Theory
+export CartesianGrid, DiffusionGenerator, ReactiveTransition
+export rate_matrix, m_matrix
+export forward_committor, backward_committor, stationary_distribution
+export mean_first_passage_time
+export reactive_rate, reactive_current, reactive_density
+export probability_reactive, probability_last_A
 
 end # module CriticalTransitions
