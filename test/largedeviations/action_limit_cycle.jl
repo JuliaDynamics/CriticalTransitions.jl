@@ -15,7 +15,7 @@ using CriticalTransitions
     μ = 1.0
     ω = 1.0
     σ = 0.2
-    sys = CoupledSDEs(stuart_landau, zeros(2), (μ, ω); noise_strength=σ)
+    sys = CoupledSDEs(stuart_landau, zeros(2), (μ, ω); noise_strength = σ)
 
     # Two points on the same limit cycle (radius = 1)
     x_i = SA[1.0, 0.0]
@@ -24,21 +24,21 @@ using CriticalTransitions
     # Deterministic orbit segment from θ=0 to θ=π/2 with correct travel time
     Δt = (π / 2) / ω
     N = 2001
-    time = range(0.0, Δt; length=N)
+    time = range(0.0, Δt; length = N)
 
     path = zeros(2, N)
     for (i, t) in enumerate(time)
         path[:, i] = (sqrt(μ)) .* SA[cos(ω * t), sin(ω * t)]
     end
 
-    @test isapprox(path[:, 1], x_i; atol=1e-12, rtol=0)
-    @test isapprox(path[:, end], x_f; atol=1e-12, rtol=0)
+    @test isapprox(path[:, 1], x_i; atol = 1.0e-12, rtol = 0)
+    @test isapprox(path[:, end], x_f; atol = 1.0e-12, rtol = 0)
 
     S_fw = fw_action(sys, path, time)
-    @test S_fw ≤ 1e-10
+    @test S_fw ≤ 1.0e-10
 
     S_geo = geometric_action(sys, path)
-    @test S_geo ≤ 1e-10
+    @test S_geo ≤ 1.0e-10
 end
 
 @testset "Limit cycle: gMAM minimizer has ~0 geometric action" begin
@@ -54,16 +54,16 @@ end
     μ = 1.0
     ω = 1.0
     σ = 0.2
-    sys = CoupledSDEs(stuart_landau, zeros(2), (μ, ω); noise_strength=σ)
+    sys = CoupledSDEs(stuart_landau, zeros(2), (μ, ω); noise_strength = σ)
 
     x_i = SA[1.0, 0.0]
     x_f = SA[0.0, 1.0]
 
     # Start from a straight-line initial path; minimizer should move it onto the LC segment.
     res = minimize_geometric_action(
-        sys, x_i, x_f; npoints=500, maxiters=1000, show_progress=false, verbose=false
+        sys, x_i, x_f; npoints = 500, maxiters = 1000, show_progress = false, verbose = false
     )
 
     S = res.action
-    @test S ≤ 1e-6
+    @test S ≤ 1.0e-6
 end

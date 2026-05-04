@@ -4,7 +4,7 @@ Smooth approximation of `abs(x)`, ``|x| = x \\tanh(\\xi x)``, where ``xi`` contr
 accuracy of the approximation. The exact absolute value function is obtained in the limit
 ``\\xi \\to \\infty``.
 """
-function smoothabs(x, xi=1000)
+function smoothabs(x, xi = 1000)
     return x * tanh(x * xi)
 end;
 
@@ -38,7 +38,7 @@ See also `cessi`
     [Cessi (1994). A simple box model of stochastically forced thermohaline flow]
     (https://doi.org/10.1175/1520-0485(1994)024%3C1911:ASBMOS%3E2.0.CO;2)
 """
-function stommel(u, p, t; smooth=1e-6, flow_law="abs")
+function stommel(u, p, t; smooth = 1.0e-6, flow_law = "abs")
     x, y = u
     delta, mu, R = p
 
@@ -87,5 +87,5 @@ function cessi(u, p, t)
     mu = 2 / alpha * mu2
     R = pflux / 2
 
-    return stommel(u, [[delta, mu, R]], t; smooth=0, flow_law="diffu_sqr")
+    return stommel(u, [[delta, mu, R]], t; smooth = 0, flow_law = "diffu_sqr")
 end

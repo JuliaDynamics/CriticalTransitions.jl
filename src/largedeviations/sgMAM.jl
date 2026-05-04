@@ -7,7 +7,7 @@ Hence, this system operates in an extended phase space where the Hamiltonian is 
 
 The struct `ExtendedPhaseSpace` holds the Hamilton's functions `H_x` and `H_p`.
 """
-struct ExtendedPhaseSpace{IIP,D,Hx,Hp}
+struct ExtendedPhaseSpace{IIP, D, Hx, Hp}
     H_x::Hx
     H_p::Hp
 
@@ -39,14 +39,14 @@ struct ExtendedPhaseSpace{IIP,D,Hx,Hp}
             end
             return Hp
         end
-        return new{isinplace(ds),dimension(ds),typeof(H_x),typeof(H_p)}(H_x, H_p)
+        return new{isinplace(ds), dimension(ds), typeof(H_x), typeof(H_p)}(H_x, H_p)
     end
-    function ExtendedPhaseSpace{IIP,D}(H_x::Function, H_p::Function) where {IIP,D}
-        return new{IIP,D,typeof(H_x),typeof(H_p)}(H_x, H_p)
+    function ExtendedPhaseSpace{IIP, D}(H_x::Function, H_p::Function) where {IIP, D}
+        return new{IIP, D, typeof(H_x), typeof(H_p)}(H_x, H_p)
     end
 end
 
-function prettyprint(mlp::ExtendedPhaseSpace{IIP,D}) where {IIP,D}
+function prettyprint(mlp::ExtendedPhaseSpace{IIP, D}) where {IIP, D}
     return "Doubled $D-dimensional phase space containing $(IIP ? "in-place" : "out-of-place") functions"
 end
 
@@ -81,26 +81,26 @@ step size is set via `GeometricGradient(; stepsize=...)`.
   - `reltol::Real=NaN`: relative tolerance for early stopping based on action change
 """
 function minimize_simple_geometric_action(
-    sys::ExtendedPhaseSpace,
-    x_initial::Matrix{T},
-    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
-    maxiters::Int=1000,
-    show_progress::Bool=false,
-    verbose::Bool=false,
-    abstol::Real=NaN,
-    reltol::Real=NaN,
-) where {T}
+        sys::ExtendedPhaseSpace,
+        x_initial::Matrix{T},
+        optimizer::GeometricGradient = GeometricGradient(; stepsize = 1.0e-1);
+        maxiters::Int = 1000,
+        show_progress::Bool = false,
+        verbose::Bool = false,
+        abstol::Real = NaN,
+        reltol::Real = NaN,
+    ) where {T}
     H_p, H_x = sys.H_p, sys.H_x
 
     Nx, Nt = size(x_initial)
-    s = range(0; stop=1, length=Nt)
+    s = range(0; stop = 1, length = Nt)
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
     xdotdot = zeros(size(xdot))
 
     S = CircularBuffer{T}(2)
     fill!(S, Inf)
 
-    progress = Progress(maxiters; dt=0.5, enabled=show_progress)
+    progress = Progress(maxiters; dt = 0.5, enabled = show_progress)
     for i in 1:maxiters
         update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, optimizer.stepsize)
 
@@ -111,36 +111,36 @@ function minimize_simple_geometric_action(
         abs_change = abs(S[end] - S[1])
         rel_change = S[end] == 0 ? abs_change : abs_change / abs(S[end])
         if (isfinite(abstol) && abs_change < abstol) ||
-            (isfinite(reltol) && rel_change < reltol)
+                (isfinite(reltol) && rel_change < reltol)
             verbose &&
                 @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
             break
         end
         next!(
             progress;
-            showvalues=[("iterations", i), ("Stol", round(rel_change; sigdigits=3))],
+            showvalues = [("iterations", i), ("Stol", round(rel_change; sigdigits = 3))],
         )
     end
     return MinimumActionPath(
-        StateSpaceSet(x'), S[end]; λ=lambda, generalized_momentum=p, path_velocity=xdot
+        StateSpaceSet(x'), S[end]; λ = lambda, generalized_momentum = p, path_velocity = xdot
     )
 end
 function minimize_simple_geometric_action(
-    sys,
-    x_initial::StateSpaceSet,
-    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
-    kwargs...,
-)
+        sys,
+        x_initial::StateSpaceSet,
+        optimizer::GeometricGradient = GeometricGradient(; stepsize = 1.0e-1);
+        kwargs...,
+    )
     return minimize_simple_geometric_action(
         sys, Matrix(Matrix(x_initial)'), optimizer; kwargs...
     )
 end
 function minimize_simple_geometric_action(
-    sys::ContinuousTimeDynamicalSystem,
-    x_initial::Matrix{<:Real},
-    optimizer::GeometricGradient=GeometricGradient(; stepsize=1e-1);
-    kwargs...,
-)
+        sys::ContinuousTimeDynamicalSystem,
+        x_initial::Matrix{<:Real},
+        optimizer::GeometricGradient = GeometricGradient(; stepsize = 1.0e-1);
+        kwargs...,
+    )
     return minimize_simple_geometric_action(
         ExtendedPhaseSpace(sys), Matrix(Matrix(x_initial)'), optimizer; kwargs...
     )
@@ -196,7 +196,7 @@ function update_x!(x, λ, p′, x′′, Hx, ϵ)
         init(
             prob,
             LUFactorization();
-            alias=SciMLBase.LinearAliasSpecifier(; alias_A=true, alias_b=true),
+            alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
         )
     end
 
@@ -221,7 +221,7 @@ function update_p!(p, lambda, x, xdot, H_p)
     # Alternative: Direct computation, only correct for quadratic Hamiltonian in p,
     # where H_pp does not depend on p
     b_ = H_p(x, 0 * x)
-    lambda .= sqrt.(sum(b_ .^ 2; dims=1) ./ sum(xdot .^ 2; dims=1))
+    lambda .= sqrt.(sum(b_ .^ 2; dims = 1) ./ sum(xdot .^ 2; dims = 1))
     lambda[1] = 0
     lambda[end] = 0
     p .= (lambda .* xdot .- b_)
@@ -234,7 +234,7 @@ function central_diff!(xdot, x)
     return nothing
 end
 
-FW_action(xdot, p) = sum(sum(xdot .* p; dims=1)) / 2
+FW_action(xdot, p) = sum(sum(xdot .* p; dims = 1)) / 2
 
 function proper_sgMAM_system(ds::CoupledSDEs)
     proper_MAM_system(ds)

@@ -8,21 +8,21 @@ function benchmark_maierstein!(SUITE)
         return SA[dx, dy]
     end
     σ = 0.25
-    sys = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
+    sys = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
 
-    xx = range(-1.0, 1.0; length=30)
+    xx = range(-1.0, 1.0; length = 30)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     init = Matrix([xx yy]')
 
     x_i = init[:, 1]
     x_f = init[:, end]
 
-    optimizer=Optimisers.Adam()
+    optimizer = Optimisers.Adam()
     SUITE["Large deviation"]["Geometric minimal action"]["Maier-Stein (Optimisers.Adam; AutoFiniteDiff)"] = @benchmarkable minimize_geometric_action(
-        $sys, $init, $optimizer; maxiters=1000, show_progress=false
+        $sys, $init, $optimizer; maxiters = 1000, show_progress = false
     ) seconds = 10
     SUITE["Large deviation"]["Geometric minimal action"]["Maier-Stein (HeymannVandenEijnden)"] = @benchmarkable minimize_geometric_action(
-        $sys, $init, GeometricGradient(); maxiters=1000, show_progress=false
+        $sys, $init, GeometricGradient(); maxiters = 1000, show_progress = false
     ) seconds = 10
     return nothing
 end

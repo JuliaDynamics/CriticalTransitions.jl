@@ -9,7 +9,7 @@
 # 2) Apply this parametric forcing to a given autonomous dynamical system by constructing a `RateSystem`.
 #    This yields a non-autonomous dynamical system in which the parameters are explicitly time-dependent.
 
-# You can rescale the forcing profile in system time units by specifying the start time and 
+# You can rescale the forcing profile in system time units by specifying the start time and
 # duration of the forcing change. Then:
 # - for times `t < forcing_start_time`, the system is autonomous, with parameters given by the underlying autonomous system
 # - for `forcing_start_time < t < forcing_start_time + forcing_duration`, the system is non-autonomous with the parameter change given by the `ForcingProfile`
@@ -77,28 +77,28 @@ nonauto_traj = trajectory(rs, T, x0);
 
 # We plot the two trajectories:
 fig = Figure();
-axs = Axis(fig[1, 1]; xlabel="t", ylabel="x");
+axs = Axis(fig[1, 1]; xlabel = "t", ylabel = "x");
 lines!(
     axs,
     t0 .+ auto_traj[2],
     auto_traj[1][:, 1];
-    linewidth=2,
-    label=L"\text{Autonomous system}",
+    linewidth = 2,
+    label = L"\text{Autonomous system}",
 );
 lines!(
     axs,
     nonauto_traj[2],
     nonauto_traj[1][:, 1];
-    linewidth=2,
-    label=L"\text{Nonautonomous system}",
+    linewidth = 2,
+    label = L"\text{Nonautonomous system}",
 );
-axislegend(axs; position=:rc, labelsize=10);
+axislegend(axs; position = :rc, labelsize = 10);
 fig
 
 # We can also plot the shifted parameter `p(t)`:
-time_range = range(t0, t0+T; length=Int(T+1));
+time_range = range(t0, t0 + T; length = Int(T + 1));
 
 fig = Figure();
-ax = Axis(fig[1, 1]; xlabel="t", ylabel="p(t)");
-lines!(ax, time_range, fp.profile.(time_range); linewidth=2);
+ax = Axis(fig[1, 1]; xlabel = "t", ylabel = "p(t)");
+lines!(ax, time_range, fp.profile.(time_range); linewidth = 2);
 fig

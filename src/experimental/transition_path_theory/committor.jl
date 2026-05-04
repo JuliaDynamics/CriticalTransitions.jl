@@ -1,4 +1,3 @@
-
 """
 $(TYPEDSIGNATURES)
 
@@ -96,7 +95,7 @@ function committor(sys::LangevinSystem, mesh::Mesh, Aind, Bind)
     for j in 1:Ntri
         ind = tri[j, :]
         verts = pts[ind, :] # vertices of mesh triangle
-        vmid = reshape(sum(verts; dims=1) / 3, 1, 2) # midpoint of mesh triangle
+        vmid = reshape(sum(verts; dims = 1) / 3, 1, 2) # midpoint of mesh triangle
         fac = exp.(-beta * KE(vmid)[1])
         fac_gamma = gamma * fac
         fac_beta = beta * fac
@@ -118,8 +117,8 @@ function _committor(sys::LangevinSystem, TPmesh::TransitionPathMesh)
     KE, divfree, beta, gamma = sys.kinetic, sys.driftfree, sys.beta, sys.gamma
     pts, tri = TPmesh.mesh.pts, TPmesh.mesh.tri
 
-    _, Aind = find_boundary_A(TPmesh; set=:A)
-    _, Bind = find_boundary_A(TPmesh; set=:B)
+    _, Aind = find_boundary_A(TPmesh; set = :A)
+    _, Bind = find_boundary_A(TPmesh; set = :B)
 
     return committor(sys, TPmesh.mesh, Aind, Bind)
 end
@@ -132,7 +131,7 @@ struct Committor
 
     function Committor(sys::LangevinSystem, mesh::TransitionPathMesh)
         forwardsys = sys
-        backwardsys = remake(sys; driftfree=(x, p) -> -1 .* sys.driftfree(x, p))
+        backwardsys = remake(sys; driftfree = (x, p) -> -1 .* sys.driftfree(x, p))
         forwardmesh = mesh
         backwardmesh = reverse_AB(mesh)
 

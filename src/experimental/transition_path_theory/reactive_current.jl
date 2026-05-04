@@ -35,8 +35,8 @@ function reactive_current(sys::LangevinSystem, mesh::Mesh, q, qminus, Z)
         qmtri = qminus[ind]
 
         a = [
-            verts[2, 1]-verts[1, 1] verts[2, 2]-verts[1, 2]
-            verts[3, 1]-verts[1, 1] verts[3, 2]-verts[1, 2]
+            verts[2, 1] - verts[1, 1] verts[2, 2] - verts[1, 2]
+            verts[3, 1] - verts[1, 1] verts[3, 2] - verts[1, 2]
         ]
         b = [qtri[2] - qtri[1], qtri[3] - qtri[1]]
         bm = [qmtri[2] - qmtri[1], qmtri[3] - qmtri[1]]
@@ -48,7 +48,7 @@ function reactive_current(sys::LangevinSystem, mesh::Mesh, q, qminus, Z)
         Aux[2:3, :] .= transpose(verts)
         tri_area = 0.5 * abs(det(Aux))
 
-        vmid = reshape(sum(verts; dims=1) / 3, 1, 2) # midpoint of mesh triangle
+        vmid = reshape(sum(verts; dims = 1) / 3, 1, 2) # midpoint of mesh triangle
         mu = exp(-beta * ham(vmid[:, 1], vmid[:, 2])[1])
         qmid = sum(qtri) / 3
         qmmid = sum(qmtri) / 3
@@ -102,8 +102,8 @@ function reactive_rate(sys::LangevinSystem, mesh::Mesh, q, Z)
         qtri = q[ind]
 
         a = [
-            verts[2, 1]-verts[1, 1] verts[2, 2]-verts[1, 2]
-            verts[3, 1]-verts[1, 1] verts[3, 2]-verts[1, 2]
+            verts[2, 1] - verts[1, 1] verts[2, 2] - verts[1, 2]
+            verts[3, 1] - verts[1, 1] verts[3, 2] - verts[1, 2]
         ]
         b = [qtri[2] - qtri[1], qtri[3] - qtri[1]]
 
@@ -113,7 +113,7 @@ function reactive_rate(sys::LangevinSystem, mesh::Mesh, q, Z)
         Aux[2:3, :] .= transpose(verts)
         tri_area = 0.5 * abs(det(Aux))
 
-        vmid = reshape(sum(verts; dims=1) / 3, 1, 2) # midpoint of mesh triangle
+        vmid = reshape(sum(verts; dims = 1) / 3, 1, 2) # midpoint of mesh triangle
         mu = exp(-beta * ham(vmid[:, 1], vmid[:, 2])[1])
         Rrate += g[1]^2 * mu * tri_area
     end

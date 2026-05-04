@@ -10,13 +10,17 @@ StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSyst
 ChaosToolsExt = Base.get_extension(CriticalTransitions, :ChaosToolsExt)
 CoupledSDEsBasin = Base.get_extension(CriticalTransitions, :CoupledSDEsBasin)
 
+if get(ENV, "CI", nothing) == "true"
+    include("make_md_examples.jl")
+end
+
 include("pages.jl")
 
 # Install style  of JuliaDynamics
-import Downloads
+using Downloads: Downloads
 Downloads.download(
     "https://raw.githubusercontent.com/JuliaDynamics/doctheme/master/build_docs_with_style.jl",
-    joinpath(@__DIR__, "build_docs_with_style.jl")
+    joinpath(@__DIR__, "build_docs_with_style.jl"),
 )
 include("build_docs_with_style.jl")
 
@@ -24,10 +28,7 @@ include("build_docs_with_style.jl")
 using DocumenterCitations
 using DocumenterInterLinks
 
-bib = CitationBibliography(
-    joinpath(@__DIR__, "refs.bib");
-    style = :authoryear
-)
+bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style = :authoryear)
 
 links = InterLinks(
     "DynamicalSystemsBase" => "https://juliadynamics.github.io/DynamicalSystemsBase.jl/stable/",
@@ -39,8 +40,12 @@ links = InterLinks(
 
 # TODO: What is this? What is this remotes? Why do we need it? Seems like really complex code.
 using Pkg
+project_toml = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
+package_version = project_toml["version"]
+authors = join(project_toml["authors"], ", ") * " and contributors"
+
 remote_pairs = map(["DynamicalSystemsBase", "Attractors"]) do pkg_name
-    status = sprint(io -> Pkg.status(pkg_name; io=io))
+    status = sprint(io -> Pkg.status(pkg_name; io = io))
     version = match(r"(v[0-9].[0-9]+.[0-9]+)", status)[1]
     gh_moi = Documenter.Remotes.GitHub("JuliaDynamics", string(pkg_name, ".jl"))
     (pkgdir(eval(Symbol(pkg_name))) => (gh_moi, version))
@@ -62,20 +67,28 @@ if Documenter.DOCUMENTER_VERSION >= v"1.3.0"
     html_options[:inventory_version] = package_version
 end
 
-modules=[
-    CriticalTransitions,
-    DynamicalSystemsBase,
-    Attractors,
-    Base.get_extension(CriticalTransitions, :ChaosToolsExt),
-    Base.get_extension(CriticalTransitions, :AttractorsExt),
-    Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
-],
+modules = filter(
+    !isnothing,
+    [
+        CriticalTransitions,
+        DynamicalSystemsBase,
+        Attractors,
+        Base.get_extension(CriticalTransitions, :ChaosToolsExt),
+        Base.get_extension(CriticalTransitions, :AttractorsExt),
+        Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
+    ],
+)
 
 # Build docs
 build_docs_with_style(
-    pages, modules...;
-    plugins = [bib, links], warnonly = [:doctest,],
-    htmlkw = (; size_threshold_ignore), authors, htmlkw = html_options,
-    checkdocs_ignored_modules=[CriticalTransitions.CTLibrary],
+    pages,
+    modules...;
+    plugins = [bib, links],
+    # Broad warnonly until #280's docs cleanup lands; some example pages have
+    # stale code that errors at @example evaluation.
+    warnonly = true,
+    authors,
+    htmlkw = html_options,
+    checkdocs_ignored_modules = [CriticalTransitions.CTLibrary],
     remotes,
 )

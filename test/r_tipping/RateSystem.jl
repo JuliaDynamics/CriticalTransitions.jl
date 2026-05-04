@@ -194,7 +194,7 @@ end
 function fexpl(u, p, t) # out-of-place
     x = u[1]
     λ_0, scale, shift, rate = p
-    λ = λ_0 + scale*(tanh(rate*(t-shift)) + 1)
+    λ = λ_0 + scale * (tanh(rate * (t - shift)) + 1)
     dx = (x + λ)^2 - 1
     return SVector{1}(dx)
 end
@@ -209,7 +209,7 @@ rs = RateSystem(ds, Dict(pidx => fp); forcing_start_time = forcing_start_time, f
 @testset "frozen_system" begin
     frozen = frozen_system(rs, rs.forcing.t0)
     unforced = rs.forcing.unforced_rule
-    u = [2.0];
+    u = [2.0]
     t = 10.0
     du_frozen = dynamic_rule(frozen)(u, current_parameters(frozen), t)
     du_orig = dynamic_rule(ds)(u, current_parameters(ds), t)
@@ -237,13 +237,13 @@ end
     auto_traj = trajectory(ds, T, x0)
     nonauto_traj = trajectory(rs, T, x0)
 
-    @test isapprox(auto_traj[1][end, 1], -1; atol=1e-2)
-    @test isapprox(nonauto_traj[1][end, 1], -4; atol=1e-2)
+    @test isapprox(auto_traj[1][end, 1], -1; atol = 1.0e-2)
+    @test isapprox(nonauto_traj[1][end, 1], -4; atol = 1.0e-2)
 
     @testset "Equivalence with hard-coded" begin
-        forcing_start_time=0.0
-        forcing_duration=100.0
-        forcing_scale=1.0
+        forcing_start_time = 0.0
+        forcing_duration = 100.0
+        forcing_scale = 1.0
         fp = ForcingProfile(profile, (-20.0, 20.0))
 
         ds = CoupledODEs(f, x0, p_auto)
@@ -251,8 +251,8 @@ end
             ds, Dict(pidx => fp); forcing_start_time = forcing_start_time, forcing_duration = forcing_duration, forcing_scale = forcing_scale
         )
 
-        p_hardcoded = [p_auto[1], forcing_scale, forcing_duration/2, 40/forcing_duration]
-        sys_hardcoded = CoupledODEs(fexpl, x0, p_hardcoded; t0=0.0)
+        p_hardcoded = [p_auto[1], forcing_scale, forcing_duration / 2, 40 / forcing_duration]
+        sys_hardcoded = CoupledODEs(fexpl, x0, p_hardcoded; t0 = 0.0)
 
         tr_constructed, _ = trajectory(sys_constructed, T, x0)
         tr_hardcoded, _ = trajectory(sys_hardcoded, T, x0)
