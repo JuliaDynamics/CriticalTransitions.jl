@@ -64,7 +64,7 @@ fp = ForcingProfile(:linear)
 # The remaining information is encoded when creating the `RateSystem`:
 
 pidx = 6 # which parameter changes
-rs = RateSystem(ds, fp, pidx;
+rs = RateSystem(ds, Dict(pidx => fp);
     forcing_start_time = 10,
     forcing_duration = 10,
     forcing_scale = 5

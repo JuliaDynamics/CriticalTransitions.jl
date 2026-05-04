@@ -32,7 +32,7 @@ ds = CoupledODEs(f, x0, p_auto)
 profile(t) = tanh(t)
 fp = ForcingProfile(profile, (-5.0, 5.0))
 
-rs = RateSystem(ds, fp, pidx; forcing_start_time, forcing_duration, forcing_scale)
+rs = RateSystem(ds, Dict(pidx => fp); forcing_start_time = forcing_start_time, forcing_duration = forcing_duration, forcing_scale = forcing_scale)
 
 @testset "frozen_system" begin
     frozen = frozen_system(rs, rs.forcing.t0)
@@ -76,7 +76,7 @@ end
 
         ds = CoupledODEs(f, x0, p_auto)
         sys_constructed = RateSystem(
-            ds, fp, pidx; forcing_start_time, forcing_duration, forcing_scale
+            ds, Dict(pidx => fp); forcing_start_time = forcing_start_time, forcing_duration = forcing_duration, forcing_scale = forcing_scale
         )
 
         p_hardcoded = [p_auto[1], forcing_scale, forcing_duration/2, 40/forcing_duration]
