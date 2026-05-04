@@ -1,7 +1,7 @@
 # # CriticalTransitions.jl Tutorial
 
 # !!! note "DynamicalSystems.jl and Attractors.jl background recommended"
-#     CriticalTransitions.jl is an advanced software for the analysis of critical trasitions
+#     CriticalTransitions.jl is an advanced software for the analysis of critical transitions
 #     in dynamical systems. Due to its advanced nature it is recommended that you have basic
 #     familiarity with the DynamicalSystems.jl and Attractors.jl packages, by going through
 #     their main tutorials.

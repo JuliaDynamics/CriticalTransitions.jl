@@ -312,7 +312,7 @@ function RateSystem(
 end
 
 # TODO: this must be rewritten using `set_parameter!` or its source code.
-# otherwise it doens't work with ModelingToolkit.jl;
+# otherwise it doesn't work with ModelingToolkit.jl;
 # Or better yet, use `set_parameters!` and give a dict of parameters to set?
 function (rss::RateSystemSpecs)(u, p, t)
     pmod = p_modified(rss, p, t)

@@ -277,6 +277,10 @@ end
     rs_sde = RateSystem(sys, Dict(1 => fp); forcing_start_time=0.0, forcing_duration=0.1, forcing_scale=0.5, t0=0.0)
 
     T = 0.2
-    tr, _ = trajectory(rs_sde, T, x0_sde)
-    @test !isempty(tr)
+    tr_rs, _ = trajectory(rs_sde, T, x0_sde)
+    @test !isempty(tr_rs)
+
+    # Also compute a short trajectory of the underlying SDE directly
+    tr_sys, _ = trajectory(sys, T, x0_sde)
+    @test !isempty(tr_sys)
 end
