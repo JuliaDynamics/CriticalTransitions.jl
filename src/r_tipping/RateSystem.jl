@@ -274,7 +274,37 @@ function RateSystem(
         nothing,
     )
 
-    newds = CoupledODEs(rss, current_state(ds), deepcopy(current_parameters(ds)); t0)
+    # Wrap the modified (non-autonomous) drift in an appropriate Coupled* wrapper.
+    # If the input system is stochastic, construct a CoupledSDEs wrapper and
+    # attempt to preserve common SDE-related keyword settings (e.g. `g`,
+    # `noise_prototype`, `noise_strength`, `covariance`, `diffeq`). Otherwise
+    # fall back to a CoupledODEs wrapper.
+    if ds isa CoupledSDEs
+        kw = (;)
+        if hasproperty(ds, :g)
+            kw = merge(kw, (; g = getproperty(ds, :g)))
+        end
+        if hasproperty(ds, :noise_prototype)
+            kw = merge(kw, (; noise_prototype = getproperty(ds, :noise_prototype)))
+        end
+        if hasproperty(ds, :noise_strength)
+            kw = merge(kw, (; noise_strength = getproperty(ds, :noise_strength)))
+        end
+        if hasproperty(ds, :covariance)
+            kw = merge(kw, (; covariance = getproperty(ds, :covariance)))
+        end
+        if hasproperty(ds, :diffeq)
+            kw = merge(kw, (; diffeq = getproperty(ds, :diffeq)))
+        end
+
+        # preserve initial time in wrapper
+        kw = merge(kw, (; t0 = t0 ))
+
+        newds = CoupledSDEs(rss, current_state(ds), deepcopy(current_parameters(ds)); kw...)
+    else
+        newds = CoupledODEs(rss, current_state(ds), deepcopy(current_parameters(ds)); t0)
+    end
+
     # set owner and ensure pdummy has same shape as system parameters
     rss.owner = newds
     rss.pdummy = deepcopy(current_parameters(newds))
@@ -514,13 +544,38 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Returns an autonomous dynamical system of type [`DynamicalSystemsBase.CoupledODEs`](@ref)
-corresponding to the frozen system of the non-autonomous [`RateSystem`](@ref) `rs` at
-time `t`.
+Returns an autonomous dynamical system corresponding to the frozen system of the
+non-autonomous [`RateSystem`](@ref) `rs` at time `t`. If the wrapped system is an
+SDE, a `CoupledSDEs` is returned (attempting to preserve the original SDE's
+noise/integrator settings); otherwise a `CoupledODEs` is returned.
 """
 function frozen_system(rs::RateSystem, t)
-    ds = CoupledODEs(rs.forcing.unforced_rule, current_state(rs), DynamicalSystemsBase.current_parameters(rs, t))
-    return ds
+    p = DynamicalSystemsBase.current_parameters(rs, t)
+    if rs.system isa CoupledSDEs
+        kw = (;)
+        if hasproperty(rs.system, :g)
+            kw = merge(kw, (; g = getproperty(rs.system, :g)))
+        end
+        if hasproperty(rs.system, :noise_prototype)
+            kw = merge(kw, (; noise_prototype = getproperty(rs.system, :noise_prototype)))
+        end
+        if hasproperty(rs.system, :noise_strength)
+            kw = merge(kw, (; noise_strength = getproperty(rs.system, :noise_strength)))
+        end
+        if hasproperty(rs.system, :covariance)
+            kw = merge(kw, (; covariance = getproperty(rs.system, :covariance)))
+        end
+        if hasproperty(rs.system, :diffeq)
+            kw = merge(kw, (; diffeq = getproperty(rs.system, :diffeq)))
+        end
+
+        # preserve the RateSystem initial time for the frozen wrapper
+        kw = merge(kw, (; t0 = rs.forcing.t0 ))
+
+        return CoupledSDEs(rs.forcing.unforced_rule, current_state(rs), p; kw...)
+    else
+        return CoupledODEs(rs.forcing.unforced_rule, current_state(rs), p)
+    end
 end
 
 # Extensions
@@ -544,10 +599,6 @@ for f in (
 end
 
 reinit!(rs::RateSystem, u=initial_state(rs); kw...) = reinit!(rs.system, u; kw...)
-
-function DynamicalSystemsBase.set_state!(rs::RateSystem, u::AbstractArray)
-    return (DynamicalSystemsBase.set_state!(rs.system, u); rs)
-end
 
 SciMLBase.step!(rs::RateSystem, args...) = (SciMLBase.step!(rs.system, args...); rs)
 function SciMLBase.isinplace(rs::RateSystem)
@@ -577,6 +628,25 @@ function SciMLBase.isinplace(rs::RateSystem)
         return false
     end
 end
+DynamicalSystemsBase.set_state!(rs::RateSystem, u::AbstractArray) = (DynamicalSystemsBase.set_state!(rs.system, u); rs)
+
+# SDE-specific delegations: forward stochastic helpers to the wrapped system
+function noise_process(rs::RateSystem)
+    return noise_process(rs.system)
+end
+
+function solver(rs::RateSystem)
+    return solver(rs.system)
+end
+
+function StochasticSystemsBase.covariance_matrix(rs::RateSystem, args...; kw...)
+    return StochasticSystemsBase.covariance_matrix(rs.system, args...; kw...)
+end
+
+function StochasticSystemsBase.diffusion_matrix(rs::RateSystem, args...; kw...)
+    return StochasticSystemsBase.diffusion_matrix(rs.system, args...; kw...)
+end
+
 StateSpaceSets.dimension(rs::RateSystem) = StateSpaceSets.dimension(rs.system)
 DynamicalSystemsBase.isdeterministic(rs::RateSystem) = isa(rs.system, CoupledODEs)
 (rs::RateSystem)(t::Real) = rs.system(t)

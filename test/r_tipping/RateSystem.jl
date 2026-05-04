@@ -260,3 +260,23 @@ end
         @test all(tr_constructed .≈ tr_hardcoded)
     end
 end
+
+@testset "RateSystem SDE smoke" begin
+    # simple scalar SDE where the parameter p[1] enters the drift
+    function f_sde(u, p, t)
+        return [ -u[1] + p[1] ]
+    end
+
+    x0_sde = [0.0]
+    p0_sde = [0.0]
+    σ = 0.1
+
+    sys = CoupledSDEs(f_sde, x0_sde, p0_sde; noise_strength=σ)
+
+    fp = ForcingProfile(:linear)
+    rs_sde = RateSystem(sys, Dict(1 => fp); forcing_start_time=0.0, forcing_duration=0.1, forcing_scale=0.5, t0=0.0)
+
+    T = 0.2
+    tr, _ = trajectory(rs_sde, T, x0_sde)
+    @test !isempty(tr)
+end
