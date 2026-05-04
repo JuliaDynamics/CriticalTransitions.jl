@@ -35,13 +35,28 @@ function ForcingProfile(sym::Symbol)
 end
 
 """
-    RateSystemSpecs <: Function
+        RateSystemSpecs <: Function
 
-A mutable data structure storing information needed to construct and modify a
-[`RateSystem`](@ref).
+Mutable container storing the information required to construct and operate a
+`RateSystem` implementation.
 
-Calling `(::RateSystemSpecs)(u,p,t)` returns the nonautonomous drift of the `RateSystem`
-at time `t`, where `p` is the parameter container of the underlying autonomous system.
+Fields include the underlying autonomous `unforced_rule`, a mapping of
+parameter keys to `ForcingProfile` instances (`forcers`), per-key timing and
+scale maps (`forcing_start_time`, `forcing_duration`, `forcing_scale`), the
+initial autonomous parameter values (`p0`), an initial time `t0`, a cached
+dummy parameter container `pdummy` (used when the concrete parameter container
+is not a `Dict` or `Vector`), and a reference to the owning system `owner`.
+
+Calling semantics:
+- `(::RateSystemSpecs)(u, p, t)` — out-of-place call: returns the computed
+    derivative `du` (the nonautonomous drift) using a modified parameter container appropriate for time
+    `t`, where `p` is the parameter container of the underlying autonomous system.
+- `(::RateSystemSpecs)(du, u, p, t)` — in-place call: attempts to call an
+    in-place `unforced_rule(du, u, p, t)` and, if not available, falls back to
+    the out-of-place call and copies the result into `du`.
+
+The `RateSystemSpecs` ensures parameter values are adjusted according to the
+configured forcing profiles before delegating to the underlying autonomous rule.
 """
 mutable struct RateSystemSpecs{R,K,T,PC,E} <: Function
     "Dynamic rule of the underlying autonomous system"
@@ -65,14 +80,31 @@ mutable struct RateSystemSpecs{R,K,T,PC,E} <: Function
 end
 
 # Accessors for initial parameter(s). These are explicit and avoid overriding `getproperty`.
+"""
+    initial_parameter_map(rss::RateSystemSpecs)
+
+Return the internal mapping (`Dict`) of parameter keys to the initial (autonomous)
+parameter values stored in `rss.p0`.
+"""
 function initial_parameter_map(rss::RateSystemSpecs)
     return getfield(rss, :p0)
 end
 
+"""
+    initial_parameter(rss::RateSystemSpecs, pkey)
+
+Return the initial autonomous parameter value associated with `pkey`.
+"""
 function initial_parameter(rss::RateSystemSpecs, pkey)
     return getfield(rss, :p0)[pkey]
 end
 
+"""
+    initial_parameter_value(rss::RateSystemSpecs)
+
+Return the single initial autonomous parameter value when exactly one forcer
+is present. Throws `ArgumentError` if multiple forcers are configured.
+"""
 function initial_parameter_value(rss::RateSystemSpecs)
     p0map = getfield(rss, :p0)
     if length(getfield(rss, :forcers)) == 1
@@ -82,59 +114,57 @@ function initial_parameter_value(rss::RateSystemSpecs)
     end
 end
 
-# RateSystem-level wrappers
+# RateSystem-level wrappers:
+"""
+    parameters(sys, args...; kw...)
 
-
-# `parameters` convenience wrapper (moved here from the package entry):
+Convenience wrapper delegating to `current_parameters(sys, ...)` for API
+compatibility with earlier code and callers expecting a `parameters` helper.
+"""
 function parameters(sys, args...; kw...)
     return current_parameters(sys, args...; kw...)
 end
 
 """
-    RateSystem <: ContinuousTimeDynamicalSystem
-    RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kw...)
+        RateSystem <: ContinuousTimeDynamicalSystem
+        RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profiles::Dict; kw...)
 
-A non-autonomous dynamical system constructed by applying a time-dependent parametric
-forcing protocol(s) to an underlying autonomous continuous-time dynamical system `ds`.
+Construct a non-autonomous dynamical system by applying time-dependent parametric
+forcing protocols to an underlying autonomous continuous-time dynamical system `ds`.
 
-The parameter of the system with index `pidx` will be forced according to the given
-[`ForcingProfile`](@ref). The `ForcingProfile` describes the functional form of the parameter
-evolution over a given `interval`. See below for forcing multiple parameters.
+`forcing_profiles` must be a `Dict` mapping parameter indices (anything valid for
+`set_parameter!`) to `ForcingProfile` instances; each entry defines the functional 
+form of how the corresponding parameter evolves over time.
 
-## Keyword arguments
+Keyword arguments
+- `forcing_start_time` (default: `nothing`) — if `nothing`, each forcer's start
+    time is set to `t0` (the system initial time). You may supply an `AbstractDict`
+    mapping keys to start times, or a single scalar value which will be applied to 
+    all forcers, giving the time(s) for which the ramping of the corresponding 
+    parameters starts.
+- `forcing_duration` (default: `nothing`) — if `nothing`, each forcer's
+    duration defaults to `fp.interval[2] - fp.interval[1]` for that profile. Can
+    be an `AbstractDict` or a scalar applied to all forcers, giving the duration of 
+    the parameter ramping (in system time units).
+- `forcing_scale` (default: `nothing`) — if `nothing`, defaults to `1.0` for
+    each forcer. Can be an `AbstractDict` or a scalar applied to all forcers. 
+    Acts as amplitude multiplication factor of the forcing protocol(s).
+- `t0` (default: `initial_time(ds)`) — initial time of the `RateSystem`.
 
-- `forcing_start_time = fp.interval[1]`: Time when parameter change starts.
-- `forcing_duration = fp.interval[2] - fp.interval[1]`:
-   Duration of the parameter change (in system time units).
-- `forcing_scale = 1.0`: Amplitude multiplication factor of the forcing protocol.
-- `t0 = 0.0`: Initial time of the system.
+Description
+The profile `interval` defines the domain of the forcing function; when applied
+to the system the profile is rescaled in system time units using the
+configured `start` and `duration` values - this allow changing the rate of the 
+parameter ramping. Before a forcer's `start` time the parameter equals its initial 
+autonomous value; during the forcing interval it follows the rescaled profile (multiplied 
+by the corresponding `forcing_scale` factor); after the interval the parameter is frozen 
+at its final value.
 
-The functions [`set_forcing_start!`](@ref), [`set_forcing_duration`](@ref), and
-[`set_forcing_scale`](@ref) can be used to update the forcing after system creation.
-
-## Description
-
-The time interval (in units of `ds`) where forcing applied is from
-`forcing_start_time` to `forcing_duration`. As such, the `interval` given
-of the [`ForcingProfile`](@ref) is rescaled in system time units; its purpose is only
-to establish the functional form of the forcing.
-The parameter value starts at `p0 = current_parameter(ds, pidx)`.
-Its maximum value is given by the maximum of the forcing function given to the
-[`ForcingProfile`](@ref), multiplied by `forcing_scale`.
-
-Before `t = forcing_start_time`, the system parameters correspond to that of the
-underlying autonomous system `ds`. At the end of the forcing interval
-(`t = forcing_start_time + forcing_duration`), the parameters are frozen at their final
-value and thereafter the system is again autonomous.
-
-## Multiple parameters
-
-    RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profiles::Dict; kw...)
-
-Use the above signature with `forcing_profiles` a dictionary mapping parameter indices
-(anything valid for `set_parameter!`) to [`ForcingProfile`](@ref) instances, one
-for each parameter. In this scenario the keywords `forcing_start_time, forcing_duration,
-forcing_scale` also become dictionaries mapping parameter indices to the respective values.
+Multiple parameters
+Pass a `Dict` with one `ForcingProfile` per parameter to force multiple
+parameters simultaneously. The `forcing_start_time`, `forcing_duration`, and
+`forcing_scale` keywords accept the same flexibility (per-key `Dict` or scalar
+applied to all keys) in this mode.
 """
 struct RateSystem{S,R} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
@@ -279,10 +309,27 @@ function (rss::RateSystemSpecs)(du, u, p, t)
     end
 end
 
-# Returns the non-autonomous system's parameter value at time t
+"""
+        p_modified(rss::RateSystemSpecs, p, t)
+
+Compute and return a parameter container appropriate for time `t` by applying
+the forcing profiles configured in `rss.forcers` to the provided parameter
+container `p`.
+
+Behavior:
+- If `p` is an `AbstractDict` or `AbstractVector`, it is updated in-place and
+    returned (this avoids allocations when possible).
+- For arbitrary parameter container types, a copy of `rss.pdummy` is created and
+    updated. When `rss.owner` is available, `DynamicalSystemsBase.set_parameter!`
+    (per-key) or `set_parameters!` (bulk) is used where supported; otherwise
+    `setproperty!` is attempted on the copy.
+
+The returned container has the same general shape/type expected by the
+underlying system.
+"""
 function p_modified(rss::RateSystemSpecs, p, t::Real)
-    # In-place update for Dict and Vector parameter containers (mutates `p`),
-    # otherwise attempt to update the owning system via `set_parameter!`/`set_parameters!`.
+        # In-place update for Dict and Vector parameter containers (mutates `p`),
+        # otherwise attempt to update the owning system via `set_parameter!`/`set_parameters!`.
     if isa(p, AbstractDict)
         for (pkey, profile) in rss.forcers
             p0 = getfield(rss, :p0)[pkey]
@@ -531,6 +578,5 @@ function SciMLBase.isinplace(rs::RateSystem)
     end
 end
 StateSpaceSets.dimension(rs::RateSystem) = StateSpaceSets.dimension(rs.system)
-DynamicalSystemsBase.isdeterministic(rs::RateSystem) = true # TODO: only true if CoupledODEs
-
+DynamicalSystemsBase.isdeterministic(rs::RateSystem) = isa(rs.system, CoupledODEs)
 (rs::RateSystem)(t::Real) = rs.system(t)
