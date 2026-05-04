@@ -64,6 +64,32 @@ mutable struct RateSystemSpecs{R,K,T,PC,E} <: Function
     owner::Any
 end
 
+# Accessors for initial parameter(s). These are explicit and avoid overriding `getproperty`.
+function initial_parameter_map(rss::RateSystemSpecs)
+    return getfield(rss, :p0)
+end
+
+function initial_parameter(rss::RateSystemSpecs, pkey)
+    return getfield(rss, :p0)[pkey]
+end
+
+function initial_parameter_value(rss::RateSystemSpecs)
+    p0map = getfield(rss, :p0)
+    if length(getfield(rss, :forcers)) == 1
+        return first(values(p0map))
+    else
+        throw(ArgumentError("initial_parameter_value(rss) only valid when exactly one forcer is present"))
+    end
+end
+
+# RateSystem-level wrappers
+
+
+# `parameters` convenience wrapper (moved here from the package entry):
+function parameters(sys, args...; kw...)
+    return current_parameters(sys, args...; kw...)
+end
+
 """
     RateSystem <: ContinuousTimeDynamicalSystem
     RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kw...)
@@ -115,6 +141,19 @@ struct RateSystem{S,R} <: ContinuousTimeDynamicalSystem
     system::S
     "Data structure representing the system and forcing specifications in system units"
     forcing::RateSystemSpecs{R}
+end
+
+# RateSystem-level wrappers (placed after `RateSystem` type definition)
+function initial_parameter_map(rs::RateSystem)
+    return initial_parameter_map(rs.forcing)
+end
+
+function initial_parameter(rs::RateSystem, pkey)
+    return initial_parameter(rs.forcing, pkey)
+end
+
+function initial_parameter_value(rs::RateSystem)
+    return initial_parameter_value(rs.forcing)
 end
 
 function RateSystem(
@@ -217,12 +256,27 @@ end
 # Or better yet, use `set_parameters!` and give a dict of parameters to set?
 function (rss::RateSystemSpecs)(u, p, t)
     pmod = p_modified(rss, p, t)
+    # Prefer calling out-of-place signature `f(u,p,t)` which returns du
     return rss.unforced_rule(u, pmod, t)
 end
 
 function (rss::RateSystemSpecs)(du, u, p, t)
     pmod = p_modified(rss, p, t)
-    return rss.unforced_rule(du, u, pmod, t)
+    # Try calling in-place signature `f(du,u,p,t)` first; if not defined,
+    # fall back to out-of-place `f(u,p,t)` and copy into `du`.
+    try
+        return rss.unforced_rule(du, u, pmod, t)
+    catch err
+        # Fall back to out-of-place: get result and copy
+        out = rss.unforced_rule(u, pmod, t)
+        try
+            du .= out
+            return nothing
+        catch
+            # If broadcasting assignment fails, rethrow original method error
+            rethrow(err)
+        end
+    end
 end
 
 # Returns the non-autonomous system's parameter value at time t
@@ -231,7 +285,7 @@ function p_modified(rss::RateSystemSpecs, p, t::Real)
     # otherwise attempt to update the owning system via `set_parameter!`/`set_parameters!`.
     if isa(p, AbstractDict)
         for (pkey, profile) in rss.forcers
-            p0 = rss.p0[pkey]
+            p0 = getfield(rss, :p0)[pkey]
             f = profile.profile
             section_start = profile.interval[1]
             section_end = profile.interval[2]
@@ -255,7 +309,7 @@ function p_modified(rss::RateSystemSpecs, p, t::Real)
     elseif isa(p, AbstractVector)
         for (pkey, profile) in rss.forcers
             idx = Int(pkey)
-            p0 = rss.p0[pkey]
+            p0 = getfield(rss, :p0)[pkey]
             f = profile.profile
             section_start = profile.interval[1]
             section_end = profile.interval[2]
@@ -279,7 +333,7 @@ function p_modified(rss::RateSystemSpecs, p, t::Real)
         # Arbitrary parameter container: build a copy in pd and try to apply updates
         pd = deepcopy(rss.pdummy)
         for (pkey, profile) in rss.forcers
-            p0 = rss.p0[pkey]
+            p0 = getfield(rss, :p0)[pkey]
             f = profile.profile
             section_start = profile.interval[1]
             section_end = profile.interval[2]
@@ -449,7 +503,33 @@ function DynamicalSystemsBase.set_state!(rs::RateSystem, u::AbstractArray)
 end
 
 SciMLBase.step!(rs::RateSystem, args...) = (SciMLBase.step!(rs.system, args...); rs)
-SciMLBase.isinplace(rs::RateSystem) = SciMLBase.isinplace(rs.system)
+function SciMLBase.isinplace(rs::RateSystem)
+    # Only advertise in-place if the underlying system is in-place and the
+    # wrapped `unforced_rule` actually provides an in-place method for the
+    # concrete argument types we will pass. This avoids promising in-place
+    # semantics when we would need to mutate solver-owned parameter containers.
+    try
+        # If the wrapped system isn't in-place, we can't safely advertise it.
+        if !SciMLBase.isinplace(rs.system)
+            return false
+        end
+
+        # Obtain concrete argument types for the current system state/params.
+        u = DynamicalSystemsBase.current_state(rs)
+        p = DynamicalSystemsBase.current_parameters(rs)
+        t = DynamicalSystemsBase.initial_time(rs)
+
+        du_type = typeof(u)
+        u_type = typeof(u)
+        p_type = typeof(p)
+        t_type = typeof(t)
+
+        # Check whether an in-place method of the form f(du,u,p,t) exists
+        return hasmethod(rs.forcing.unforced_rule, Tuple{du_type, u_type, p_type, t_type})
+    catch
+        return false
+    end
+end
 StateSpaceSets.dimension(rs::RateSystem) = StateSpaceSets.dimension(rs.system)
 DynamicalSystemsBase.isdeterministic(rs::RateSystem) = true # TODO: only true if CoupledODEs
 

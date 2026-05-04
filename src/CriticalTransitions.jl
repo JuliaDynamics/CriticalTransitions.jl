@@ -102,6 +102,6 @@ export transition, transitions
 
 export ForcingProfile, RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
-export frozen_system, parameters
+export frozen_system, parameters, initial_parameter_map, initial_parameter, initial_parameter_value
 
 end # module CriticalTransitions
