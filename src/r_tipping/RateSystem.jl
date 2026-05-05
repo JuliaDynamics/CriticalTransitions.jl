@@ -323,9 +323,9 @@ Constructor for a [`RateSystem`](@ref) with one time-dependent parameter.
 """
 function RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
     pidx::Int;
-    forcing_start_time<:Real = 0.0, 
-    forcing_duration<:Real = 1.0,
-    forcing_scale<:Real = 1.0,
+    forcing_start_time::Real = 0.0, 
+    forcing_duration::Real = 1.0,
+    forcing_scale::Real = 1.0,
     kwargs...)
 
     return RateSystem(ds, Dict(pidx => forcing_profile);
