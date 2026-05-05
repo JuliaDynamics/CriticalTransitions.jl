@@ -62,79 +62,35 @@ x_initial = Matrix([xx yy]')
 # convergence threshold.
 
 maxiters = 20_000
-
+show_progress=false
+reltol=1e-8
 res_small = minimize_simple_geometric_action(
-    sys,
-    x_initial,
-    GeometricGradient(; stepsize=1e1, max_backtracks=0);
-    maxiters,
-    show_progress=false,
-    reltol=1e-8,
+    sys, x_initial, GeometricGradient(; stepsize=1e1, max_backtracks=0);
+    maxiters, show_progress, reltol
 )
 res_large = minimize_simple_geometric_action(
-    sys,
-    x_initial,
-    GeometricGradient(; stepsize=1e4, max_backtracks=0);
-    maxiters,
-    show_progress=false,
-    reltol=1e-8,
+    sys, x_initial, GeometricGradient(; stepsize=1e4, max_backtracks=0);
+    maxiters, show_progress, reltol
 )
 res_bt = minimize_simple_geometric_action(
-    sys,
-    x_initial,
-    GeometricGradient(; stepsize=1e3);
-    maxiters,
-    show_progress=false,
-    reltol=1e-8,
+    sys, x_initial, GeometricGradient(; stepsize=1e3);
+    maxiters, show_progress, reltol
 )
 
 stream(u, v) = Point2f(fu(u, v), fv(u, v))
 
 fig_paths = Figure(; size=(600, 500))
 ax = Axis(fig_paths[1, 1]; xlabel="u", ylabel="v", title="Optimized paths")
-streamplot!(
-    ax,
-    stream,
-    (-0.08, 0.08),
-    (-0.15, 0.15);
-    gridsize=(20, 20),
-    arrow_size=10,
-    stepsize=0.001,
-    colormap=[:gray, :gray],
-)
-lines!(
-    ax,
-    x_initial[1, :],
-    x_initial[2, :];
-    label="initial",
-    linewidth=2,
-    color=:black,
-    linestyle=:dash,
-)
-lines!(
-    ax,
-    res_small.path[:, 1],
-    res_small.path[:, 2];
-    label="fixed ϵ=10 (S=$(round(res_small.action, sigdigits=5)))",
-    linewidth=2,
-    color=:blue,
-)
-lines!(
-    ax,
-    res_large.path[:, 1],
-    res_large.path[:, 2];
-    label="fixed ϵ=10⁴ (S=$(round(res_large.action, sigdigits=5)))",
-    linewidth=2,
-    color=:orange,
-)
-lines!(
-    ax,
-    res_bt.path[:, 1],
-    res_bt.path[:, 2];
-    label="backtracking (S=$(round(res_bt.action, sigdigits=5)))",
-    linewidth=2,
-    color=:red,
-)
+streamplot!(ax, stream, (-0.08, 0.08), (-0.15, 0.15);
+    gridsize=(20, 20), arrow_size=10, stepsize=0.001, colormap=[:gray, :gray])
+lines!(ax, x_initial[1, :], x_initial[2, :];
+    label="initial", linewidth=2, color=:black, linestyle=:dash)
+lines!(ax, res_small.path[:, 1], res_small.path[:, 2];
+    label="fixed ϵ=10 (S=$(round(res_small.action, sigdigits=5)))", linewidth=2, color=:blue)
+lines!(ax, res_large.path[:, 1], res_large.path[:, 2];
+    label="fixed ϵ=10⁴ (S=$(round(res_large.action, sigdigits=5)))", linewidth=2, color=:orange)
+lines!(ax, res_bt.path[:, 1], res_bt.path[:, 2];
+    label="backtracking (S=$(round(res_bt.action, sigdigits=5)))", linewidth=2, color=:red)
 axislegend(ax; position=:lt)
 fig_paths
 
@@ -151,13 +107,8 @@ fixed_actions = Float64[]
 fixed_times = Float64[]
 for ss in stepsizes
     t = @elapsed res = minimize_simple_geometric_action(
-        sys,
-        x_initial,
-        GeometricGradient(; stepsize=ss, max_backtracks=0);
-        maxiters,
-        show_progress=false,
-        reltol=1e-8,
-    )
+        sys, x_initial, GeometricGradient(; stepsize=ss, max_backtracks=0);
+        maxiters, show_progress=false, reltol=1e-8)
     push!(fixed_actions, res.action)
     push!(fixed_times, t)
 end
@@ -167,13 +118,8 @@ bt_actions = Float64[]
 bt_times = Float64[]
 for ss in bt_stepsizes
     t = @elapsed res = minimize_simple_geometric_action(
-        sys,
-        x_initial,
-        GeometricGradient(; stepsize=ss);
-        maxiters,
-        show_progress=false,
-        reltol=1e-8,
-    )
+        sys, x_initial, GeometricGradient(; stepsize=ss);
+        maxiters, show_progress=false, reltol=1e-8)
     push!(bt_actions, res.action)
     push!(bt_times, t)
 end
@@ -185,27 +131,16 @@ end
 # but to a smoothed path with higher action. Very large `ϵ` diverges entirely.
 
 fig_stats = Figure(; size=(800, 400))
-
-ax1 = Axis(
-    fig_stats[1, 1];
-    xlabel="step size",
-    ylabel="action",
-    xscale=log10,
-    title="Converged action",
-)
+ax1 = Axis(fig_stats[1, 1]; xlabel="step size", ylabel="action",
+    xscale=log10, title="Converged action")
 scatterlines!(ax1, stepsizes, fixed_actions; label="fixed", color=:blue, marker=:circle)
-scatterlines!(
-    ax1, bt_stepsizes, bt_actions; label="backtracking", color=:red, marker=:diamond
-)
+scatterlines!(ax1, bt_stepsizes, bt_actions; label="backtracking", color=:red, marker=:diamond)
 axislegend(ax1; position=:lt)
 
-ax2 = Axis(
-    fig_stats[1, 2]; xlabel="step size", ylabel="time (s)", xscale=log10, title="Wall time"
-)
+ax2 = Axis(fig_stats[1, 2]; xlabel="step size", ylabel="time (s)",
+    xscale=log10, title="Wall time")
 scatterlines!(ax2, stepsizes, fixed_times; label="fixed", color=:blue, marker=:circle)
-scatterlines!(
-    ax2, bt_stepsizes, bt_times; label="backtracking", color=:red, marker=:diamond
-)
+scatterlines!(ax2, bt_stepsizes, bt_times; label="backtracking", color=:red, marker=:diamond)
 axislegend(ax2; position=:rt)
 
 fig_stats
