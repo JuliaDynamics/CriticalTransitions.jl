@@ -98,7 +98,7 @@ end
         return [dx]
     end
     # Build a RateSystemSpecs directly for parameter-container tests
-    forcers = Dict(1 => fp)
+    forcing_profile = Dict(1 => fp)
     start_map = Dict(1 => 10.0)
     duration_map = Dict(1 => 20.0)
     scale_map = Dict(1 => 1.0)
@@ -106,7 +106,7 @@ end
     t0 = 0.0
     pdummy = [0.0]
     rss = CriticalTransitions.RateSystemSpecs{typeof(f_out),Int,Float64,Vector{Float64},Float64}(
-        f_out, forcers, start_map, duration_map, scale_map, p0_map, t0, pdummy, nothing
+        f_out, forcing_profile, start_map, duration_map, scale_map, p0_map, t0, pdummy, nothing
     )
     t = 5.0
 
@@ -157,9 +157,9 @@ end
     pd_fake = CriticalTransitions.p_modified(rss_fake, Dict(1 => 0.0), 5.0)
     # compute expected updated parameter value using the configured profile
     p0 = initial_parameter(rss_fake, 1)
-    prof = rss_fake.forcers[1].profile
-    section_start = rss_fake.forcers[1].interval[1]
-    section_end = rss_fake.forcers[1].interval[2]
+    prof = rss_fake.forcing_profile[1].profile
+    section_start = rss_fake.forcing_profile[1].interval[1]
+    section_end = rss_fake.forcing_profile[1].interval[2]
     start_time = rss_fake.forcing_start_time[1]
     duration = rss_fake.forcing_duration[1]
     scale = rss_fake.forcing_scale[1]

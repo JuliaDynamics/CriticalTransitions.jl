@@ -41,7 +41,7 @@ Mutable container storing the information required to construct and operate a
 `RateSystem` implementation.
 
 Fields include the underlying autonomous `unforced_rule`, a mapping of
-parameter keys to `ForcingProfile` instances (`forcers`), per-key timing and
+parameter keys to `ForcingProfile` instances (`forcing_profile`), per-key timing and
 scale maps (`forcing_start_time`, `forcing_duration`, `forcing_scale`), the
 initial autonomous parameter values (`p0`), an initial time `t0`, a cached
 dummy parameter container `pdummy` (used when the concrete parameter container
@@ -62,7 +62,7 @@ mutable struct RateSystemSpecs{R,K,T,PC,E} <: Function
     "Dynamic rule of the underlying autonomous system"
     unforced_rule::R
     "Mapping parameter index => ForcingProfile"
-    forcers::Dict{K,ForcingProfile}
+    forcing_profile::Dict{K,ForcingProfile}
     "Mapping parameter index => forcing start time"
     forcing_start_time::Dict{K,T}
     "Mapping parameter index => forcing duration"
@@ -102,15 +102,15 @@ end
 """
     initial_parameter_value(rss::RateSystemSpecs)
 
-Return the single initial autonomous parameter value when exactly one forcer
-is present. Throws `ArgumentError` if multiple forcers are configured.
+Return the single initial autonomous parameter value when exactly one forcing_profile
+is present. Throws `ArgumentError` if multiple forcing_profile are configured.
 """
 function initial_parameter_value(rss::RateSystemSpecs)
     p0map = getfield(rss, :p0)
-    if length(getfield(rss, :forcers)) == 1
+    if length(getfield(rss, :forcing_profile)) == 1
         return first(values(p0map))
     else
-        throw(ArgumentError("initial_parameter_value(rss) only valid when exactly one forcer is present"))
+        throw(ArgumentError("initial_parameter_value(rss) only valid when exactly one forcing_profile is present"))
     end
 end
 
@@ -127,27 +127,27 @@ end
 
 """
         RateSystem <: ContinuousTimeDynamicalSystem
-        RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profiles::Dict; kw...)
+        RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::Dict; kw...)
 
 Construct a non-autonomous dynamical system by applying time-dependent parametric
 forcing protocols to an underlying autonomous continuous-time dynamical system `ds`.
 
-`forcing_profiles` must be a `Dict` mapping parameter indices (anything valid for
+`forcing_profile` must be a `Dict` mapping parameter indices (anything valid for
 `set_parameter!`) to `ForcingProfile` instances; each entry defines the functional 
 form of how the corresponding parameter evolves over time.
 
 Keyword arguments
-- `forcing_start_time` (default: `nothing`) — if `nothing`, each forcer's start
+- `forcing_start_time` (default: `nothing`) — if `nothing`, each forcing_profile's start
     time is set to `t0` (the system initial time). You may supply an `AbstractDict`
     mapping keys to start times, or a single scalar value which will be applied to 
-    all forcers, giving the time(s) for which the ramping of the corresponding 
+    all forcing_profile, giving the time(s) for which the ramping of the corresponding 
     parameters starts.
-- `forcing_duration` (default: `nothing`) — if `nothing`, each forcer's
+- `forcing_duration` (default: `nothing`) — if `nothing`, each forcing_profile's
     duration defaults to `fp.interval[2] - fp.interval[1]` for that profile. Can
-    be an `AbstractDict` or a scalar applied to all forcers, giving the duration of 
+    be an `AbstractDict` or a scalar applied to all forcing_profile, giving the duration of 
     the parameter ramping (in system time units).
 - `forcing_scale` (default: `nothing`) — if `nothing`, defaults to `1.0` for
-    each forcer. Can be an `AbstractDict` or a scalar applied to all forcers. 
+    each forcing_profile. Can be an `AbstractDict` or a scalar applied to all forcing_profile. 
     Acts as amplitude multiplication factor of the forcing protocol(s).
 - `t0` (default: `initial_time(ds)`) — initial time of the `RateSystem`.
 
@@ -155,7 +155,7 @@ Description
 The profile `interval` defines the domain of the forcing function; when applied
 to the system the profile is rescaled in system time units using the
 configured `start` and `duration` values - this allow changing the rate of the 
-parameter ramping. Before a forcer's `start` time the parameter equals its initial 
+parameter ramping. Before a forcing_profile's `start` time the parameter equals its initial 
 autonomous value; during the forcing interval it follows the rescaled profile (multiplied 
 by the corresponding `forcing_scale` factor); after the interval the parameter is frozen 
 at its final value.
@@ -186,9 +186,14 @@ function initial_parameter_value(rs::RateSystem)
     return initial_parameter_value(rs.forcing)
 end
 
+"""
+    RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::Dict; kwargs...)
+
+Constructor of a [RateSystem](@ref) with one or more time-dependent forcing parameters.
+"""
 function RateSystem(
         ds::ContinuousTimeDynamicalSystem,
-        forcer::Dict;
+        forcing_profile::Dict;
         forcing_start_time=nothing,
         forcing_duration=nothing,
         forcing_scale=nothing,
@@ -196,18 +201,18 @@ function RateSystem(
     )
 
     # Normalize inputs into per-parameter dictionaries
-    forcers = Dict(forcer) # shallow copy
+    forcing_profile = Dict(forcing_profile) # shallow copy
 
     # start times
     start_map = Dict{Any,Real}()
     if forcing_start_time === nothing
-        for (k, _) in forcers
+        for (k, _) in forcing_profile
             start_map[k] = t0
         end
     elseif isa(forcing_start_time, AbstractDict)
         start_map = Dict(forcing_start_time)
     else
-        for (k, _) in forcers
+        for (k, _) in forcing_profile
             start_map[k] = float(forcing_start_time)
         end
     end
@@ -215,13 +220,13 @@ function RateSystem(
     # durations
     duration_map = Dict{Any,Real}()
     if forcing_duration === nothing
-        for (k, fp) in forcers
+        for (k, fp) in forcing_profile
             duration_map[k] = float(fp.interval[2] - fp.interval[1])
         end
     elseif isa(forcing_duration, AbstractDict)
         duration_map = Dict(forcing_duration)
     else
-        for (k, _) in forcers
+        for (k, _) in forcing_profile
             duration_map[k] = float(forcing_duration)
         end
     end
@@ -229,33 +234,33 @@ function RateSystem(
     # scales
     scale_map = Dict{Any,Real}()
     if forcing_scale === nothing
-        for (k, _) in forcers
+        for (k, _) in forcing_profile
             scale_map[k] = 1.0
         end
     elseif isa(forcing_scale, AbstractDict)
         scale_map = Dict(forcing_scale)
     else
-        for (k, _) in forcers
+        for (k, _) in forcing_profile
             scale_map[k] = float(forcing_scale)
         end
     end
 
     # initial autonomous parameter values
-    if isempty(forcers)
-        throw(ArgumentError("`forcer` dictionary must contain at least one entry"))
+    if isempty(forcing_profile)
+        throw(ArgumentError("`forcing_profile` dictionary must contain at least one entry"))
     end
 
     p0_map = Dict{Any,Any}()
-    for (k, _) in forcers
+    for (k, _) in forcing_profile
         p0_map[k] = current_parameter(ds, k)
     end
 
     # determine concrete parameter types for strong typing
     R = typeof(dynamic_rule(ds))
-    first_key = first(keys(forcers))
+    first_key = first(keys(forcing_profile))
     K = typeof(first_key)
     # infer time type from first ForcingProfile interval
-    first_profile = first(values(forcers))
+    first_profile = first(values(forcing_profile))
     Ttype = typeof(first_profile.interval[1])
     PC = typeof(current_parameters(ds))
     E = typeof(p0_map[first_key])
@@ -264,7 +269,7 @@ function RateSystem(
 
     rss = RateSystemSpecs{R,K,Ttype,PC,E}(
         dynamic_rule(ds),
-        forcers,
+        forcing_profile,
         start_map,
         duration_map,
         scale_map,
@@ -311,6 +316,25 @@ function RateSystem(
     return RateSystem(newds, rss)
 end
 
+"""
+    RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile, pidx; kwargs...)
+
+Constructor for a [`RateSystem`](@ref) with one time-dependent parameter.
+"""
+function RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
+    pidx::Int;
+    forcing_start_time<:Real = 0.0, 
+    forcing_duration<:Real = 1.0,
+    forcing_scale<:Real = 1.0,
+    kwargs...)
+
+    return RateSystem(ds, Dict(pidx => forcing_profile);
+        forcing_start_time = Dict(pidx => forcing_start_time),
+        forcing_duration = Dict(pidx => forcing_duration),
+        forcing_scale = Dict(pidx => forcing_scale),
+        kwargs...)
+end
+
 # TODO: this must be rewritten using `set_parameter!` or its source code.
 # otherwise it doesn't work with ModelingToolkit.jl;
 # Or better yet, use `set_parameters!` and give a dict of parameters to set?
@@ -343,7 +367,7 @@ end
         p_modified(rss::RateSystemSpecs, p, t)
 
 Compute and return a parameter container appropriate for time `t` by applying
-the forcing profiles configured in `rss.forcers` to the provided parameter
+the forcing profiles configured in `rss.forcing_profile` to the provided parameter
 container `p`.
 
 Behavior:
@@ -361,7 +385,7 @@ function p_modified(rss::RateSystemSpecs, p, t::Real)
         # In-place update for Dict and Vector parameter containers (mutates `p`),
         # otherwise attempt to update the owning system via `set_parameter!`/`set_parameters!`.
     if isa(p, AbstractDict)
-        for (pkey, profile) in rss.forcers
+        for (pkey, profile) in rss.forcing_profile
             p0 = getfield(rss, :p0)[pkey]
             f = profile.profile
             section_start = profile.interval[1]
@@ -384,7 +408,7 @@ function p_modified(rss::RateSystemSpecs, p, t::Real)
         return p
 
     elseif isa(p, AbstractVector)
-        for (pkey, profile) in rss.forcers
+        for (pkey, profile) in rss.forcing_profile
             idx = Int(pkey)
             p0 = getfield(rss, :p0)[pkey]
             f = profile.profile
@@ -409,7 +433,7 @@ function p_modified(rss::RateSystemSpecs, p, t::Real)
     else
         # Arbitrary parameter container: build a copy in pd and try to apply updates
         pd = deepcopy(rss.pdummy)
-        for (pkey, profile) in rss.forcers
+        for (pkey, profile) in rss.forcing_profile
             p0 = getfield(rss, :p0)[pkey]
             f = profile.profile
             section_start = profile.interval[1]
@@ -487,7 +511,7 @@ the specified parameter, otherwise update the forcing scale of _all_ parameters 
 """
 function set_forcing_scale!(rs::RateSystem, scale; pidx=nothing)
     if pidx === nothing
-        for k in keys(rs.forcing.forcers)
+        for k in keys(rs.forcing.forcing_profile)
             rs.forcing.forcing_scale[k] = scale
         end
     else
@@ -504,7 +528,7 @@ the [`RateSystem`](@ref) `rs`.
 """
 function set_forcing_duration!(rs::RateSystem, duration; pidx=nothing)
     if pidx === nothing
-        for k in keys(rs.forcing.forcers)
+        for k in keys(rs.forcing.forcing_profile)
             rs.forcing.forcing_duration[k] = duration
         end
     else
@@ -521,7 +545,7 @@ the [`RateSystem`](@ref) `rs`.
 """
 function set_forcing_start!(rs::RateSystem, start_time; pidx=nothing)
     if pidx === nothing
-        for k in keys(rs.forcing.forcers)
+        for k in keys(rs.forcing.forcing_profile)
             rs.forcing.forcing_start_time[k] = start_time
         end
     else
