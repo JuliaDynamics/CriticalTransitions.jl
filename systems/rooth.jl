@@ -17,7 +17,7 @@ the absolute value of the flow strength `q` with a smooth hyperbolic tangent app
 * `beta = 8e-4`: haline expansion coefficient
 * `V = 2`: volume ratio between equatorial and polar boxes
 """
-function rooth_smooth(u, p, t; k=1.5e-6, alpha=1.5e-4, beta=8e-4, V=2, S_tot=140)
+function rooth_smooth(u, p, t; k = 1.5e-6, alpha = 1.5e-4, beta = 8.0e-4, V = 2, S_tot = 140)
     T1, T2, T3, S1, S3 = u
     F1, F3, lambd_T, lambd_S, tau1, tau2, tau3, sig1, sig2, sig3, smooth = p
     tau = [tau1, tau2, tau3]

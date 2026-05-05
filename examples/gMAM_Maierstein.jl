@@ -1,4 +1,3 @@
-
 # # The Maier-Stein model.
 
 using CriticalTransitions
@@ -6,10 +5,10 @@ using CriticalTransitions
 using CairoMakie
 using CairoMakie.Makie.MathTeXEngine: get_font
 font = (;
-    regular=get_font(:regular),
-    bold=get_font(:bold),
-    italic=get_font(:italic),
-    bold_italic=get_font(:bolditalic),
+    regular = get_font(:regular),
+    bold = get_font(:bold),
+    italic = get_font(:italic),
+    bold_italic = get_font(:bolditalic),
 );
 
 # Let us explore the features of [CriticalTransitions.jl](https://github.com/JuliaDynamics/CriticalTransitions.jl) with Maier-Stein model.
@@ -37,7 +36,7 @@ function meier_stein(u, p, t) # out-of-place
     return SA[dx, dy]
 end
 σ = 0.25
-sys = CoupledSDEs(meier_stein, zeros(2), (); noise_strength=σ)
+sys = CoupledSDEs(meier_stein, zeros(2), (); noise_strength = σ)
 
 # A good reference to read about the large deviations methods is [this](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html) or [this](https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html) blog post by Tobias Grafke.
 
@@ -62,8 +61,8 @@ stable_fp = fp[stab]
 
 using LinearAlgebra: norm
 res = 100
-u_range = range(u_min, u_max; length=res)
-v_range = range(v_min, v_max; length=res)
+u_range = range(u_min, u_max; length = res)
+v_range = range(v_min, v_max; length = res)
 
 du(u, v) = u - u^3 - 10 * u * v^2
 dv(u, v) = -(1 + u^2) * v
@@ -72,36 +71,36 @@ odeSol(u, v) = Point2f(du(u, v), dv(u, v))
 z = [norm([du(x, y), dv(x, y)]) for x in u_range, y in v_range]
 zmin, zmax = minimum(z), maximum(z)
 
-fig = Figure(; size=(600, 400), fontsize=13)
+fig = Figure(; size = (600, 400), fontsize = 13)
 ax = Axis(
     fig[1, 1];
-    xlabel="u",
-    ylabel="v",
-    aspect=1.4,
-    xgridcolor=:transparent,
-    ygridcolor=:transparent,
-    ylabelrotation=0,
+    xlabel = "u",
+    ylabel = "v",
+    aspect = 1.4,
+    xgridcolor = :transparent,
+    ygridcolor = :transparent,
+    ylabelrotation = 0,
 )
 
-hm = heatmap!(ax, u_range, v_range, z; colormap=:Blues, colorrange=(zmin, zmax))
-Colorbar(fig[1, 2], hm; label="", width=15, ticksize=15, tickalign=1)
+hm = heatmap!(ax, u_range, v_range, z; colormap = :Blues, colorrange = (zmin, zmax))
+Colorbar(fig[1, 2], hm; label = "", width = 15, ticksize = 15, tickalign = 1)
 streamplot!(
     ax,
     odeSol,
     (u_min, u_max),
     (v_min, v_max);
-    gridsize=(20, 20),
-    arrow_size=10,
-    stepsize=0.01,
-    colormap=[:black, :black],
+    gridsize = (20, 20),
+    arrow_size = 10,
+    stepsize = 0.01,
+    colormap = [:black, :black],
 )
 colgap!(fig.layout, 7)
 limits!(u_min, u_max, v_min, v_max)
 fig
 
 [
-    scatter!(ax, Point(fp[i]); color=stab[i] > 0 ? :red : :dodgerblue, markersize=10) for
-    i in eachindex(fp)
+    scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10) for
+        i in eachindex(fp)
 ]
 fig
 
@@ -109,50 +108,50 @@ fig
 
 tr, ts = trajectory(sys, 1000)
 
-fig = Figure(; size=(1000, 400), fontsize=13)
+fig = Figure(; size = (1000, 400), fontsize = 13)
 ax1 = Axis(
     fig[1, 1];
-    xlabel="t",
-    ylabel="u",
-    aspect=1.2,
-    xgridcolor=:transparent,
-    ygridcolor=:transparent,
-    ylabelrotation=0,
+    xlabel = "t",
+    ylabel = "u",
+    aspect = 1.2,
+    xgridcolor = :transparent,
+    ygridcolor = :transparent,
+    ylabelrotation = 0,
 )
 ax2 = Axis(
     fig[1, 2];
-    xlabel="u",
-    ylabel="v",
-    aspect=1.2,
-    xgridcolor=:transparent,
-    ygridcolor=:transparent,
-    ylabelrotation=0,
+    xlabel = "u",
+    ylabel = "v",
+    aspect = 1.2,
+    xgridcolor = :transparent,
+    ygridcolor = :transparent,
+    ylabelrotation = 0,
 )
 
-lines!(ax1, ts, first.(tr); linewidth=2, color=:black)
+lines!(ax1, ts, first.(tr); linewidth = 2, color = :black)
 
-hm = heatmap!(ax2, u_range, v_range, z; colormap=:Blues, colorrange=(zmin, zmax))
-Colorbar(fig[1, 3], hm; label="", width=15, ticksize=15, tickalign=1)
+hm = heatmap!(ax2, u_range, v_range, z; colormap = :Blues, colorrange = (zmin, zmax))
+Colorbar(fig[1, 3], hm; label = "", width = 15, ticksize = 15, tickalign = 1)
 streamplot!(
     ax2,
     odeSol,
     (u_min, u_max),
     (v_min, v_max);
-    gridsize=(20, 20),
-    arrow_size=10,
-    stepsize=0.01,
-    colormap=[:white, :white],
+    gridsize = (20, 20),
+    arrow_size = 10,
+    stepsize = 0.01,
+    colormap = [:white, :white],
 )
 colgap!(fig.layout, 7)
 limits!(u_min, u_max, v_min, v_max)
 fig
 
 [
-    scatter!(ax2, Point(fp[i]); color=stab[i] > 0 ? :red : :dodgerblue, markersize=10) for
-    i in eachindex(fp)
+    scatter!(ax2, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10) for
+        i in eachindex(fp)
 ]
 
-lines!(ax2, reduce(hcat, tr); linewidth=1, color=(:black, 0.2))
+lines!(ax2, reduce(hcat, tr); linewidth = 1, color = (:black, 0.2))
 fig
 
 # ## Transitions
@@ -164,78 +163,78 @@ path, time, success = transition(sys, paths_ends...);
 
 #
 
-fig = Figure(; size=(600, 400), fontsize=13)
+fig = Figure(; size = (600, 400), fontsize = 13)
 ax = Axis(
     fig[1, 1];
-    xlabel="u",
-    ylabel="v",
-    aspect=1.4,
-    xgridcolor=:transparent,
-    ygridcolor=:transparent,
-    ylabelrotation=0,
+    xlabel = "u",
+    ylabel = "v",
+    aspect = 1.4,
+    xgridcolor = :transparent,
+    ygridcolor = :transparent,
+    ylabelrotation = 0,
 )
 
-hm = heatmap!(ax, u_range, v_range, z; colormap=:Blues, colorrange=(zmin, zmax))
-Colorbar(fig[1, 2], hm; label="", width=15, ticksize=15, tickalign=1)
+hm = heatmap!(ax, u_range, v_range, z; colormap = :Blues, colorrange = (zmin, zmax))
+Colorbar(fig[1, 2], hm; label = "", width = 15, ticksize = 15, tickalign = 1)
 streamplot!(
     ax,
     odeSol,
     (u_min, u_max),
     (v_min, v_max);
-    gridsize=(20, 20),
-    arrow_size=10,
-    stepsize=0.01,
-    colormap=[:white, :white],
+    gridsize = (20, 20),
+    arrow_size = 10,
+    stepsize = 0.01,
+    colormap = [:white, :white],
 )
 colgap!(fig.layout, 7)
 limits!(u_min, u_max, v_min, v_max)
 fig
 
 [
-    scatter!(ax, Point(fp[i]); color=stab[i] > 0 ? :red : :dodgerblue, markersize=10) for
-    i in eachindex(fp)
+    scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10) for
+        i in eachindex(fp)
 ]
 fig
 
-lines!(ax, path; color=:black)
+lines!(ax, path; color = :black)
 fig
 
 # If we want to compute many: `transitions` is the function to use.
 
-tt = transitions(sys, paths_ends..., 3; tmax=1e3);
+tt = transitions(sys, paths_ends..., 3; tmax = 1.0e3);
 
 #
 
-fig = Figure(; size=(600, 400), fontsize=13)
+fig = Figure(; size = (600, 400), fontsize = 13)
 ax = Axis(
     fig[1, 1];
-    xlabel="u",
-    ylabel="v",
-    aspect=1.4,
-    xgridcolor=:transparent,
-    ygridcolor=:transparent,
-    ylabelrotation=0,
+    xlabel = "u",
+    ylabel = "v",
+    aspect = 1.4,
+    xgridcolor = :transparent,
+    ygridcolor = :transparent,
+    ylabelrotation = 0,
 )
 
-hm = heatmap!(ax, u_range, v_range, z; colormap=:Blues, colorrange=(zmin, zmax))
-Colorbar(fig[1, 2], hm; label="", width=15, ticksize=15, tickalign=1)
+hm = heatmap!(ax, u_range, v_range, z; colormap = :Blues, colorrange = (zmin, zmax))
+Colorbar(fig[1, 2], hm; label = "", width = 15, ticksize = 15, tickalign = 1)
 streamplot!(
     ax,
     odeSol,
     (u_min, u_max),
     (v_min, v_max);
-    gridsize=(20, 20),
-    arrow_size=10,
-    stepsize=0.01,
-    colormap=[:black, :black],
+    gridsize = (20, 20),
+    arrow_size = 10,
+    stepsize = 0.01,
+    colormap = [:black, :black],
 )
 colgap!(fig.layout, 7)
 limits!(u_min, u_max, v_min, v_max)
 fig
 
 [
-    scatter!(ax, Point(fp[i]); color=stab[i] > 0 ? :red : :dodgerblue, markersize=10) for
-    i in eachindex(fp)
+    scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10) for
+        i in eachindex(fp)
 ]
 
 for i in 1:length(tt.paths)
@@ -257,49 +256,49 @@ fig
 
 # Let us first make an initial path:
 
-xx = range(-1.0, 1.0; length=100)
+xx = range(-1.0, 1.0; length = 100)
 yy = 0.3 .* (-xx .^ 2 .+ 1)
 init = Matrix([xx yy]')
 
 # `minimize_geometric_action` computes the minimizer of the Freidlin-Wentzell action using the geometric minimum action method (gMAM), to find the minimum action path (instanton) between an initial state x_i and final state x_f. The Minimum Action Method (MAM) is a more traditional approach, while the Geometric Minimum Action Method (gMAM) is a blend of the original MAM and the [string method](https://doi.org/10.1103/PhysRevB.66.052301).
 optimizer = GeometricGradient()
-gm = minimize_geometric_action(sys, init, optimizer; maxiters=500, show_progress=false)
+gm = minimize_geometric_action(sys, init, optimizer; maxiters = 500, show_progress = false)
 MLP = gm.path
 
 #
 
-fig = Figure(; size=(600, 400), fontsize=13)
+fig = Figure(; size = (600, 400), fontsize = 13)
 ax = Axis(
     fig[1, 1];
-    xlabel="u",
-    ylabel="v",
-    aspect=1.4,
-    xgridcolor=:transparent,
-    ygridcolor=:transparent,
-    ylabelrotation=0,
+    xlabel = "u",
+    ylabel = "v",
+    aspect = 1.4,
+    xgridcolor = :transparent,
+    ygridcolor = :transparent,
+    ylabelrotation = 0,
 )
 
-hm = heatmap!(ax, u_range, v_range, z; colormap=:Blues, colorrange=(zmin, zmax))
-Colorbar(fig[1, 2], hm; label="", width=15, ticksize=15, tickalign=1)
+hm = heatmap!(ax, u_range, v_range, z; colormap = :Blues, colorrange = (zmin, zmax))
+Colorbar(fig[1, 2], hm; label = "", width = 15, ticksize = 15, tickalign = 1)
 streamplot!(
     ax,
     odeSol,
     (u_min, u_max),
     (v_min, v_max);
-    gridsize=(20, 20),
-    arrow_size=10,
-    stepsize=0.01,
-    colormap=[:black, :black],
+    gridsize = (20, 20),
+    arrow_size = 10,
+    stepsize = 0.01,
+    colormap = [:black, :black],
 )
 colgap!(fig.layout, 7)
 limits!(u_min, u_max, v_min, v_max)
 fig
 
 [
-    scatter!(ax, Point(fp[i]); color=stab[i] > 0 ? :red : :dodgerblue, markersize=10) for
-    i in eachindex(fp)
+    scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10) for
+        i in eachindex(fp)
 ]
 
-lines!(ax, init; linewidth=3, color=:black, linestyle=:dash)
-lines!(ax, MLP; linewidth=3, color=:orange)
+lines!(ax, init; linewidth = 3, color = :black, linestyle = :dash)
+lines!(ax, MLP; linewidth = 3, color = :orange)
 fig

@@ -44,8 +44,8 @@ nxy = nx * ny
 xmin, xmax = -2.0, 2.0
 ymin, ymax = -2.0, 2.0
 
-x1 = range(xmin, xmax; length=nx)
-y1 = range(ymin, ymax; length=ny)
+x1 = range(xmin, xmax; length = nx)
+y1 = range(ymin, ymax; length = ny)
 x_grid = [xx for yy in y1, xx in x1]
 y_grid = [yy for yy in y1, xx in x1]
 
@@ -86,11 +86,11 @@ end
 @test q.forward != q.backward
 @test (1 .- q.forward) != q.backward
 Z = q.Z
-@test Z ≈ 69.3829 atol = 1e-1
+@test Z ≈ 69.3829 atol = 1.0e-1
 
 for committor in [q.forward, q.backward]
     prob_lastA = probability_last_A(sys, q)
     prob_lastB = probability_last_A(sys, q)
-    @test prob_lastA ≈ 0.5 atol = 1e-3
-    @test prob_lastB ≈ 0.5 atol = 1e-3
+    @test prob_lastA ≈ 0.5 atol = 1.0e-3
+    @test prob_lastB ≈ 0.5 atol = 1.0e-3
 end

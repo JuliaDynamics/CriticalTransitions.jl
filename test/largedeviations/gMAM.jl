@@ -6,14 +6,14 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
 @testset "gMAM FitzHugh-Nagumo" begin
     p = [0.1, 3, 1, 1, 1, 0]
     σ = 0.1
-    fhn = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength=σ)
+    fhn = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength = σ)
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
     res = minimize_geometric_action(
-        fhn, x_i, x_f; npoints=30, maxiters=500, show_progress=false
+        fhn, x_i, x_f; npoints = 30, maxiters = 500, show_progress = false
     )
     S = geometric_action(fhn, Matrix(res.path)')
-    @test isapprox(S, 0.18, atol=0.01)
+    @test isapprox(S, 0.18, atol = 0.01)
 end
 
 @testset "GeometricGradient" begin
@@ -24,10 +24,10 @@ end
         return SA[dx, dy]
     end
     σ = 0.25
-    sys = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
+    sys = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
 
     # initial path: parabola
-    xx = range(-1.0, 1.0; length=30)
+    xx = range(-1.0, 1.0; length = 30)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     init = Matrix([xx yy]')
 
@@ -35,13 +35,13 @@ end
     x_f = init[:, end]
 
     gm = minimize_geometric_action(
-        sys, init, GeometricGradient(); maxiters=500, verbose=false, show_progress=false
+        sys, init, GeometricGradient(); maxiters = 500, verbose = false, show_progress = false
     )
 
     path = Matrix(gm.path)'
     action_val = gm.action
-    @test all(isapprox.(path[2, :][(end - 5):end], 0, atol=1e-3))
-    @test all(isapprox.(action_val, 0.3375, atol=1e-3))
+    @test all(isapprox.(path[2, :][(end - 5):end], 0, atol = 1.0e-3))
+    @test all(isapprox.(action_val, 0.3375, atol = 1.0e-3))
 end # GeometricGradient
 
 @testset "gMAM backtracking" begin
@@ -52,23 +52,23 @@ end # GeometricGradient
         return SA[dx, dy]
     end
     σ = 0.25
-    sys = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
+    sys = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
 
-    xx = range(-1.0, 1.0; length=30)
+    xx = range(-1.0, 1.0; length = 30)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     init = Matrix([xx yy]')
 
     # Huge stepsize with backtracking should not crash
     res_bt = minimize_geometric_action(
-        sys, init, GeometricGradient(; stepsize=1e6); maxiters=100, show_progress=false
+        sys, init, GeometricGradient(; stepsize = 1.0e6); maxiters = 100, show_progress = false
     )
     @test isfinite(res_bt.action)
 
     # Step-size insensitivity: different starting stepsizes give similar action
     actions = Float64[]
-    for ss in [0.01, 1.0, 1e3]
+    for ss in [0.01, 1.0, 1.0e3]
         res = minimize_geometric_action(
-            sys, init, GeometricGradient(; stepsize=ss); maxiters=500, show_progress=false
+            sys, init, GeometricGradient(; stepsize = ss); maxiters = 500, show_progress = false
         )
         push!(actions, res.action)
     end
@@ -82,12 +82,12 @@ end
     @test opt.max_backtracks == 10
 
     # Type promotion: mixing Int and Float64
-    opt2 = GeometricGradient(; stepsize=1, shrink=0.5)
+    opt2 = GeometricGradient(; stepsize = 1, shrink = 0.5)
     @test opt2.stepsize isa Float64
     @test opt2.stepsize == 1.0
 
     # Fixed step (no backtracking)
-    opt3 = GeometricGradient(; max_backtracks=0, stepsize=42.0)
+    opt3 = GeometricGradient(; max_backtracks = 0, stepsize = 42.0)
     @test opt3.max_backtracks == 0
     @test opt3.stepsize == 42.0
 end

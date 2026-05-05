@@ -23,7 +23,7 @@ step = 0.02;
 function iterate_boas(p)
     _boas = Dict()
     Threads.@threads for i in p
-        _boas[i] = basins(systems[i], A, B, C, box; bstep=[step, step])
+        _boas[i] = basins(systems[i], A, B, C, box; bstep = [step, step])
     end
     return _boas
 end

@@ -6,16 +6,16 @@ using CriticalTransitions, Test
     Aqua.test_ambiguities(CriticalTransitions)
     Aqua.test_all(
         CriticalTransitions;
-        piracies=(
-            treat_as_own=[
+        piracies = (
+            treat_as_own = [
                 CriticalTransitions.DynamicalSystemsBase.SciMLBase.AbstractSDEIntegrator,
                 CriticalTransitions.DynamicalSystemsBase.StateSpaceSets.StateSpaceSet,
             ],
         ),
-        ambiguities=false,
-        persistent_tasks=false,
+        ambiguities = false,
+        persistent_tasks = false,
         # `parameters` is exported but not defined — left from #280's WIP refactor (see PR #310).
-        undefined_exports=false,
+        undefined_exports = false,
     )
 end
 
@@ -30,8 +30,8 @@ end
     @test isnothing(
         check_all_qualified_accesses_are_public(
             CriticalTransitions;
-            skip=(Base => Base.Experimental, Base => Core),
-            ignore=(
+            skip = (Base => Base.Experimental, Base => Core),
+            ignore = (
                 :EnsembleAlgorithm,
                 :Terminated,
                 :covariance_matrix,
@@ -44,8 +44,8 @@ end
     @test isnothing(
         check_all_explicit_imports_are_public(
             CriticalTransitions;
-            skip=(Base => Base.Experimental, Base => Core),
-            ignore=(
+            skip = (Base => Base.Experimental, Base => Core),
+            ignore = (
                 :referrenced_sciml_prob,
                 :DEFAULT_DIFFEQ,
                 :_decompose_into_solver_and_remaining,
@@ -58,6 +58,6 @@ if false # isempty(VERSION.prerelease)
     # Disabled until #280's RateSystem refactor is finished — see PR #310.
     @testset "Code linting" begin
         using JET
-        JET.test_package(CriticalTransitions; target_modules=(CriticalTransitions,))
+        JET.test_package(CriticalTransitions; target_modules = (CriticalTransitions,))
     end
 end

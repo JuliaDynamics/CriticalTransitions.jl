@@ -13,5 +13,5 @@ end
     vector = [3, 7, 4]
     directions = [1, 3]
     expected = sqrt(3^2 + 4^2)
-    @test subnorm(vector; directions=directions) == expected
+    @test subnorm(vector; directions = directions) == expected
 end

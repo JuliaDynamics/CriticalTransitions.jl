@@ -28,8 +28,8 @@ nxy = nx * ny
 xmin, xmax = -2.0, 2.0
 ymin, ymax = -2.0, 2.0
 
-x1 = range(xmin, xmax; length=nx)
-y1 = range(ymin, ymax; length=ny)
+x1 = range(xmin, xmax; length = nx)
+y1 = range(ymin, ymax; length = ny)
 x_grid = [xx for yy in y1, xx in x1]
 y_grid = [yy for yy in y1, xx in x1]
 

@@ -8,19 +8,19 @@ function get_steady_state(sys, x0)
 end
 
 const λ = 3 / 1.21 * 2 / 295
-const ω0 = 1.000
-const ω = 1.000
+const ω0 = 1.0
+const ω = 1.0
 const γ = 1 / 295
 const η = 0
 const α = -1
 
 function fu(u, v)
     return (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
-           (8 * ω)
+        (8 * ω)
 end
 function fv(u, v)
     return (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
-           (8 * ω)
+        (8 * ω)
 end
 dfvdv(u, v) = (-4 * γ * ω + 6 * α * u * v) / (8 * ω)
 dfudu(u, v) = (-4 * γ * ω - 6 * α * u * v) / (8 * ω)
@@ -43,12 +43,12 @@ function H_p(x, p) # ℜ² → ℜ²
     return Matrix([H_pu H_pv]')
 end
 
-sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
-sgmam_opt = GeometricGradient(; max_backtracks=0, stepsize=10e2)
+sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
+sgmam_opt = GeometricGradient(; max_backtracks = 0, stepsize = 10.0e2)
 
 # setup
 Nt = 500  # number of discrete time steps
-s = collect(range(0; stop=1, length=Nt))
+s = collect(range(0; stop = 1, length = Nt))
 
 xa = get_steady_state(sys, [1.0, 1.0])
 xb = -xa
@@ -60,24 +60,24 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
 x_initial = Matrix([xx yy]')
 
 MLP = minimize_simple_geometric_action(
-    sys, x_initial, sgmam_opt; maxiters=100_000, show_progress=true
+    sys, x_initial, sgmam_opt; maxiters = 100_000, show_progress = true
 )
 x_min = MLP.path
 S_min = MLP.action
 
-string = string_method(sys, x_initial; maxiters=100_000, stepsize=0.5, show_progress=true)
+string = string_method(sys, x_initial; maxiters = 100_000, stepsize = 0.5, show_progress = true)
 
 @show S_min;
-plot(x_initial[1, :], x_initial[2, :]; label="init", lw=3, c=:black)
-plot!(x_min[1, :], x_min[2, :]; label="MLP", lw=3, c=:red)
+plot(x_initial[1, :], x_initial[2, :]; label = "init", lw = 3, c = :black)
+plot!(x_min[1, :], x_min[2, :]; label = "MLP", lw = 3, c = :red)
 string_path = permutedims(Matrix(string))
-plot!(string_path[1, :], string_path[2, :]; label="string", lw=3, c=:blue)
+plot!(string_path[1, :], string_path[2, :]; label = "string", lw = 3, c = :blue)
 
 @btime $minimize_simple_geometric_action(
-    $sys, $x_initial, $sgmam_opt; maxiters=100, show_progress=false
+    $sys, $x_initial, $sgmam_opt; maxiters = 100, show_progress = false
 ) # 25.803 ms (29024 allocations: 105.69 MiB)
 @profview minimize_simple_geometric_action(
-    sys, x_initial, sgmam_opt; maxiters=100, show_progress=false
+    sys, x_initial, sgmam_opt; maxiters = 100, show_progress = false
 )
 
 # The bottleneck is atm at the LinearSolve call to update the x in the new iteration. So the more improve, one needs to write it own LU factorization.

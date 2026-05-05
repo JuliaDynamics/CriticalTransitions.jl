@@ -1,4 +1,3 @@
-
 # # String method on the Muller-Brown landscape using a gradient function
 
 # This example demonstrates how to use `CriticalTransitions.string_method` when you *do not*
@@ -86,22 +85,22 @@ xb = x2
 # Construct an initial string as a 2×Nt matrix, with a small transverse perturbation
 # to make the convergence visually obvious.
 function linear_string(a, b, Nt)
-    xs = range(a[1], b[1]; length=Nt)
-    ys = range(a[2], b[2]; length=Nt)
+    xs = range(a[1], b[1]; length = Nt)
+    ys = range(a[2], b[2]; length = Nt)
     return vcat(xs', ys')
 end
 
 Nt = 50
 x_initial = linear_string(xa, xb, Nt)
-x_initial[2, :] .+= 0.15 .* sin.(range(0, π; length=Nt))
+x_initial[2, :] .+= 0.15 .* sin.(range(0, π; length = Nt))
 
 # The parameter `stepsize` is the (fixed) time step used internally for the evolution step.
 # The Muller-Brown potential has steep regions, so small `stepsize` is recommended.
-stepsize = 1e-4
+stepsize = 1.0e-4
 maxiters = 2500
 
 string = CriticalTransitions.string_method(
-    b, x_initial; stepsize, maxiters, show_progress=false
+    b, x_initial; stepsize, maxiters, show_progress = false
 )
 
 # A simple convergence diagnostic: average step along the string.
@@ -116,15 +115,15 @@ yy = LinRange(-0.5, 2.0, 250)
 V_vals = [V([x, y]) for y in yy, x in xx]
 V_clip = min.(V_vals, 500)
 
-fig = Figure(; size=(700, 450), fontsize=13)
-ax = Axis(fig[1, 1]; xlabel="x", ylabel="y", aspect=1.2)
-contour!(ax, xx, yy, V_clip; levels=range(-150, 500, 35), colormap=:viridis)
+fig = Figure(; size = (700, 450), fontsize = 13)
+ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y", aspect = 1.2)
+contour!(ax, xx, yy, V_clip; levels = range(-150, 500, 35), colormap = :viridis)
 
-lines!(ax, x_initial[1, :], x_initial[2, :]; color=:black, linewidth=2, linestyle=:dash) # Initial string (dashed) and converged string (solid)
-lines!(ax, string_m[:, 1], string_m[:, 2]; color=:black, linewidth=3)
+lines!(ax, x_initial[1, :], x_initial[2, :]; color = :black, linewidth = 2, linestyle = :dash) # Initial string (dashed) and converged string (solid)
+lines!(ax, string_m[:, 1], string_m[:, 2]; color = :black, linewidth = 3)
 
-scatter!(ax, [x1[1], x2[1], x3[1]], [x1[2], x2[2], x3[2]]; color=:red, markersize=10) # Minima and saddles
-scatter!(ax, [s1[1], s2[1]], [s1[2], s2[2]]; color=:green, marker=:diamond, markersize=10)
+scatter!(ax, [x1[1], x2[1], x3[1]], [x1[2], x2[2], x3[2]]; color = :red, markersize = 10) # Minima and saddles
+scatter!(ax, [s1[1], s2[1]], [s1[2], s2[2]]; color = :green, marker = :diamond, markersize = 10)
 
 limits!(ax, extrema(xx)..., extrema(yy)...)
 fig

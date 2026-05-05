@@ -39,14 +39,14 @@ The `optimizer` argument accepts:
 Only the Freidlin-Wentzell action has a geometric formulation.
 """
 function minimize_geometric_action(
-    sys::ContinuousTimeDynamicalSystem,
-    x_i,
-    x_f,
-    optimizer=GeometricGradient();
-    npoints::Int=100,
-    kwargs...,
-)
-    path = reduce(hcat, range(x_i, x_f; length=npoints))
+        sys::ContinuousTimeDynamicalSystem,
+        x_i,
+        x_f,
+        optimizer = GeometricGradient();
+        npoints::Int = 100,
+        kwargs...,
+    )
+    path = reduce(hcat, range(x_i, x_f; length = npoints))
     return minimize_geometric_action(sys, path, optimizer; kwargs...)
 end
 
@@ -57,15 +57,15 @@ function _gmam_setup(sys, init, maxiters, show_progress)
     path = deepcopy(init)
     N = length(init[1, :])
     alpha = zeros(N)
-    arc = range(0, 1.0; length=N)
+    arc = range(0, 1.0; length = N)
     S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
-    prog = Progress(maxiters; enabled=show_progress)
+    prog = Progress(maxiters; enabled = show_progress)
     return path, N, alpha, arc, S, prog
 end
 
 function minimize_geometric_action(
-    sys::ContinuousTimeDynamicalSystem, init::Matrix; kwargs...
-)
+        sys::ContinuousTimeDynamicalSystem, init::Matrix; kwargs...
+    )
     return minimize_geometric_action(sys, init, GeometricGradient(); kwargs...)
 end
 
@@ -82,15 +82,15 @@ For more information see the main method,
 [`minimize_geometric_action(sys::CoupledSDEs, x_i, x_f, arclength::Real; kwargs...)`](@ref).
 """
 function minimize_geometric_action(
-    sys::ContinuousTimeDynamicalSystem,
-    init::Matrix,
-    optimizer::GeometricGradient;
-    maxiters::Int=100,
-    abstol::Real=NaN,
-    reltol::Real=NaN,
-    verbose=false,
-    show_progress=true,
-)
+        sys::ContinuousTimeDynamicalSystem,
+        init::Matrix,
+        optimizer::GeometricGradient;
+        maxiters::Int = 100,
+        abstol::Real = NaN,
+        reltol::Real = NaN,
+        verbose = false,
+        show_progress = true,
+    )
     path, _, alpha, arc, S, _ = _gmam_setup(sys, init, maxiters, false)
 
     ws = geometric_gradient_workspace(sys, path)
@@ -101,7 +101,7 @@ function minimize_geometric_action(
     initial_action = S(path)
 
     function try_step!(ϵ)
-        geometric_gradient_step!(ws, sys, path; stepsize=ϵ)
+        geometric_gradient_step!(ws, sys, path; stepsize = ϵ)
         path .= ws.update
         interpolate_path!(path, alpha, arc)
         return S(path)
@@ -125,15 +125,15 @@ function minimize_geometric_action(
 end
 
 function minimize_geometric_action(
-    sys::ContinuousTimeDynamicalSystem,
-    init::Matrix,
-    optimizer;
-    maxiters::Int=100,
-    abstol::Real=NaN,
-    reltol::Real=NaN,
-    ad_type=Optimization.AutoFiniteDiff(),
-    show_progress=true,
-)
+        sys::ContinuousTimeDynamicalSystem,
+        init::Matrix,
+        optimizer;
+        maxiters::Int = 100,
+        abstol::Real = NaN,
+        reltol::Real = NaN,
+        ad_type = Optimization.AutoFiniteDiff(),
+        show_progress = true,
+    )
     path, N, alpha, arc, S, prog = _gmam_setup(sys, init, maxiters, show_progress)
 
     optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)
@@ -166,14 +166,14 @@ arclength `L`.
 - [heymann_pathways_2008](@cite)
 """
 function geometric_gradient_step(
-    sys::ContinuousTimeDynamicalSystem, path, N; stepsize=0.1, diff_order=4
-)
+        sys::ContinuousTimeDynamicalSystem, path, N; stepsize = 0.1, diff_order = 4
+    )
     ws = geometric_gradient_workspace(sys, path)
-    geometric_gradient_step!(ws, sys, path; stepsize=stepsize, diff_order=diff_order)
+    geometric_gradient_step!(ws, sys, path; stepsize = stepsize, diff_order = diff_order)
     return ws.update
 end
 
-struct GeometricGradientWorkspace{Tupdate,Tprime,Tvec,Tmat,Ttmp,Tarc,TA,Tjac}
+struct GeometricGradientWorkspace{Tupdate, Tprime, Tvec, Tmat, Ttmp, Tarc, TA, Tjac}
     update::Tupdate
     x_prime::Tprime
     lambdas::Tvec
@@ -216,7 +216,7 @@ function geometric_gradient_workspace(sys::ContinuousTimeDynamicalSystem, path)
     d = ones(N)
     du = zeros(N - 1)
     v = zeros(N)
-    arc = range(0, 1.0; length=N)
+    arc = range(0, 1.0; length = N)
 
     return GeometricGradientWorkspace(
         update,
@@ -240,20 +240,20 @@ function geometric_gradient_workspace(sys::ContinuousTimeDynamicalSystem, path)
 end
 
 function geometric_gradient_step!(
-    ws::GeometricGradientWorkspace,
-    sys::ContinuousTimeDynamicalSystem,
-    path;
-    stepsize=0.1,
-    diff_order=4,
-)
+        ws::GeometricGradientWorkspace,
+        sys::ContinuousTimeDynamicalSystem,
+        path;
+        stepsize = 0.1,
+        diff_order = 4,
+    )
     N = size(path, 2)
     dx = 1.0 / (N - 1)
 
-    path_velocity!(ws.x_prime, path, ws.arc; order=diff_order)
+    path_velocity!(ws.x_prime, path, ws.arc; order = diff_order)
 
     @views for i in 2:(N - 1)
         velocity_norm = anorm(ws.x_prime[:, i], ws.A)
-        if velocity_norm > 1e-14
+        if velocity_norm > 1.0e-14
             ws.drift_cache[:, i - 1] .= drift(sys, path[:, i])
             ws.lambdas[i] = anorm(ws.drift_cache[:, i - 1], ws.A) / velocity_norm
             if !isfinite(ws.lambdas[i])
@@ -294,7 +294,7 @@ function geometric_gradient_step!(
     cache = init(
         prob,
         LUFactorization();
-        alias=SciMLBase.LinearAliasSpecifier(; alias_A=true, alias_b=true),
+        alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
     )
     rhs = cache.b
 
@@ -309,9 +309,9 @@ function geometric_gradient_step!(
             rhs_val =
                 path[j, i] +
                 stepsize * (
-                    -ws.lambdas[i] * ws.prod1[j, i - 1] - ws.prod2[j, i - 1] +
+                -ws.lambdas[i] * ws.prod1[j, i - 1] - ws.prod2[j, i - 1] +
                     ws.lambdas[i] * ws.lambdas_prime[i] * ws.x_prime[j, i]
-                )
+            )
             rhs[i] = isfinite(rhs_val) ? rhs_val : path[j, i]
         end
         solve!(cache)

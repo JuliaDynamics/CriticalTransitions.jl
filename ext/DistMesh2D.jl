@@ -29,7 +29,7 @@ function CriticalTransitions.huniform(p)
 end
 
 function CriticalTransitions.ddiff(d1, d2)
-    return maximum([d1 -d2]; dims=2)
+    return maximum([d1 -d2]; dims = 2)
 end
 
 function CriticalTransitions.dellipse(p, a, radii)
@@ -124,8 +124,8 @@ function CriticalTransitions.distmesh2D(fd, fh, h0, bbox, pfix)
     jshow = 200
 
     # Create initial distribution of points
-    ax = range(bbox[1], bbox[2]; step=h0)
-    ay = range(bbox[3], bbox[4]; step=h0 * sqrt(3) * 0.5)
+    ax = range(bbox[1], bbox[2]; step = h0)
+    ay = range(bbox[3], bbox[4]; step = h0 * sqrt(3) * 0.5)
     x = [i for i in ax, j in ay]
     y = [j for i in ax, j in ay]
     nx, ny = size(x)
@@ -143,7 +143,7 @@ function CriticalTransitions.distmesh2D(fd, fh, h0, bbox, pfix)
 
     # Add fixed points
     if !isempty(pfix)
-        pfix = unique(pfix; dims=1)
+        pfix = unique(pfix; dims = 1)
         nfix = size(pfix, 1)
         pts = vcat(pfix, pts)
     else
@@ -157,7 +157,7 @@ function CriticalTransitions.distmesh2D(fd, fh, h0, bbox, pfix)
         count += 1
 
         # Retriangulation if points have moved too much
-        if maximum(sqrt.(sum((pts .- pts_old) .^ 2; dims=2))) / h0 > ttol
+        if maximum(sqrt.(sum((pts .- pts_old) .^ 2; dims = 2))) / h0 > ttol
             pts_old = copy(pts)
 
             # Delaunay triangulation
@@ -172,11 +172,11 @@ function CriticalTransitions.distmesh2D(fd, fh, h0, bbox, pfix)
 
             # Create bars from triangles
             bars = vcat(tri[:, 1:2], tri[:, 2:3], hcat(tri[:, 3], tri[:, 1]))
-            bars = unique(sort(bars; dims=2); dims=1)
+            bars = unique(sort(bars; dims = 2); dims = 1)
 
             # Calculate bar vectors and lengths
             barvec = pts[bars[:, 1], :] .- pts[bars[:, 2], :]
-            L = sqrt.(sum(barvec .^ 2; dims=2))
+            L = sqrt.(sum(barvec .^ 2; dims = 2))
             L0 = fh((pts[bars[:, 1], :] .+ pts[bars[:, 2], :]) / 2)
             L0 *= Fscale * sqrt(sum(L .^ 2) / sum(L0 .^ 2))
 
@@ -222,7 +222,7 @@ function CriticalTransitions.distmesh2D(fd, fh, h0, bbox, pfix)
             # Check convergence
             d = fd(pts)
             ix = findall(d .< -geps)
-            displacement = maximum(sqrt.(sum((deltat * Ftot[ix, :]) .^ 2; dims=2))) / h0
+            displacement = maximum(sqrt.(sum((deltat * Ftot[ix, :]) .^ 2; dims = 2))) / h0
 
             if displacement < dptol
                 break
@@ -243,13 +243,13 @@ end
 
 # Helper functions
 function unique_with_indices(A)
-    uniqueA = unique(A; dims=1)
+    uniqueA = unique(A; dims = 1)
     indices = [findfirst(r -> all(r .== row), eachrow(uniqueA)) for row in eachrow(A)]
     return uniqueA, indices
 end
 
 function CriticalTransitions.get_ellipse(a, raddii, n)
-    t = range(0, 2π; length=n + 1)
+    t = range(0, 2π; length = n + 1)
     pts = zeros(n, 2)
     xc, yc = a
     rx, ry = raddii
@@ -263,12 +263,12 @@ end
 function CriticalTransitions.reparameterization(path, h)
     dp = path .- circshift(path, (1, 0))
     dp[1, :] .= 0
-    dl = sqrt.(sum(dp .^ 2; dims=2))
-    lp = vec(cumsum(dl; dims=1))
+    dl = sqrt.(sum(dp .^ 2; dims = 2))
+    lp = vec(cumsum(dl; dims = 1))
     total_len = lp[end]
     lp ./= total_len
     npath = round(Int, total_len / h)
-    g1 = range(0, 1; length=npath)
+    g1 = range(0, 1; length = npath)
     itp_x = linear_interpolation(lp, path[:, 1])
     itp_y = linear_interpolation(lp, path[:, 2])
     path_x = itp_x.(g1)
@@ -277,8 +277,8 @@ function CriticalTransitions.reparameterization(path, h)
 end
 
 function CriticalTransitions.TransitionPathMesh(
-    mesh::Mesh, point_a, point_b, radii, density
-)
+        mesh::Mesh, point_a, point_b, radii, density
+    )
     Na = round(Int, π * sum(radii) / density) # the number of points on the A-circle
     Nb = Na
 

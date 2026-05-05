@@ -19,7 +19,7 @@ $(TYPEDFIELDS)
 # Keyword constructors
 $(METHODLIST)
 """
-struct GeometricGradient{T<:Real} <: GMAMOptimizer
+struct GeometricGradient{T <: Real} <: GMAMOptimizer
     """Initial step size for the projected gradient update."""
     stepsize::T
     """Step-size shrink factor on rejected steps (backtracking)."""
@@ -35,13 +35,13 @@ struct GeometricGradient{T<:Real} <: GMAMOptimizer
 end
 
 function GeometricGradient(;
-    stepsize::Real=1e-1,
-    shrink::Real=0.5,
-    grow::Real=1.1,
-    max_backtracks::Int=10,
-    stepsize_min::Real=1e-12,
-    stepsize_max::Real=Inf,
-)
+        stepsize::Real = 1.0e-1,
+        shrink::Real = 0.5,
+        grow::Real = 1.1,
+        max_backtracks::Int = 10,
+        stepsize_min::Real = 1.0e-12,
+        stepsize_max::Real = Inf,
+    )
     T = promote_type(
         typeof(float(stepsize)),
         typeof(float(shrink)),
@@ -72,17 +72,17 @@ Generic backtracking iteration loop shared by sgMAM and gMAM.
 Returns `(final_action, final_stepsize)`.
 """
 function backtracking_optimize!(
-    optimizer::GeometricGradient,
-    try_step!,
-    save!,
-    restore!,
-    initial_action::Real;
-    maxiters::Int=1000,
-    abstol::Real=NaN,
-    reltol::Real=NaN,
-    verbose::Bool=false,
-    show_progress::Bool=false,
-)
+        optimizer::GeometricGradient,
+        try_step!,
+        save!,
+        restore!,
+        initial_action::Real;
+        maxiters::Int = 1000,
+        abstol::Real = NaN,
+        reltol::Real = NaN,
+        verbose::Bool = false,
+        show_progress::Bool = false,
+    )
     backtracking = optimizer.max_backtracks > 0
     ntries = backtracking ? optimizer.max_backtracks + 1 : 1
     stepsize = optimizer.stepsize
@@ -90,7 +90,7 @@ function backtracking_optimize!(
     consecutive_failures = 0
     max_consecutive_failures = 5
 
-    progress = Progress(maxiters; dt=0.5, enabled=show_progress)
+    progress = Progress(maxiters; dt = 0.5, enabled = show_progress)
     for i in 1:maxiters
         S_old = current_action
         ϵ_try = if backtracking
@@ -154,19 +154,19 @@ function backtracking_optimize!(
         end
 
         if accepted && (
-            (isfinite(abstol) && abs_change < abstol) ||
-            (isfinite(reltol) && rel_change < reltol)
-        )
+                (isfinite(abstol) && abs_change < abstol) ||
+                    (isfinite(reltol) && rel_change < reltol)
+            )
             verbose &&
                 @info "Converged after $i iterations with abs=$abs_change, rel=$rel_change"
             break
         end
         next!(
             progress;
-            showvalues=[
+            showvalues = [
                 ("iterations", i),
-                ("Stol", round(rel_change; sigdigits=3)),
-                ("stepsize", round(stepsize; sigdigits=3)),
+                ("Stol", round(rel_change; sigdigits = 3)),
+                ("stepsize", round(stepsize; sigdigits = 3)),
             ],
         )
     end

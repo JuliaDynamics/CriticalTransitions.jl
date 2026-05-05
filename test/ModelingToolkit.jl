@@ -21,16 +21,16 @@ using StochasticDiffEq: LambaEulerHeun
     drift_eqs = [D(x) ~ σ * (y - x), D(y) ~ x * (ρ - z) - y, D(z) ~ x * y]
 
     diffusion_eqs = [
-         s*x 0
-        s*y s*x
-        (s * x * z)-s * z 0
+        s * x 0
+        s * y s * x
+        (s * x * z) - s * z 0
     ]
 
-    sys2 = mtkcompile(SDESystem(drift_eqs, diffusion_eqs, t, sts, ps; name=:sys1))
+    sys2 = mtkcompile(SDESystem(drift_eqs, diffusion_eqs, t, sts, ps; name = :sys1))
     @test sys1 == sys2
 
     prob = SDEProblem(sys1, sts .=> [1.0, 0.0, 0.0], (0.0, 100.0), ps .=> (10.0, 26.0))
-    solve(prob, LambaEulerHeun(); seed=1)
+    solve(prob, LambaEulerHeun(); seed = 1)
 end
 
 @testset begin
@@ -43,7 +43,7 @@ end
     eqs = [D(x) ~ α * x]
     noiseeqs = [β * x]
 
-    de = SDESystem(eqs, noiseeqs, t, sts, ps; name=:de)
+    de = SDESystem(eqs, noiseeqs, t, sts, ps; name = :de)
     de = complete(de)
 
     x0 = 0.1
@@ -54,7 +54,7 @@ end
     prob = SDEProblem(de, u0map, (0.0, 1.0), parammap)
     integrator = init(prob, LambaEulerHeun())
     # @show integrator |> typeof |> fieldnames
-    solve(prob, LambaEulerHeun(); seed=1)
+    solve(prob, LambaEulerHeun(); seed = 1)
 
     # @show prob.p
 

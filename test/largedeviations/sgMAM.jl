@@ -5,19 +5,19 @@ using LinearAlgebra
 
 @testset "ExtendedPhaseSpace KPO" begin
     λ = 3 / 1.21 * 2 / 295
-    ω0 = 1.000
-    ω = 1.000
+    ω0 = 1.0
+    ω = 1.0
     γ = 1 / 295
     η = 0
     α = -1
 
     function fu(u, v)
         return (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
-               (8 * ω)
+            (8 * ω)
     end
     function fv(u, v)
         return (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
-               (8 * ω)
+            (8 * ω)
     end
 
     dfvdv(u, v) = (-4 * γ * ω + 6 * α * u * v) / (8 * ω)
@@ -48,10 +48,10 @@ using LinearAlgebra
 
     eqs = [D(u) ~ fu(u, v), D(v) ~ fv(u, v)]
     @mtkcompile sysMTK = System(eqs, t)
-    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac=true)
+    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac = true)
     ds = CoupledODEs(prob)
 
-    sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
+    sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
     sys′ = ExtendedPhaseSpace(ds)
 
     Nt = 500  # number of discrete time steps
@@ -80,14 +80,14 @@ end
 
     eqs = [
         D(u) ~
-        (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
-        (8 * ω),
+            (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
+            (8 * ω),
         D(v) ~
-        (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
-        (8 * ω),
+            (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
+            (8 * ω),
     ]
     @mtkcompile sysMTK = System(eqs, t)
-    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac=true)
+    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac = true)
     ds = CoupledODEs(prob)
     sys = ExtendedPhaseSpace(ds)
 
@@ -98,25 +98,25 @@ end
 @testset "sgMAM GeometricGradient" begin
     H_x(x, p) = zeros(size(x))
     H_p(x, p) = ones(size(x))
-    sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
+    sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
 
-    xx = collect(range(-1.0, 1.0; length=20))
+    xx = collect(range(-1.0, 1.0; length = 20))
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     x_initial = Matrix([xx yy]')
 
     res_small = minimize_simple_geometric_action(
         sys,
         x_initial,
-        GeometricGradient(; stepsize=1e-6, max_backtracks=0);
-        maxiters=2,
-        show_progress=false,
+        GeometricGradient(; stepsize = 1.0e-6, max_backtracks = 0);
+        maxiters = 2,
+        show_progress = false,
     )
     res_large = minimize_simple_geometric_action(
         sys,
         x_initial,
-        GeometricGradient(; stepsize=1.0, max_backtracks=0);
-        maxiters=2,
-        show_progress=false,
+        GeometricGradient(; stepsize = 1.0, max_backtracks = 0);
+        maxiters = 2,
+        show_progress = false,
     )
 
     @test res_small.action != res_large.action
@@ -133,17 +133,17 @@ end
     end
 
     σ = 0.25
-    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
+    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
     sys = ExtendedPhaseSpace(ds)
 
-    xx = range(-1.0, 1.0; length=60)
+    xx = range(-1.0, 1.0; length = 60)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     x_initial = Matrix([xx yy]')
 
     # Baseline action on an arclength-reparameterized path
     x0 = deepcopy(x_initial)
     Nt = size(x0, 2)
-    s = range(0; stop=1, length=Nt)
+    s = range(0; stop = 1, length = Nt)
     α = zeros(Nt)
     CT.interpolate_path!(x0, α, s)
     xdot = zeros(size(x0))
@@ -155,12 +155,12 @@ end
     @test isfinite(S0)
 
     # Single iteration with huge stepsize: backtracking should prevent blowup
-    opt = GeometricGradient(; max_backtracks=20, stepsize=1e6)
+    opt = GeometricGradient(; max_backtracks = 20, stepsize = 1.0e6)
     res = minimize_simple_geometric_action(
-        sys, x_initial, opt; maxiters=1, show_progress=false
+        sys, x_initial, opt; maxiters = 1, show_progress = false
     )
     @test isfinite(res.action)
-    @test res.action <= S0 + 1e-10
+    @test res.action <= S0 + 1.0e-10
 
     # Multi-iteration: backtracking should converge to a lower action than the initial path
     bt_max_backtracks = 20
@@ -168,9 +168,9 @@ end
     res_bt = minimize_simple_geometric_action(
         sys,
         x_initial,
-        GeometricGradient(; max_backtracks=bt_max_backtracks, stepsize=1.0);
-        maxiters=bt_maxiters,
-        show_progress=false,
+        GeometricGradient(; max_backtracks = bt_max_backtracks, stepsize = 1.0);
+        maxiters = bt_maxiters,
+        show_progress = false,
     )
     @test res_bt.action < S0
 
@@ -179,12 +179,12 @@ end
     res_no_bt = minimize_simple_geometric_action(
         sys,
         x_initial,
-        GeometricGradient(; max_backtracks=0, stepsize=1.0);
-        maxiters=bt_maxiters * (bt_max_backtracks + 1),
-        show_progress=false,
+        GeometricGradient(; max_backtracks = 0, stepsize = 1.0);
+        maxiters = bt_maxiters * (bt_max_backtracks + 1),
+        show_progress = false,
     )
     # Backtracking should reach at least as good (or better) action
-    @test res_bt.action <= res_no_bt.action + 1e-6
+    @test res_bt.action <= res_no_bt.action + 1.0e-6
 end
 
 @testset "sgMAM step-size insensitivity" begin
@@ -195,22 +195,22 @@ end
         return SA[dx, dy]
     end
     σ = 0.25
-    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
+    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
     sys = ExtendedPhaseSpace(ds)
 
-    xx = range(-1.0, 1.0; length=60)
+    xx = range(-1.0, 1.0; length = 60)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     x_initial = Matrix([xx yy]')
 
     # Different starting stepsizes should converge to the same action
     actions = Float64[]
-    for ss in [1.0, 100.0, 1e4]
+    for ss in [1.0, 100.0, 1.0e4]
         res = minimize_simple_geometric_action(
             sys,
             x_initial,
-            GeometricGradient(; stepsize=ss);
-            maxiters=500,
-            show_progress=false,
+            GeometricGradient(; stepsize = ss);
+            maxiters = 500,
+            show_progress = false,
         )
         push!(actions, res.action)
     end
@@ -226,10 +226,10 @@ end
         return SA[dx, dy]
     end
     σ = 0.25
-    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength=σ)
+    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
     sys = ExtendedPhaseSpace(ds)
 
-    xx = range(-1.0, 1.0; length=60)
+    xx = range(-1.0, 1.0; length = 60)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     x_initial = Matrix([xx yy]')
 
@@ -237,11 +237,11 @@ end
     res_tol = minimize_simple_geometric_action(
         sys,
         x_initial,
-        GeometricGradient(; stepsize=100.0);
-        maxiters=10_000,
-        reltol=1e-6,
-        show_progress=false,
-        verbose=false,
+        GeometricGradient(; stepsize = 100.0);
+        maxiters = 10_000,
+        reltol = 1.0e-6,
+        show_progress = false,
+        verbose = false,
     )
     @test isfinite(res_tol.action)
 
@@ -249,9 +249,9 @@ end
     res_notol = minimize_simple_geometric_action(
         sys,
         x_initial,
-        GeometricGradient(; stepsize=100.0);
-        maxiters=10_000,
-        show_progress=false,
+        GeometricGradient(; stepsize = 100.0);
+        maxiters = 10_000,
+        show_progress = false,
     )
-    @test res_notol.action <= res_tol.action + 1e-10
+    @test res_notol.action <= res_tol.action + 1.0e-10
 end

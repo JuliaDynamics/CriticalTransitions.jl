@@ -10,8 +10,8 @@ sigmas = [0.022, 0.017, 0.065, 0.068];
 run = [false, true, false, false]
 start = [0.7667174092898188, 0.8640753583928289];
 N = 50;
-dt = 1e-2;
-tmax = 1e3;
+dt = 1.0e-2;
+tmax = 1.0e3;
 Nmax = 100000;
 rad_i = 0.03;
 rad_f = 0.1;
@@ -35,22 +35,22 @@ res = [];
 
 for i in 1:length(epsilons)
     if run[2i - 1]
-        println("starting eps=$(epsilons[i]), 1-0, sigma=$(sigmas[2i-1])")
+        println("starting eps=$(epsilons[i]), 1-0, sigma=$(sigmas[2i - 1])")
         @time _res = transitions(
             sys(epsilons[i], sigmas[2i - 1]),
             start,
             [1.0, 0.0],
             N;
-            dt=dt,
-            tmax=tmax,
-            Nmax=Nmax,
-            rad_i=rad_i,
-            rad_f=rad_f,
-            output_level=2,
-            showprogress=true,
+            dt = dt,
+            tmax = tmax,
+            Nmax = Nmax,
+            rad_i = rad_i,
+            rad_f = rad_f,
+            output_level = 2,
+            showprogress = true,
         )
         save_object(
-            "230411_riv_prl_transitions_xy-x_eps$(epsilons[i])_sig$(round(sigmas[2i-1], digits=3)).jld",
+            "230411_riv_prl_transitions_xy-x_eps$(epsilons[i])_sig$(round(sigmas[2i - 1], digits = 3)).jld",
             _res,
         )
         push!(res, _res)
@@ -63,16 +63,16 @@ for i in 1:length(epsilons)
             start,
             [0.0, 1.0],
             N;
-            dt=dt,
-            tmax=tmax,
-            Nmax=Nmax,
-            rad_i=rad_i,
-            rad_f=rad_f,
-            output_level=2,
-            showprogress=true,
+            dt = dt,
+            tmax = tmax,
+            Nmax = Nmax,
+            rad_i = rad_i,
+            rad_f = rad_f,
+            output_level = 2,
+            showprogress = true,
         )
         save_object(
-            "230411_riv_prl_transitions_xy-y_eps$(epsilons[i])_sig$(round(sigmas[2i], digits=3)).jld",
+            "230411_riv_prl_transitions_xy-y_eps$(epsilons[i])_sig$(round(sigmas[2i], digits = 3)).jld",
             _res,
         )
         push!(res, _res)

@@ -11,19 +11,19 @@ using CriticalTransitions, CairoMakie
 # Here we define the define the drift of each separable variable `u` and `v`. In addition, we hard-code the Jacobian of the drift function.
 
 const λ = 3 / 1.21 * 2 / 295
-const ω0 = 1.000
-const ω = 1.000
+const ω0 = 1.0
+const ω = 1.0
 const γ = 1 / 295
 const η = 0
 const α = -1
 
 function fu(u, v)
     return (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
-           (8 * ω)
+        (8 * ω)
 end
 function fv(u, v)
     return (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
-           (8 * ω)
+        (8 * ω)
 end
 stream(u, v) = Point2f(fu(u, v), fv(u, v))
 dfvdv(u, v) = (-4 * γ * ω + 6 * α * u * v) / (8 * ω)
@@ -54,12 +54,12 @@ function H_p(x, p) # ℜ² → ℜ²
     return Matrix([H_pu H_pv]')
 end
 
-sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
+sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
 
 # We saved this function in the `ExtendedPhaseSpace` struct. We want to find the optimal path between two attractors in the phase space. We define the initial trajectory as `wiggle` between the two attractors.
 
 Nt = 500  # number of discrete time steps
-s = collect(range(0; stop=1, length=Nt))
+s = collect(range(0; stop = 1, length = Nt))
 
 xa = [-0.0208, 0.0991]
 xb = -xa
@@ -75,27 +75,27 @@ x_initial = Matrix([xx yy]')
 MLP = minimize_simple_geometric_action(
     sys,
     x_initial,
-    GeometricGradient(; stepsize=10e2, max_backtracks=0);
-    maxiters=1_000,
-    show_progress=false,
+    GeometricGradient(; stepsize = 10.0e2, max_backtracks = 0);
+    maxiters = 1_000,
+    show_progress = false,
 )
 x_min = MLP.path;
 
 # The function returns the optimal path `x_min`, the minimal action `S_min`, the Lagrange multipliers `lambda` associated with the optimal path, the optimal generalised momentum `p`, and the time derivative of the optimal path `xdot`. We can plot the initial trajectory and the optimal path:
 
 fig, ax, _ = lines(
-    x_initial[1, :], x_initial[2, :]; label="init", linewidth=3, color=:black
+    x_initial[1, :], x_initial[2, :]; label = "init", linewidth = 3, color = :black
 )
-lines!(x_min[:, 1], x_min[:, 2]; label="MLP", linewidth=3, color=:red)
+lines!(x_min[:, 1], x_min[:, 2]; label = "MLP", linewidth = 3, color = :red)
 streamplot!(
     ax,
     stream,
     (-0.08, 0.08),
     (-0.15, 0.15);
-    gridsize=(20, 20),
-    arrow_size=10,
-    stepsize=0.001,
-    colormap=[:gray, :gray],
+    gridsize = (20, 20),
+    arrow_size = 10,
+    stepsize = 0.001,
+    colormap = [:gray, :gray],
 )
 axislegend(ax)
 fig

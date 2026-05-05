@@ -17,8 +17,8 @@ The function performs these steps:
 The interpolation is performed in-place, modifying both `path` and `α`.
 """
 function interpolate_path!(path::Matrix, α, s)
-    α[2:end] .= vec(sqrt.(sum(diff(path; dims=2) .^ 2; dims=1)))
-    α .= cumsum(α; dims=1)
+    α[2:end] .= vec(sqrt.(sum(diff(path; dims = 2) .^ 2; dims = 1)))
+    α .= cumsum(α; dims = 1)
     α .= α ./ last(α)
     for dof in 1:size(path, 1)
         path[dof, :] .= linear_interpolation(α, path[dof, :])(s)
@@ -28,7 +28,7 @@ end
 function interpolate_path(path::StateSpaceSet{D}, α, s) where {D}
     Matrix
     α[2:end] .= vec(sqrt.(sum.(map(x -> x .^ 2, diff(path)))))
-    α .= cumsum(α; dims=1)
+    α .= cumsum(α; dims = 1)
     α .= α ./ last(α)
     return StateSpaceSet([linear_interpolation(α, path[:, dof])(s) for dof in 1:D]...)
 end
@@ -77,9 +77,10 @@ function proper_MAM_system(ds::CoupledSDEs)
             )
         end
     end
+    return
 end
 
-function path_velocity!(v, path, time; order=4)
+function path_velocity!(v, path, time; order = 4)
     if order == 2
         @views begin
             v[:, 1] .= (path[:, 2] .- path[:, 1]) / (time[2] - time[1])
@@ -99,7 +100,7 @@ function path_velocity!(v, path, time; order=4)
                 v[:, i] .= (
                     (
                         -path[:, i + 2] .+ 8 * path[:, i + 1] .- 8 * path[:, i - 1] .+
-                        path[:, i - 2]
+                            path[:, i - 2]
                     ) / (6 * (time[i + 1] - time[i - 1]))
                 )
             end
