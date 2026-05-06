@@ -28,6 +28,10 @@ The optional positional argument `optimizer` selects the minimization algorithm.
 `GeometricGradient()`, which enables backtracking step-size control (see [`GeometricGradient`](@ref)).
 Pass `GeometricGradient(; max_backtracks=0)` to use a fixed step size, or any
 Optimization.jl optimizer to use Optimization.jl (`ad_type` is only used in that case).
+When backtracking is enabled, prefer a **large** initial step size via
+`GeometricGradient(; stepsize=...)`: rejected steps are cheap and the controller reduces
+the step size automatically, so starting large gives fast early progress without
+sacrificing accuracy.
 
 ## Minimization algorithms
 

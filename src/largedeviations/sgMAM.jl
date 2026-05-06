@@ -73,7 +73,10 @@ The optional positional argument `optimizer` controls step-size adaptation. It d
 `GeometricGradient()`, which enables backtracking step-size control (see [`GeometricGradient`](@ref)).
 Pass `GeometricGradient(; max_backtracks=0)` to use a fixed step size.
 
-The step size is configured via `GeometricGradient(; stepsize=...)`.
+The step size is configured via `GeometricGradient(; stepsize=...)`. When backtracking is
+enabled, prefer a **large** initial step size: rejected steps are cheap and the controller
+reduces the step size automatically, so starting large gives fast early progress without
+sacrificing accuracy.
 
 ## Keyword arguments
 
