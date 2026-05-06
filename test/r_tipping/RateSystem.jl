@@ -3,7 +3,7 @@ using DynamicalSystemsBase
 using Test
 using StaticArrays
 using Random
-#using ModelingToolkit
+using ModelingToolkit
 
 pidx = 1
 forcing_start_time = 20.0
