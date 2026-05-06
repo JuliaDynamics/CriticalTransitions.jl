@@ -64,7 +64,7 @@ forcing_duration = 105.0 # Time interval over which p(interval) is spread out or
 forcing_scale = 3.0   # Amplitude of the ramping. `p` is then automatically rescaled
 t0 = -70.0            # Initial time of the resulting non-autonomous system (relevant to later compute trajectories)
 
-rs = RateSystem(ds, fp, pidx; forcing_start_time, forcing_duration, forcing_scale, t0)
+rs = RateSystem(ds, Dict(pidx => fp); forcing_start_time = forcing_start_time, forcing_duration = forcing_duration, forcing_scale = forcing_scale, t0 = t0)
 
 #note # Choosing different values of the `forcing_duration` allows us to vary the speed of the parameter ramping, while its shape remains the same, and it only gets stretched or squeezed.
 
