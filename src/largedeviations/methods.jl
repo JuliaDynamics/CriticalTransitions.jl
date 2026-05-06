@@ -11,6 +11,9 @@ current step size and, if the action increases, shrinks it by `shrink` and retri
 `max_backtracks` times. On accepted steps the step size grows by `grow` for the next
 iteration. This makes the algorithm insensitive to the initial step size choice: small
 starting values are grown automatically, and large values are safely reduced by backtracking.
+In practice, prefer a large initial `stepsize` — a rejected step costs only a few extra
+action evaluations, whereas a step size that is too small slows every iteration throughout
+the entire run.
 Set `max_backtracks=0` to disable backtracking and use a fixed step size.
 
 # Fields
