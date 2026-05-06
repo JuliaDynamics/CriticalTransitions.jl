@@ -1,5 +1,19 @@
 # Changelog for `CriticalTransitions.jl`
 
+## Unreleased
+
+#### Changed
+- `GeometricGradient` now performs Armijo-style backtracking step-size control by default
+  (`max_backtracks=10`). Pass `GeometricGradient(; max_backtracks=0)` to recover the
+  previous fixed-step behavior.
+- Default `stepsize` for `minimize_simple_geometric_action` raised from `1e-1` to `1e3` to
+  match the new backtracking-on default. Callers that explicitly pass a `GeometricGradient`
+  optimizer are unaffected; callers that relied on the implicit default with
+  `max_backtracks=0` should pass `stepsize=1e-1` explicitly.
+
+#### Removed
+- `DataStructures` dependency (was only used for a 2-element circular buffer).
+
 ## v0.7.0
 New `RateSystem` type
 
