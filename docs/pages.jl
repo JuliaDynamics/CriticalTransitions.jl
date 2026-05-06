@@ -12,7 +12,7 @@ pages = [
             "Simple gMAM: Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
             "Minimal action method: Optimal Control problem" => "examples/OC_mam.md",
             "String method: Muller-Brown potential" => "examples/potential_string.md",
-            "Transition path theory: Finite element method" => "examples/transition_path_theory_double_well.md",],
+            "Transition path theory: 2D double well" => "examples/transition_path_theory_double_well.md",],
     ],
     "Manual" => Any[
         "Define your system" => "man/system_construction.md",
@@ -21,6 +21,7 @@ pages = [
         "Sampling transitions" => "man/sampling.md",
         "Large deviation theory" => "man/largedeviations.md",
         "Rate-induced transitions" => "man/r-tipping.md",
+        "Diffusion operator" => "man/diffusion_operator.md",
         "Transition path theory" => "man/transition_path_theory.md",
         "Utilities" => "man/utils.md",
         "Bibliography" => "man/bibliography.md",

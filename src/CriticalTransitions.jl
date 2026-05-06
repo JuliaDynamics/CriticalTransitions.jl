@@ -9,7 +9,7 @@ end CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra: LinearAlgebra, norm, dot, tr, det
+using LinearAlgebra: LinearAlgebra, norm, dot, tr, diag, eigen
 using StaticArrays: StaticArrays, SVector
 using DataStructures: CircularBuffer
 using Random: Random
@@ -39,10 +39,14 @@ using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq
 
+using SparseArrays:
+    SparseArrays, sparse, SparseMatrixCSC, rowvals, nonzeros, nzrange
+
 using Interpolations: linear_interpolation
 using Optimization: Optimization
 using OptimizationOptimisers: Optimisers
 using LinearSolve: LinearProblem, LUFactorization, init, solve, solve!
+using ExponentialUtilities: expv_timestep
 
 # io and documentation
 using Format: Format
@@ -56,7 +60,6 @@ using Reexport: @reexport
 @reexport using StaticArrays
 @reexport using DynamicalSystemsBase
 
-include("extension_functions.jl")
 include("utils.jl")
 include("sde_utils.jl")
 
@@ -76,13 +79,18 @@ include("largedeviations/string_method.jl")
 
 include("r_tipping/RateSystem.jl")
 
-# Experimental features
-include("experimental/transition_path_theory/TransitionPathMesh.jl")
-include("experimental/transition_path_theory/langevin.jl")
-include("experimental/transition_path_theory/committor.jl")
-include("experimental/transition_path_theory/invariant_pdf.jl")
-include("experimental/transition_path_theory/reactive_current.jl")
-include("experimental/transition_path_theory/probability.jl")
+# Diffusion operator (general SDE machinery: discrete generator + analyses)
+include("diffusion_operator/utils.jl")
+include("diffusion_operator/cartesian_grid.jl")
+include("diffusion_operator/diffusion_generator.jl")
+include("diffusion_operator/generator_analyses.jl")
+include("diffusion_operator/spectral.jl")
+include("diffusion_operator/propagator.jl")
+include("diffusion_operator/grid_helpers.jl")
+
+# Transition Path Theory (reactive-trajectory observables on top of the generator)
+include("transition_path_theory/reactive_helpers.jl")
+include("transition_path_theory/reactive_transition.jl")
 
 include("../systems/CTLibrary.jl")
 using .CTLibrary
@@ -104,5 +112,20 @@ export transition, transitions
 export ForcingProfile, RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
 export frozen_system, parameters
+
+# Diffusion operator
+export CartesianGrid, DiffusionGenerator
+export BoundaryCondition, Reflecting, Periodic, Absorbing
+export rate_matrix, m_matrix, fokker_planck_operator
+export forward_committor, backward_committor, stationary_distribution
+export mean_first_passage_time, first_passage_variance
+export eigenmodes
+export propagate_density
+
+# Transition Path Theory
+export ReactiveTransition
+export reactive_rate, reactive_density
+export reactive_current, reactive_current_reversible, reactive_current_irreversible
+export probability_reactive, probability_last_A
 
 end # module CriticalTransitions
