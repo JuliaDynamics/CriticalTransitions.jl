@@ -3,7 +3,7 @@ using DynamicalSystemsBase
 using Test
 using StaticArrays
 using Random
-using ModelingToolkit
+#using ModelingToolkit
 
 pidx = 1
 forcing_start_time = 20.0
@@ -138,7 +138,7 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
 
 
     @testset "parameter container variants" begin
-        fp = ForcingProfile(profile, (-5.0, 5.0))
+        fp = ForcingProfile(tanh, (-5.0, 5.0))
         # out-of-place unforced rule (returns a new vector) used for these tests
         function f_out(u, p, t)
             x = u[1]
@@ -256,7 +256,7 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
     ds = CoupledODEs(f, x0, p_auto)
 
     profile(t) = tanh(t)
-    fp = ForcingProfile(profile, (-5.0, 5.0))
+    fp = ForcingProfile(tanh, (-5.0, 5.0))
 
     rs = RateSystem(ds, Dict(pidx => fp); forcing_start_time = forcing_start_time, forcing_duration = forcing_duration, forcing_scale = forcing_scale)
 
