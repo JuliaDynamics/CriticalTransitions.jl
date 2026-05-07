@@ -3,7 +3,7 @@ using DynamicalSystemsBase
 using Test
 using StaticArrays
 using Random
-using ModelingToolkit
+#using ModelingToolkit
 
 pidx = 1
 forcing_start_time = 20.0
@@ -135,6 +135,84 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
         @test !isempty(tr_sys_in)
         @test !all(tr_rs_in .≈ tr_sys_in)
     end
+
+    @testset "out-of-place CoupledODEs_2param" begin
+        function f_out(u, p, t)
+            x = u[1]
+            λ = p[1]
+            γ = p[2]
+            dx = (x + λ + γ)^2 - 1
+            return SVector{1}(dx)
+        end
+
+        ds = CoupledODEs(f_out, x0, [0.0, 0.0]; t0 = 0.0)
+        rs = RateSystem(
+            ds,
+            Dict(1 => fp_case, 2 => fp_case);
+            forcing_start_time = Dict(1 => 0.0, 2 => 0.0),
+            forcing_duration = Dict(1 => 10.0, 2 => 10.0),
+            forcing_scale = Dict(1 => 0.5, 2 => 0.5),
+            t0 = 0.0,
+        )
+
+        u = copy(current_state(rs))
+        p_sys = current_parameters(rs.system)
+        out = dynamic_rule(rs)(u, p_sys, 1.0)
+        pmod_expected = DynamicalSystemsBase.current_parameters(rs, 1.0)
+        peff = pmod_expected[1] + pmod_expected[2]
+        @test isapprox(out[1], (u[1] + peff)^2 - 1; atol=1e-12)
+
+        du = zeros(1)
+        ret = dynamic_rule(rs)(du, u, p_sys, 1.0)
+        @test ret === nothing
+        @test isapprox(du[1], (u[1] + peff)^2 - 1; atol=1e-12)
+    end
+
+    @testset "out-of-place CoupledSDEs_2param" begin
+        function f_out(u, p, t)
+            x = u[1]
+            λ = p[1]
+            γ = p[2]
+            dx = (x + λ + γ)^2 - 1
+            return SVector{1}(dx)
+        end
+
+        x0_sde = [0.0]
+        p0_sde = [0.0, 0.0]
+        σ = 0.1
+        ds = CoupledSDEs(f_out, x0_sde, p0_sde; noise_strength = σ)
+        rs = RateSystem(
+            ds,
+            Dict(1 => fp_case, 2 => fp_case);
+            forcing_start_time = Dict(1 => 0.0, 2 => 0.0),
+            forcing_duration = Dict(1 => 10.0, 2 => 10.0),
+            forcing_scale = Dict(1 => 0.5, 2 => 0.5),
+            t0 = 0.0,
+        )
+
+        u = copy(current_state(rs))
+        p_sys = current_parameters(rs.system)
+        out = dynamic_rule(rs)(u, p_sys, 0.5)
+        pmod_expected = DynamicalSystemsBase.current_parameters(rs, 0.5)
+        peff = pmod_expected[1] + pmod_expected[2]
+        @test isapprox(out[1], (u[1] + peff)^2 - 1; atol=1e-12)
+
+        du = zeros(1)
+        ret = dynamic_rule(rs)(du, u, p_sys, 0.5)
+        @test ret === nothing
+        @test isapprox(du[1], (u[1] + peff)^2 - 1; atol=1e-12)
+
+        # Short SDE trajectory smoke checks (deterministic RNG)
+        T_sde = 0.2
+        Random.seed!(1234)
+        tr_rs, _ = trajectory(rs, T_sde, x0_sde)
+        @test !isempty(tr_rs)
+        Random.seed!(1234)
+        tr_sys, _ = trajectory(ds, T_sde, x0_sde)
+        @test !isempty(tr_sys)
+        @test !all(tr_rs .≈ tr_sys)
+    end
+
 
 
     @testset "parameter container variants" begin
