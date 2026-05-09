@@ -48,7 +48,7 @@ using LinearSolve: LinearProblem, LUFactorization, init, solve, solve!
 using Format: Format
 using Printf: Printf
 using DocStringExtensions:
-    TYPEDSIGNATURES, TYPEDEF, TYPEDFIELDS, METHODLIST, DocStringExtensions
+    TYPEDSIGNATURES, TYPEDEF, TYPEDFIELDS, METHODLIST, FIELDS, DocStringExtensions
 using ProgressMeter: Progress, next!
 
 # reexport

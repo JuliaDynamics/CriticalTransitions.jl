@@ -46,30 +46,18 @@ function data(fp::ForcingProfile; N=100)
 end
 
 """
-        RateSystemSpecs <: Function
+    RateSystemSpecs <: Function
 
-Mutable container storing the information required to construct and operate a
-`RateSystem` implementation.
+A mutable data structure storing information needed to construct and modify a
+[`RateSystem`](@ref).
 
-Fields include the underlying autonomous `unforced_rule`, a mapping of
-parameter keys to `ForcingProfile` instances (`forcing_profile`), per-key timing and
-scale maps (`forcing_start_time`, `forcing_duration`, `forcing_scale`), the
-initial autonomous parameter values (`p0`), an initial time `t0`, a cached
-dummy parameter container `pdummy` (used when the concrete parameter container
-is not a `Dict` or `Vector`), and a reference to the owning system `owner`.
+## Fields
+$(FIELDS)
 
-Calling semantics:
-- `(::RateSystemSpecs)(u, p, t)` — out-of-place call: returns the computed
-    derivative `du` (the nonautonomous drift) using a modified parameter container appropriate for time
-    `t`, where `p` is the parameter container of the underlying autonomous system.
-- `(::RateSystemSpecs)(du, u, p, t)` — in-place call: attempts to call an
-    in-place `unforced_rule(du, u, p, t)` and, if not available, falls back to
-    the out-of-place call and copies the result into `du`.
-
-The `RateSystemSpecs` ensures parameter values are adjusted according to the
-configured forcing profiles before delegating to the underlying autonomous rule.
+Call signature: `(::RateSystemSpecs)(u, p, t)` for out-of-place and
+`(::RateSystemSpecs)(du, u, p, t)` for in-place dynamical systems
 """
-mutable struct RateSystemSpecs{R,K,T,PC,E} <: Function
+mutable struct RateSystemSpecs{R,K,T,P,E} <: Function
     "Dynamic rule of the underlying autonomous system"
     unforced_rule::R
     "Mapping parameter index => ForcingProfile"
@@ -81,59 +69,11 @@ mutable struct RateSystemSpecs{R,K,T,PC,E} <: Function
     "Mapping parameter index => forcing scale"
     forcing_scale::Dict{K,T}
     "Mapping parameter index => initial (autonomous) parameter value"
-    p0::Dict{K,E}
+    p0::P
+    "Dummy parameter container (copy of parameters)"
+    pdummy::P
     "Initial time (of system initiation)"
     t0::T
-    "Dummy container (copy of parameters)"
-    pdummy::PC
-    "Reference to the owning (Coupled) system, set after construction"
-    owner::Any
-end
-
-# Accessors for initial parameter(s). These are explicit and avoid overriding `getproperty`.
-"""
-    initial_parameter_map(rss::RateSystemSpecs)
-
-Return the internal mapping (`Dict`) of parameter keys to the initial (autonomous)
-parameter values stored in `rss.p0`.
-"""
-function initial_parameter_map(rss::RateSystemSpecs)
-    return getfield(rss, :p0)
-end
-
-"""
-    initial_parameter(rss::RateSystemSpecs, pkey)
-
-Return the initial autonomous parameter value associated with `pkey`.
-"""
-function initial_parameter(rss::RateSystemSpecs, pkey)
-    return getfield(rss, :p0)[pkey]
-end
-
-"""
-    initial_parameter_value(rss::RateSystemSpecs)
-
-Return the single initial autonomous parameter value when exactly one forcing_profile
-is present. Throws `ArgumentError` if multiple forcing_profile are configured.
-"""
-function initial_parameter_value(rss::RateSystemSpecs)
-    p0map = getfield(rss, :p0)
-    if length(getfield(rss, :forcing_profile)) == 1
-        return first(values(p0map))
-    else
-        throw(ArgumentError("initial_parameter_value(rss) only valid when exactly one forcing_profile is present"))
-    end
-end
-
-# RateSystem-level wrappers:
-"""
-    parameters(sys, args...; kw...)
-
-Convenience wrapper delegating to `current_parameters(sys, ...)` for API
-compatibility with earlier code and callers expecting a `parameters` helper.
-"""
-function parameters(sys, args...; kw...)
-    return current_parameters(sys, args...; kw...)
 end
 
 """
@@ -511,6 +451,23 @@ function p_modified(rss::RateSystemSpecs, p, t::Real)
     end
 end
 
+"""
+    parameters(rs::RateSystem, t)
+
+Returns the parameter container of a [`RateSystem`](@ref) at time `t` (in system time
+units).
+"""
+parameters(rs::RateSystem, t) = p_modified(rs.forcing,
+    deepcopy(current_parameters(rs.system)), t)
+
+"""
+    parameter(rs::RateSystem, t, pkey)
+
+Returns the parameter with key `pkey` of a [`RateSystem`](@ref) at time `t` (in system
+time units).
+"""
+parameter(rs::RateSystem, t, pkey) = parameters(rs, t)[pkey]
+
 # TODO: ensure all three key update functions follow the optional [, pidx] syntax
 # for multi parameters.
 """
@@ -565,16 +522,7 @@ function set_forcing_start!(rs::RateSystem, start_time; pidx=nothing)
     return rs
 end
 
-"""
-    current_parameters(rs::RateSystem, t)
 
-Returns the parameter vector of a [`RateSystem`](@ref) at time `t` (in system time units).
-Note: this function returns a copy of the original parameter container.
-"""
-function DynamicalSystemsBase.current_parameters(rs::RateSystem, t)
-    p = deepcopy(current_parameters(rs.system))
-    return p_modified(rs.forcing, p, t)
-end
 
 """
 $(TYPEDSIGNATURES)
