@@ -1,51 +1,4 @@
 """
-    ForcingProfile(profile::Function, interval)
-
-Time-dependent forcing profile ``p(t)`` describing the evolution of a parameter over a
-domain `interval = (start, end)`. Used to define a parametric forcing when
-constructing a non-autonomous [`RateSystem`](@ref).
-
-## Keyword arguments
-
-- `profile`: function ``p(t)`` from ``ℝ → ℝ`` describing the parameter change
-- `interval`: domain interval over which the `profile` is considered
-
-Note: The units of ``t`` are arbitrary; the forcing profile is rescaled to system time units.
-
-## Convenience functions
-
-- `ForcingProfile(:linear)`: Create a linear ramp from 0 to 1.
-- `ForcingProfile(:tanh)`: Create a hyperbolic tangent ramping
-  from 0 to 1 with interval (-3, 3).
-- [`data`](@ref): Get data points describing a given `ForcingProfile`.
-"""
-struct ForcingProfile{F,T<:Real}
-    profile::F
-    interval::Tuple{T,T}
-end
-
-# Convenience constructors for ForcingProfile
-function ForcingProfile(sym::Symbol)
-    if sym == :linear
-        return ForcingProfile(x -> x, (0.0, 1.0))
-    elseif sym == :tanh
-        return ForcingProfile(x -> tanh(x)/2 + 0.5, (-3.0, 3.0))
-    else
-        error("Only :linear or :tanh are supported input arguments.")
-    end
-end
-
-"""
-    data(fp::ForcingProfile; N=100)
-
-Returns `N` data points `(x,y)` describing a given [`ForcingProfile`](@ref).
-"""
-function data(fp::ForcingProfile; N=100)
-    x = range(fp.interval[1], fp.interval[2], length=N)
-    return x, fp.profile.(x)
-end
-
-"""
     RateSystemSpecs <: Function
 
 A mutable data structure storing information needed to construct and modify a
@@ -77,8 +30,8 @@ mutable struct RateSystemSpecs{R,K,T,P,E} <: Function
 end
 
 """
-        RateSystem <: ContinuousTimeDynamicalSystem
-        RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::Dict; kw...)
+    RateSystem <: ContinuousTimeDynamicalSystem
+    RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::Dict; kw...)
 
 Construct a non-autonomous dynamical system by applying time-dependent parametric
 forcing protocols to an underlying autonomous continuous-time dynamical system `ds`.
@@ -87,7 +40,7 @@ forcing protocols to an underlying autonomous continuous-time dynamical system `
 `set_parameter!`) to `ForcingProfile` instances; each entry defines the functional 
 form of how the corresponding parameter evolves over time.
 
-Keyword arguments
+## Keyword arguments
 - `forcing_start_time` (default: `nothing`) — if `nothing`, each forcing_profile's start
     time is set to `t0` (the system initial time). You may supply an `AbstractDict`
     mapping keys to start times, or a single scalar value which will be applied to 
@@ -102,7 +55,7 @@ Keyword arguments
     Acts as amplitude multiplication factor of the forcing protocol(s).
 - `t0` (default: `initial_time(ds)`) — initial time of the `RateSystem`.
 
-Description
+## Description
 The profile `interval` defines the domain of the forcing function; when applied
 to the system the profile is rescaled in system time units using the
 configured `start` and `duration` values - this allow changing the rate of the 
@@ -111,7 +64,7 @@ autonomous value; during the forcing interval it follows the rescaled profile (m
 by the corresponding `forcing_scale` factor); after the interval the parameter is frozen 
 at its final value.
 
-Multiple parameters
+## Multiple parameters
 Pass a `Dict` with one `ForcingProfile` per parameter to force multiple
 parameters simultaneously. The `forcing_start_time`, `forcing_duration`, and
 `forcing_scale` keywords accept the same flexibility (per-key `Dict` or scalar
