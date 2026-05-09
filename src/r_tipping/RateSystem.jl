@@ -2,7 +2,7 @@
     ForcingProfile(profile::Function, interval)
 
 Time-dependent forcing profile ``p(t)`` describing the evolution of a parameter over a
-domain interval `interval = (start, end)`. Used to define a parametric forcing when
+domain `interval = (start, end)`. Used to define a parametric forcing when
 constructing a non-autonomous [`RateSystem`](@ref).
 
 ## Keyword arguments
@@ -17,6 +17,7 @@ Note: The units of ``t`` are arbitrary; the forcing profile is rescaled to syste
 - `ForcingProfile(:linear)`: Create a linear ramp from 0 to 1.
 - `ForcingProfile(:tanh)`: Create a hyperbolic tangent ramping
   from 0 to 1 with interval (-3, 3).
+- [`data`](@ref): Get data points describing a given `ForcingProfile`.
 """
 struct ForcingProfile{F,T<:Real}
     profile::F
@@ -32,6 +33,16 @@ function ForcingProfile(sym::Symbol)
     else
         error("Only :linear or :tanh are supported input arguments.")
     end
+end
+
+"""
+    data(fp::ForcingProfile; N=100)
+
+Returns `N` data points `(x,y)` describing a given [`ForcingProfile`](@ref).
+"""
+function data(fp::ForcingProfile; N=100)
+    x = range(fp.interval[1], fp.interval[2], length=N)
+    return x, fp.profile.(x)
 end
 
 """

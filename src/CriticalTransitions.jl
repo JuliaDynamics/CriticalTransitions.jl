@@ -101,7 +101,8 @@ export GeometricGradient
 export deterministic_orbit
 export transition, transitions
 
-export ForcingProfile, RateSystem
+export ForcingProfile, data
+export RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
 export frozen_system, parameters, initial_parameter_map, initial_parameter, initial_parameter_value
 
