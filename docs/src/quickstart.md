@@ -33,7 +33,7 @@ A quick overview of available features:
 
 **Defining a system and its forcing**
 - [`DynamicalSystemsBase.CoupledODEs`](@ref)
-- [`DynamicalSystemsBase.CoupledSDEs`](@ref) (alias for `StochSystem`)
+- [`DynamicalSystemsBase.CoupledSDEs`](@ref)
 - [`CriticalTransitions.RateSystem`](@ref)
 - [`CriticalTransitions.ForcingProfile`](@ref)
 
