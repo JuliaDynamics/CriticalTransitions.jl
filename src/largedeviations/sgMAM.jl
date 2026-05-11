@@ -402,7 +402,7 @@ function _update_x_general!(x, λ, p′, x′′, Hx, ϵ, xa, xb, idxc, Nx, Nt, 
         end
         # RHS: A_i (x[:, i] + ϵ(λ_i p'_i + Hx_i)) - ϵ λ_i² x''_i + boundary contributions
         rhs_block = A_i * (x[:, i] .+ ϵ .* (λ[i] .* p′[:, i] .+ Hx[:, i])) .-
-                        ϵ * λi2 .* x′′[:, i]
+            ϵ * λi2 .* x′′[:, i]
         if i_in == 1
             rhs_block .+= ϵ * λi2 .* xa
         end
