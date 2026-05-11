@@ -66,12 +66,12 @@ To summarize, the following methods are available:
 - Simple geometric minimum action method [(sgMAM)](@ref "Simple geometric minimum action method (sgMAM)")
 - [String method](@ref)
 
-| Method | Use when | Requirements (this package) | Not suitable when |
+| Method | Use when | Needs | Skip if |
 |---|---|---|---|
-| **MAM** | You want a **minimum action path** for a specified travel time $T$ (FW/OM action minimization). | `CoupledSDEs` with **autonomous** noise (and **invertible** if additive). The action automatically uses the constant covariance for additive noise and evaluates ``a(x) = \sigma(x)\sigma(x)^\top`` at each path point for multiplicative noise. Discretized path uses **equispaced time**. | **Non-autonomous** noise; OM functional with multiplicative noise (the Onsager-Machlup divergence correction for state-dependent ``a`` is not implemented); when the transition time is unknown (prefer gMAM/sgMAM). |
-| **gMAM** | You want a **time-reparameterization-invariant** minimum action path (no explicit optimization over $T$). | Same as MAM. The dedicated `GeometricGradient` projected-gradient solver now handles state-dependent ``a(x)`` directly: additive noise uses a single tridiagonal solve, diagonal multiplicative noise a per-DOF tridiagonal, and non-diagonal multiplicative noise a sparse block-tridiagonal solve, all with a finite-difference ``\partial_x a`` correction in the descent RHS. | **Non-autonomous** noise; if you need the Onsager-Machlup functional (only FW has a geometric formulation). |
-| **sgMAM** | You want a **Hamiltonian/simple gMAM** formulation that can be efficient in practice. | A [`FreidlinWentzellHamiltonian`](@ref) (formerly `ExtendedPhaseSpace`) with first-order derivatives `H_x`, `H_p`. The convenience constructor on `CoupledSDEs` handles additive, diagonal multiplicative, and general multiplicative noise; the iteration picks the cheapest valid path (shared tridiagonal / per-DOF tridiagonal / sparse block-tridiagonal). | **Non-autonomous** noise; models where the required derivatives of `H` are not available. |
-| **String method** | You want a **minimum energy path / heteroclinic orbit** driven by the deterministic drift (typical use: **gradient** systems). | Deterministic drift field (works for `ContinuousTimeDynamicalSystem`; does not rely on an SDE noise model). | In **non-gradient** systems if you need the *most probable* noise-induced transition path (string gives the deterministic heteroclinic orbit, which generally differs from the instanton). |
+| **MAM** | Fixed transition time $T$ (FW or OM action) | `CoupledSDEs`, autonomous noise; invertible $a$ for additive | $T$ unknown; non-autonomous noise; OM with multiplicative noise |
+| **gMAM** | $T$ unknown; want reparameterization-invariant path | `CoupledSDEs`, autonomous noise | Non-autonomous noise; need OM functional |
+| **sgMAM** | Hamiltonian formulation, often fastest | [`FreidlinWentzellHamiltonian`](@ref) (auto-built from `CoupledSDEs`) | Non-autonomous noise |
+| **String method** | Heteroclinic orbit in gradient systems | Deterministic drift only (any `ContinuousTimeDynamicalSystem`) | Non-gradient system and you want the most probable noise-induced path (string gives the deterministic heteroclinic, not the instanton) |
 
 #### Variants and extensions
 The literature contains a number of extensions of MAM-type methods that may be relevant depending on the model class and numerical difficulties. These variants are not currently implemented in `CriticalTransitions.jl`, but serve as useful pointers:
@@ -79,7 +79,6 @@ The literature contains a number of extensions of MAM-type methods that may be r
 - **tMAM / optimal linear time scaling**: avoids explicit optimization over the transition time by introducing an optimal linear time scaling; can be combined with adaptivity in time discretization [wan_tmam_2015](@citet).
 - **Adaptive MAM**: uses a moving-mesh strategy to concentrate grid points in dynamically important portions of the path, improving efficiency and robustness [zhou_adaptive_mam_2008](@citet).
 - **Non-Gaussian (jump / Lévy) noise**: for systems driven by jump noise, the rate function and path optimization problem differ from the Freidlin--Wentzell diffusive setting; see e.g. an optimal-control-based approach in [wei_most_likely_jumps_2023](@citet).
-- **Multiplicative / state-dependent noise**: following [grafke_long_2017](@citet) (Section 3.5), the geometric / simple-geometric solvers now handle general invertible state-dependent ``a(x)``. [`fw_action`](@ref), [`geometric_action`](@ref), [`minimize_action`](@ref), [`minimize_geometric_action`](@ref) (both the `GeometricGradient` and Optimization.jl paths), and [`minimize_simple_geometric_action`](@ref) automatically use the diffusion tensor ``a(x) = \sigma(x)\sigma(x)^\top`` from the `CoupledSDEs` when the noise is non-additive, with a finite-difference ``\partial_x a`` correction in the descent RHS where required.
 
 ### Minimum action method (MAM)
 Minimization of the specified action functional using the optimization algorithm of `Optimization.jl`. See also [e_minimum_2004](@citet).
@@ -101,8 +100,7 @@ The simple gMAM reduces the complexity of the original gMAM by requiring only fi
 
 The implementation performs a constrained gradient descent for an autonomous system. The
 Hamiltonian ``H(x,p) = \langle b(x), p\rangle + \tfrac{1}{2}\langle p, a(x)\, p\rangle``
-is stored in a [`FreidlinWentzellHamiltonian`](@ref) (the type formerly known as
-`ExtendedPhaseSpace`, which remains available as a deprecated alias). The iteration
+is stored in a [`FreidlinWentzellHamiltonian`](@ref). The iteration
 auto-dispatches on the structure of ``a(x)``:
 
 * additive (`a ≡ I`): one tridiagonal solve shared across degrees of freedom;

@@ -42,7 +42,7 @@ using Interpolations: linear_interpolation
 using Optimization: Optimization
 using OptimizationOptimisers: Optimisers
 using LinearSolve: LinearProblem, LUFactorization, init, solve, solve!
-using SparseArrays: SparseArrays, sparse, spzeros
+using SparseArrays: SparseArrays, sparse
 
 # io and documentation
 using Format: Format

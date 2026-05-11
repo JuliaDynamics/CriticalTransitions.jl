@@ -42,7 +42,7 @@ function H_p(x, p)
     return Matrix([H_pu H_pv]')
 end
 
-sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
+sys = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
 
 # Initial path — a smooth "wiggle" connecting two symmetric attractors:
 

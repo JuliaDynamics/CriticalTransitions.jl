@@ -257,18 +257,3 @@ end
     @test isapprox(res_add_sg.action, 1.0; atol = 3.0e-2)
     @test isapprox(res_mul_sg.action, res_add_sg.action; atol = 5.0e-3)
 end
-
-@testset "FreidlinWentzellHamiltonian deprecation alias" begin
-    H_x(x, p) = zeros(size(x))
-    H_p(x, p) = ones(size(x))
-
-    # The new name works.
-    sys_new = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
-    @test sys_new isa FreidlinWentzellHamiltonian
-
-    # The old name is a deprecation alias. Compare type names rather than `===` so the
-    # test is robust to in-session struct redefinitions (the alias would otherwise be
-    # pinned to an older world age and fail strict identity).
-    @test nameof(Base.unwrap_unionall(ExtendedPhaseSpace)) ===
-        nameof(Base.unwrap_unionall(FreidlinWentzellHamiltonian))
-end
