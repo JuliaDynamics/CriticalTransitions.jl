@@ -95,14 +95,13 @@ end # gMAM Meier Stein
     )
     @test isapprox(res_sg.action, 0.5; atol = 5.0e-3)
 
-    # Issue #282: the sgMAM `mlp.action` (computed via FW_action(xdot, p)) must agree
-    # in absolute scale with the path-based fw_action integrator on the same curve.
-    # A spurious /2 in FW_action would make this ratio be 1/2 instead of 1.
+    # Issue #282: the sgMAM `mlp.action` (computed via FW_action(xdot, p) on the
+    # zero-energy shell) must agree in absolute scale with the parametrization-invariant
+    # `geometric_action` integrator on the same curve. A spurious /2 in FW_action would
+    # show up as a factor-of-2 mismatch between these two quantities.
     sg_path = Matrix(Matrix(res_sg.path)')  # D × N
-    T_phys = 1.0  # action is parametrization-invariant on the minimizer
-    times = range(0.0, T_phys; length = size(sg_path, 2))
-    S_path = fw_action(sys, sg_path, times)
-    @test isapprox(res_sg.action, S_path; rtol = 1.0e-2)
+    S_geom = geometric_action(sys, sg_path)
+    @test isapprox(res_sg.action, S_geom; rtol = 1.0e-2)
 end
 
 # Heymann-Vanden-Eijnden 2008 eq. (3.8): "the error on the curve can be made O(Δα²) =
