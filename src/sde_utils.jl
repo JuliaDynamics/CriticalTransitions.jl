@@ -1,6 +1,7 @@
 StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
 covariance_matrix = StochasticSystemsBase.covariance_matrix
 diffusion_matrix = StochasticSystemsBase.diffusion_matrix
+diffusion_function = StochasticSystemsBase.diffusion_function
 
 """
     StochSystem
