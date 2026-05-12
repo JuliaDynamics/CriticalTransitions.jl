@@ -14,7 +14,7 @@ already.
 
 ---
 
-## 1. Reactive trajectories and observables
+## Reactive trajectories and observables
 
 The key objects are the **reactive trajectories**: pieces of a long path
 that have just left ``A`` and will hit ``B`` *before* returning. TPT
@@ -42,7 +42,7 @@ flow for non-equilibrium systems. The pieces are accessed via
 
 ---
 
-## 2. When TPT is the right tool
+## When TPT is the right tool
 
 **Use TPT when** you have a time-homogeneous SDE with metastable wells, and
 you want **spatial information** (where reactive paths concentrate, the
@@ -70,7 +70,7 @@ estimate (Kramers, simulation, or large-deviation action).
 
 ---
 
-## 3. The API
+## The API
 
 [`ReactiveTransition`](@ref) runs the full pipeline (``\rho``, both
 committors, the rate) in one call and caches the results.
@@ -105,7 +105,7 @@ probability_last_A
 
 ---
 
-## 4. Complete example
+## Complete example
 
 A 2D Maier–Stein-like system with stable wells at ``(\pm 1, 0)``:
 
@@ -141,7 +141,7 @@ A fully worked, plotted version is in the
 
 ---
 
-## 5. Tips
+## Tips
 
 - **Choose ``A`` and ``B`` generously** around the wells. Too small → noisy;
   overlapping the saddle → distorted current. A ball of radius

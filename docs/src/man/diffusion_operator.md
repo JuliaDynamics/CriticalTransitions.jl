@@ -8,7 +8,7 @@ with diagonal additive noise.
 
 ---
 
-## 1. Theory primer
+## Theory primer
 
 ### Setting
 
@@ -77,7 +77,7 @@ its adjoint. The ones implemented here:
 
 ---
 
-## 2. Discretisation
+## Discretisation
 
 We approximate the diffusion by a continuous-time Markov chain on a
 uniform Cartesian grid: each cell becomes a state of the chain; the
@@ -124,7 +124,7 @@ entries raise an `ArgumentError` at construction.
 
 ---
 
-## 3. The API
+## The API
 
 The API is layered. Stop at any level and use the output as you wish.
 
@@ -251,7 +251,7 @@ eigenmodes
 
 ---
 
-## 4. Convenience helpers
+## Convenience helpers
 
 Predicate builders for `A` / `B` / `target` arguments and a vector →
 grid-shape reshaper, kept **non-exported** to keep the top-level
@@ -277,7 +277,7 @@ CriticalTransitions.reshape_to_grid
 
 ---
 
-## 5. Limitations
+## Limitations
 
 The implementation targets one specific point in design space — uniform
 Cartesian grid, Scharfetter–Gummel finite volume, sparse direct LU.
