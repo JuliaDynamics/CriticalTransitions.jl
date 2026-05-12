@@ -165,7 +165,7 @@ ps_c = collect(grid.centers[2])
 # essentially all of the equilibrium mass and the limit cycle is metastable
 # rather than a global minimum of $\Phi$.
 
-ρ = stationary_distribution(gen, LUPinned(linsolve = LS.KrylovJL_GMRES()))
+ρ = stationary_distribution(gen, LS.KrylovJL_GMRES())
 Φ = .-(D .* log.(max.(ρ, eps(Float64))))
 Φ .-= minimum(Φ)
 @show extrema(Φ)

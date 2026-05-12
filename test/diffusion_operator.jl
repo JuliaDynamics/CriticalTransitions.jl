@@ -341,20 +341,19 @@ end
 
     alg = KrylovJL_GMRES()
 
-    @test stationary_distribution(gen, LUPinned(linsolve = alg)) ≈ stationary_distribution(gen) atol = 1.0e-10
+    @test stationary_distribution(gen, alg) ≈ stationary_distribution(gen) atol = 1.0e-10
     @test forward_committor(gen, A, B; alg = alg) ≈ forward_committor(gen, A, B) atol = 1.0e-10
     @test backward_committor(gen, A, B; alg = alg) ≈ backward_committor(gen, A, B) atol = 1.0e-10
     @test mean_first_passage_time(gen, B; alg = alg) ≈ mean_first_passage_time(gen, B) atol = 1.0e-8
 end
 
-@testset "stationary_distribution: linsolve_kwargs forwarded to LinearSolve" begin
+@testset "stationary_distribution: solver kwargs forwarded to LinearSolve" begin
     using LinearSolve: KrylovJL_GMRES
     sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.6)
     grid = CartesianGrid((-2.0, 2.0, 200))
     gen = DiffusionGenerator(sys, grid)
-    alg = LUPinned(linsolve = KrylovJL_GMRES(),
-                   linsolve_kwargs = (; atol = 1e-14, rtol = 1e-14))
-    @test stationary_distribution(gen, alg) ≈ stationary_distribution(gen) atol = 1.0e-10
+    @test stationary_distribution(gen, KrylovJL_GMRES(); abstol = 1e-14, reltol = 1e-14) ≈
+        stationary_distribution(gen) atol = 1.0e-10
 end
 
 # =====================================================================
@@ -418,7 +417,10 @@ end
     grid = CartesianGrid((-π, π, 200))
     gen = DiffusionGenerator(sys, grid; bc = Periodic())
 
-    λ, _ = eigenmodes(gen, 7)
+    # Use DenseEigen here so the doubly-degenerate pairs match to dense
+    # accuracy; the default iterative backend converges each eigenpair
+    # independently and won't match them to machine precision.
+    λ, _ = eigenmodes(gen, 7, DenseEigen())
     expected = [0.0, -σ^2 / 2, -σ^2 / 2, -2σ^2, -2σ^2, -4.5σ^2, -4.5σ^2]
     for n in 1:7
         @test isapprox(real(λ[n]), expected[n]; atol = 1.0e-2)
@@ -546,7 +548,8 @@ end
     grid = CartesianGrid((-5.0, 5.0, 71), (-5.0, 5.0, 71))
     gen = DiffusionGenerator(sys, grid)
 
-    λ, _ = eigenmodes(gen, 6)
+    # DenseEigen so degenerate eigenvalues match to dense accuracy.
+    λ, _ = eigenmodes(gen, 6, DenseEigen())
     expected = [0.0, -1.0, -1.0, -2.0, -2.0, -2.0]
     for i in 1:6
         @test isapprox(real(λ[i]), expected[i]; atol = 0.05)
@@ -800,56 +803,42 @@ end
 end
 
 # =====================================================================
-# stationary_distribution: alternative backends (ArnoldiSI, ShiftInvertPower)
+# stationary_distribution: alternative backends agree
 # =====================================================================
 
-@testset "stationary_distribution: ArnoldiSI vs LU agree on well-conditioned 1D OU" begin
+@testset "stationary_distribution: backends agree on well-conditioned 1D OU" begin
     sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
     grid = CartesianGrid((-4.0, 4.0, 100))
     gen = DiffusionGenerator(sys, grid)
 
-    ρ_lu  = stationary_distribution(gen; check = false)              # default LUPinned
-    ρ_lu2 = stationary_distribution(gen, LUPinned(); check = false)  # explicit
-    ρ_arn = stationary_distribution(gen, ArnoldiSI(); check = false)
-    ρ_pwr = stationary_distribution(gen, ShiftInvertPower(); check = false)
+    ρ_default = stationary_distribution(gen; check = false)                  # nothing → LinearSolve default
+    ρ_dense   = stationary_distribution(gen, DenseEigen(); check = false)
+    ρ_kk      = stationary_distribution(gen, KrylovKitSolver(); check = false)
 
-    @test ρ_lu ≈ ρ_lu2 rtol = 1.0e-12
-    @test ρ_lu ≈ ρ_arn rtol = 1.0e-6
-    @test ρ_lu ≈ ρ_pwr rtol = 1.0e-6
-
-    # `EigensolveAlgorithm <: StationaryAlgorithm`
-    @test ArnoldiSI() isa StationaryAlgorithm
-    @test ShiftInvertPower() isa StationaryAlgorithm
-    @test LUPinned() isa StationaryAlgorithm
+    @test ρ_default ≈ ρ_dense rtol = 1.0e-6
+    @test ρ_default ≈ ρ_kk rtol = 1.0e-6
 end
 
-@testset "principal_eigenpair: ArnoldiSI and ShiftInvertPower agree on a simple sparse" begin
-    # Diagonal matrix with eigenvalues at 0, -0.1, -1, -3
-    A = sparse([0.0 0.0 0.0 0.0;
-                0.0 -0.1 0.0 0.0;
-                0.0 0.0 -1.0 0.0;
-                0.0 0.0 0.0 -3.0])
-    # Use shift 0; the principal eigenvalue closest to 0 is 0 itself.
-    λ_a, _, info_a = principal_eigenpair(A, ArnoldiSI(krylovdim = 3); σ = 0.0)
-    @test info_a.converged
-    @test abs(λ_a) < 1.0e-6
-
-    λ_p, _, info_p = principal_eigenpair(A, ShiftInvertPower(); σ = 0.0)
-    @test info_p.converged
-    @test abs(λ_p) < 1.0e-6
-end
-
-@testset "quasi_stationary_distribution: alternative backends agree" begin
+@testset "quasi_stationary_distribution: backends agree" begin
     sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.4)
     grid = CartesianGrid((-2.0, 2.0, 121))
     gen = DiffusionGenerator(sys, grid)
     right_basin = x -> x[1] > 0
 
-    ρ_a, λ_a = quasi_stationary_distribution(gen, right_basin, ArnoldiSI())
-    ρ_p, λ_p = quasi_stationary_distribution(gen, right_basin, ShiftInvertPower())
+    ρ_kk, λ_kk = quasi_stationary_distribution(gen, right_basin, KrylovKitSolver())
+    ρ_de, λ_de = quasi_stationary_distribution(gen, right_basin, DenseEigen())
 
-    @test λ_a ≈ λ_p rtol = 1.0e-6
-    @test ρ_a ≈ ρ_p rtol = 1.0e-5
+    @test λ_kk ≈ λ_de rtol = 1.0e-6
+    @test ρ_kk ≈ ρ_de rtol = 1.0e-5
+end
+
+@testset "quasi_stationary_distribution / eigenmodes reject LinearSolve algs" begin
+    using LinearSolve: KrylovJL_GMRES
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.4)
+    grid = CartesianGrid((-2.0, 2.0, 60))
+    gen = DiffusionGenerator(sys, grid)
+    @test_throws ArgumentError quasi_stationary_distribution(gen, x -> x[1] > 0, KrylovJL_GMRES())
+    @test_throws ArgumentError eigenmodes(gen, 3, KrylovJL_GMRES())
 end
 
 # =====================================================================
@@ -903,7 +892,7 @@ end
     sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.03)
     grid = CartesianGrid((-2.5, 2.5, 401))
     gen = DiffusionGenerator(sys, grid)
-    @test_logs (:warn, r"may be unreliable"i) stationary_distribution(gen)
-    # `check = false` silences it.
-    @test_nowarn stationary_distribution(gen; check = false)
+    @test_logs (:warn, r"may be unreliable"i) stationary_distribution(gen; check = true)
+    # Default `check = false`.
+    @test_nowarn stationary_distribution(gen)
 end

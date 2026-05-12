@@ -61,16 +61,17 @@ defaults to zero (i.e. solves the homogeneous problem `A q = 0` with
 Dirichlet BCs). Sign-agnostic — works for both CTMC generators and PDE
 M-matrices.
 
-`alg = nothing` (default) uses sparse direct LU (`\\`). Pass any
-LinearSolve.jl algorithm (e.g. `KrylovJL_GMRES()`, `KrylovJL_BICGSTAB()`)
-to use an iterative solver instead.
+Default `alg` is `UMFPACKFactorization()` (sparse direct LU). Pass any
+`SciMLLinearSolveAlgorithm` (e.g. `KrylovJL_GMRES()`) for an iterative
+solver; further kwargs flow to `LinearSolve.solve`.
 """
 function _solve_dirichlet(
         A::SparseMatrixCSC{Float64, Int},
         mask::BitVector,
-        values::Vector{Float64};
+        values::Vector{Float64},
+        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
         source::Union{Nothing, Vector{Float64}} = nothing,
-        alg = nothing,
+        kwargs...,
     )::Vector{Float64}
     M = copy(A)
     rhs = source === nothing ? zeros(Float64, size(A, 1)) : copy(source)
@@ -78,7 +79,7 @@ function _solve_dirichlet(
     @inbounds for n in eachindex(mask)
         mask[n] && (rhs[n] = values[n])
     end
-    return alg === nothing ? (M \ rhs) : solve(LinearProblem(M, rhs), alg).u
+    return solve(LinearProblem(M, rhs), alg; kwargs...).u
 end
 
 """
@@ -88,12 +89,14 @@ Solve for the invariant probability density `ρ` of a CTMC with generator
 `G` and per-cell volume vector `weights`: `ρᵀ G = 0` augmented with the
 normalisation `dot(ρ, weights) = 1`. Sign-agnostic.
 
-`alg = nothing` (default) uses sparse direct LU (`\\`). Pass any
-LinearSolve.jl algorithm to use an iterative solver instead.
+Default `alg` is `UMFPACKFactorization()`. Pass any
+`SciMLLinearSolveAlgorithm` for an iterative solver; further kwargs
+flow to `LinearSolve.solve`.
 """
 function _invariant_density(
-        G::SparseMatrixCSC{Float64, Int}, weights::Vector{Float64};
-        alg = nothing, linsolve_kwargs::NamedTuple = (;), pin_row::Int = 1,
+        G::SparseMatrixCSC{Float64, Int}, weights::Vector{Float64},
+        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
+        pin_row::Int = 1, kwargs...,
     )::Vector{Float64}
     N = size(G, 1)
     length(weights) == N || throw(
@@ -106,11 +109,7 @@ function _invariant_density(
     A[pin_row, :] .= weights
     rhs[pin_row] = 1.0
 
-    ρ = if alg === nothing
-        A \ rhs
-    else
-        solve(LinearProblem(A, rhs), alg; linsolve_kwargs...).u
-    end
+    ρ = solve(LinearProblem(A, rhs), alg; kwargs...).u
     clamp!(ρ, 0.0, Inf)
     tot = dot(ρ, weights)
     tot > 0 && (@. ρ = ρ / tot)

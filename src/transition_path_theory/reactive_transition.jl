@@ -34,10 +34,11 @@ If `reverse` is provided (a `CoupledSDEs` for the high-level form, a
 computed on that physical reverse-drift generator instead of the discrete
 adjoint.
 
-`alg = nothing` (default) uses sparse direct LU for all internal solves.
-Pass a LinearSolve.jl algorithm (e.g. `KrylovJL_GMRES()`) to use an
-iterative solver instead — useful for large grids where direct LU runs
-out of memory.
+Default `alg` is `UMFPACKFactorization()` (sparse direct LU) for all
+internal solves. Pass any `SciMLLinearSolveAlgorithm` (e.g.
+`KrylovJL_GMRES()`) for an iterative solver — useful for large grids
+where direct LU runs out of memory. Further kwargs flow to
+`LinearSolve.solve`.
 """
 struct ReactiveTransition{D}
     "The diffusion generator the analysis was built on."
@@ -52,6 +53,8 @@ struct ReactiveTransition{D}
     qplus::Vector{Float64}
     "Backward committor `q⁻`."
     qminus::Vector{Float64}
+    "Discrete adjoint generator w.r.t. `ρ`; used by `reactive_current_{reversible,irreversible}`."
+    Qadj::SparseMatrixCSC{Float64, Int}
     "A → B reactive transition rate (cached)."
     rate::Float64
     "True if `qminus` came from a user-supplied physical reverse generator; false if from the discrete adjoint."
@@ -61,9 +64,10 @@ end
 function ReactiveTransition(
         gen::DiffusionGenerator{D},
         A,
-        B;
+        B,
+        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
         reverse::Union{Nothing, DiffusionGenerator{D}} = nothing,
-        alg = nothing,
+        kwargs...,
     ) where {D}
     any(b -> b isa Absorbing, gen.bc) && throw(
         ArgumentError(
@@ -73,20 +77,17 @@ function ReactiveTransition(
         ),
     )
     grid = gen.grid
-    A_mask = _to_mask(A, grid)
-    B_mask = _to_mask(B, grid)
-    any(A_mask) || throw(ArgumentError("set A is empty"))
-    any(B_mask) || throw(ArgumentError("set B is empty"))
-    any(A_mask .& B_mask) && throw(ArgumentError("sets A and B overlap"))
+    A_mask, B_mask = _committor_masks(grid, A, B)
 
     Q = gen.Q
     weights = fill(cell_volume(grid), ncells(gen))
 
-    ρ = _invariant_density(Q, weights; alg = alg)
-    qplus = _forward_committor(Q, A_mask, B_mask; alg = alg)
+    ρ = _invariant_density(Q, weights, alg; kwargs...)
+    qplus = _forward_committor(Q, A_mask, B_mask, alg; kwargs...)
+    Qadj = _adjoint_generator(Q, ρ)
 
     if reverse === nothing
-        qminus = _backward_committor_adjoint(Q, ρ, A_mask, B_mask; alg = alg)
+        qminus = _backward_committor_explicit(Qadj, A_mask, B_mask, alg; kwargs...)
         physical_reverse = false
     else
         reverse.grid == gen.grid || throw(
@@ -104,27 +105,28 @@ function ReactiveTransition(
                 "reverse generator must have the same matrix size as gen",
             ),
         )
-        qminus = _backward_committor_explicit(reverse.Q, A_mask, B_mask; alg = alg)
+        qminus = _backward_committor_explicit(reverse.Q, A_mask, B_mask, alg; kwargs...)
         physical_reverse = true
     end
 
     rate = _reactive_rate(Q, ρ, qplus, qminus, weights, A_mask)
-    return ReactiveTransition{D}(gen, A_mask, B_mask, ρ, qplus, qminus, rate, physical_reverse)
+    return ReactiveTransition{D}(gen, A_mask, B_mask, ρ, qplus, qminus, Qadj, rate, physical_reverse)
 end
 
 function ReactiveTransition(
         sys::CoupledSDEs,
         grid::CartesianGrid{D},
         A,
-        B;
+        B,
+        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
         reverse::Union{Nothing, CoupledSDEs} = nothing,
         bc = Reflecting(),
-        alg = nothing,
+        kwargs...,
     ) where {D}
     gen = DiffusionGenerator(sys, grid; bc = bc)
     gen_rev =
         reverse === nothing ? nothing : DiffusionGenerator(reverse, grid; bc = bc)
-    return ReactiveTransition(gen, A, B; reverse = gen_rev, alg = alg)
+    return ReactiveTransition(gen, A, B, alg; reverse = gen_rev, kwargs...)
 end
 
 # =====================================================================
@@ -227,8 +229,7 @@ Returns `(J_nodes, J_faces)` with the same shapes as
 [`reactive_current`](@ref).
 """
 function reactive_current_reversible(r::ReactiveTransition)
-    Qadj = _adjoint_generator(r.generator.Q, r.ρ)
-    Qsym = (r.generator.Q + Qadj) ./ 2
+    Qsym = (r.generator.Q + r.Qadj) ./ 2
     return _reactive_current_from_Q(
         Qsym, r.ρ, r.qplus, r.qminus, r.generator.grid, r.generator.bc,
     )
@@ -247,8 +248,7 @@ Returns `(J_nodes, J_faces)` with the same shapes as
 [`reactive_current`](@ref).
 """
 function reactive_current_irreversible(r::ReactiveTransition)
-    Qadj = _adjoint_generator(r.generator.Q, r.ρ)
-    Qanti = (r.generator.Q - Qadj) ./ 2
+    Qanti = (r.generator.Q - r.Qadj) ./ 2
     return _reactive_current_from_Q(
         Qanti, r.ρ, r.qplus, r.qminus, r.generator.grid, r.generator.bc,
     )

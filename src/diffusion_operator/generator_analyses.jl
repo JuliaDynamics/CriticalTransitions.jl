@@ -76,78 +76,63 @@ Throws `ArgumentError` if any axis uses absorbing boundary conditions —
 the resulting chain has mass loss and admits no nontrivial normalised
 invariant.
 
-# Algorithm
+# Algorithm (`alg`)
 
-`alg` is a [`StationaryAlgorithm`](@ref) (default: [`LUPinned`](@ref)).
-Two families:
-
-- [`LUPinned`](@ref): solves `Qᵀ ρ = 0` directly via a sparse linear
-  solve with one row pinned to the normalisation constraint. Fast and
-  exact for generators with a single near-zero eigenvalue. Breaks down
-  at very small noise when the generator has multiple near-zero
-  eigenvalues within machine precision (multi-basin metastability) —
-  the diagnostic below catches this.
-- Any [`EigensolveAlgorithm`](@ref) ([`ArnoldiSI`](@ref),
-  [`ShiftInvertPower`](@ref), `KrylovKitArnoldi`): solves the same
-  equation as a shifted principal-eigenpair problem at `σ = 0`.
-
-Every algorithm struct carries its own LinearSolve.jl `linsolve` and
-`linsolve_kwargs` for the inner solve — pass `KrylovJL_GMRES()` etc.
-and tolerance kwargs through there:
-
-```julia
-using LinearSolve
-alg = LUPinned(; linsolve = KrylovJL_GMRES(),
-                 linsolve_kwargs = (; abstol = 1e-14, reltol = 1e-14))
-stationary_distribution(gen, alg)
-```
+- A `LinearSolve.SciMLLinearSolveAlgorithm` — pinned linear solve with
+  the given algorithm. Default is `UMFPACKFactorization()` (sparse direct
+  LU). Pass e.g. `KrylovJL_GMRES()` for an iterative solver. Extra
+  kwargs flow to `LinearSolve.solve`.
+- [`DenseEigen()`](@ref) — `LinearAlgebra.eigen` on `Matrix(Qᵀ)`,
+  picking the eigenvector at `λ ≈ 0`. Bounded by O(N²) storage.
+- [`KrylovKitSolver()`](@ref) — shift-invert Arnoldi via
+  `KrylovKit.eigsolve` near `σ = 0`. Use for very large sparse
+  problems. Extra kwargs flow to `KrylovKit.eigsolve`; pass
+  `inner_alg = …` to control the LinearSolve algorithm used for the
+  inner shift-invert solve.
 
 # Diagnostic
 
-When `check = true` (default), the result is validated post-hoc:
+Pass `check = true` to validate the result post-hoc (off by default —
+the multi-modality probe runs three additional full solves):
 
-  1. **Sign check**: counts entries with `ρ[i] < -eps · maximum(abs, ρ)`.
-  2. **Residual check**: `‖Qᵀ ρ‖ / ‖ρ‖` should be near machine ε.
-  3. **Multi-modality probe** (LU pin only): re-pins at several
-     spread-out cells and checks the answer is invariant. A `max rel
-     difference > multimodal_tol` reveals ≥ 2 near-zero eigenvalues
-     within machine precision, in which case the returned vector is
-     one quasi-stationary mode rather than the global invariant.
+  1. Sign check: entries below `-16ε · max|ρ|` are flagged.
+  2. Residual check: `‖Qᵀ ρ‖ / ‖ρ‖` should be near machine ε.
+  3. Multi-modality probe (linear-solve path only): re-pins at several
+     spread-out cells and checks the answer is invariant; a non-trivial
+     difference reveals ≥ 2 near-zero eigenvalues within machine
+     precision (multi-basin metastability), in which case the returned
+     vector is one quasi-stationary mode rather than the global
+     invariant.
 
 A single combined warning is emitted with concrete suggestions if any
-check fires. Pass `check = false` to silence.
+check fires.
 """
 function stationary_distribution(gen::DiffusionGenerator,
-        alg::StationaryAlgorithm = LUPinned();
-        check::Bool = true, multimodal_tol::Real = 1.0e-3,
+        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
+        check::Bool = false, multimodal_tol::Real = 1.0e-3, kwargs...,
     )::Vector{Float64}
-    any(b -> b isa Absorbing, gen.bc) && throw(
-        ArgumentError(
-            "stationary_distribution is undefined for absorbing boundary " *
-                "conditions: the chain leaks probability through the boundary " *
-                "and has no nontrivial normalised invariant.",
-        ),
-    )
+    _check_stationary_bc(gen)
     weights = fill(cell_volume(gen.grid), ncells(gen))
-    ρ = _solve_stationary(gen.Q, weights, alg)
+    ρ = _invariant_density(gen.Q, weights, alg; kwargs...)
     check && _stationary_diagnostics(gen.Q, weights, ρ, alg, multimodal_tol)
     return ρ
 end
 
-# --- Dispatch on the algorithm struct --------------------------------
-
-function _solve_stationary(Q::SparseMatrixCSC, weights::Vector{Float64},
-        alg::LUPinned)
-    return _invariant_density(Q, weights;
-        alg = alg.linsolve, linsolve_kwargs = alg.linsolve_kwargs,
-        pin_row = alg.pin_row)
+function stationary_distribution(gen::DiffusionGenerator,
+        alg::Union{DenseEigen, KrylovKitSolver};
+        check::Bool = false, multimodal_tol::Real = 1.0e-3, kwargs...,
+    )::Vector{Float64}
+    _check_stationary_bc(gen)
+    weights = fill(cell_volume(gen.grid), ncells(gen))
+    λ, v = _principal_eigenpair(transpose(gen.Q), alg; σ = 0.0, kwargs...)
+    _normalise_density!(v, weights)
+    check && _stationary_diagnostics(gen.Q, weights, v, alg, multimodal_tol)
+    return v
 end
 
-function _solve_stationary(Q::SparseMatrixCSC, weights::Vector{Float64},
-        alg::EigensolveAlgorithm)
-    # Principal eigenpair of Qᵀ at σ = 0: eigenvalue ≈ 0, eigenvector
-    # is the invariant density (up to sign / normalisation).
-    λ, v, _info = principal_eigenpair(transpose(Q), alg; σ = 0.0)
+# Sign-fix to non-negative, clamp negatives to zero, normalise so
+# `dot(v, weights) = 1`. Used by every eigenpair-based density routine.
+function _normalise_density!(v::AbstractVector{<:Real}, weights::AbstractVector{<:Real})
     s = sign(sum(v))
     s == 0 && (s = 1)
     @. v = s * v
@@ -157,9 +142,20 @@ function _solve_stationary(Q::SparseMatrixCSC, weights::Vector{Float64},
     return v
 end
 
+function _check_stationary_bc(gen::DiffusionGenerator)
+    any(b -> b isa Absorbing, gen.bc) && throw(
+        ArgumentError(
+            "stationary_distribution is undefined for absorbing boundary " *
+                "conditions: the chain leaks probability through the boundary " *
+                "and has no nontrivial normalised invariant.",
+        ),
+    )
+    return nothing
+end
+
 # Post-solve diagnostic. Single combined warning with concrete pointers.
 function _stationary_diagnostics(Q::SparseMatrixCSC, weights::Vector{Float64},
-        ρ::Vector{Float64}, alg::StationaryAlgorithm, multimodal_tol::Real)
+        ρ::Vector{Float64}, alg, multimodal_tol::Real)
     issues = String[]
 
     ρ_max = maximum(abs, ρ)
@@ -181,7 +177,7 @@ function _stationary_diagnostics(Q::SparseMatrixCSC, weights::Vector{Float64},
             join(issues, "\n  • ") *
             "\nSuggestions:\n" *
             "  - increase the diffusion strength (the spectral gap shrinks as exp(-ΔΦ / D))\n" *
-            "  - try an eigensolve backend, e.g. `stationary_distribution(gen, ArnoldiSI())`\n" *
+            "  - try `stationary_distribution(gen, KrylovKitSolver())` for an iterative cross-check\n" *
             "  - use `quasi_stationary_distribution(gen, basin)` to compute the QSD of one metastable basin\n" *
             "  - inspect the slow modes with `eigenmodes(gen, k)`"
         @warn msg
@@ -189,18 +185,16 @@ function _stationary_diagnostics(Q::SparseMatrixCSC, weights::Vector{Float64},
     return nothing
 end
 
-# Probe re-pins at a few spread-out cells; only meaningful for the LU
-# path (eigensolves have their own convergence story).
+# Multimodality probe — re-pins at a few spread-out cells. Only
+# meaningful for the linear-solve path; eigensolve backends are no-op.
 function _multimodality_probe!(issues, Q::SparseMatrixCSC,
-        weights::Vector{Float64}, ρ::Vector{Float64}, alg::LUPinned,
-        multimodal_tol::Real)
+        weights::Vector{Float64}, ρ::Vector{Float64},
+        alg::SciMLLinearSolveAlgorithm, multimodal_tol::Real)
     N = size(Q, 1)
-    probe_pins = unique!([div(N, 4), div(N, 2), div(3N, 4), N])
-    filter!(p -> p != alg.pin_row, probe_pins)
+    pins = (p for p in unique!([div(N, 4), div(N, 2), div(3N, 4), N]) if p != 1)
     max_diff = 0.0
-    for p in probe_pins
-        ρ_alt = _invariant_density(Q, weights;
-            alg = alg.linsolve, linsolve_kwargs = alg.linsolve_kwargs, pin_row = p)
+    for p in pins
+        ρ_alt = _invariant_density(Q, weights, alg; pin_row = p)
         d = norm(ρ - ρ_alt) / max(norm(ρ), norm(ρ_alt), eps(Float64))
         d > max_diff && (max_diff = d)
     end
@@ -213,7 +207,10 @@ function _multimodality_probe!(issues, Q::SparseMatrixCSC,
     end
     return nothing
 end
-_multimodality_probe!(issues, Q, weights, ρ, alg::EigensolveAlgorithm, tol) = nothing
+
+# Eigensolve backends: skip the probe.
+_multimodality_probe!(issues, Q, weights, ρ, ::Union{DenseEigen, KrylovKitSolver}, _tol) =
+    nothing
 
 # ---------------------------------------------------------------------
 # Quasi-stationary distribution of a metastable basin.
@@ -255,21 +252,21 @@ This routine is the standard tool for visualising the quasipotential
 well of a metastable basin at small noise, where the global
 [`stationary_distribution`](@ref) becomes ill-conditioned.
 
-# Algorithm
+# Algorithm (`alg`)
 
-`alg` is an [`EigensolveAlgorithm`](@ref) (default: [`ArnoldiSI`](@ref)).
-LinearSolve.jl options for the inner shift-invert solve travel on the
-algorithm struct:
+- [`KrylovKitSolver()`](@ref) (default) — shift-invert Arnoldi via
+  `KrylovKit.eigsolve`. Kwargs flow to `KrylovKit.eigsolve`; pass
+  `inner_alg = …` to control the LinearSolve algorithm used for the
+  inner shift-invert solve.
+- [`DenseEigen()`](@ref) — `LinearAlgebra.eigen` on `Matrix(Q_Sᵀ)`. Use
+  on small basins where the dense factorisation fits in memory.
 
-```julia
-using LinearSolve
-alg = ArnoldiSI(; linsolve = KrylovJL_GMRES(),
-                  linsolve_kwargs = (; abstol = 1e-14))
-quasi_stationary_distribution(gen, basin, alg)
-```
+Passing a `LinearSolve.SciMLLinearSolveAlgorithm` is rejected: the QSD
+eigenvalue `−λ_exit` is unknown a priori, so a single linear solve is
+insufficient.
 """
 function quasi_stationary_distribution(gen::DiffusionGenerator, basin,
-        alg::EigensolveAlgorithm = ArnoldiSI())
+        alg::Union{DenseEigen, KrylovKitSolver} = KrylovKitSolver(); kwargs...)
     grid = gen.grid
     basin_mask = _to_mask(basin, grid)
     any(basin_mask) || throw(ArgumentError("basin is empty"))
@@ -282,15 +279,8 @@ function quasi_stationary_distribution(gen::DiffusionGenerator, basin,
     Q_S = gen.Q[inds, inds]
 
     # Principal eigenpair of Q_Sᵀ near σ = 0 has λ = -λ_exit.
-    λ, v, _info = principal_eigenpair(transpose(Q_S), alg; σ = 0.0)
-
-    s = sign(sum(v))
-    s == 0 && (s = 1)
-    @. v = s * v
-    clamp!(v, 0.0, Inf)
-    cv = cell_volume(grid)
-    tot = sum(v) * cv
-    tot > 0 && (@. v = v / tot)
+    λ, v = _principal_eigenpair(transpose(Q_S), alg; σ = 0.0, kwargs...)
+    _normalise_density!(v, fill(cell_volume(grid), length(v)))
 
     ρ_full = zeros(Float64, ncells(grid))
     @inbounds for (k, i) in enumerate(inds)
@@ -299,6 +289,15 @@ function quasi_stationary_distribution(gen::DiffusionGenerator, basin,
 
     λ_exit = -real(λ)
     return ρ_full, λ_exit
+end
+
+function quasi_stationary_distribution(::DiffusionGenerator, _basin,
+        ::SciMLLinearSolveAlgorithm; kwargs...)
+    throw(ArgumentError(
+        "quasi_stationary_distribution: a `SciMLLinearSolveAlgorithm` is not " *
+            "a valid backend because the QSD eigenvalue is unknown a priori. " *
+            "Use `KrylovKitSolver()` (default) or `DenseEigen()`."
+    ))
 end
 
 # ---------------------------------------------------------------------
@@ -316,32 +315,35 @@ on `A` and `q⁺ = 1` on `B`.
 `A` and `B` accept a predicate `x -> Bool`, a `BitVector` of length
 `ncells(gen)`, or a vector of linear cell indices.
 
-`alg = nothing` (default) uses sparse direct LU. Pass a LinearSolve.jl
-algorithm (e.g. `KrylovJL_GMRES()`) to use an iterative solver.
+Default `alg` is `UMFPACKFactorization()` (sparse direct LU). Pass any
+`SciMLLinearSolveAlgorithm` (e.g. `KrylovJL_GMRES()`) for an iterative
+solver; further kwargs flow to `LinearSolve.solve`.
 """
-function forward_committor(
-        gen::DiffusionGenerator, A, B; alg = nothing
-    )::Vector{Float64}
-    grid = gen.grid
-    A_mask = _to_mask(A, grid)
-    B_mask = _to_mask(B, grid)
-    return _forward_committor(gen.Q, A_mask, B_mask; alg = alg)
+function forward_committor(gen::DiffusionGenerator, A, B,
+        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
+        kwargs...)::Vector{Float64}
+    A_mask, B_mask = _committor_masks(gen.grid, A, B)
+    return _forward_committor(gen.Q, A_mask, B_mask, alg; kwargs...)
 end
 
-function _forward_committor(
-        Q::SparseMatrixCSC{Float64, Int}, A_mask::BitVector, B_mask::BitVector;
-        alg = nothing,
-    )::Vector{Float64}
+function _committor_masks(grid, A, B)
+    A_mask = _to_mask(A, grid)
+    B_mask = _to_mask(B, grid)
     any(A_mask) || throw(ArgumentError("set A is empty"))
     any(B_mask) || throw(ArgumentError("set B is empty"))
     any(A_mask .& B_mask) && throw(ArgumentError("sets A and B overlap"))
+    return A_mask, B_mask
+end
+
+function _forward_committor_system(Q::SparseMatrixCSC{Float64, Int},
+        A_mask::BitVector, B_mask::BitVector)
     N = size(Q, 1)
     mask_bc = A_mask .| B_mask
     bc_values = zeros(Float64, N)
     @inbounds for n in eachindex(B_mask)
         B_mask[n] && (bc_values[n] = 1.0)
     end
-    return _solve_dirichlet(Q, mask_bc, bc_values; alg = alg)
+    return mask_bc, bc_values
 end
 
 """
@@ -357,49 +359,53 @@ instead solve on a separately-supplied physical reverse-drift generator;
 useful as a cross-check or for non-reversible systems where the exact
 reverse SDE is known.
 
-`alg = nothing` (default) uses sparse direct LU. Pass a LinearSolve.jl
-algorithm (e.g. `KrylovJL_GMRES()`) to use an iterative solver.
+Default `alg` is `UMFPACKFactorization()` (sparse direct LU). Pass any
+`SciMLLinearSolveAlgorithm` for an iterative solver; further kwargs
+flow to `LinearSolve.solve`.
 """
-function backward_committor(
-        gen::DiffusionGenerator, A, B;
-        reverse::Union{Nothing, DiffusionGenerator} = nothing, alg = nothing,
+function backward_committor(gen::DiffusionGenerator, A, B,
+        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
+        reverse::Union{Nothing, DiffusionGenerator} = nothing, kwargs...,
     )::Vector{Float64}
-    grid = gen.grid
-    A_mask = _to_mask(A, grid)
-    B_mask = _to_mask(B, grid)
+    A_mask, B_mask = _committor_masks(gen.grid, A, B)
     if reverse === nothing
-        ρ = stationary_distribution(gen, LUPinned(linsolve = alg); check = false)
-        return _backward_committor_adjoint(gen.Q, ρ, A_mask, B_mask; alg = alg)
+        ρ = stationary_distribution(gen, alg; check = false, kwargs...)
+        return _backward_committor_adjoint(gen.Q, ρ, A_mask, B_mask, alg; kwargs...)
     else
-        return _backward_committor_explicit(reverse.Q, A_mask, B_mask; alg = alg)
+        return _backward_committor_explicit(reverse.Q, A_mask, B_mask, alg; kwargs...)
     end
 end
 
-function _backward_committor_adjoint(
-        Q::SparseMatrixCSC{Float64, Int},
-        ρ::Vector{Float64},
-        A_mask::BitVector,
-        B_mask::BitVector;
-        alg = nothing,
-    )::Vector{Float64}
-    any(A_mask) || throw(ArgumentError("set A is empty"))
-    any(B_mask) || throw(ArgumentError("set B is empty"))
-    any(A_mask .& B_mask) && throw(ArgumentError("sets A and B overlap"))
-    Qadj = _adjoint_generator(Q, ρ)
-    return _backward_committor_explicit(Qadj, A_mask, B_mask; alg = alg)
-end
-
-function _backward_committor_explicit(
-        Qrev::SparseMatrixCSC{Float64, Int}, A_mask::BitVector, B_mask::BitVector;
-        alg = nothing,
-    )::Vector{Float64}
+function _backward_committor_system(Qrev::SparseMatrixCSC{Float64, Int},
+        A_mask::BitVector, B_mask::BitVector)
     N = size(Qrev, 1)
     mask_bc = A_mask .| B_mask
     bc_values = zeros(Float64, N)
     @inbounds for n in eachindex(A_mask)
         A_mask[n] && (bc_values[n] = 1.0)
     end
-    return _solve_dirichlet(Qrev, mask_bc, bc_values; alg = alg)
+    return mask_bc, bc_values
+end
+
+function _forward_committor(Q::SparseMatrixCSC{Float64, Int},
+        A_mask::BitVector, B_mask::BitVector,
+        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization(); kwargs...)
+    mask_bc, bc_values = _forward_committor_system(Q, A_mask, B_mask)
+    return _solve_dirichlet(Q, mask_bc, bc_values, alg; kwargs...)
+end
+
+function _backward_committor_adjoint(Q::SparseMatrixCSC{Float64, Int},
+        ρ::Vector{Float64}, A_mask::BitVector, B_mask::BitVector,
+        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization(); kwargs...)
+    Qadj = _adjoint_generator(Q, ρ)
+    return _backward_committor_explicit(Qadj, A_mask, B_mask, alg; kwargs...)
+end
+
+function _backward_committor_explicit(Qrev::SparseMatrixCSC{Float64, Int},
+        A_mask::BitVector, B_mask::BitVector,
+        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization(); kwargs...)
+    mask_bc, bc_values = _backward_committor_system(Qrev, A_mask, B_mask)
+    return _solve_dirichlet(Qrev, mask_bc, bc_values, alg; kwargs...)
 end
 
 # ---------------------------------------------------------------------
@@ -417,19 +423,22 @@ Dirichlet condition `τ = 0` on `target`.
 `target` accepts a predicate, a `BitVector`, or a vector of linear cell
 indices.
 
-`alg = nothing` (default) uses sparse direct LU. Pass a LinearSolve.jl
-algorithm (e.g. `KrylovJL_GMRES()`) to use an iterative solver.
+Default `alg` is `UMFPACKFactorization()` (sparse direct LU). Pass any
+`SciMLLinearSolveAlgorithm` for an iterative solver.
 """
-function mean_first_passage_time(
-        gen::DiffusionGenerator, target; alg = nothing
-    )::Vector{Float64}
+function mean_first_passage_time(gen::DiffusionGenerator, target,
+        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
+        kwargs...)::Vector{Float64}
+    target_mask, bc_values, source = _mfpt_system(gen, target)
+    return _solve_dirichlet(gen.Q, target_mask, bc_values, alg;
+        source = source, kwargs...)
+end
+
+function _mfpt_system(gen::DiffusionGenerator, target)
     target_mask = _to_mask(target, gen.grid)
     any(target_mask) || throw(ArgumentError("target set is empty"))
-    Q = gen.Q
-    N = size(Q, 1)
-    bc_values = zeros(Float64, N)
-    source = fill(-1.0, N)
-    return _solve_dirichlet(Q, target_mask, bc_values; source = source, alg = alg)
+    N = size(gen.Q, 1)
+    return target_mask, zeros(Float64, N), fill(-1.0, N)
 end
 
 """
@@ -445,19 +454,16 @@ from `Var[τ] = τ_2 − τ_1²`.
 
 Returns a length-`ncells(gen)` vector of variances, all `≥ 0`.
 
-`alg = nothing` (default) uses sparse direct LU. Pass a LinearSolve.jl
-algorithm to use an iterative solver.
+Default `alg` is `UMFPACKFactorization()` (sparse direct LU). Pass any
+`SciMLLinearSolveAlgorithm` for an iterative solver.
 """
-function first_passage_variance(
-        gen::DiffusionGenerator, target; alg = nothing
-    )::Vector{Float64}
-    target_mask = _to_mask(target, gen.grid)
-    any(target_mask) || throw(ArgumentError("target set is empty"))
-    Q = gen.Q
-    N = size(Q, 1)
-    bc_values = zeros(Float64, N)
-
-    τ_1 = _solve_dirichlet(Q, target_mask, bc_values; source = fill(-1.0, N), alg = alg)
-    τ_2 = _solve_dirichlet(Q, target_mask, bc_values; source = -2 .* τ_1, alg = alg)
+function first_passage_variance(gen::DiffusionGenerator, target,
+        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
+        kwargs...)::Vector{Float64}
+    target_mask, bc_values, source = _mfpt_system(gen, target)
+    τ_1 = _solve_dirichlet(gen.Q, target_mask, bc_values, alg;
+        source = source, kwargs...)
+    τ_2 = _solve_dirichlet(gen.Q, target_mask, bc_values, alg;
+        source = -2 .* τ_1, kwargs...)
     return τ_2 .- τ_1 .^ 2
 end

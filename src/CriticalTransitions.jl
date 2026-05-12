@@ -10,8 +10,7 @@ end CriticalTransitions
 # Base
 using Statistics: Statistics, mean
 using LinearAlgebra:
-    LinearAlgebra, norm, dot, tr, diag, eigen, mul!, axpy!, schur!, ordschur!,
-    normalize!, I
+    LinearAlgebra, norm, dot, tr, diag, eigen, mul!, normalize!, I
 using StaticArrays: StaticArrays, SVector
 using Random: Random
 
@@ -46,7 +45,10 @@ using SparseArrays:
 using Interpolations: linear_interpolation
 using Optimization: Optimization
 using OptimizationOptimisers: Optimisers
-using LinearSolve: LinearProblem, LUFactorization, init, solve, solve!
+using LinearSolve:
+    LinearProblem, LUFactorization, UMFPACKFactorization, SciMLLinearSolveAlgorithm,
+    init, solve, solve!
+using KrylovKit: KrylovKit
 using ExponentialUtilities: expv_timestep
 
 # io and documentation
@@ -83,9 +85,8 @@ include("r_tipping/RateSystem.jl")
 include("diffusion_operator/utils.jl")
 include("diffusion_operator/cartesian_grid.jl")
 include("diffusion_operator/diffusion_generator.jl")
-include("diffusion_operator/eigsolve.jl")
-include("diffusion_operator/generator_analyses.jl")
 include("diffusion_operator/spectral.jl")
+include("diffusion_operator/generator_analyses.jl")
 include("diffusion_operator/propagator.jl")
 include("diffusion_operator/grid_helpers.jl")
 
@@ -123,8 +124,7 @@ export quasi_stationary_distribution
 export mean_first_passage_time, first_passage_variance
 export eigenmodes
 export propagate_density
-export StationaryAlgorithm, LUPinned
-export EigensolveAlgorithm, ArnoldiSI, ShiftInvertPower, KrylovKitArnoldi, principal_eigenpair
+export DenseEigen, KrylovKitSolver
 
 # Transition Path Theory
 export ReactiveTransition
