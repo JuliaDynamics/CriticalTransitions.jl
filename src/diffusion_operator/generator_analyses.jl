@@ -92,41 +92,42 @@ invariant.
 
 # Diagnostic
 
-Pass `check = true` to validate the result post-hoc (off by default —
-the multi-modality probe runs three additional full solves):
+The result is always validated post-hoc:
 
   1. Sign check: entries below `-16ε · max|ρ|` are flagged.
   2. Residual check: `‖Qᵀ ρ‖ / ‖ρ‖` should be near machine ε.
-  3. Multi-modality probe (linear-solve path only): re-pins at several
-     spread-out cells and checks the answer is invariant; a non-trivial
-     difference reveals ≥ 2 near-zero eigenvalues within machine
-     precision (multi-basin metastability), in which case the returned
-     vector is one quasi-stationary mode rather than the global
-     invariant.
+
+Pass `verbose = true` to additionally run the multi-modality probe
+(linear-solve path only): re-pins at several spread-out cells and
+checks the answer is invariant; a non-trivial difference reveals ≥ 2
+near-zero eigenvalues within machine precision (multi-basin
+metastability), in which case the returned vector is one
+quasi-stationary mode rather than the global invariant. This adds
+three full LU solves, so it is off by default.
 
 A single combined warning is emitted with concrete suggestions if any
 check fires.
 """
 function stationary_distribution(gen::DiffusionGenerator,
         alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
-        check::Bool = false, multimodal_tol::Real = 1.0e-3, kwargs...,
+        verbose::Bool = false, multimodal_tol::Real = 1.0e-3, kwargs...,
     )::Vector{Float64}
     _check_stationary_bc(gen)
     weights = fill(cell_volume(gen.grid), ncells(gen))
     ρ = _invariant_density(gen.Q, weights, alg; kwargs...)
-    check && _stationary_diagnostics(gen.Q, weights, ρ, alg, multimodal_tol)
+    _stationary_diagnostics(gen.Q, weights, ρ, alg, multimodal_tol, verbose)
     return ρ
 end
 
 function stationary_distribution(gen::DiffusionGenerator,
         alg::Union{DenseEigen, KrylovKitSolver};
-        check::Bool = false, multimodal_tol::Real = 1.0e-3, kwargs...,
+        verbose::Bool = false, multimodal_tol::Real = 1.0e-3, kwargs...,
     )::Vector{Float64}
     _check_stationary_bc(gen)
     weights = fill(cell_volume(gen.grid), ncells(gen))
     λ, v = _principal_eigenpair(transpose(gen.Q), alg; σ = 0.0, kwargs...)
     _normalise_density!(v, weights)
-    check && _stationary_diagnostics(gen.Q, weights, v, alg, multimodal_tol)
+    _stationary_diagnostics(gen.Q, weights, v, alg, multimodal_tol, verbose)
     return v
 end
 
@@ -155,7 +156,7 @@ end
 
 # Post-solve diagnostic. Single combined warning with concrete pointers.
 function _stationary_diagnostics(Q::SparseMatrixCSC, weights::Vector{Float64},
-        ρ::Vector{Float64}, alg, multimodal_tol::Real)
+        ρ::Vector{Float64}, alg, multimodal_tol::Real, verbose::Bool)
     issues = String[]
 
     ρ_max = maximum(abs, ρ)
@@ -170,7 +171,7 @@ function _stationary_diagnostics(Q::SparseMatrixCSC, weights::Vector{Float64},
         push!(issues, "‖Qᵀ ρ‖ / ‖ρ‖ ≈ $(round(res; sigdigits = 3)) (expected ≲ 1e-10)")
     end
 
-    _multimodality_probe!(issues, Q, weights, ρ, alg, multimodal_tol)
+    verbose && _multimodality_probe!(issues, Q, weights, ρ, alg, multimodal_tol)
 
     if !isempty(issues)
         msg = "stationary_distribution: result may be unreliable\n  • " *
@@ -369,7 +370,7 @@ function backward_committor(gen::DiffusionGenerator, A, B,
     )::Vector{Float64}
     A_mask, B_mask = _committor_masks(gen.grid, A, B)
     if reverse === nothing
-        ρ = stationary_distribution(gen, alg; check = false, kwargs...)
+        ρ = stationary_distribution(gen, alg; kwargs...)
         return _backward_committor_adjoint(gen.Q, ρ, A_mask, B_mask, alg; kwargs...)
     else
         return _backward_committor_explicit(reverse.Q, A_mask, B_mask, alg; kwargs...)

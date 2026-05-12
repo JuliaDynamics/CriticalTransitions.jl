@@ -798,7 +798,7 @@ end
     sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
     grid = CartesianGrid((-4.0, 4.0, 50))
     gen = DiffusionGenerator(sys, grid)
-    @test (@inferred stationary_distribution(gen; check = false)) isa Vector{Float64}
+    @test (@inferred stationary_distribution(gen)) isa Vector{Float64}
     @test (@inferred mean_first_passage_time(gen, x -> abs(x[1]) > 2)) isa Vector{Float64}
 end
 
@@ -811,9 +811,9 @@ end
     grid = CartesianGrid((-4.0, 4.0, 100))
     gen = DiffusionGenerator(sys, grid)
 
-    ρ_default = stationary_distribution(gen; check = false)                  # nothing → LinearSolve default
-    ρ_dense   = stationary_distribution(gen, DenseEigen(); check = false)
-    ρ_kk      = stationary_distribution(gen, KrylovKitSolver(); check = false)
+    ρ_default = stationary_distribution(gen)                  # nothing → LinearSolve default
+    ρ_dense   = stationary_distribution(gen, DenseEigen())
+    ρ_kk      = stationary_distribution(gen, KrylovKitSolver())
 
     @test ρ_default ≈ ρ_dense rtol = 1.0e-6
     @test ρ_default ≈ ρ_kk rtol = 1.0e-6
@@ -892,7 +892,7 @@ end
     sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.03)
     grid = CartesianGrid((-2.5, 2.5, 401))
     gen = DiffusionGenerator(sys, grid)
-    @test_logs (:warn, r"may be unreliable"i) stationary_distribution(gen; check = true)
-    # Default `check = false`.
+    @test_logs (:warn, r"may be unreliable"i) stationary_distribution(gen; verbose = true)
+    # Probe is off by default — cheap checks alone don't fire on this case.
     @test_nowarn stationary_distribution(gen)
 end
