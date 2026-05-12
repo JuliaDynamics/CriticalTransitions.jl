@@ -27,14 +27,7 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
 
 @testset "RateSystem" begin
     @testset "out-of-place CoupledODEs" begin
-        function f_out(u, p, t)
-            x = u[1]
-            λ = p[1]
-            dx = (x + λ)^2 - 1
-            return SVector{1}(dx)
-        end
-
-        ds = CoupledODEs(f_out, x0, p_auto; t0 = 0.0)
+        ds = CoupledODEs(f, x0, p_auto; t0 = 0.0)
         rs = RateSystem(ds, Dict(1 => fp_case); forcing_start_time = 0.0, forcing_duration = 10.0, forcing_scale = 1.0, t0 = 0.0)
 
         u = copy(current_state(rs))
@@ -50,17 +43,10 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
     end
 
     @testset "out-of-place CoupledSDEs" begin
-        function f_out(u, p, t)
-            x = u[1]
-            λ = p[1]
-            dx = (x + λ)^2 - 1
-            return SVector{1}(dx)
-        end
-
         x0_sde = [0.0]
         p0_sde = [0.0]
         σ = 0.1
-        ds = CoupledSDEs(f_out, x0_sde, p0_sde; noise_strength = σ)
+        ds = CoupledSDEs(f, x0_sde, p0_sde; noise_strength = σ)
         rs = RateSystem(ds, Dict(1 => fp_case); forcing_start_time = 0.0, forcing_duration = 10.0, forcing_scale = 1.0, t0 = 0.0)
 
         u = copy(current_state(rs))

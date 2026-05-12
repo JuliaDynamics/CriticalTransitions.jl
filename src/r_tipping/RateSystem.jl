@@ -10,7 +10,7 @@ $(FIELDS)
 Call signature: `(::RateSystemSpecs)(u, p, t)` for out-of-place and
 `(::RateSystemSpecs)(du, u, p, t)` for in-place dynamical systems
 """
-mutable struct RateSystemSpecs{R,K,T,P,E} <: Function
+mutable struct RateSystemSpecs{R,K,T,P} <: Function
     "Dynamic rule of the underlying autonomous system"
     unforced_rule::R
     "Mapping parameter index => ForcingProfile"
@@ -77,110 +77,30 @@ struct RateSystem{S,R} <: ContinuousTimeDynamicalSystem
     forcing::RateSystemSpecs{R}
 end
 
-# RateSystem-level wrappers (placed after `RateSystem` type definition)
-function initial_parameter_map(rs::RateSystem)
-    return initial_parameter_map(rs.forcing)
-end
-
-function initial_parameter(rs::RateSystem, pkey)
-    return initial_parameter(rs.forcing, pkey)
-end
-
-function initial_parameter_value(rs::RateSystem)
-    return initial_parameter_value(rs.forcing)
-end
-
-"""
-    RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::Dict; kwargs...)
-
-Constructor of a [RateSystem](@ref) with one or more time-dependent forcing parameters.
-"""
 function RateSystem(
-        ds::ContinuousTimeDynamicalSystem,
-        forcing_profile::Dict;
-        forcing_start_time=nothing,
-        forcing_duration=nothing,
-        forcing_scale=nothing,
-        t0=initial_time(ds),
+    ds::ContinuousTimeDynamicalSystem,
+    forcing_profile::Dict;
+    forcing_start_time=nothing,
+    forcing_duration=nothing,
+    forcing_scale=nothing,
+    t0=initial_time(ds),
     )
 
-    # Normalize inputs into per-parameter dictionaries
-    forcing_profile = Dict(forcing_profile) # shallow copy
-
-    # start times
-    start_map = Dict{Any,Real}()
-    if forcing_start_time === nothing
-        for (k, _) in forcing_profile
-            start_map[k] = t0
-        end
-    elseif isa(forcing_start_time, AbstractDict)
-        start_map = Dict(forcing_start_time)
-    else
-        for (k, _) in forcing_profile
-            start_map[k] = float(forcing_start_time)
-        end
-    end
-
-    # durations
-    duration_map = Dict{Any,Real}()
-    if forcing_duration === nothing
-        for (k, fp) in forcing_profile
-            duration_map[k] = float(fp.interval[2] - fp.interval[1])
-        end
-    elseif isa(forcing_duration, AbstractDict)
-        duration_map = Dict(forcing_duration)
-    else
-        for (k, _) in forcing_profile
-            duration_map[k] = float(forcing_duration)
-        end
-    end
-
-    # scales
-    scale_map = Dict{Any,Real}()
-    if forcing_scale === nothing
-        for (k, _) in forcing_profile
-            scale_map[k] = 1.0
-        end
-    elseif isa(forcing_scale, AbstractDict)
-        scale_map = Dict(forcing_scale)
-    else
-        for (k, _) in forcing_profile
-            scale_map[k] = float(forcing_scale)
-        end
-    end
-
-    # initial autonomous parameter values
     if isempty(forcing_profile)
         throw(ArgumentError("`forcing_profile` dictionary must contain at least one entry"))
     end
 
-    p0_map = Dict{Any,Any}()
-    for (k, _) in forcing_profile
-        p0_map[k] = current_parameter(ds, k)
-    end
-
-    # determine concrete parameter types for strong typing
-    R = typeof(dynamic_rule(ds))
-    first_key = first(keys(forcing_profile))
-    K = typeof(first_key)
-    # infer time type from first ForcingProfile interval
-    first_profile = first(values(forcing_profile))
-    Ttype = typeof(first_profile.interval[1])
-    PC = typeof(current_parameters(ds))
-    E = typeof(p0_map[first_key])
-
     pdummy = deepcopy(current_parameters(ds))
 
-    rss = RateSystemSpecs{R,K,Ttype,PC,E}(
+    rss = RateSystemSpecs{R,K,T,P}(
         dynamic_rule(ds),
         forcing_profile,
         start_map,
         duration_map,
         scale_map,
         p0_map,
-        t0,
         pdummy,
-        nothing,
+        t0
     )
 
     # Wrap the modified (non-autonomous) drift in an appropriate Coupled* wrapper.
@@ -220,11 +140,6 @@ function RateSystem(
     return RateSystem(newds, rss)
 end
 
-"""
-    RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile, pidx; kwargs...)
-
-Constructor for a [`RateSystem`](@ref) with one time-dependent parameter.
-"""
 function RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
     pidx::Int;
     forcing_start_time::Real = 0.0, 
