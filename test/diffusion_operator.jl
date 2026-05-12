@@ -341,10 +341,20 @@ end
 
     alg = KrylovJL_GMRES()
 
-    @test stationary_distribution(gen; alg = alg) ≈ stationary_distribution(gen) atol = 1.0e-10
+    @test stationary_distribution(gen, LUPinned(linsolve = alg)) ≈ stationary_distribution(gen) atol = 1.0e-10
     @test forward_committor(gen, A, B; alg = alg) ≈ forward_committor(gen, A, B) atol = 1.0e-10
     @test backward_committor(gen, A, B; alg = alg) ≈ backward_committor(gen, A, B) atol = 1.0e-10
     @test mean_first_passage_time(gen, B; alg = alg) ≈ mean_first_passage_time(gen, B) atol = 1.0e-8
+end
+
+@testset "stationary_distribution: linsolve_kwargs forwarded to LinearSolve" begin
+    using LinearSolve: KrylovJL_GMRES
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.6)
+    grid = CartesianGrid((-2.0, 2.0, 200))
+    gen = DiffusionGenerator(sys, grid)
+    alg = LUPinned(linsolve = KrylovJL_GMRES(),
+                   linsolve_kwargs = (; atol = 1e-14, rtol = 1e-14))
+    @test stationary_distribution(gen, alg) ≈ stationary_distribution(gen) atol = 1.0e-10
 end
 
 # =====================================================================
@@ -785,6 +795,115 @@ end
     sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
     grid = CartesianGrid((-4.0, 4.0, 50))
     gen = DiffusionGenerator(sys, grid)
-    @test (@inferred stationary_distribution(gen)) isa Vector{Float64}
+    @test (@inferred stationary_distribution(gen; check = false)) isa Vector{Float64}
     @test (@inferred mean_first_passage_time(gen, x -> abs(x[1]) > 2)) isa Vector{Float64}
+end
+
+# =====================================================================
+# stationary_distribution: alternative backends (ArnoldiSI, ShiftInvertPower)
+# =====================================================================
+
+@testset "stationary_distribution: ArnoldiSI vs LU agree on well-conditioned 1D OU" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-4.0, 4.0, 100))
+    gen = DiffusionGenerator(sys, grid)
+
+    ρ_lu  = stationary_distribution(gen; check = false)              # default LUPinned
+    ρ_lu2 = stationary_distribution(gen, LUPinned(); check = false)  # explicit
+    ρ_arn = stationary_distribution(gen, ArnoldiSI(); check = false)
+    ρ_pwr = stationary_distribution(gen, ShiftInvertPower(); check = false)
+
+    @test ρ_lu ≈ ρ_lu2 rtol = 1.0e-12
+    @test ρ_lu ≈ ρ_arn rtol = 1.0e-6
+    @test ρ_lu ≈ ρ_pwr rtol = 1.0e-6
+
+    # `EigensolveAlgorithm <: StationaryAlgorithm`
+    @test ArnoldiSI() isa StationaryAlgorithm
+    @test ShiftInvertPower() isa StationaryAlgorithm
+    @test LUPinned() isa StationaryAlgorithm
+end
+
+@testset "principal_eigenpair: ArnoldiSI and ShiftInvertPower agree on a simple sparse" begin
+    # Diagonal matrix with eigenvalues at 0, -0.1, -1, -3
+    A = sparse([0.0 0.0 0.0 0.0;
+                0.0 -0.1 0.0 0.0;
+                0.0 0.0 -1.0 0.0;
+                0.0 0.0 0.0 -3.0])
+    # Use shift 0; the principal eigenvalue closest to 0 is 0 itself.
+    λ_a, _, info_a = principal_eigenpair(A, ArnoldiSI(krylovdim = 3); σ = 0.0)
+    @test info_a.converged
+    @test abs(λ_a) < 1.0e-6
+
+    λ_p, _, info_p = principal_eigenpair(A, ShiftInvertPower(); σ = 0.0)
+    @test info_p.converged
+    @test abs(λ_p) < 1.0e-6
+end
+
+@testset "quasi_stationary_distribution: alternative backends agree" begin
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.4)
+    grid = CartesianGrid((-2.0, 2.0, 121))
+    gen = DiffusionGenerator(sys, grid)
+    right_basin = x -> x[1] > 0
+
+    ρ_a, λ_a = quasi_stationary_distribution(gen, right_basin, ArnoldiSI())
+    ρ_p, λ_p = quasi_stationary_distribution(gen, right_basin, ShiftInvertPower())
+
+    @test λ_a ≈ λ_p rtol = 1.0e-6
+    @test ρ_a ≈ ρ_p rtol = 1.0e-5
+end
+
+# =====================================================================
+# quasi_stationary_distribution (QSD) on a metastable basin
+# =====================================================================
+
+@testset "quasi_stationary_distribution: 1D double-well" begin
+    # Symmetric double well with V'(x) = x³ - x; metastable basins are
+    # the half-lines x > 0 (right basin) and x < 0 (left basin).
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.3)
+    grid = CartesianGrid((-2.5, 2.5, 251))
+    gen = DiffusionGenerator(sys, grid)
+
+    right_basin = x -> x[1] > 0
+    left_basin  = x -> x[1] < 0
+
+    ρ_R, λ_R = quasi_stationary_distribution(gen, right_basin)
+    ρ_L, λ_L = quasi_stationary_distribution(gen, left_basin)
+
+    # Exit rates of mirror-symmetric basins must match.
+    @test λ_R ≈ λ_L rtol = 1.0e-6
+    @test λ_R > 0
+
+    # QSD is zero outside its basin, positive inside.
+    @test all(ρ_R[grid.centers[1] .< 0] .== 0)
+    @test all(ρ_L[grid.centers[1] .> 0] .== 0)
+    @test maximum(ρ_R) > 0
+    @test maximum(ρ_L) > 0
+
+    # QSD normalised to 1 over its basin.
+    @test sum(ρ_R) * prod(grid.h) ≈ 1.0 atol = 1.0e-6
+    @test sum(ρ_L) * prod(grid.h) ≈ 1.0 atol = 1.0e-6
+
+    # x → -x symmetry: the reflected right QSD equals the left QSD.
+    ρ_R_flipped = ρ_R[end:-1:1]
+    @test ρ_R_flipped ≈ ρ_L rtol = 1.0e-5
+end
+
+
+@testset "quasi_stationary_distribution: empty basin throws" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-3.0, 3.0, 30))
+    gen = DiffusionGenerator(sys, grid)
+    @test_throws ArgumentError quasi_stationary_distribution(gen, x -> false)
+end
+
+@testset "stationary_distribution: diagnostic warning fires on metastable generator" begin
+    # Maier-Stein-like with two FP basins and very small noise: the
+    # discrete generator has two near-zero eigenvalues within machine
+    # precision; the result depends on the pin row.
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.03)
+    grid = CartesianGrid((-2.5, 2.5, 401))
+    gen = DiffusionGenerator(sys, grid)
+    @test_logs (:warn, r"may be unreliable"i) stationary_distribution(gen)
+    # `check = false` silences it.
+    @test_nowarn stationary_distribution(gen; check = false)
 end

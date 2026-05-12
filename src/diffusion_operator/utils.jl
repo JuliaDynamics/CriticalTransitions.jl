@@ -93,19 +93,24 @@ LinearSolve.jl algorithm to use an iterative solver instead.
 """
 function _invariant_density(
         G::SparseMatrixCSC{Float64, Int}, weights::Vector{Float64};
-        alg = nothing,
+        alg = nothing, linsolve_kwargs::NamedTuple = (;), pin_row::Int = 1,
     )::Vector{Float64}
     N = size(G, 1)
     length(weights) == N || throw(
         DimensionMismatch("weight vector length $(length(weights)) ≠ N = $N"),
     )
+    1 <= pin_row <= N || throw(BoundsError(1:N, pin_row))
 
     A = sparse(transpose(G))
     rhs = zeros(Float64, N)
-    A[1, :] .= weights
-    rhs[1] = 1.0
+    A[pin_row, :] .= weights
+    rhs[pin_row] = 1.0
 
-    ρ = alg === nothing ? (A \ rhs) : solve(LinearProblem(A, rhs), alg).u
+    ρ = if alg === nothing
+        A \ rhs
+    else
+        solve(LinearProblem(A, rhs), alg; linsolve_kwargs...).u
+    end
     clamp!(ρ, 0.0, Inf)
     tot = dot(ρ, weights)
     tot > 0 && (@. ρ = ρ / tot)

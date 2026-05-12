@@ -9,7 +9,9 @@ end CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra: LinearAlgebra, norm, dot, tr, diag, eigen
+using LinearAlgebra:
+    LinearAlgebra, norm, dot, tr, diag, eigen, mul!, axpy!, schur!, ordschur!,
+    normalize!, I
 using StaticArrays: StaticArrays, SVector
 using Random: Random
 
@@ -81,6 +83,7 @@ include("r_tipping/RateSystem.jl")
 include("diffusion_operator/utils.jl")
 include("diffusion_operator/cartesian_grid.jl")
 include("diffusion_operator/diffusion_generator.jl")
+include("diffusion_operator/eigsolve.jl")
 include("diffusion_operator/generator_analyses.jl")
 include("diffusion_operator/spectral.jl")
 include("diffusion_operator/propagator.jl")
@@ -116,9 +119,12 @@ export CartesianGrid, DiffusionGenerator
 export BoundaryCondition, Reflecting, Periodic, Absorbing
 export rate_matrix, m_matrix, fokker_planck_operator
 export forward_committor, backward_committor, stationary_distribution
+export quasi_stationary_distribution
 export mean_first_passage_time, first_passage_variance
 export eigenmodes
 export propagate_density
+export StationaryAlgorithm, LUPinned
+export EigensolveAlgorithm, ArnoldiSI, ShiftInvertPower, KrylovKitArnoldi, principal_eigenpair
 
 # Transition Path Theory
 export ReactiveTransition
