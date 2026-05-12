@@ -89,6 +89,21 @@ function ReactiveTransition(
         qminus = _backward_committor_adjoint(Q, ρ, A_mask, B_mask; alg = alg)
         physical_reverse = false
     else
+        reverse.grid == gen.grid || throw(
+            ArgumentError(
+                "reverse generator must be defined on the same grid as gen",
+            ),
+        )
+        reverse.bc == gen.bc || throw(
+            ArgumentError(
+                "reverse generator must use the same boundary conditions as gen",
+            ),
+        )
+        size(reverse.Q) == size(gen.Q) || throw(
+            ArgumentError(
+                "reverse generator must have the same matrix size as gen",
+            ),
+        )
         qminus = _backward_committor_explicit(reverse.Q, A_mask, B_mask; alg = alg)
         physical_reverse = true
     end

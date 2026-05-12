@@ -32,7 +32,7 @@ function _to_mask(spec::AbstractVector{<:Integer}, grid::CartesianGrid)
     N = ncells(grid)
     mask = falses(N)
     for i in spec
-        1 <= i <= N || throw(BoundsError("cell index $i out of range 1:$N"))
+        1 <= i <= N || throw(BoundsError(1:N, i))
         mask[i] = true
     end
     return mask

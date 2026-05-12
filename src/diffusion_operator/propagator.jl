@@ -60,10 +60,14 @@ function propagate_density(
         ),
     )
     T >= 0 || throw(ArgumentError("T must be ≥ 0; got $T"))
-    Δt > 0 || throw(ArgumentError("Δt must be > 0; got $Δt"))
     Ttr >= 0 || throw(ArgumentError("Ttr must be ≥ 0; got $Ttr"))
 
-    t = collect(Float64, Ttr:Δt:(Ttr + T))
+    t = if T == 0
+        Float64[Ttr]
+    else
+        Δt > 0 || throw(ArgumentError("Δt must be > 0; got $Δt"))
+        collect(Float64, Ttr:Δt:(Ttr + T))
+    end
     F = fokker_planck_operator(gen)
     b = Vector{Float64}(ρ_0)
 
