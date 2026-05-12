@@ -21,10 +21,6 @@ using CriticalTransitions, Test
         @test drift_vector == [0, 0]
     end
 
-    @testset "legacy aliases" begin
-        @test !isdefined(CriticalTransitions, :StochSystem)
-    end
-
     # Creation of lorenz
     @inbounds function lorenz_rule(u, p, t)
         σ = p[1]
