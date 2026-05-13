@@ -338,51 +338,19 @@ end
 reinit!(rs::RateSystem, u=initial_state(rs); kw...) = reinit!(rs.system, u; kw...)
 
 SciMLBase.step!(rs::RateSystem, args...) = (SciMLBase.step!(rs.system, args...); rs)
-function SciMLBase.isinplace(rs::RateSystem)
-    # Only advertise in-place if the underlying system is in-place and the
-    # wrapped `unforced_rule` actually provides an in-place method for the
-    # concrete argument types we will pass. This avoids promising in-place
-    # semantics when we would need to mutate solver-owned parameter containers.
-    try
-        # If the wrapped system isn't in-place, we can't safely advertise it.
-        if !SciMLBase.isinplace(rs.system)
-            return false
-        end
-
-        # Obtain concrete argument types for the current system state/params.
-        u = DynamicalSystemsBase.current_state(rs)
-        p = DynamicalSystemsBase.current_parameters(rs)
-        t = DynamicalSystemsBase.initial_time(rs)
-
-        du_type = typeof(u)
-        u_type = typeof(u)
-        p_type = typeof(p)
-        t_type = typeof(t)
-
-        # Check whether an in-place method of the form f(du,u,p,t) exists
-        return hasmethod(rs.forcing.unforced_rule, Tuple{du_type, u_type, p_type, t_type})
-    catch
-        return false
-    end
-end
+SciMLBase.isinplace(rs::RateSystem) = SciMLBase.isinplace(rs.system)
 DynamicalSystemsBase.set_state!(rs::RateSystem, u::AbstractArray) = (DynamicalSystemsBase.set_state!(rs.system, u); rs)
 
 # SDE-specific delegations: forward stochastic helpers to the wrapped system
-function noise_process(rs::RateSystem)
-    return noise_process(rs.system)
-end
+noise_process(rs::RateSystem) = noise_process(rs.system)
 
-function solver(rs::RateSystem)
-    return solver(rs.system)
-end
+solver(rs::RateSystem) = solver(rs.system)
 
-function StochasticSystemsBase.covariance_matrix(rs::RateSystem, args...; kw...)
-    return StochasticSystemsBase.covariance_matrix(rs.system, args...; kw...)
-end
+StochasticSystemsBase.covariance_matrix(rs::RateSystem, args...;
+    kw...) = StochasticSystemsBase.covariance_matrix(rs.system, args...; kw...)
 
-function StochasticSystemsBase.diffusion_matrix(rs::RateSystem, args...; kw...)
-    return StochasticSystemsBase.diffusion_matrix(rs.system, args...; kw...)
-end
+StochasticSystemsBase.diffusion_matrix(rs::RateSystem, args...;
+    kw...) = StochasticSystemsBase.diffusion_matrix(rs.system, args...; kw...)
 
 StateSpaceSets.dimension(rs::RateSystem) = StateSpaceSets.dimension(rs.system)
 DynamicalSystemsBase.isdeterministic(rs::RateSystem) = isa(rs.system, CoupledODEs)
