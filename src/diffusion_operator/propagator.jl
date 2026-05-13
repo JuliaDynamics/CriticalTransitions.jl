@@ -1,8 +1,3 @@
-# =====================================================================
-# Time evolution of probability densities under the discretised
-# Fokker–Planck equation.
-# =====================================================================
-
 """
 $(TYPEDSIGNATURES)
 
@@ -13,8 +8,6 @@ starting from `ρ_0`, and records `ρ` on a uniform time grid.
 Returns `(ρs, t)` where `t = Ttr:Δt:(Ttr + T)` and `ρs` is a
 `Matrix{Float64}` of size `(ncells(gen), length(t))` whose `i`-th column
 is `ρ(t[i])`.
-
-The signature mirrors `DynamicalSystemsBase.trajectory`:
 
 ```julia
 ρs, t = propagate_density(gen, T, ρ_0)                      # snapshot at 0 and T

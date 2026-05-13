@@ -352,7 +352,7 @@ end
     sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.6)
     grid = CartesianGrid((-2.0, 2.0, 200))
     gen = DiffusionGenerator(sys, grid)
-    @test stationary_distribution(gen, KrylovJL_GMRES(); abstol = 1e-14, reltol = 1e-14) ≈
+    @test stationary_distribution(gen, KrylovJL_GMRES(); abstol = 1.0e-14, reltol = 1.0e-14) ≈
         stationary_distribution(gen) atol = 1.0e-10
 end
 
@@ -812,8 +812,8 @@ end
     gen = DiffusionGenerator(sys, grid)
 
     ρ_default = stationary_distribution(gen)                  # nothing → LinearSolve default
-    ρ_dense   = stationary_distribution(gen, DenseEigen())
-    ρ_kk      = stationary_distribution(gen, KrylovKitSolver())
+    ρ_dense = stationary_distribution(gen, DenseEigen())
+    ρ_kk = stationary_distribution(gen, KrylovKitSolver())
 
     @test ρ_default ≈ ρ_dense rtol = 1.0e-6
     @test ρ_default ≈ ρ_kk rtol = 1.0e-6
@@ -853,7 +853,7 @@ end
     gen = DiffusionGenerator(sys, grid)
 
     right_basin = x -> x[1] > 0
-    left_basin  = x -> x[1] < 0
+    left_basin = x -> x[1] < 0
 
     ρ_R, λ_R = quasi_stationary_distribution(gen, right_basin)
     ρ_L, λ_L = quasi_stationary_distribution(gen, left_basin)

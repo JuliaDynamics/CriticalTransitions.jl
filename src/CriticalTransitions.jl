@@ -10,7 +10,7 @@ end CriticalTransitions
 # Base
 using Statistics: Statistics, mean
 using LinearAlgebra:
-    LinearAlgebra, norm, dot, tr, diag, eigen, mul!, normalize!, I
+    LinearAlgebra, norm, dot, tr, diag, eigen, normalize!, I
 using StaticArrays: StaticArrays, SVector
 using Random: Random
 
@@ -46,8 +46,7 @@ using Interpolations: linear_interpolation
 using Optimization: Optimization
 using OptimizationOptimisers: Optimisers
 using LinearSolve:
-    LinearProblem, LUFactorization, UMFPACKFactorization, SciMLLinearSolveAlgorithm,
-    init, solve, solve!
+    LinearProblem, LUFactorization, UMFPACKFactorization, init, solve, solve!
 using KrylovKit: KrylovKit
 using ExponentialUtilities: expv_timestep
 
@@ -91,7 +90,7 @@ include("diffusion_operator/propagator.jl")
 include("diffusion_operator/grid_helpers.jl")
 
 # Transition Path Theory (reactive-trajectory observables on top of the generator)
-include("transition_path_theory/reactive_helpers.jl")
+include("transition_path_theory/committor.jl")
 include("transition_path_theory/reactive_transition.jl")
 
 include("../systems/CTLibrary.jl")

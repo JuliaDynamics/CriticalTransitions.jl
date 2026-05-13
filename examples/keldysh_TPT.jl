@@ -43,17 +43,17 @@ using Statistics: quantile
 using CairoMakie
 
 const ω₀ = 1.0
-const γ  = 0.03
-const μ  = 0.1
+const γ = 0.03
+const μ = 0.1
 const α₃ = -0.25
 const α₅ = 0.01
-const D  = 0.1  # noise strength D in the action; momentum noise = √(2D)
+const D = 0.1  # noise strength D in the action; momentum noise = √(2D)
 
-𝒟(x) = γ - μ*(1 - x^2)
-V′(x) = ω₀^2*x + α₃*x^3 + α₅*x^5
+𝒟(x) = γ - μ * (1 - x^2)
+V′(x) = ω₀^2 * x + α₃ * x^3 + α₅ * x^5
 
-drift_kel(u, p_, t) = SA[u[2], -u[2]*𝒟(u[1]) - V′(u[1])]
-diff_kel(u, p_, t)  = SA[0.0, sqrt(2D)]
+drift_kel(u, p_, t) = SA[u[2], -u[2] * 𝒟(u[1]) - V′(u[1])]
+diff_kel(u, p_, t) = SA[0.0, sqrt(2D)]
 
 sys = CoupledSDEs(drift_kel, [0.5, 0.0]; g = diff_kel, noise_strength = 1.0)
 
@@ -73,17 +73,19 @@ sys = CoupledSDEs(drift_kel, [0.5, 0.0]; g = diff_kel, noise_strength = 1.0)
 # pumping ($\mu > \gamma$) creates a stable limit cycle.
 
 x_saddle = sqrt(5)
-x_fp     = sqrt(20)
+x_fp = sqrt(20)
 @show x_saddle, x_fp
 
 # Visualise the deterministic flow:
 
 fig = Figure(; size = (760, 420))
-ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
-          title = "Deterministic flow")
+ax = Axis(
+    fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
+    title = "Deterministic flow"
+)
 streamplot!(
     ax,
-    u -> Point2f(u[2], -u[2]*𝒟(u[1]) - V′(u[1])),
+    u -> Point2f(u[2], -u[2] * 𝒟(u[1]) - V′(u[1])),
     -5.5 .. 5.5, -3.0 .. 3.0;
     linewidth = 0.7,
     colormap = [:gray40, :gray40],
@@ -91,8 +93,10 @@ streamplot!(
     gridsize = (32, 16),
 )
 scatter!(ax, [-x_fp, x_fp], [0.0, 0.0]; color = :red, markersize = 14, label = "stable FP")
-scatter!(ax, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
-         marker = :diamond, markersize = 12, label = "saddle")
+scatter!(
+    ax, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
+    marker = :diamond, markersize = 12, label = "saddle"
+)
 axislegend(ax; position = :rb)
 fig
 
@@ -105,8 +109,10 @@ fig
 ds = CoupledODEs(drift_kel, [0.5, 0.0])
 xg = range(-5.5, 5.5; length = 251)
 pg = range(-3.0, 3.0; length = 121)
-mapper = AttractorsViaRecurrences(ds, (xg, pg);
-    consecutive_recurrences = 200, Dt = 0.1, sparse = true)
+mapper = AttractorsViaRecurrences(
+    ds, (xg, pg);
+    consecutive_recurrences = 200, Dt = 0.1, sparse = true
+)
 basins, attractors = basins_of_attraction(mapper, (xg, pg); show_progress = false)
 
 # Identify the limit cycle as the attractor with the largest support, and the
@@ -115,23 +121,43 @@ basins, attractors = basins_of_attraction(mapper, (xg, pg); show_progress = fals
 lc_key = argmax(k -> length(attractors[k]), keys(attractors))
 lc_pts = [SA[u[1], u[2]] for u in attractors[lc_key]]
 
-right_fp_key = argmin(k -> norm([attractors[k][1][1] - x_fp,
-                                  attractors[k][1][2]]),
-                       [k for k in keys(attractors) if k != lc_key])
-left_fp_key  = argmin(k -> norm([attractors[k][1][1] + x_fp,
-                                  attractors[k][1][2]]),
-                       [k for k in keys(attractors) if k != lc_key])
+right_fp_key = argmin(
+    k -> norm(
+        [
+            attractors[k][1][1] - x_fp,
+            attractors[k][1][2],
+        ]
+    ),
+    [k for k in keys(attractors) if k != lc_key]
+)
+left_fp_key = argmin(
+    k -> norm(
+        [
+            attractors[k][1][1] + x_fp,
+            attractors[k][1][2],
+        ]
+    ),
+    [k for k in keys(attractors) if k != lc_key]
+)
 
 fig = Figure(; size = (760, 420))
-ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
-          title = "Basins of attraction")
-heatmap!(ax, xg, pg, basins;
-         colormap = Makie.Categorical(:Set2))
-scatter!(ax, [p[1] for p in lc_pts], [p[2] for p in lc_pts];
-         color = :black, markersize = 3, label = "limit cycle")
+ax = Axis(
+    fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
+    title = "Basins of attraction"
+)
+heatmap!(
+    ax, xg, pg, basins;
+    colormap = Makie.Categorical(:Set2)
+)
+scatter!(
+    ax, [p[1] for p in lc_pts], [p[2] for p in lc_pts];
+    color = :black, markersize = 3, label = "limit cycle"
+)
 scatter!(ax, [-x_fp, x_fp], [0.0, 0.0]; color = :red, markersize = 12)
-scatter!(ax, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
-         marker = :diamond, markersize = 10)
+scatter!(
+    ax, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
+    marker = :diamond, markersize = 10
+)
 axislegend(ax; position = :rt)
 fig
 
@@ -145,7 +171,7 @@ fig
 # Scharfetter–Gummel exponential-fitting finite-volume scheme; with reflecting
 # boundaries the discrete generator preserves probability mass.
 
-grid = CartesianGrid((-5.5, 5.5, 251), (-3.0, 3.0, 121))
+grid = CartesianGrid((-5.5, 5.5, 251), (-3.0, 3.0, 251))
 gen = DiffusionGenerator(sys, grid)
 @show size(gen.Q)
 @show maximum(abs, vec(sum(gen.Q; dims = 2)))  # row sums ≈ 0
@@ -165,7 +191,7 @@ ps_c = collect(grid.centers[2])
 # essentially all of the equilibrium mass and the limit cycle is metastable
 # rather than a global minimum of $\Phi$.
 
-ρ = stationary_distribution(gen, LS.KrylovJL_GMRES())
+ρ = stationary_distribution(gen, LS.UMFPACKFactorization())
 Φ = .-(D .* log.(max.(ρ, eps(Float64))))
 Φ .-= minimum(Φ)
 @show extrema(Φ)
@@ -174,17 +200,23 @@ ps_c = collect(grid.centers[2])
 qhi = quantile(filter(isfinite, vec(Φg)), 0.985)
 
 fig = Figure(; size = (820, 460))
-ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
-          title = "Quasipotential Φ = -D log ρ_ss  (D = $D)")
+ax = Axis(
+    fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
+    title = "Quasipotential Φ = -D log ρ_ss  (D = $D)"
+)
 hm = heatmap!(ax, xs_c, ps_c, Φg; colormap = :viridis, colorrange = (0, qhi))
 contour!(ax, xs_c, ps_c, Φg; levels = 14, color = (:white, 0.4), linewidth = 0.7)
-streamplot!(ax, u -> Point2f(u[2], -u[2]*𝒟(u[1]) - V′(u[1])),
-            -5.5..5.5, -3.0..3.0; gridsize = (28, 14), arrow_size = 6,
-            stepsize = 0.005, linewidth = 0.5,
-            colormap = [(:gray85, 0.6), (:gray85, 0.6)])
+streamplot!(
+    ax, u -> Point2f(u[2], -u[2] * 𝒟(u[1]) - V′(u[1])),
+    -5.5 .. 5.5, -3.0 .. 3.0; gridsize = (28, 14), arrow_size = 6,
+    stepsize = 0.005, linewidth = 0.5,
+    colormap = [(:gray85, 0.6), (:gray85, 0.6)]
+)
 scatter!(ax, [-x_fp, x_fp], [0.0, 0.0]; color = :red, markersize = 12)
-scatter!(ax, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
-         marker = :diamond, markersize = 10)
+scatter!(
+    ax, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
+    marker = :diamond, markersize = 10
+)
 Colorbar(fig[1, 2], hm; label = "Φ")
 fig
 
@@ -203,11 +235,11 @@ fig
 
 r_attr = 0.4
 near_Lfp(u) = norm(u .- SA[-x_fp, 0.0]) < r_attr
-near_Rfp(u) = norm(u .- SA[ x_fp, 0.0]) < r_attr
+near_Rfp(u) = norm(u .- SA[x_fp, 0.0]) < r_attr
 
 result = ReactiveTransition(gen, near_Lfp, near_Rfp)
 
-qplus  = forward_committor(result)
+qplus = forward_committor(result)
 qminus = backward_committor(result)
 
 # ### Forward committor
@@ -218,8 +250,10 @@ qminus = backward_committor(result)
 q2d = reshape_grid(qplus)
 
 fig = Figure(; size = (820, 460))
-ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
-          title = "Forward committor q⁺")
+ax = Axis(
+    fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
+    title = "Forward committor q⁺"
+)
 hm = heatmap!(ax, xs_c, ps_c, q2d; colormap = :coolwarm)
 contour!(ax, xs_c, ps_c, q2d; levels = [0.5], color = :black, linewidth = 2)
 scatter!(ax, [-x_fp, x_fp], [0.0, 0.0]; color = :black, markersize = 12)
@@ -251,12 +285,16 @@ mag = sqrt.(ux .^ 2 .+ uy .^ 2)
 mmax = maximum(mag)
 
 fig = Figure(; size = (820, 460))
-ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
-          title = "Reactive current J_R")
+ax = Axis(
+    fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
+    title = "Reactive current J_R"
+)
 heatmap!(ax, xs_c, ps_c, q2d; colormap = :coolwarm, alpha = 0.7)
-arrows2d!(ax, vec(xq), vec(yq),
-          vec(ux ./ (mmax + eps())), vec(uy ./ (mmax + eps()));
-          color = :black, lengthscale = 0.18)
+arrows2d!(
+    ax, vec(xq), vec(yq),
+    vec(ux ./ (mmax + eps())), vec(uy ./ (mmax + eps()));
+    color = :black, lengthscale = 0.18
+)
 fig
 
 # ### Mean first-passage time
@@ -269,12 +307,16 @@ target = u -> near_Lfp(u) || near_Rfp(u)
 τ2d = reshape_grid(τ)
 
 fig = Figure(; size = (820, 460))
-ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
-          title = "Mean first-passage time to either FP")
+ax = Axis(
+    fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
+    title = "Mean first-passage time to either FP"
+)
 hm = heatmap!(ax, xs_c, ps_c, τ2d; colormap = :plasma)
 contour!(ax, xs_c, ps_c, τ2d; levels = 8, color = (:white, 0.3), linewidth = 0.7)
-scatter!(ax, [p[1] for p in lc_pts], [p[2] for p in lc_pts];
-         color = :white, markersize = 1.5)
+scatter!(
+    ax, [p[1] for p in lc_pts], [p[2] for p in lc_pts];
+    color = :white, markersize = 1.5
+)
 Colorbar(fig[1, 2], hm; label = "τ")
 fig
 
@@ -290,7 +332,7 @@ fig
 
 for r in (0.3, 0.4, 0.5, 0.6)
     local Ar = u -> norm(u .- SA[-x_fp, 0.0]) < r
-    local Br = u -> norm(u .- SA[ x_fp, 0.0]) < r
+    local Br = u -> norm(u .- SA[x_fp, 0.0]) < r
     local res_r = ReactiveTransition(gen, Ar, Br)
     println("r = $r → reactive_rate ≈ $(reactive_rate(res_r))")
 end

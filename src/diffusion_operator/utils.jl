@@ -1,21 +1,7 @@
-# =====================================================================
-# Internal numerical helpers used by [`DiffusionGenerator`](@ref) and the
-# Layer-3 analyses on it. Operators are passed in CTMC convention:
-# positive off-diagonals (transition rates), negative diagonal, row sums
-# zero. The helpers here are sign-agnostic — they work on any sparse
-# matrix that annihilates the constant function — so they apply equally
-# to the M-matrix view (`-gen.Q`).
-# =====================================================================
-
 """
 $(TYPEDSIGNATURES)
 
-Bernoulli function `B(z) = z / (eᶻ - 1)` with `B(0) = 1`. Uses a Taylor
-expansion for `|z| < 1e-2` to preserve precision near the origin.
-
-Underpins the Scharfetter–Gummel exponential-fitting finite-volume scheme:
-it interpolates between centered-difference (Pe → 0) and upwind (Pe → ∞)
-face stencils.
+Bernoulli function `B(z) = z / (exp(z) - 1)` with `B(0) = 1`.
 """
 @inline function _bernoulli(z::Float64)
     az = abs(z)
@@ -32,10 +18,8 @@ end
 """
 $(TYPEDSIGNATURES)
 
-In-place: zero all structural non-zeros in rows where `mask` is `true`,
-then set the diagonal of those rows to `1`. Used to impose Dirichlet
-boundary conditions on a sparse linear system without disturbing the
-sparsity pattern of the free rows.
+Impose Dirichlet rows in-place by zeroing masked rows and setting their
+diagonal to one.
 """
 function _enforce_dirichlet_rows!(A::SparseMatrixCSC{Float64, Int}, mask::BitVector)
     rv = rowvals(A)
@@ -55,21 +39,13 @@ end
 $(TYPEDSIGNATURES)
 
 Solve the linear system `A q = b` subject to Dirichlet conditions
-`q[mask] = values[mask]`, returning the full `q::Vector{Float64}` of length
-`size(A, 1)`. Pass `source` to set the right-hand side on free rows;
-defaults to zero (i.e. solves the homogeneous problem `A q = 0` with
-Dirichlet BCs). Sign-agnostic — works for both CTMC generators and PDE
-M-matrices.
-
-Default `alg` is `UMFPACKFactorization()` (sparse direct LU). Pass any
-`SciMLLinearSolveAlgorithm` (e.g. `KrylovJL_GMRES()`) for an iterative
-solver; further kwargs flow to `LinearSolve.solve`.
+`q[mask] = values[mask]`. `source` sets the free-row right-hand side.
 """
 function _solve_dirichlet(
         A::SparseMatrixCSC{Float64, Int},
         mask::BitVector,
         values::Vector{Float64},
-        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
+        alg = UMFPACKFactorization();
         source::Union{Nothing, Vector{Float64}} = nothing,
         kwargs...,
     )::Vector{Float64}
@@ -95,8 +71,8 @@ flow to `LinearSolve.solve`.
 """
 function _invariant_density(
         G::SparseMatrixCSC{Float64, Int}, weights::Vector{Float64},
-        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
-        pin_row::Int = 1, kwargs...,
+        alg = UMFPACKFactorization();
+        pin_row::Int = 1, clamp_negative::Bool = true, kwargs...,
     )::Vector{Float64}
     N = size(G, 1)
     length(weights) == N || throw(
@@ -109,8 +85,8 @@ function _invariant_density(
     A[pin_row, :] .= weights
     rhs[pin_row] = 1.0
 
-    ρ = solve(LinearProblem(A, rhs), alg; kwargs...).u
-    clamp!(ρ, 0.0, Inf)
+    ρ = Vector{Float64}(solve(LinearProblem(A, rhs), alg; kwargs...).u)
+    clamp_negative && clamp!(ρ, 0.0, Inf)
     tot = dot(ρ, weights)
     tot > 0 && (@. ρ = ρ / tot)
     return ρ

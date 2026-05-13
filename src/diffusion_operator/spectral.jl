@@ -1,26 +1,3 @@
-# =====================================================================
-# Eigensolve backends for the diffusion-generator analyses.
-#
-# Three backends, picked by the `alg` positional argument:
-#
-#   • a `LinearSolve.SciMLLinearSolveAlgorithm` (or `nothing` for
-#     LinearSolve's default UMFPACK) — solves the pinned linear system
-#     `Qᵀ ρ = 0, ∫ρ = 1`. Only applicable where the target eigenvalue is
-#     known (`λ = 0` for `stationary_distribution`). Kwargs flow to
-#     `LinearSolve.solve`.
-#
-#   • `DenseEigen()` — `LinearAlgebra.eigen` on `Matrix(Q)`. Returns
-#     every eigenpair; bounded by O(N²) storage. Applicable everywhere.
-#
-#   • `KrylovKitSolver()` — `KrylovKit.eigsolve` with shift-invert
-#     through LinearSolve. Workhorse for large sparse problems and for
-#     any analysis where the target eigenvalue is unknown a priori
-#     (`quasi_stationary_distribution`, `eigenmodes`). Kwargs flow to
-#     `KrylovKit.eigsolve`; the inner shift-invert linear solve uses
-#     LinearSolve's default and can be redirected via the `inner_alg`
-#     kwarg.
-# =====================================================================
-
 """
 $(TYPEDEF)
 
@@ -81,8 +58,10 @@ function (M::ShiftInvertMap)(x::AbstractVector)
     return _apply_shift_invert!(y, M, x)
 end
 
-function _build_shift_invert(A::AbstractMatrix, σ::Number,
-        inner_alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization())
+function _build_shift_invert(
+        A::AbstractMatrix, σ::Number,
+        inner_alg = UMFPACKFactorization()
+    )
     n = size(A, 1)
     T = promote_type(eltype(A), typeof(σ), Float64)
     Aσ = sparse(A - σ * I)
@@ -109,7 +88,7 @@ end
 function _principal_eigenpair(
         A::AbstractMatrix, ::KrylovKitSolver;
         σ::Number = 0.0, v0::Union{Nothing, AbstractVector} = nothing,
-        inner_alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization(),
+        inner_alg = UMFPACKFactorization(),
         kwargs...,
     )
     n = size(A, 1)
@@ -124,12 +103,6 @@ function _principal_eigenpair(
     λ = σ_eff + 1 / vals_μ[1]
     return λ, real.(vecs_μ[1])
 end
-
-# =====================================================================
-# Spectral analysis of a DiffusionGenerator. The eigenvalues of `Q` have
-# non-positive real part; the largest is exactly zero with eigenvector
-# `1`, and the next ones decay at rates set by the spectral gap.
-# =====================================================================
 
 """
 $(TYPEDSIGNATURES)
@@ -164,21 +137,27 @@ Passing a `LinearSolve.SciMLLinearSolveAlgorithm` is rejected: the
 target eigenvalues are unknown a priori, so a single linear solve is
 insufficient.
 """
-function eigenmodes(gen::DiffusionGenerator, k::Integer = 10,
-        alg::Union{DenseEigen, KrylovKitSolver} = KrylovKitSolver(); kwargs...)
+function eigenmodes(
+        gen::DiffusionGenerator, k::Integer = 10,
+        alg::Union{DenseEigen, KrylovKitSolver} = KrylovKitSolver(); kwargs...
+    )
     N = size(gen.Q, 1)
     k >= 1 || throw(ArgumentError("k must be ≥ 1"))
     k = min(k, N)
     return _eigenmodes(gen.Q, k, alg; kwargs...)
 end
 
-function eigenmodes(::DiffusionGenerator, _k::Integer,
-        ::SciMLLinearSolveAlgorithm; kwargs...)
-    throw(ArgumentError(
-        "eigenmodes: a `SciMLLinearSolveAlgorithm` is not a valid backend " *
-            "because the target eigenvalues are unknown a priori. " *
-            "Use `KrylovKitSolver()` (default) or `DenseEigen()`."
-    ))
+function eigenmodes(
+        ::DiffusionGenerator, _k::Integer,
+        alg; kwargs...
+    )
+    throw(
+        ArgumentError(
+            "eigenmodes: a `SciMLLinearSolveAlgorithm` is not a valid backend " *
+                "because the target eigenvalues are unknown a priori. " *
+                "Use `KrylovKitSolver()` (default) or `DenseEigen()`."
+        )
+    )
 end
 
 function _eigenmodes(Q::SparseMatrixCSC, k::Integer, ::DenseEigen; kwargs...)
@@ -188,8 +167,9 @@ function _eigenmodes(Q::SparseMatrixCSC, k::Integer, ::DenseEigen; kwargs...)
     return F.values[inds], F.vectors[:, inds]
 end
 
-function _eigenmodes(Q::SparseMatrixCSC, k::Integer, ::KrylovKitSolver;
-        inner_alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization(),
+function _eigenmodes(
+        Q::SparseMatrixCSC, k::Integer, ::KrylovKitSolver;
+        inner_alg = UMFPACKFactorization(),
         v0::Union{Nothing, AbstractVector} = nothing,
         kwargs...,
     )

@@ -1,24 +1,20 @@
 """
 $(TYPEDEF)
 
-Bundled transition-path-theory result on a [`DiffusionGenerator`](@ref).
-Carries the generator, the metastable-set masks, and the cached committor /
-invariant-density / rate solutions. The reactive rate is computed once at
-construction and cached as a field; vector-valued derived quantities
-(`reactive_density`, `reactive_current`) stay on demand.
+Transition-path-theory result for transitions from set `A` to set `B`.
 
-Internally calls the Layer-3 analyses
-([`stationary_distribution`](@ref), [`forward_committor`](@ref),
-[`backward_committor`](@ref)) and bundles their outputs together with the
-A → B reactive rate.
+`ReactiveTransition` stores the generator, set masks, invariant density,
+forward and backward committors, discrete adjoint generator, and reactive
+rate. It represents the stationary ensemble of trajectories that most
+recently left `A` and will hit `B` before returning to `A`.
 
 # Fields
 $(TYPEDFIELDS)
 
 # Construction
 ```julia
-ReactiveTransition(gen::DiffusionGenerator, A, B; reverse=nothing)
-ReactiveTransition(sys::CoupledSDEs, grid::CartesianGrid, A, B; reverse=nothing)
+ReactiveTransition(gen::DiffusionGenerator, A, B; alg=UMFPACKFactorization(), reverse=nothing)
+ReactiveTransition(sys::CoupledSDEs, grid, A, B; bc=Reflecting(), reverse=nothing)
 ```
 The first form takes a pre-built [`DiffusionGenerator`](@ref) — useful for
 sweeping multiple `(A, B)` pairs without rediscretising. The second is a
@@ -34,15 +30,25 @@ If `reverse` is provided (a `CoupledSDEs` for the high-level form, a
 computed on that physical reverse-drift generator instead of the discrete
 adjoint.
 
+
+```julia
+res = ReactiveTransition(gen, x -> x[1] < -1, x -> x[1] > 1)
+k = reactive_rate(res)
+J_nodes, J_faces = reactive_current(res)
+```
+
 Default `alg` is `UMFPACKFactorization()` (sparse direct LU) for all
 internal solves. Pass any `SciMLLinearSolveAlgorithm` (e.g.
 `KrylovJL_GMRES()`) for an iterative solver — useful for large grids
 where direct LU runs out of memory. Further kwargs flow to
 `LinearSolve.solve`.
+
+See also [`forward_committor`](@ref), [`backward_committor`](@ref),
+[`reactive_density`](@ref), and [`reactive_current`](@ref).
 """
-struct ReactiveTransition{D}
+struct ReactiveTransition{D, BC}
     "The diffusion generator the analysis was built on."
-    generator::DiffusionGenerator{D}
+    generator::DiffusionGenerator{D, BC}
     "Boolean mask selecting cells in set A (length `ncells(grid)`)."
     A_mask::BitVector
     "Boolean mask selecting cells in set B (length `ncells(grid)`)."
@@ -64,8 +70,8 @@ end
 function ReactiveTransition(
         gen::DiffusionGenerator{D},
         A,
-        B,
-        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
+        B;
+        alg = UMFPACKFactorization(),
         reverse::Union{Nothing, DiffusionGenerator{D}} = nothing,
         kwargs...,
     ) where {D}
@@ -82,7 +88,7 @@ function ReactiveTransition(
     Q = gen.Q
     weights = fill(cell_volume(grid), ncells(gen))
 
-    ρ = _invariant_density(Q, weights, alg; kwargs...)
+    ρ = stationary_distribution(gen, alg; kwargs...)
     qplus = _forward_committor(Q, A_mask, B_mask, alg; kwargs...)
     Qadj = _adjoint_generator(Q, ρ)
 
@@ -90,35 +96,23 @@ function ReactiveTransition(
         qminus = _backward_committor_explicit(Qadj, A_mask, B_mask, alg; kwargs...)
         physical_reverse = false
     else
-        reverse.grid == gen.grid || throw(
-            ArgumentError(
-                "reverse generator must be defined on the same grid as gen",
-            ),
-        )
-        reverse.bc == gen.bc || throw(
-            ArgumentError(
-                "reverse generator must use the same boundary conditions as gen",
-            ),
-        )
-        size(reverse.Q) == size(gen.Q) || throw(
-            ArgumentError(
-                "reverse generator must have the same matrix size as gen",
-            ),
-        )
+        _check_reverse_generator(gen, reverse)
         qminus = _backward_committor_explicit(reverse.Q, A_mask, B_mask, alg; kwargs...)
         physical_reverse = true
     end
 
     rate = _reactive_rate(Q, ρ, qplus, qminus, weights, A_mask)
-    return ReactiveTransition{D}(gen, A_mask, B_mask, ρ, qplus, qminus, Qadj, rate, physical_reverse)
+    return ReactiveTransition{D, typeof(gen.bc)}(
+        gen, A_mask, B_mask, ρ, qplus, qminus, Qadj, rate, physical_reverse,
+    )
 end
 
 function ReactiveTransition(
         sys::CoupledSDEs,
         grid::CartesianGrid{D},
         A,
-        B,
-        alg::SciMLLinearSolveAlgorithm = UMFPACKFactorization();
+        B;
+        alg = UMFPACKFactorization(),
         reverse::Union{Nothing, CoupledSDEs} = nothing,
         bc = Reflecting(),
         kwargs...,
@@ -126,12 +120,8 @@ function ReactiveTransition(
     gen = DiffusionGenerator(sys, grid; bc = bc)
     gen_rev =
         reverse === nothing ? nothing : DiffusionGenerator(reverse, grid; bc = bc)
-    return ReactiveTransition(gen, A, B, alg; reverse = gen_rev, kwargs...)
+    return ReactiveTransition(gen, A, B; alg, reverse = gen_rev, kwargs...)
 end
-
-# =====================================================================
-# Cached accessors (constant-time field reads)
-# =====================================================================
 
 @inline forward_committor(r::ReactiveTransition) = r.qplus
 @inline backward_committor(r::ReactiveTransition) = r.qminus
@@ -141,24 +131,21 @@ end
 $(TYPEDSIGNATURES)
 
 A → B **reactive transition rate** ``k_{AB}``: events per unit time, the
-rate at which probability leaves `A` along reactive trajectories. Cached
-on the [`ReactiveTransition`](@ref) — constant-time field read.
+rate at which probability leaves `A` along reactive trajectories.
 
 In CTMC form,
 
     k_{AB} = ∑_{i ∈ A, j ∉ A} ρ[i] · v · q⁻[i] · Q[i, j] · q⁺[j] ,
 
-with `v = cell_volume(grid)`. By Vanden-Eijnden's identity the sum over
-`{i ∉ B, j ∈ B}` (the boundary of `B`) gives the same value to solver
-tolerance.
+with `v = cell_volume(grid)`.
 """
 @inline reactive_rate(r::ReactiveTransition) = r.rate
 
 """
 $(TYPEDSIGNATURES)
 
-Per-cell reactive density `ρ[i] · q⁺[i] · q⁻[i]` (probability per unit
-volume). For the integrated reactive probability use
+Per-cell reactive density `ρ[i] * q⁺[i] * q⁻[i]`. This is a density per unit volume.
+For the integrated reactive probability use
 [`probability_reactive`](@ref).
 """
 reactive_density(r::ReactiveTransition) = r.ρ .* r.qplus .* r.qminus
@@ -166,7 +153,11 @@ reactive_density(r::ReactiveTransition) = r.ρ .* r.qplus .* r.qminus
 """
 $(TYPEDSIGNATURES)
 
-Total reactive probability `∫ ρ · q⁺ · q⁻ dV` integrated over the grid.
+Total reactive probability integrated over the grid.
+This is the stationary probability that the process is currently on a
+reactive segment from `A` to `B`.
+
+See also [`reactive_density`](@ref).
 """
 function probability_reactive(r::ReactiveTransition)::Float64
     v = cell_volume(r.generator.grid)
@@ -180,8 +171,10 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Total probability that the most recent metastable visit was set A:
-`∫ ρ · q⁻ dV`.
+Total probability that the most recent metastable visit was set `A`.
+
+The complementary probability is the chance that the most recent visit was
+`B`.
 """
 function probability_last_A(r::ReactiveTransition)::Float64
     return cell_volume(r.generator.grid) * dot(r.ρ, r.qminus)
@@ -208,8 +201,8 @@ The face flux from `n` to `m` is `μ[n] · q⁻[n] · Q[n, m] · q⁺[m]`, where
 For non-equilibrium systems the current splits into a reversible
 (gradient-flow) part and an irreversible (cyclic) part — see
 [`reactive_current_reversible`](@ref) and
-[`reactive_current_irreversible`](@ref). The three currents satisfy
-`J_full = J_rev + J_irr` componentwise.
+[`reactive_current_irreversible`](@ref) to split gradient-flow and cyclic
+components.
 """
 function reactive_current(r::ReactiveTransition)
     return _reactive_current_from_Q(
@@ -224,14 +217,11 @@ Reversible (gradient-flow) part of the reactive current. Built from the
 symmetric part of the generator, `Q_sym = (Q + Q̃)/2`, where `Q̃` is the
 discrete adjoint with respect to the invariant density. For a reversible
 system this equals the full [`reactive_current`](@ref).
-
-Returns `(J_nodes, J_faces)` with the same shapes as
-[`reactive_current`](@ref).
 """
 function reactive_current_reversible(r::ReactiveTransition)
-    Qsym = (r.generator.Q + r.Qadj) ./ 2
-    return _reactive_current_from_Q(
-        Qsym, r.ρ, r.qplus, r.qminus, r.generator.grid, r.generator.bc,
+    return _reactive_current_from_Qs(
+        (r.generator.Q, r.Qadj), (0.5, 0.5),
+        r.ρ, r.qplus, r.qminus, r.generator.grid, r.generator.bc,
     )
 end
 
@@ -248,14 +238,34 @@ Returns `(J_nodes, J_faces)` with the same shapes as
 [`reactive_current`](@ref).
 """
 function reactive_current_irreversible(r::ReactiveTransition)
-    Qanti = (r.generator.Q - r.Qadj) ./ 2
-    return _reactive_current_from_Q(
-        Qanti, r.ρ, r.qplus, r.qminus, r.generator.grid, r.generator.bc,
+    return _reactive_current_from_Qs(
+        (r.generator.Q, r.Qadj), (0.5, -0.5),
+        r.ρ, r.qplus, r.qminus, r.generator.grid, r.generator.bc,
     )
 end
 
 function _reactive_current_from_Q(
         Q::SparseMatrixCSC{Float64, Int},
+        ρ::Vector{Float64},
+        qplus::Vector{Float64},
+        qminus::Vector{Float64},
+        grid::CartesianGrid{D},
+        bc::Tuple,
+    ) where {D}
+    return _reactive_current_from_Qs((Q,), (1.0,), ρ, qplus, qminus, grid, bc)
+end
+
+@inline function _edge_rate(Qs::Tuple, coeffs::Tuple, i::Int, j::Int)
+    rate = 0.0
+    @inbounds for k in eachindex(Qs)
+        rate += coeffs[k] * Qs[k][i, j]
+    end
+    return rate
+end
+
+function _reactive_current_from_Qs(
+        Qs::Tuple,
+        coeffs::Tuple,
         ρ::Vector{Float64},
         qplus::Vector{Float64},
         qminus::Vector{Float64},
@@ -286,8 +296,8 @@ function _reactive_current_from_Q(
             m = LI[J]
             μn = ρ[n] * v
             μm = ρ[m] * v
-            flux_nm = μn * qminus[n] * Q[n, m] * qplus[m]
-            flux_mn = μm * qminus[m] * Q[m, n] * qplus[n]
+            flux_nm = μn * qminus[n] * _edge_rate(Qs, coeffs, n, m) * qplus[m]
+            flux_mn = μm * qminus[m] * _edge_rate(Qs, coeffs, m, n) * qplus[n]
             Jk[I] = (flux_nm - flux_mn) / hk
         end
     end
@@ -326,4 +336,38 @@ function _reactive_current_from_Q(
     end
 
     return J_nodes, J_faces
+end
+
+"""
+$(TYPEDSIGNATURES)
+
+A → B reactive transition rate from a CTMC generator `G` (positive
+off-diagonals = transition rates):
+
+    k_{AB} = ∑_{i ∈ A, j ∉ A} ρ[i] · v[i] · q⁻[i] · G[i, j] · q⁺[j] .
+
+Computed in `O(nnz(G))` by walking sparse columns once.
+"""
+function _reactive_rate(
+        G::SparseMatrixCSC{Float64, Int},
+        ρ::Vector{Float64},
+        qplus::Vector{Float64},
+        qminus::Vector{Float64},
+        weights::Vector{Float64},
+        A_mask::BitVector,
+    )::Float64
+    rv = rowvals(G)
+    nz = nonzeros(G)
+    rate = 0.0
+    @inbounds for col in 1:size(G, 2)
+        A_mask[col] && continue
+        qpc = qplus[col]
+        for p in nzrange(G, col)
+            row = rv[p]
+            row != col || continue
+            A_mask[row] || continue
+            rate += ρ[row] * weights[row] * qminus[row] * nz[p] * qpc
+        end
+    end
+    return rate
 end

@@ -26,7 +26,7 @@ struct Absorbing <: BoundaryCondition end
 """
 $(TYPEDEF)
 
-The discretised infinitesimal generator of an autonomous Itô diffusion on a
+The discretised generator of an autonomous Itô diffusion on a
 [`CartesianGrid`](@ref), built by the Scharfetter–Gummel exponential-
 fitting finite-volume scheme.
 
@@ -60,13 +60,6 @@ Discretises the SDE's backward Kolmogorov operator on `grid`. Drift `b(x)`
 is read via [`drift`](@ref); diffusion is read once from
 `covariance_matrix(sys)` and must be diagonal (axis-aligned noise).
 
-Each axis-aligned face contributes
-
-    Q[n, m] = ε / h_k² · B(-z) ,    Q[m, n] = ε / h_k² · B(z)
-
-with `ε = Σ_kk / 2`, `z = b_k(x_face) · h_k / ε`, `B(z) = z / (eᶻ - 1)` the
-Bernoulli function. The drift component `b_k` at the face center is averaged
-from its two adjacent cell-center values.
 
 `bc` controls how the outer grid faces are treated and is a singleton
 [`BoundaryCondition`](@ref) instance applied to every axis, or a
@@ -78,7 +71,7 @@ from its two adjacent cell-center values.
   same axis.
 - [`Absorbing`](@ref)`()` — boundary cells leak probability through their
   outer faces. `Q` is a sub-generator (row sums on the boundary become
-  negative). Useful for survival problems.
+  negative).
 """
 struct DiffusionGenerator{D, BC <: Tuple}
     "The Cartesian grid the generator lives on."
@@ -109,6 +102,11 @@ function _diagonal_diffusion(sys::CoupledSDEs, ::Val{D}) where {D}
             )
         end
     end
+    @inbounds for k in 1:D
+        Σ[k, k] >= 0 || throw(
+            ArgumentError("diffusion covariance diagonal Σ[$k,$k] must be non-negative"),
+        )
+    end
     return SVector{D, Float64}(ntuple(k -> Σ[k, k], D))
 end
 
@@ -138,9 +136,8 @@ _normalize_bc(bc, ::Val{D}) where {D} = throw(
     ),
 )
 
-# Internal builder for the SG finite-volume sparse matrix.
-# `sign = +1` produces the rate matrix / generator (off-diagonals ≥ 0).
-# `sign = -1` produces the M-matrix form (off-diagonals ≤ 0).
+# Assemble the SG finite-volume sparse matrix. `sign = -1` gives the
+# corresponding M-matrix convention.
 function _assemble_generator(
         sys::CoupledSDEs,
         grid::CartesianGrid{D},
@@ -162,9 +159,7 @@ function _assemble_generator(
         end
     end
 
-    # Generous upper bound on non-zeros: 2 directed edges per face + 1 diagonal
-    # per cell. With periodic, +k boundary cells get one extra wraparound face
-    # along that axis.
+    # Upper bound: two directed entries per face plus one diagonal per cell.
     nz_max = 2 * D * N + N
     rows = Vector{Int}(undef, nz_max)
     cols = Vector{Int}(undef, nz_max)
@@ -181,7 +176,7 @@ function _assemble_generator(
         fk = drift_components[k]
         bc_k = bc[k]
 
-        # Helper closure for the SG (or upwind) face rates given a face drift.
+        # SG rates for diffusive faces; upwind rates for deterministic axes.
         face_rates(bf::Float64) = if Dk > 0
             z = bf * h_ε
             (ε_h2 * _bernoulli(-z), ε_h2 * _bernoulli(z))
@@ -204,13 +199,10 @@ function _assemble_generator(
                 diagacc[n] -= sign * rate_nm
                 diagacc[m] -= sign * rate_mn
             else
-                # I[k] == nbox[k]: handle boundary on the +k side.
                 if bc_k isa Reflecting
                     # nothing to do
                 elseif bc_k isa Periodic
-                    # Wraparound face from the last cell along axis k to the
-                    # first. Drift averaged across the wrap (treated like an
-                    # ordinary face).
+                    # Wraparound face from the last cell to the first.
                     J = CartesianIndex(ntuple(d -> d == k ? 1 : I[d], D))
                     n = LI[I]
                     m = LI[J]
@@ -223,8 +215,7 @@ function _assemble_generator(
                     diagacc[n] -= sign * rate_nm
                     diagacc[m] -= sign * rate_mn
                 elseif bc_k isa Absorbing
-                    # Outflow through the +k wall using the cell-center drift
-                    # as a face-drift approximation. Mass leaves the system.
+                    # Outflow through the +k wall.
                     n = LI[I]
                     rate_out, _ = face_rates(fk[I])
                     diagacc[n] -= sign * rate_out
@@ -232,8 +223,7 @@ function _assemble_generator(
             end
         end
 
-        # -k wall: only matters for absorbing (reflecting omits it; periodic
-        # is already handled by the wraparound face above).
+        # -k wall only contributes for absorbing boundaries.
         if bc_k isa Absorbing
             for I in CartesianIndices(nbox)
                 I[k] == 1 || continue
@@ -265,46 +255,33 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Rate matrix of `gen`: returns `gen.Q`. The same matrix is the **discrete
-backward Kolmogorov / generator** — it acts on observables `u` via
-`du/dt = Q u`, and the committor / mean first-passage time / other
-backward-Kolmogorov BVPs are linear systems built on it.
+Rate matrix of `gen`: returns `gen.Q`, also called the **discrete
+backward Kolmogorov / generator**.
 
-In CTMC terminology the off-diagonals are transition rates between
-adjacent cells, the diagonal is minus the escape rate, and rows sum to
-zero. For the PDE M-matrix sign convention see [`m_matrix`](@ref); for the
+The off-diagonals are transition rates between adjacent cells, the diagonal is minus the
+escape rate. For the PDE M-matrix sign convention see [`m_matrix`](@ref); for the
 forward Kolmogorov / Fokker–Planck operator (acts on densities), see
 [`fokker_planck_operator`](@ref).
 """
-@inline rate_matrix(gen::DiffusionGenerator) = gen.Q
+@inline rate_matrix(generator::DiffusionGenerator) = generator.Q
 
 """
 $(TYPEDSIGNATURES)
 
-M-matrix view of `gen`: returns `-gen.Q`, a sparse matrix with positive
-diagonal, non-positive off-diagonals, and row sums zero. The committor
-satisfies the homogeneous linear system `(M-matrix) q = 0` with Dirichlet
-boundary conditions; the same operator is used for mean first-passage
-times, spectral analysis, and other backward-Kolmogorov problems.
-
-Equivalent to `-rate_matrix(gen)`. Allocates a fresh sparse matrix.
+M-matrix of the `generator`. Equivalent to `-rate_matrix(gen)`.
 """
-m_matrix(gen::DiffusionGenerator) = -gen.Q
+m_matrix(generator::DiffusionGenerator) = -generator.Q
 
 """
 $(TYPEDSIGNATURES)
 
 Discrete **Fokker–Planck operator** (forward Kolmogorov operator) of
-`gen`: returns `transpose(gen.Q)` materialised as a fresh sparse matrix.
+`generator`.
 
 It acts on probability densities: the discrete Fokker–Planck equation is
 
     dρ/dt = fokker_planck_operator(gen) * ρ ,
 
-and the invariant density solves `fokker_planck_operator(gen) * ρ = 0`
-(plus the normalisation `dot(ρ, fill(cell_volume(gen), N)) = 1`). For the
-same density `ρ` and the relevant boundary conditions, the dual quantities
-on observables (committors, MFPT) come from the backward operator
-[`rate_matrix`](@ref).
+and the invariant density solves `fokker_planck_operator(gen) * ρ = 0`.
 """
-fokker_planck_operator(gen::DiffusionGenerator) = sparse(transpose(gen.Q))
+fokker_planck_operator(generator::DiffusionGenerator) = sparse(transpose(generator.Q))

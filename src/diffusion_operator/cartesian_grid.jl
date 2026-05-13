@@ -1,9 +1,7 @@
 """
 $(TYPEDEF)
 
-A `D`-dimensional uniform axis-aligned Cartesian grid. Fully concrete and
-parameterised over the dimension `D`, so all subsequent operations (chain
-assembly, Cartesian indexing, accessors) specialise at compile time.
+A `D`-dimensional uniform axis-aligned Cartesian grid.
 
 # Fields
 $(TYPEDFIELDS)
@@ -12,8 +10,7 @@ $(TYPEDFIELDS)
 ```julia
 CartesianGrid((u_lo, u_hi, N_u), (v_lo, v_hi, N_v), ...)
 ```
-Each axis is given as `(lo, hi, N)` and produces `N` cells of equal width
-covering `[lo, hi]`.
+Each axis is `(lo, hi, N)` and creates `N` equal-width cells.
 """
 struct CartesianGrid{D}
     "Number of cells along each axis."
@@ -66,7 +63,7 @@ Volume of one cell (product of axis spacings).
 """
 $(TYPEDSIGNATURES)
 
-`SVector{D, Float64}` of the center coordinates of cell `I`.
+Center coordinates of cell `I` of `grid`.
 """
 @inline function cell_center(grid::CartesianGrid{D}, I::CartesianIndex{D}) where {D}
     return SVector{D, Float64}(ntuple(d -> grid.centers[d][I[d]], D))
