@@ -103,9 +103,7 @@ using CriticalTransitions, Test
             corr = CoupledSDEs(f, zeros(2); covariance = [1 0.3; 0.3 1])
             corr_alt = CoupledSDEs(f, zeros(2); g = g, noise_prototype = zeros(2, 2))
             @test corr.noise_type == corr_alt.noise_type
-            @test all(
-                corr.integ.g(zeros(2), (), 0.0) .== corr_alt.integ.g(zeros(2), (), 0.0)
-            )
+            @test diffusion_matrix(corr) == diffusion_matrix(corr_alt)
         end
 
         @testset "ArgumentError" begin
