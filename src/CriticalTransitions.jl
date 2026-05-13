@@ -32,7 +32,8 @@ using DynamicalSystemsBase:
     current_parameters,
     set_parameters!,
     initial_time,
-    integrator
+    integrator,
+    referrenced_sciml_prob
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
