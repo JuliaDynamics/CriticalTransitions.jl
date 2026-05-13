@@ -2,3 +2,4 @@
 nd = "nd"
 Lamba = "Lamba"
 referrenced = "referrenced" # until https://github.com/JuliaDynamics/DynamicalSystemsBase.jl/pull/236 is merged and released
+BA = "BA" # rate-constant subscript k_BA (B → A reactive rate)

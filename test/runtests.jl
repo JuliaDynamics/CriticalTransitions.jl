@@ -32,6 +32,10 @@ end
     include("largedeviations/interpolate.jl")
 end
 
+@testset "Diffusion operator" begin
+    include("diffusion_operator.jl")
+end
+
 @testset "Transition Path Theory" begin
     include("transition_path_theory.jl")
 end
@@ -49,12 +53,6 @@ end
 # @testset "R-tipping" begin
 #     include("r_tipping/RateSystem.jl")
 # end
-
-@testset "Extensions" begin
-    @testset "DistMesh2D" begin
-        include("ext/DistMesh2D.jl")
-    end
-end
 
 @testset "Doctests" begin
     using Documenter
