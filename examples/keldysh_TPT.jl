@@ -12,6 +12,37 @@
 # 3. apply Transition Path Theory: forward committor, reactive density and
 #    current, and the mean first-passage time.
 #
+# ## Noise-strength regimes
+#
+# The single dimensionless control parameter is $D/\Delta\Phi$, the ratio of
+# the noise strength to the quasipotential barrier $\Delta\Phi$ between
+# attractors. Two regimes, two complementary mathematical frameworks:
+#
+# **Large-deviation regime ($D \ll \Delta\Phi$).** Freidlin–Wentzell theory:
+# trajectories follow the deterministic flow except for rare excursions along
+# instanton (minimum-action) paths. Mean first-passage times scale as
+# $\tau \sim e^{\Delta\Phi/D}$ (Kramers/Arrhenius); the stationary density
+# $\rho_{ss} \sim e^{-\Phi/D}$ concentrates on attractors. The *geometry* of
+# the transition (instanton, separatrix, reactive tube) becomes $D$-independent
+# in this limit; only the absolute rate diverges.
+#
+# **TPT regime (any $D > 0$).** Transition Path Theory does not require an
+# asymptotic limit. At finite $D$ the committor's transition layer across the
+# saddle has width $\sim\sqrt{D}$, reactive currents spread over a tube rather
+# than collapse onto a curve, and absolute rates remain numerically
+# representable. This is the natural setting for a grid-based
+# diffusion-generator solve like the one below.
+#
+# To resolve the asymptotic large-deviation picture with this method, push $D$
+# low enough that $\Delta\Phi/D \gtrsim 10$ while keeping $D$ large enough that
+# (i) the stationary density does not underflow double precision
+# ($\Phi_{\max}/D \lesssim 700$) and (ii) the saddle boundary layer is
+# resolved by the grid ($\sqrt{D} \gtrsim \Delta x$). For the parameters below,
+# $D \in [0.02, 0.1]$ is the practical sweet spot; the script uses $D = 0.1$,
+# already deep in the large-deviation regime ($\Delta\Phi/D \approx 42$). The
+# strict $D \to 0$ limit is better attacked with instanton solvers (geometric
+# minimum action method, string method) than by refining this PDE.
+#
 # ## Model
 #
 # The SDE comes from the Keldysh action
@@ -47,7 +78,7 @@ const γ = 0.03
 const μ = 0.1
 const α₃ = -0.25
 const α₅ = 0.01
-const D = 0.1  # noise strength D in the action; momentum noise = √(2D)
+const D = 0.05  # noise strength D in the action; momentum noise = √(2D)
 
 𝒟(x) = γ - μ * (1 - x^2)
 V′(x) = ω₀^2 * x + α₃ * x^3 + α₅ * x^5
@@ -171,7 +202,7 @@ fig
 # Scharfetter–Gummel exponential-fitting finite-volume scheme; with reflecting
 # boundaries the discrete generator preserves probability mass.
 
-grid = CartesianGrid((-5.5, 5.5, 251), (-3.0, 3.0, 251))
+grid = CartesianGrid((-5.5, 5.5, 501), (-2.0, 2.0, 301))
 gen = DiffusionGenerator(sys, grid)
 @show size(gen.Q)
 @show maximum(abs, vec(sum(gen.Q; dims = 2)))  # row sums ≈ 0
@@ -191,7 +222,19 @@ ps_c = collect(grid.centers[2])
 # essentially all of the equilibrium mass and the limit cycle is metastable
 # rather than a global minimum of $\Phi$.
 
-ρ = stationary_distribution(gen, LS.UMFPACKFactorization())
+ρ = stationary_distribution(
+    gen, KrylovKitSolver();
+    krylovdim = 60,
+    tol = 1.0e-12,
+    maxiter = 2000,
+    inner_alg = LS.UMFPACKFactorization(),
+    verbose = true,
+)
+# ρ = stationary_distribution(
+#     gen, LS.KrylovJL_GMRES();
+# )
+
+
 Φ = .-(D .* log.(max.(ρ, eps(Float64))))
 Φ .-= minimum(Φ)
 @show extrema(Φ)

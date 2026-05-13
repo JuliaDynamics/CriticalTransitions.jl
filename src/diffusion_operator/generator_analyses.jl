@@ -78,13 +78,20 @@ The result is always validated post-hoc:
   1. Sign check: entries below `-16ε · max|ρ|` are flagged.
   2. Residual check: `‖Qᵀ ρ‖ / ‖ρ‖` should be near machine ε.
 
-Pass `verbose = true` to additionally run the multi-modality probe
-(linear-solve path only): re-pins at several spread-out cells and
-checks the answer is invariant; a non-trivial difference reveals ≥ 2
-near-zero eigenvalues within machine precision (multi-basin
-metastability), in which case the returned vector is one
-quasi-stationary mode rather than the global invariant. This adds
-three full LU solves, so it is off by default.
+Pass `verbose = true` to additionally run the multi-modality probe:
+
+  - Linear-solve path: re-pins at several spread-out cells and checks
+    the answer is invariant. Adds three full LU solves.
+  - Eigensolver path (`DenseEigen`, `KrylovKitSolver`): inspects the
+    spectral gap above the kernel by computing `λ₂, λ₃` of `Qᵀ` and
+    flagging `|λ₂| / |λ₃| < multimodal_tol`. Adds one extra `eigenmodes`
+    call (a single LU factorisation reused across Arnoldi iterations).
+
+In both cases a positive result reveals ≥ 2 near-zero eigenvalues
+within machine precision (multi-basin metastability): the returned
+vector is one quasi-stationary mode rather than the global invariant,
+and you should switch to [`quasi_stationary_distribution`](@ref) per
+basin. The probe is off by default.
 
 A single combined warning is emitted with concrete suggestions if any
 check fires.
@@ -196,15 +203,39 @@ function _multimodality_probe!(
     return nothing
 end
 
-# Eigensolve backends: skip the probe.
-_multimodality_probe!(
-        issues,
-        Q::SparseMatrixCSC,
-        weights::Vector{Float64},
-        ρ::Vector{Float64},
-        ::Union{DenseEigen, KrylovKitSolver},
-        _tol::Real,
-    ) = nothing
+# Eigensolver path: inspect the spectral gap above the kernel.
+# If |λ₂| is comparable to |λ₁| ≈ 0 (much smaller than |λ₃|), the
+# generator has a numerically degenerate kernel and the returned
+# vector is one direction in it (a QSD), not the global invariant.
+function _multimodality_probe!(
+        issues, Q::SparseMatrixCSC,
+        weights::Vector{Float64}, ρ::Vector{Float64},
+        alg::Union{DenseEigen, KrylovKitSolver}, multimodal_tol::Real
+    )
+    λs = try
+        first(_eigenmodes(Q, 3, alg))
+    catch err
+        @debug "Multimodality probe (eigensolver path) failed" exception = (err, catch_backtrace())
+        return nothing
+    end
+    length(λs) >= 3 || return nothing
+
+    a2 = abs(λs[2])
+    a3 = abs(λs[3])
+    a3 > 0 || return nothing
+    ratio = a2 / a3
+
+    if ratio < multimodal_tol
+        push!(
+            issues,
+            "|λ₂| / |λ₃| ≈ $(round(ratio; sigdigits = 3)) " *
+                "(λ₂ ≈ $(round(λs[2]; sigdigits = 3)), λ₃ ≈ $(round(λs[3]; sigdigits = 3))). " *
+                "The generator has ≥ 2 near-zero eigenvalues within machine precision; " *
+                "the result is one quasi-stationary mode, not the global invariant."
+        )
+    end
+    return nothing
+end
 
 """
 $(TYPEDSIGNATURES)
