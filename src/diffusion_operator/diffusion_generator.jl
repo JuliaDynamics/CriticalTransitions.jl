@@ -73,26 +73,28 @@ is read via [`drift`](@ref); diffusion is read once from
   outer faces. `Q` is a sub-generator (row sums on the boundary become
   negative).
 """
-struct DiffusionGenerator{D, BC <: Tuple}
+struct DiffusionGenerator{D, BC <: Tuple, T <: AbstractFloat}
     "The Cartesian grid the generator lives on."
-    grid::CartesianGrid{D}
+    grid::CartesianGrid{D, T}
     "Sparse rate matrix (off-diagonals = transition rates ≥ 0)."
-    Q::SparseMatrixCSC{Float64, Int}
+    Q::SparseMatrixCSC{T, Int}
     "Per-axis boundary condition (one [`BoundaryCondition`](@ref) per axis)."
     bc::BC
 end
 
 @inline ncells(gen::DiffusionGenerator) = ncells(gen.grid)
 @inline cell_volume(gen::DiffusionGenerator) = cell_volume(gen.grid)
+@inline floattype(::DiffusionGenerator{D, BC, T}) where {D, BC, T} = T
+@inline floattype(::CartesianGrid{D, T}) where {D, T} = T
 
-function _diagonal_diffusion(sys::CoupledSDEs, ::Val{D}) where {D}
+function _diagonal_diffusion(sys::CoupledSDEs, ::Val{D}, ::Type{T}) where {D, T}
     Σ = covariance_matrix(sys)
     size(Σ) == (D, D) || throw(
         DimensionMismatch(
             "covariance matrix size $(size(Σ)) does not match grid dimension $D"
         ),
     )
-    tol = 1.0e-10 * max(maximum(abs, diag(Σ)), 1.0)
+    tol = T(1.0e-10) * max(maximum(abs, diag(Σ)), one(T))
     @inbounds for i in 1:D, j in 1:D
         if i != j && abs(Σ[i, j]) > tol
             throw(
@@ -107,7 +109,7 @@ function _diagonal_diffusion(sys::CoupledSDEs, ::Val{D}) where {D}
             ArgumentError("diffusion covariance diagonal Σ[$k,$k] must be non-negative"),
         )
     end
-    return SVector{D, Float64}(ntuple(k -> Σ[k, k], D))
+    return SVector{D, T}(ntuple(k -> T(Σ[k, k]), D))
 end
 
 function _normalize_bc(bc::BoundaryCondition, ::Val{D}) where {D}
@@ -140,22 +142,22 @@ _normalize_bc(bc, ::Val{D}) where {D} = throw(
 # corresponding M-matrix convention.
 function _assemble_generator(
         sys::CoupledSDEs,
-        grid::CartesianGrid{D},
+        grid::CartesianGrid{D, T},
         sign::Int,
         bc::Tuple,
-    )::SparseMatrixCSC{Float64, Int} where {D}
+    )::SparseMatrixCSC{T, Int} where {D, T}
     sign == +1 || sign == -1 || throw(ArgumentError("sign must be ±1"))
-    diffusion = _diagonal_diffusion(sys, Val(D))
+    diffusion = _diagonal_diffusion(sys, Val(D), T)
     nbox = grid.nbox
     N = ncells(grid)
     LI = LinearIndices(nbox)
 
-    drift_components = ntuple(_ -> Array{Float64, D}(undef, nbox), D)
+    drift_components = ntuple(_ -> Array{T, D}(undef, nbox), D)
     @inbounds for I in CartesianIndices(nbox)
         x = cell_center(grid, I)
         f = drift(sys, x)
         for k in 1:D
-            drift_components[k][I] = f[k]
+            drift_components[k][I] = T(f[k])
         end
     end
 
@@ -163,8 +165,8 @@ function _assemble_generator(
     nz_max = 2 * D * N + N
     rows = Vector{Int}(undef, nz_max)
     cols = Vector{Int}(undef, nz_max)
-    vals = Vector{Float64}(undef, nz_max)
-    diagacc = zeros(Float64, N)
+    vals = Vector{T}(undef, nz_max)
+    diagacc = zeros(T, N)
     idx = 0
 
     @inbounds for k in 1:D
@@ -172,16 +174,16 @@ function _assemble_generator(
         hk = grid.h[k]
         ε = Dk / 2
         ε_h2 = ε / (hk * hk)
-        h_ε = ε > 0 ? hk / ε : NaN
+        h_ε = ε > 0 ? hk / ε : T(NaN)
         fk = drift_components[k]
         bc_k = bc[k]
 
         # SG rates for diffusive faces; upwind rates for deterministic axes.
-        face_rates(bf::Float64) = if Dk > 0
+        face_rates(bf::T) = if Dk > 0
             z = bf * h_ε
             (ε_h2 * _bernoulli(-z), ε_h2 * _bernoulli(z))
         else
-            (max(bf, 0.0) / hk, max(-bf, 0.0) / hk)
+            (max(bf, zero(T)) / hk, max(-bf, zero(T)) / hk)
         end
 
         for I in CartesianIndices(nbox)
@@ -190,7 +192,7 @@ function _assemble_generator(
                 J = CartesianIndex(ntuple(d -> d == k ? I[d] + 1 : I[d], D))
                 n = LI[I]
                 m = LI[J]
-                rate_nm, rate_mn = face_rates(0.5 * (fk[I] + fk[J]))
+                rate_nm, rate_mn = face_rates(T(1) / 2 * (fk[I] + fk[J]))
 
                 idx += 1
                 rows[idx] = n; cols[idx] = m; vals[idx] = sign * rate_nm
@@ -206,7 +208,7 @@ function _assemble_generator(
                     J = CartesianIndex(ntuple(d -> d == k ? 1 : I[d], D))
                     n = LI[I]
                     m = LI[J]
-                    rate_nm, rate_mn = face_rates(0.5 * (fk[I] + fk[J]))
+                    rate_nm, rate_mn = face_rates(T(1) / 2 * (fk[I] + fk[J]))
 
                     idx += 1
                     rows[idx] = n; cols[idx] = m; vals[idx] = sign * rate_nm
@@ -245,11 +247,11 @@ function _assemble_generator(
 end
 
 function DiffusionGenerator(
-        sys::CoupledSDEs, grid::CartesianGrid{D}; bc = Reflecting()
-    ) where {D}
+        sys::CoupledSDEs, grid::CartesianGrid{D, T}; bc = Reflecting()
+    ) where {D, T}
     bc_tuple = _normalize_bc(bc, Val(D))
     Q = _assemble_generator(sys, grid, +1, bc_tuple)
-    return DiffusionGenerator{D, typeof(bc_tuple)}(grid, Q, bc_tuple)
+    return DiffusionGenerator{D, typeof(bc_tuple), T}(grid, Q, bc_tuple)
 end
 
 """

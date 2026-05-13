@@ -38,7 +38,7 @@ control the Krylov-subspace matrix-exponential algorithm in
 which handles stiffness without ever forming `exp(t·Qᵀ)` explicitly.
 """
 function propagate_density(
-        gen::DiffusionGenerator,
+        gen::DiffusionGenerator{D, BC, S},
         T::Real,
         ρ_0::AbstractVector;
         Δt::Real = T,
@@ -46,7 +46,7 @@ function propagate_density(
         tol::Real = 1.0e-7,
         m::Integer = 30,
         adaptive::Bool = true,
-    )
+    ) where {D, BC, S}
     length(ρ_0) == ncells(gen) || throw(
         DimensionMismatch(
             "ρ_0 has length $(length(ρ_0)) but generator has $(ncells(gen)) cells",
@@ -56,13 +56,13 @@ function propagate_density(
     Ttr >= 0 || throw(ArgumentError("Ttr must be ≥ 0; got $Ttr"))
 
     t = if T == 0
-        Float64[Ttr]
+        S[S(Ttr)]
     else
         Δt > 0 || throw(ArgumentError("Δt must be > 0; got $Δt"))
-        collect(Float64, Ttr:Δt:(Ttr + T))
+        collect(S, S(Ttr):S(Δt):S(Ttr + T))
     end
     F = fokker_planck_operator(gen)
-    b = Vector{Float64}(ρ_0)
+    b = Vector{S}(ρ_0)
 
     # expv_timestep returns a Vector for a scalar / single-element t and a
     # Matrix for length(t) ≥ 2. Normalise to (N, length(t)) Matrix output.

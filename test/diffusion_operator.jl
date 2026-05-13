@@ -896,3 +896,40 @@ end
     # Probe is off by default — cheap checks alone don't fire on this case.
     @test_nowarn stationary_distribution(gen)
 end
+
+using DoubleFloats: Double64
+
+@testset "Parametric float type: CartesianGrid{T}/DiffusionGenerator{T}" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+
+    # Default constructor remains Float64.
+    grid_f = CartesianGrid((-4.0, 4.0, 60))
+    @test grid_f isa CartesianGrid{1, Float64}
+    @test CriticalTransitions.floattype(grid_f) === Float64
+    gen_f = DiffusionGenerator(sys, grid_f)
+    @test gen_f isa DiffusionGenerator{1, Tuple{Reflecting}, Float64}
+    @test eltype(gen_f.Q) === Float64
+
+    # Explicit Double64 grid → Double64 generator, Double64 matrix entries.
+    grid_d = CartesianGrid{Double64}((-4.0, 4.0, 60))
+    @test grid_d isa CartesianGrid{1, Double64}
+    @test CriticalTransitions.floattype(grid_d) === Double64
+    @test eltype(grid_d.h) === Double64
+    gen_d = DiffusionGenerator(sys, grid_d)
+    @test gen_d isa DiffusionGenerator{1, Tuple{Reflecting}, Double64}
+    @test eltype(gen_d.Q) === Double64
+
+    # Same algebra at higher precision: Q at Double64 differs from Q at
+    # Float64 by a few hundred eps(Float64) (a few ulps per matrix entry,
+    # accumulated across the SG stencil).
+    @test Float64(maximum(abs.(Double64.(gen_f.Q) .- gen_d.Q))) < 1.0e-13
+
+    # Mass conservation holds at Double64 precision.
+    @test Float64(maximum(abs, vec(sum(gen_d.Q; dims = 2)))) < 1.0e-25
+
+    # Float64 solve path still works through the generic interface.
+    ρ_f = stationary_distribution(gen_f)
+    @test ρ_f isa Vector{Float64}
+    @test sum(ρ_f) * CriticalTransitions.cell_volume(grid_f) ≈ 1.0 atol = 1.0e-10
+end
+

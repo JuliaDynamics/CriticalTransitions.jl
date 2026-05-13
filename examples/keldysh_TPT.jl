@@ -78,7 +78,7 @@ const γ = 0.03
 const μ = 0.1
 const α₃ = -0.25
 const α₅ = 0.01
-const D = 0.05  # noise strength D in the action; momentum noise = √(2D)
+const D = 0.1  # noise strength D in the action; momentum noise = √(2D)
 
 𝒟(x) = γ - μ * (1 - x^2)
 V′(x) = ω₀^2 * x + α₃ * x^3 + α₅ * x^5
@@ -202,7 +202,7 @@ fig
 # Scharfetter–Gummel exponential-fitting finite-volume scheme; with reflecting
 # boundaries the discrete generator preserves probability mass.
 
-grid = CartesianGrid((-5.5, 5.5, 501), (-2.0, 2.0, 301))
+grid = CartesianGrid((-5.5, 5.5, 251), (-3.0, 3.0, 121))
 gen = DiffusionGenerator(sys, grid)
 @show size(gen.Q)
 @show maximum(abs, vec(sum(gen.Q; dims = 2)))  # row sums ≈ 0

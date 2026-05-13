@@ -168,19 +168,19 @@ function _eigenmodes(Q::SparseMatrixCSC, k::Integer, ::DenseEigen; kwargs...)
 end
 
 function _eigenmodes(
-        Q::SparseMatrixCSC, k::Integer, ::KrylovKitSolver;
+        Q::SparseMatrixCSC{T, Int}, k::Integer, ::KrylovKitSolver;
         inner_alg = UMFPACKFactorization(),
         v0::Union{Nothing, AbstractVector} = nothing,
         kwargs...,
-    )
+    ) where {T <: AbstractFloat}
     n = size(Q, 1)
-    σ = -1.0e-12  # tiny shift away from the exact 0 eigenvalue
-    v_init = v0 === nothing ? normalize!(rand(Float64, n)) : convert(Vector{Float64}, v0)
+    σ = -T(1.0e-12)  # tiny shift away from the exact 0 eigenvalue
+    v_init = v0 === nothing ? normalize!(rand(T, n)) : convert(Vector{T}, v0)
     Amap = _build_shift_invert(Q, σ, inner_alg)
     vals_μ, vecs_μ, _info = KrylovKit.eigsolve(Amap, v_init, k, :LM; kwargs...)
     # μ = 1 / (λ - σ); eigenvalues of Q closest to σ ≈ 0 correspond to
     # largest |μ|, which is what `:LM` selects.
-    vals = ComplexF64[σ + 1 / μ for μ in vals_μ[1:k]]
+    vals = Complex{T}[σ + 1 / μ for μ in vals_μ[1:k]]
     V = hcat(vecs_μ[1:k]...)
     perm = sortperm(vals; by = real, rev = true)
     return vals[perm], V[:, perm]

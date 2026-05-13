@@ -20,7 +20,7 @@ function _to_mask(spec::AbstractVector{<:Integer}, grid::CartesianGrid)
     return mask
 end
 
-function _to_mask(spec::Function, grid::CartesianGrid{D}) where {D}
+function _to_mask(spec::Function, grid::CartesianGrid)
     N = ncells(grid)
     mask = falses(N)
     LI = LinearIndices(grid.nbox)
@@ -97,10 +97,10 @@ A single combined warning is emitted with concrete suggestions if any
 check fires.
 """
 function stationary_distribution(
-        generator::DiffusionGenerator,
+        generator::DiffusionGenerator{D, BC, T},
         alg = UMFPACKFactorization();
         verbose::Bool = false, multimodal_tol::Real = 1.0e-3, kwargs...,
-    )::Vector{Float64}
+    )::Vector{T} where {D, BC, T}
     _check_stationary_bc(generator)
     weights = fill(cell_volume(generator.grid), ncells(generator))
     ρ = _invariant_density(generator.Q, weights, alg; clamp_negative = false, kwargs...)
@@ -110,13 +110,13 @@ function stationary_distribution(
 end
 
 function stationary_distribution(
-        generator::DiffusionGenerator,
+        generator::DiffusionGenerator{D, BC, T},
         alg::Union{DenseEigen, KrylovKitSolver};
         verbose::Bool = false, multimodal_tol::Real = 1.0e-3, kwargs...,
-    )::Vector{Float64}
+    )::Vector{T} where {D, BC, T}
     _check_stationary_bc(generator)
     weights = fill(cell_volume(generator.grid), ncells(generator))
-    λ, v = _principal_eigenpair(transpose(generator.Q), alg; σ = 0.0, kwargs...)
+    λ, v = _principal_eigenpair(transpose(generator.Q), alg; σ = zero(T), kwargs...)
     _normalise_density!(v, weights)
     _stationary_diagnostics(generator.Q, weights, v, alg, multimodal_tol, verbose)
     return v
@@ -145,19 +145,19 @@ function _check_stationary_bc(generator::DiffusionGenerator)
 end
 
 function _stationary_diagnostics(
-        Q::SparseMatrixCSC, weights::Vector{Float64},
-        ρ::Vector{Float64}, alg, multimodal_tol::Real, verbose::Bool
-    )
+        Q::SparseMatrixCSC{T, Int}, weights::Vector{T},
+        ρ::Vector{T}, alg, multimodal_tol::Real, verbose::Bool
+    ) where {T <: AbstractFloat}
     issues = String[]
 
     ρ_max = maximum(abs, ρ)
-    neg_thresh = -16 * eps(Float64) * max(ρ_max, 1.0)
+    neg_thresh = -16 * eps(T) * max(ρ_max, one(T))
     n_neg = count(<(neg_thresh), ρ)
     if n_neg > 0
         push!(issues, "$n_neg entries have ρ < $(round(neg_thresh; sigdigits = 2)) (true invariant must be ≥ 0)")
     end
 
-    res = norm(transpose(Q) * ρ) / max(norm(ρ), eps(Float64))
+    res = norm(transpose(Q) * ρ) / max(norm(ρ), eps(T))
     if res > 1.0e-6
         push!(issues, "‖Qᵀ ρ‖ / ‖ρ‖ ≈ $(round(res; sigdigits = 3)) (expected ≲ 1e-10)")
     end
@@ -179,16 +179,16 @@ end
 
 # Re-pin at a few spread-out cells to reveal numerically disconnected modes.
 function _multimodality_probe!(
-        issues, Q::SparseMatrixCSC,
-        weights::Vector{Float64}, ρ::Vector{Float64},
+        issues, Q::SparseMatrixCSC{T, Int},
+        weights::Vector{T}, ρ::Vector{T},
         alg, multimodal_tol::Real
-    )
+    ) where {T <: AbstractFloat}
     N = size(Q, 1)
     pins = (p for p in unique!([div(N, 4), div(N, 2), div(3N, 4), N]) if p != 1)
-    max_diff = 0.0
+    max_diff = zero(T)
     for p in pins
         ρ_alt = _invariant_density(Q, weights, alg; pin_row = p, clamp_negative = false)
-        d = norm(ρ - ρ_alt) / max(norm(ρ), norm(ρ_alt), eps(Float64))
+        d = norm(ρ - ρ_alt) / max(norm(ρ), norm(ρ_alt), eps(T))
         d > max_diff && (max_diff = d)
     end
     if max_diff > multimodal_tol
@@ -208,10 +208,10 @@ end
 # generator has a numerically degenerate kernel and the returned
 # vector is one direction in it (a QSD), not the global invariant.
 function _multimodality_probe!(
-        issues, Q::SparseMatrixCSC,
-        weights::Vector{Float64}, ρ::Vector{Float64},
+        issues, Q::SparseMatrixCSC{T, Int},
+        weights::Vector{T}, ρ::Vector{T},
         alg::Union{DenseEigen, KrylovKitSolver}, multimodal_tol::Real
-    )
+    ) where {T <: AbstractFloat}
     λs = try
         first(_eigenmodes(Q, 3, alg))
     catch err
@@ -289,6 +289,7 @@ function quasi_stationary_distribution(
         generator::DiffusionGenerator, basin,
         alg::Union{DenseEigen, KrylovKitSolver} = KrylovKitSolver(); kwargs...
     )
+    T = floattype(generator)
     grid = generator.grid
     basin_mask = _to_mask(basin, grid)
     any(basin_mask) || throw(ArgumentError("basin is empty"))
@@ -298,10 +299,10 @@ function quasi_stationary_distribution(
     # Restricting to basin rows/cols treats exits as absorbing.
     Q_S = generator.Q[inds, inds]
 
-    λ, v = _principal_eigenpair(transpose(Q_S), alg; σ = 0.0, kwargs...)
+    λ, v = _principal_eigenpair(transpose(Q_S), alg; σ = zero(T), kwargs...)
     _normalise_density!(v, fill(cell_volume(grid), length(v)))
 
-    ρ_full = zeros(Float64, ncells(grid))
+    ρ_full = zeros(T, ncells(grid))
     @inbounds for (k, i) in enumerate(inds)
         ρ_full[i] = v[k]
     end
@@ -344,10 +345,10 @@ Default `alg` is `UMFPACKFactorization()` (sparse direct LU). Pass any
 See also [`first_passage_variance`](@ref) and [`forward_committor`](@ref).
 """
 function mean_first_passage_time(
-        generator::DiffusionGenerator, target;
+        generator::DiffusionGenerator{D, BC, T}, target;
         alg = UMFPACKFactorization(),
         kwargs...
-    )::Vector{Float64}
+    )::Vector{T} where {D, BC, T}
     target_mask, bc_values, source = _mfpt_system(generator, target)
     return _solve_dirichlet(
         generator.Q, target_mask, bc_values, alg;
@@ -356,11 +357,11 @@ function mean_first_passage_time(
 end
 
 
-function _mfpt_system(generator::DiffusionGenerator, target)
+function _mfpt_system(generator::DiffusionGenerator{D, BC, T}, target) where {D, BC, T}
     target_mask = _to_mask(target, generator.grid)
     any(target_mask) || throw(ArgumentError("target set is empty"))
     N = size(generator.Q, 1)
-    return target_mask, zeros(Float64, N), fill(-1.0, N)
+    return target_mask, zeros(T, N), fill(-one(T), N)
 end
 
 """
@@ -382,10 +383,10 @@ Default `alg` is `UMFPACKFactorization()` (sparse direct LU). Pass any
 See also [`mean_first_passage_time`](@ref).
 """
 function first_passage_variance(
-        generator::DiffusionGenerator, target;
+        generator::DiffusionGenerator{D, BC, T}, target;
         alg = UMFPACKFactorization(),
         kwargs...
-    )::Vector{Float64}
+    )::Vector{T} where {D, BC, T}
     target_mask, bc_values, source = _mfpt_system(generator, target)
     τ_1 = _solve_dirichlet(
         generator.Q, target_mask, bc_values, alg;

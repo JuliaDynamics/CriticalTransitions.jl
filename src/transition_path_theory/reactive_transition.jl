@@ -46,35 +46,35 @@ where direct LU runs out of memory. Further kwargs flow to
 See also [`forward_committor`](@ref), [`backward_committor`](@ref),
 [`reactive_density`](@ref), and [`reactive_current`](@ref).
 """
-struct ReactiveTransition{D, BC}
+struct ReactiveTransition{D, BC, T <: AbstractFloat}
     "The diffusion generator the analysis was built on."
-    generator::DiffusionGenerator{D, BC}
+    generator::DiffusionGenerator{D, BC, T}
     "Boolean mask selecting cells in set A (length `ncells(grid)`)."
     A_mask::BitVector
     "Boolean mask selecting cells in set B (length `ncells(grid)`)."
     B_mask::BitVector
     "Invariant probability density (`dot(ρ, weights) = 1`)."
-    ρ::Vector{Float64}
+    ρ::Vector{T}
     "Forward committor `q⁺` (probability of reaching B before A)."
-    qplus::Vector{Float64}
+    qplus::Vector{T}
     "Backward committor `q⁻`."
-    qminus::Vector{Float64}
+    qminus::Vector{T}
     "Discrete adjoint generator w.r.t. `ρ`; used by `reactive_current_{reversible,irreversible}`."
-    Qadj::SparseMatrixCSC{Float64, Int}
+    Qadj::SparseMatrixCSC{T, Int}
     "A → B reactive transition rate (cached)."
-    rate::Float64
+    rate::T
     "True if `qminus` came from a user-supplied physical reverse generator; false if from the discrete adjoint."
     physical_reverse::Bool
 end
 
 function ReactiveTransition(
-        gen::DiffusionGenerator{D},
+        gen::DiffusionGenerator{D, BC, T},
         A,
         B;
         alg = UMFPACKFactorization(),
         reverse::Union{Nothing, DiffusionGenerator{D}} = nothing,
         kwargs...,
-    ) where {D}
+    ) where {D, BC, T}
     any(b -> b isa Absorbing, gen.bc) && throw(
         ArgumentError(
             "ReactiveTransition is undefined for absorbing boundary " *
@@ -102,21 +102,21 @@ function ReactiveTransition(
     end
 
     rate = _reactive_rate(Q, ρ, qplus, qminus, weights, A_mask)
-    return ReactiveTransition{D, typeof(gen.bc)}(
+    return ReactiveTransition{D, typeof(gen.bc), T}(
         gen, A_mask, B_mask, ρ, qplus, qminus, Qadj, rate, physical_reverse,
     )
 end
 
 function ReactiveTransition(
         sys::CoupledSDEs,
-        grid::CartesianGrid{D},
+        grid::CartesianGrid{D, T},
         A,
         B;
         alg = UMFPACKFactorization(),
         reverse::Union{Nothing, CoupledSDEs} = nothing,
         bc = Reflecting(),
         kwargs...,
-    ) where {D}
+    ) where {D, T}
     gen = DiffusionGenerator(sys, grid; bc = bc)
     gen_rev =
         reverse === nothing ? nothing : DiffusionGenerator(reverse, grid; bc = bc)
@@ -159,9 +159,9 @@ reactive segment from `A` to `B`.
 
 See also [`reactive_density`](@ref).
 """
-function probability_reactive(r::ReactiveTransition)::Float64
+function probability_reactive(r::ReactiveTransition{D, BC, T})::T where {D, BC, T}
     v = cell_volume(r.generator.grid)
-    s = 0.0
+    s = zero(T)
     @inbounds for i in eachindex(r.ρ)
         s += r.ρ[i] * r.qplus[i] * r.qminus[i]
     end
@@ -176,7 +176,7 @@ Total probability that the most recent metastable visit was set `A`.
 The complementary probability is the chance that the most recent visit was
 `B`.
 """
-function probability_last_A(r::ReactiveTransition)::Float64
+function probability_last_A(r::ReactiveTransition{D, BC, T})::T where {D, BC, T}
     return cell_volume(r.generator.grid) * dot(r.ρ, r.qminus)
 end
 
@@ -245,18 +245,19 @@ function reactive_current_irreversible(r::ReactiveTransition)
 end
 
 function _reactive_current_from_Q(
-        Q::SparseMatrixCSC{Float64, Int},
-        ρ::Vector{Float64},
-        qplus::Vector{Float64},
-        qminus::Vector{Float64},
-        grid::CartesianGrid{D},
+        Q::SparseMatrixCSC{T, Int},
+        ρ::Vector{T},
+        qplus::Vector{T},
+        qminus::Vector{T},
+        grid::CartesianGrid{D, T},
         bc::Tuple,
-    ) where {D}
-    return _reactive_current_from_Qs((Q,), (1.0,), ρ, qplus, qminus, grid, bc)
+    ) where {D, T}
+    return _reactive_current_from_Qs((Q,), (one(T),), ρ, qplus, qminus, grid, bc)
 end
 
 @inline function _edge_rate(Qs::Tuple, coeffs::Tuple, i::Int, j::Int)
-    rate = 0.0
+    T = eltype(Qs[1])
+    rate = zero(T)
     @inbounds for k in eachindex(Qs)
         rate += coeffs[k] * Qs[k][i, j]
     end
@@ -266,12 +267,12 @@ end
 function _reactive_current_from_Qs(
         Qs::Tuple,
         coeffs::Tuple,
-        ρ::Vector{Float64},
-        qplus::Vector{Float64},
-        qminus::Vector{Float64},
-        grid::CartesianGrid{D},
+        ρ::Vector{T},
+        qplus::Vector{T},
+        qminus::Vector{T},
+        grid::CartesianGrid{D, T},
         bc::Tuple,
-    ) where {D}
+    ) where {D, T}
     nbox = grid.nbox
     LI = LinearIndices(nbox)
     v = cell_volume(grid)
@@ -279,7 +280,7 @@ function _reactive_current_from_Qs(
     # Periodic axes get one extra face slot (the wraparound face).
     J_faces = ntuple(D) do k
         len_k = bc[k] isa Periodic ? nbox[k] : nbox[k] - 1
-        zeros(Float64, ntuple(d -> d == k ? len_k : nbox[d], D)...)
+        zeros(T, ntuple(d -> d == k ? len_k : nbox[d], D)...)
     end
 
     @inbounds for k in 1:D
@@ -302,14 +303,14 @@ function _reactive_current_from_Qs(
         end
     end
 
-    J_nodes = ntuple(_ -> zeros(Float64, nbox...), D)
+    J_nodes = ntuple(_ -> zeros(T, nbox...), D)
     @inbounds for k in 1:D
         Jface = J_faces[k]
         Jnode = J_nodes[k]
         nk = nbox[k]
         periodic_k = bc[k] isa Periodic
         for I in CartesianIndices(nbox)
-            s = 0.0
+            s = zero(T)
             c = 0
             # Previous face: between cell I-e_k and cell I.
             if I[k] > 1
@@ -349,16 +350,16 @@ off-diagonals = transition rates):
 Computed in `O(nnz(G))` by walking sparse columns once.
 """
 function _reactive_rate(
-        G::SparseMatrixCSC{Float64, Int},
-        ρ::Vector{Float64},
-        qplus::Vector{Float64},
-        qminus::Vector{Float64},
-        weights::Vector{Float64},
+        G::SparseMatrixCSC{T, Int},
+        ρ::Vector{T},
+        qplus::Vector{T},
+        qminus::Vector{T},
+        weights::Vector{T},
         A_mask::BitVector,
-    )::Float64
+    )::T where {T <: AbstractFloat}
     rv = rowvals(G)
     nz = nonzeros(G)
-    rate = 0.0
+    rate = zero(T)
     @inbounds for col in 1:size(G, 2)
         A_mask[col] && continue
         qpc = qplus[col]

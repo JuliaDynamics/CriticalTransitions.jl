@@ -1,15 +1,23 @@
 """
 $(TYPEDSIGNATURES)
 
-Bernoulli function `B(z) = z / (exp(z) - 1)` with `B(0) = 1`.
+Bernoulli function `B(z) = z / (exp(z) - 1)` with `B(0) = 1`. Generic in
+the floating-point type of `z`; thresholds for switching between the
+Taylor expansion and the direct form scale with `eps(T)` so the series
+remains accurate at any precision.
 """
-@inline function _bernoulli(z::Float64)
+@inline function _bernoulli(z::T) where {T <: AbstractFloat}
     az = abs(z)
-    if az < 1.0e-10
-        return 1.0
-    elseif az < 1.0e-2
+    # Below `eps^(2/3)` the linear term is already at machine precision,
+    # so `B(z) ≈ 1`. Between that and `eps^(1/5)` the order-4 Taylor
+    # series is accurate to ~eps. Above, use `z / expm1(z)` directly.
+    near_zero = eps(T)^(T(2) / 3)
+    midrange = eps(T)^(T(1) / 5)
+    if az < near_zero
+        return one(T)
+    elseif az < midrange
         z2 = z * z
-        return 1.0 - z / 2 + z2 / 12 - z2 * z2 / 720
+        return one(T) - z / 2 + z2 / 12 - z2 * z2 / 720
     else
         return z / expm1(z)
     end
@@ -21,16 +29,18 @@ $(TYPEDSIGNATURES)
 Impose Dirichlet rows in-place by zeroing masked rows and setting their
 diagonal to one.
 """
-function _enforce_dirichlet_rows!(A::SparseMatrixCSC{Float64, Int}, mask::BitVector)
+function _enforce_dirichlet_rows!(
+        A::SparseMatrixCSC{T, Int}, mask::BitVector
+    ) where {T <: AbstractFloat}
     rv = rowvals(A)
     nz = nonzeros(A)
     @inbounds for col in 1:size(A, 2)
         for p in nzrange(A, col)
-            mask[rv[p]] && (nz[p] = 0.0)
+            mask[rv[p]] && (nz[p] = zero(T))
         end
     end
     @inbounds for n in eachindex(mask)
-        mask[n] && (A[n, n] = 1.0)
+        mask[n] && (A[n, n] = one(T))
     end
     return A
 end
@@ -42,15 +52,15 @@ Solve the linear system `A q = b` subject to Dirichlet conditions
 `q[mask] = values[mask]`. `source` sets the free-row right-hand side.
 """
 function _solve_dirichlet(
-        A::SparseMatrixCSC{Float64, Int},
+        A::SparseMatrixCSC{T, Int},
         mask::BitVector,
-        values::Vector{Float64},
+        values::Vector{T},
         alg = UMFPACKFactorization();
-        source::Union{Nothing, Vector{Float64}} = nothing,
+        source::Union{Nothing, Vector{T}} = nothing,
         kwargs...,
-    )::Vector{Float64}
+    )::Vector{T} where {T <: AbstractFloat}
     M = copy(A)
-    rhs = source === nothing ? zeros(Float64, size(A, 1)) : copy(source)
+    rhs = source === nothing ? zeros(T, size(A, 1)) : copy(source)
     _enforce_dirichlet_rows!(M, mask)
     @inbounds for n in eachindex(mask)
         mask[n] && (rhs[n] = values[n])
@@ -65,15 +75,17 @@ Solve for the invariant probability density `ρ` of a CTMC with generator
 `G` and per-cell volume vector `weights`: `ρᵀ G = 0` augmented with the
 normalisation `dot(ρ, weights) = 1`. Sign-agnostic.
 
-Default `alg` is `UMFPACKFactorization()`. Pass any
+Default `alg` is `UMFPACKFactorization()` (Float64 only). Pass any
 `SciMLLinearSolveAlgorithm` for an iterative solver; further kwargs
-flow to `LinearSolve.solve`.
+flow to `LinearSolve.solve`. For non-Float64 generators, choose an
+algorithm that supports the matrix eltype (e.g. `KrylovJL_GMRES()` or
+`GenericLUFactorization()`).
 """
 function _invariant_density(
-        G::SparseMatrixCSC{Float64, Int}, weights::Vector{Float64},
+        G::SparseMatrixCSC{T, Int}, weights::Vector{T},
         alg = UMFPACKFactorization();
         pin_row::Int = 1, clamp_negative::Bool = true, kwargs...,
-    )::Vector{Float64}
+    )::Vector{T} where {T <: AbstractFloat}
     N = size(G, 1)
     length(weights) == N || throw(
         DimensionMismatch("weight vector length $(length(weights)) ≠ N = $N"),
@@ -81,12 +93,12 @@ function _invariant_density(
     1 <= pin_row <= N || throw(BoundsError(1:N, pin_row))
 
     A = sparse(transpose(G))
-    rhs = zeros(Float64, N)
+    rhs = zeros(T, N)
     A[pin_row, :] .= weights
-    rhs[pin_row] = 1.0
+    rhs[pin_row] = one(T)
 
-    ρ = Vector{Float64}(solve(LinearProblem(A, rhs), alg; kwargs...).u)
-    clamp_negative && clamp!(ρ, 0.0, Inf)
+    ρ = Vector{T}(solve(LinearProblem(A, rhs), alg; kwargs...).u)
+    clamp_negative && clamp!(ρ, zero(T), T(Inf))
     tot = dot(ρ, weights)
     tot > 0 && (@. ρ = ρ / tot)
     return ρ
@@ -103,20 +115,20 @@ with diagonal `G̃[i, i] = -∑_{j ≠ i} G̃[i, j]`. Output preserves the
 sparsity pattern of `Gᵀ` and the sign convention of `G`.
 """
 function _adjoint_generator(
-        G::SparseMatrixCSC{Float64, Int}, ρ::Vector{Float64}
-    )::SparseMatrixCSC{Float64, Int}
+        G::SparseMatrixCSC{T, Int}, ρ::Vector{T}
+    )::SparseMatrixCSC{T, Int} where {T <: AbstractFloat}
     N = size(G, 1)
     Gtil = sparse(transpose(G))
     rv = rowvals(Gtil)
     nz = nonzeros(Gtil)
-    diagacc = zeros(Float64, N)
-    ρ_safe = max.(ρ, eps(Float64))
+    diagacc = zeros(T, N)
+    ρ_safe = max.(ρ, eps(T))
 
     @inbounds for col in 1:N
         for p in nzrange(Gtil, col)
             row = rv[p]
             if row == col
-                nz[p] = 0.0
+                nz[p] = zero(T)
                 continue
             end
             val = nz[p] * ρ_safe[col] / ρ_safe[row]
