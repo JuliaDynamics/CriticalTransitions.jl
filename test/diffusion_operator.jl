@@ -1,0 +1,814 @@
+using Test
+using LinearAlgebra: diag
+using SparseArrays: rowvals, nonzeros, nzrange, SparseMatrixCSC, sparse
+
+using CriticalTransitions
+
+# =====================================================================
+# Helpers
+# =====================================================================
+
+function _offdiag_extrema(A)
+    rv = rowvals(A)
+    nz = nonzeros(A)
+    omin, omax = Inf, -Inf
+    for col in 1:size(A, 2), p in nzrange(A, col)
+        row = rv[p]
+        row != col || continue
+        omin = min(omin, nz[p])
+        omax = max(omax, nz[p])
+    end
+    return omin, omax
+end
+
+# =====================================================================
+# DiffusionGenerator: shape and sign conventions
+# =====================================================================
+
+@testset "DiffusionGenerator (1D OU): rate-matrix structure" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-4.0, 4.0, 200))
+    gen = DiffusionGenerator(sys, grid)
+    @test gen isa DiffusionGenerator
+    Q = gen.Q
+    @test Q isa SparseMatrixCSC{Float64, Int}
+    @test size(Q) == (200, 200)
+    @test maximum(abs, vec(sum(Q; dims = 2))) < 1.0e-12
+    omin, omax = _offdiag_extrema(Q)
+    @test omin >= 0           # rate matrix: off-diagonals = transition rates ≥ 0
+    @test isfinite(omax)
+    @test all(diag(Q) .<= 0)  # rate matrix: diagonal = -escape rate ≤ 0
+end
+
+@testset "rate_matrix and m_matrix accessors" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-4.0, 4.0, 200))
+    gen = DiffusionGenerator(sys, grid)
+    Q = rate_matrix(gen)
+    L = m_matrix(gen)
+    @test Q === gen.Q                              # alias for the field
+    @test maximum(abs, L + Q) < 1.0e-12              # M-matrix is the negation
+    omin, omax = _offdiag_extrema(L)
+    @test omax <= 0           # M-matrix: off-diagonals ≤ 0
+    @test all(diag(L) .>= 0)  # M-matrix: diagonal ≥ 0
+end
+
+@testset "fokker_planck_operator" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-4.0, 4.0, 50))
+    gen = DiffusionGenerator(sys, grid)
+    F = fokker_planck_operator(gen)
+    @test F == sparse(transpose(gen.Q))
+    # Stationary density solves F ρ = 0 (FP nullspace).
+    ρ = stationary_distribution(gen)
+    @test maximum(abs, F * ρ) < 1.0e-10
+end
+
+# =====================================================================
+# Stationary density
+# =====================================================================
+
+@testset "Invariant density (1D OU)" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-4.0, 4.0, 200))
+    gen = DiffusionGenerator(sys, grid)
+    ρ = stationary_distribution(gen)
+    @test sum(ρ) * grid.h[1] ≈ 1.0 atol = 1.0e-12
+    xs = collect(grid.centers[1])
+    ρ_analytic = exp.(-xs .^ 2) ./ sqrt(pi)
+    @test sum(abs.(ρ .- ρ_analytic)) * grid.h[1] < 5.0e-3
+end
+
+@testset "Invariant density (2D OU)" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1], -u[2]], [0.0, 0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-4.0, 4.0, 81), (-4.0, 4.0, 81))
+    gen = DiffusionGenerator(sys, grid)
+    ρ = stationary_distribution(gen)
+    @test sum(ρ) * prod(grid.h) ≈ 1.0 atol = 1.0e-12
+    xs = [grid.centers[1][I[1]] for I in CartesianIndices(grid.nbox)]
+    ys = [grid.centers[2][I[2]] for I in CartesianIndices(grid.nbox)]
+    ρ_analytic = vec(exp.(-(xs .^ 2 .+ ys .^ 2)) ./ pi)
+    @test sum(abs.(ρ .- ρ_analytic)) * prod(grid.h) < 5.0e-3
+end
+
+# =====================================================================
+# MFPT (Layer 3)
+# =====================================================================
+
+@testset "mean_first_passage_time" begin
+    sys_ou = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid_ou = CartesianGrid((-4.0, 4.0, 200))
+    gen_ou = DiffusionGenerator(sys_ou, grid_ou)
+    τ = mean_first_passage_time(gen_ou, x -> abs(x[1]) > 2)
+    @test all(τ .>= 0)
+    target_mask = [abs(x) > 2 for x in grid_ou.centers[1]]
+    @test maximum(abs.(τ[target_mask])) < 1.0e-10
+    @test minimum(τ[.!target_mask]) > 0
+    i0 = findfirst(x -> x >= 0, grid_ou.centers[1])
+    @test τ[i0] ≈ maximum(τ) atol = 1.0e-3 * maximum(τ)
+end
+
+# =====================================================================
+# Spectral analysis
+# =====================================================================
+
+@testset "first_passage_variance (1D OU)" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-4.0, 4.0, 200))
+    gen = DiffusionGenerator(sys, grid)
+    target = x -> abs(x[1]) > 2
+
+    var = first_passage_variance(gen, target)
+    τ = mean_first_passage_time(gen, target)
+
+    target_mask = [abs(x) > 2 for x in grid.centers[1]]
+    @test all(var[.!target_mask] .>= 0)            # variance ≥ 0 on free cells
+    @test maximum(abs, var[target_mask]) < 1.0e-10   # zero on the target
+
+    # σ/μ ≈ 1 for a barrier-crossing process where the mean is dominated
+    # by the rare-event timescale.
+    i0 = argmin(abs.(grid.centers[1]))
+    cv = sqrt(var[i0]) / τ[i0]
+    @test 0.5 < cv < 1.5
+end
+
+@testset "propagate_density: default Δt=T returns endpoint" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-5.0, 5.0, 100))
+    gen = DiffusionGenerator(sys, grid)
+    ρ_0 = zeros(100); ρ_0[50] = 1 / grid.h[1]
+
+    ρs, t = propagate_density(gen, 5.0, ρ_0)
+    @test size(ρs) == (100, 2)
+    @test t == [0.0, 5.0]
+    @test ρs[:, 1] == ρ_0                                        # t=0 column
+    @test sum(ρs[:, 2]) * grid.h[1] ≈ 1.0 atol = 1.0e-3            # mass preserved
+end
+
+@testset "propagate_density: trajectory with Δt" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-5.0, 5.0, 100))
+    gen = DiffusionGenerator(sys, grid)
+    ρ_0 = zeros(100); ρ_0[50] = 1 / grid.h[1]
+    ρ_inf = stationary_distribution(gen)
+
+    ρs, t = propagate_density(gen, 10.0, ρ_0; Δt = 2.0)
+    @test t == collect(0.0:2.0:10.0)
+    @test size(ρs) == (100, 6)
+    @test ρs[:, 1] == ρ_0
+    # Distance to invariant decreases monotonically along the trajectory.
+    dists = [sum(abs.(ρs[:, i] .- ρ_inf)) * grid.h[1] for i in 1:size(ρs, 2)]
+    @test issorted(dists; rev = true)
+    # Final snapshot has relaxed.
+    @test dists[end] < 1.0e-3
+end
+
+@testset "propagate_density: Ttr shifts the recording window" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-5.0, 5.0, 100))
+    gen = DiffusionGenerator(sys, grid)
+    ρ_0 = zeros(100); ρ_0[50] = 1 / grid.h[1]
+
+    ρs, t = propagate_density(gen, 5.0, ρ_0; Δt = 1.0, Ttr = 2.0)
+    @test t == collect(2.0:1.0:7.0)
+    @test size(ρs) == (100, 6)
+end
+
+@testset "propagate_density: stationary density is fixed" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-5.0, 5.0, 100))
+    gen = DiffusionGenerator(sys, grid)
+    ρ_inf = stationary_distribution(gen)
+
+    ρs, _ = propagate_density(gen, 5.0, ρ_inf)
+    @test maximum(abs.(ρs[:, end] .- ρ_inf)) < 1.0e-3
+end
+
+@testset "propagate_density: tighter tol improves accuracy" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-5.0, 5.0, 100))
+    gen = DiffusionGenerator(sys, grid)
+    ρ_0 = zeros(100); ρ_0[50] = 1 / grid.h[1]
+
+    ρs_loose, _ = propagate_density(gen, 5.0, ρ_0; tol = 1.0e-3)
+    ρs_tight, _ = propagate_density(gen, 5.0, ρ_0; tol = 1.0e-12, m = 60)
+    @test sum(abs.(ρs_loose[:, end] .- ρs_tight[:, end])) * grid.h[1] >= 0
+    # Mass exactly conserved with tight tolerance.
+    @test sum(ρs_tight[:, end]) * grid.h[1] ≈ 1.0 atol = 1.0e-8
+end
+
+@testset "propagate_density: input validation" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-3.0, 3.0, 30))
+    gen = DiffusionGenerator(sys, grid)
+    @test_throws DimensionMismatch propagate_density(gen, 1.0, zeros(20))
+    @test_throws ArgumentError propagate_density(gen, -1.0, zeros(30))
+    @test_throws ArgumentError propagate_density(gen, 1.0, zeros(30); Δt = 0.0)
+    @test_throws ArgumentError propagate_density(gen, 1.0, zeros(30); Ttr = -1.0)
+end
+
+@testset "eigenmodes (1D OU)" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-5.0, 5.0, 200))
+    gen = DiffusionGenerator(sys, grid)
+
+    λ, V = eigenmodes(gen, 5)
+
+    @test length(λ) == 5
+    @test size(V) == (200, 5)
+    @test issorted(real.(λ); rev = true)
+    @test abs(λ[1]) < 1.0e-10                                     # trivial mode
+    @test maximum(real, V[:, 1]) - minimum(real, V[:, 1]) < 1.0e-10
+    @test isapprox(real(λ[2]), -1.0; atol = 1.0e-2)                 # OU spectrum
+    @test isapprox(real(λ[3]), -2.0; atol = 1.0e-2)
+end
+
+# =====================================================================
+# Boundary conditions
+# =====================================================================
+
+@testset "BC: Reflecting default" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-4.0, 4.0, 50))
+    gen = DiffusionGenerator(sys, grid)
+    @test gen.bc == (Reflecting(),)
+    @test gen isa DiffusionGenerator{1, Tuple{Reflecting}}
+    @test maximum(abs, vec(sum(gen.Q; dims = 2))) < 1.0e-12
+end
+
+@testset "BC: Periodic — 1D ring with pure diffusion" begin
+    sys = CoupledSDEs((u, p, t) -> [0.0], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-pi, pi, 60))
+    gen = DiffusionGenerator(sys, grid; bc = Periodic())
+    @test gen.bc == (Periodic(),)
+    @test gen isa DiffusionGenerator{1, Tuple{Periodic}}
+    @test maximum(abs, vec(sum(gen.Q; dims = 2))) < 1.0e-12
+    ρ = stationary_distribution(gen)
+    @test maximum(ρ) - minimum(ρ) < 1.0e-12
+end
+
+@testset "BC: Absorbing leaks mass on boundary" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-3.0, 3.0, 60))
+    gen = DiffusionGenerator(sys, grid; bc = Absorbing())
+    @test gen.bc == (Absorbing(),)
+    rsums = vec(sum(gen.Q; dims = 2))
+    @test maximum(abs, rsums[2:59]) < 1.0e-10
+    @test rsums[1] < -1.0e-3
+    @test rsums[end] < -1.0e-3
+end
+
+@testset "BC: per-axis tuple" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1], 0.0], [0.0, 0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-2.0, 2.0, 21), (-pi, pi, 24))
+    gen = DiffusionGenerator(sys, grid; bc = (Reflecting(), Periodic()))
+    @test gen.bc == (Reflecting(), Periodic())
+    @test gen isa DiffusionGenerator{2, Tuple{Reflecting, Periodic}}
+    @test maximum(abs, vec(sum(gen.Q; dims = 2))) < 1.0e-12
+end
+
+@testset "BC: validation errors" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-3.0, 3.0, 20))
+    # Symbols no longer accepted (catches typos at the type system).
+    @test_throws ArgumentError DiffusionGenerator(sys, grid; bc = :reflecting)
+    # Wrong tuple length.
+    @test_throws ArgumentError DiffusionGenerator(
+        sys, grid; bc = (Reflecting(), Periodic())
+    )
+end
+
+@testset "BC: stationary_distribution rejects Absorbing" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-3.0, 3.0, 30))
+    gen_abs = DiffusionGenerator(sys, grid; bc = Absorbing())
+    @test_throws ArgumentError stationary_distribution(gen_abs)
+end
+
+# =====================================================================
+# LinearSolve Krylov backend
+# =====================================================================
+
+@testset "Krylov solver via LinearSolve" begin
+    using LinearSolve: KrylovJL_GMRES
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.6)
+    grid = CartesianGrid((-2.0, 2.0, 200))
+    gen = DiffusionGenerator(sys, grid)
+    B = x -> x[1] > 0.7
+
+    alg = KrylovJL_GMRES()
+
+    @test stationary_distribution(gen, alg) ≈ stationary_distribution(gen) atol = 1.0e-10
+    @test mean_first_passage_time(gen, B; alg = alg) ≈ mean_first_passage_time(gen, B) atol = 1.0e-8
+end
+
+@testset "stationary_distribution: solver kwargs forwarded to LinearSolve" begin
+    using LinearSolve: KrylovJL_GMRES
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.6)
+    grid = CartesianGrid((-2.0, 2.0, 200))
+    gen = DiffusionGenerator(sys, grid)
+    @test stationary_distribution(gen, KrylovJL_GMRES(); abstol = 1.0e-14, reltol = 1.0e-14) ≈
+        stationary_distribution(gen) atol = 1.0e-10
+end
+
+# =====================================================================
+# Analytical benchmarks: closed-form physical examples
+# =====================================================================
+
+# Pure 1D Brownian motion `dx = σ dW` on (-L, L) with reflecting BCs.
+# With target = boundary cells, the BVP `(σ²/2) T'' = -1, T(±L) = 0` has
+# the parabolic exit-time profile T(x) = (L² - x²) / σ². The first-passage
+# *variance* at x = 0 is Var = 2L⁴ / (3σ⁴) (closed form via the second
+# moment equation `(σ²/2) T₂'' = -2T`).
+@testset "Analytical: MFPT and variance for 1D BM in (-L, L)" begin
+    σ, L = 1.0, 1.0
+    sys = CoupledSDEs((u, p, t) -> [0.0], [0.0]; noise_strength = σ)
+    grid = CartesianGrid((-L, L, 401))
+    gen = DiffusionGenerator(sys, grid)
+
+    # Effective L is the cell-center position of the boundary cell.
+    L_eff = L - grid.h[1] / 2
+    target = x -> abs(x[1]) > L_eff - 1.0e-12
+
+    τ = mean_first_passage_time(gen, target)
+    var = first_passage_variance(gen, target)
+
+    # T(x) = (L_eff² - x²) / σ² over the free cells.
+    for x_test in (0.0, 0.3, 0.5, 0.7)
+        i = argmin(abs.(grid.centers[1] .- x_test))
+        x = grid.centers[1][i]
+        @test τ[i] ≈ (L_eff^2 - x^2) / σ^2 atol = 1.0e-3
+    end
+
+    # Var[τ | x = 0] = 2 L_eff⁴ / (3 σ⁴) and σ_τ/μ_τ = √(2/3).
+    i0 = argmin(abs.(grid.centers[1]))
+    @test var[i0] ≈ 2 * L_eff^4 / (3 * σ^4) atol = 1.0e-3
+    @test sqrt(var[i0]) / τ[i0] ≈ sqrt(2 / 3) atol = 1.0e-4
+end
+
+# 1D pure Brownian motion on (-L, L) with reflecting (no-flux) BCs.
+# The Laplacian on this domain has spectrum λ_n = -(σ²/2) (nπ/(2L))² for
+# n = 0, 1, 2, ..., with eigenfunctions cos(nπ(x+L)/(2L)).
+@testset "Analytical: eigenmodes of 1D BM, reflecting BC" begin
+    σ, L = 1.0, 1.0
+    sys = CoupledSDEs((u, p, t) -> [0.0], [0.0]; noise_strength = σ)
+    grid = CartesianGrid((-L, L, 200))
+    gen = DiffusionGenerator(sys, grid)
+
+    λ, _ = eigenmodes(gen, 5)
+    for n in 0:4
+        expected = -(σ^2 / 2) * (n * π / (2 * L))^2
+        @test isapprox(real(λ[n + 1]), expected; atol = 0.05, rtol = 0.005)
+    end
+    @test all(abs.(imag.(λ)) .< 1.0e-10)
+end
+
+# 1D pure Brownian motion on the periodic ring (-π, π). The Laplacian on
+# the circle has eigenvalues -(σ²/2) k² for k = 0, 1, 2, ..., with the
+# k = 0 mode unique (constant) and k ≥ 1 doubly degenerate (cos kx, sin kx).
+@testset "Analytical: eigenmodes of 1D BM, periodic BC" begin
+    σ = 1.0
+    sys = CoupledSDEs((u, p, t) -> [0.0], [0.0]; noise_strength = σ)
+    grid = CartesianGrid((-π, π, 200))
+    gen = DiffusionGenerator(sys, grid; bc = Periodic())
+
+    # Use DenseEigen here so the doubly-degenerate pairs match to dense
+    # accuracy; the default iterative backend converges each eigenpair
+    # independently and won't match them to machine precision.
+    λ, _ = eigenmodes(gen, 7, DenseEigen())
+    expected = [0.0, -σ^2 / 2, -σ^2 / 2, -2σ^2, -2σ^2, -4.5σ^2, -4.5σ^2]
+    for n in 1:7
+        @test isapprox(real(λ[n]), expected[n]; atol = 1.0e-2)
+    end
+    # Multiplicity 2 for k ≥ 1: pairs should match each other within
+    # discretisation accuracy.
+    @test isapprox(real(λ[2]), real(λ[3]); atol = 1.0e-6)
+    @test isapprox(real(λ[4]), real(λ[5]); atol = 1.0e-6)
+end
+
+# 1D Ornstein-Uhlenbeck `dx = -x dt + σ dW`. Starting from a Gaussian
+# `(x_0, s_0²)`, the density at time t is the Gaussian
+#   μ(t)   = x_0 e^{-t}
+#   var(t) = s_0² e^{-2t} + (σ²/2)(1 - e^{-2t})
+# Test that propagate_density reproduces this analytical evolution.
+@testset "Analytical: propagator for 1D OU is exact Gaussian" begin
+    σ, x_0, s_0 = 1.0, 2.0, 0.2
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = σ)
+    grid = CartesianGrid((-5.0, 5.0, 200))
+    gen = DiffusionGenerator(sys, grid)
+
+    ρ_0 = (1 / (s_0 * sqrt(2π))) .* exp.(-(grid.centers[1] .- x_0) .^ 2 ./ (2 * s_0^2))
+    ρ_0 ./= sum(ρ_0) * grid.h[1]
+
+    for t_test in (0.5, 1.0, 2.0, 5.0)
+        ρs, _ = propagate_density(gen, t_test, ρ_0; tol = 1.0e-10, m = 50)
+        ρ_t = ρs[:, end]
+
+        # Numerical mean and variance of the propagated density.
+        μ_num = sum(grid.centers[1] .* ρ_t) * grid.h[1]
+        var_num = sum((grid.centers[1] .- μ_num) .^ 2 .* ρ_t) * grid.h[1]
+
+        μ_ana = x_0 * exp(-t_test)
+        var_ana = s_0^2 * exp(-2 * t_test) + (σ^2 / 2) * (1 - exp(-2 * t_test))
+
+        @test μ_num ≈ μ_ana atol = 5.0e-3
+        @test var_num ≈ var_ana atol = 5.0e-3
+
+        # Pointwise comparison to the analytical Gaussian.
+        s_ana = sqrt(var_ana)
+        ρ_ana =
+            (1 / (s_ana * sqrt(2π))) .*
+            exp.(-(grid.centers[1] .- μ_ana) .^ 2 ./ (2 * var_ana))
+        L1_err = sum(abs.(ρ_t .- ρ_ana)) * grid.h[1]
+        @test L1_err < 5.0e-3
+    end
+end
+
+# The Fokker-Planck operator `Qᵀ` and the generator `Q` are matrix
+# transposes, so they share the same spectrum (real / complex eigenvalues
+# identical, eigenvectors swap left ↔ right).
+@testset "Analytical: rate_matrix and fokker_planck_operator share spectrum" begin
+    using LinearAlgebra: eigvals
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.6)
+    grid = CartesianGrid((-2.0, 2.0, 100))
+    gen = DiffusionGenerator(sys, grid)
+
+    Q = rate_matrix(gen)
+    F = fokker_planck_operator(gen)
+
+    λ_Q = sort(real.(eigvals(Matrix(Q))); rev = true)
+    λ_F = sort(real.(eigvals(Matrix(F))); rev = true)
+    @test maximum(abs.(λ_Q .- λ_F)) < 1.0e-9
+end
+
+# Stationary density of 1D OU `dx = -x dt + σ dW` has variance σ²/2 in
+# closed form (Gaussian with that variance is the unique stationary
+# solution of the FP equation). Verify quantitatively.
+@testset "Analytical: variance of stationary 1D OU = σ²/2" begin
+    σ = 1.0
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = σ)
+    grid = CartesianGrid((-6.0, 6.0, 200))
+    gen = DiffusionGenerator(sys, grid)
+    ρ = stationary_distribution(gen)
+    μ = sum(grid.centers[1] .* ρ) * grid.h[1]
+    var_num = sum((grid.centers[1] .- μ) .^ 2 .* ρ) * grid.h[1]
+    @test isapprox(μ, 0.0; atol = 1.0e-10)              # symmetric → mean = 0
+    @test isapprox(var_num, σ^2 / 2; atol = 1.0e-3)     # var = σ²/2
+end
+
+# Propagator semigroup property: exp(t1 · F) · exp(t2 · F) = exp((t1+t2) · F)
+# applied to any density. A non-trivial structural test of `propagate_density`.
+@testset "Analytical: propagator semigroup property" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-6.0, 6.0, 200))
+    gen = DiffusionGenerator(sys, grid)
+
+    ρ_0 = zeros(200); ρ_0[100] = 1 / grid.h[1]
+
+    ρs1, _ = propagate_density(gen, 1.5, ρ_0; tol = 1.0e-12)
+    ρs2, _ = propagate_density(gen, 1.0, ρs1[:, end]; tol = 1.0e-12)
+    ρs_direct, _ = propagate_density(gen, 2.5, ρ_0; tol = 1.0e-12)
+
+    @test maximum(abs.(ρs2[:, end] .- ρs_direct[:, end])) < 1.0e-10
+end
+
+# Eigenmodes of 2D OU `dx = -x dt + σ dW` are -(n+m) for n, m ≥ 0, since
+# the operator is separable into two 1D OUs each with Hermite spectrum
+# -k for k = 0, 1, 2, .... Multiplicity of eigenvalue -k in 2D is k+1
+# (the number of integer pairs (n, m) with n + m = k).
+# Slowest 6 (sorted descending): 0, -1 (×2), -2 (×3).
+@testset "Analytical: 2D OU eigenmodes are separable sums" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1], -u[2]], [0.0, 0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-5.0, 5.0, 71), (-5.0, 5.0, 71))
+    gen = DiffusionGenerator(sys, grid)
+
+    # DenseEigen so degenerate eigenvalues match to dense accuracy.
+    λ, _ = eigenmodes(gen, 6, DenseEigen())
+    expected = [0.0, -1.0, -1.0, -2.0, -2.0, -2.0]
+    for i in 1:6
+        @test isapprox(real(λ[i]), expected[i]; atol = 0.05)
+    end
+    # Multiplicity-2 pair at -1 is degenerate.
+    @test isapprox(real(λ[2]), real(λ[3]); atol = 1.0e-6)
+    # Multiplicity-3 cluster at -2.
+    @test isapprox(real(λ[4]), real(λ[5]); atol = 1.0e-6)
+end
+
+# =====================================================================
+# Type stability
+# =====================================================================
+
+# =====================================================================
+# Argument validation and edge cases
+# =====================================================================
+
+@testset "CartesianGrid: construction validation" begin
+    @test_throws ArgumentError CartesianGrid()                            # zero axes
+    @test_throws ArgumentError CartesianGrid((1.0, -1.0, 10))             # lo ≥ hi
+    @test_throws ArgumentError CartesianGrid((-1.0, 1.0, 1))              # N < 2
+    @test_throws ArgumentError CartesianGrid((-1.0, 1.0, 5), (0.0, 0.0, 5))  # second axis lo ≥ hi
+end
+
+@testset "DiffusionGenerator: non-diagonal noise rejected" begin
+    # Build a CoupledSDEs with a rotated covariance — should be rejected.
+    sys = CoupledSDEs(
+        (u, p, t) -> [-u[1], -u[2]], [0.0, 0.0]; noise_strength = 1.0,
+        covariance = [1.0 0.5; 0.5 1.0]
+    )
+    grid = CartesianGrid((-2.0, 2.0, 21), (-2.0, 2.0, 21))
+    @test_throws ArgumentError DiffusionGenerator(sys, grid)
+end
+
+@testset "DiffusionGenerator: dimension mismatch between sys and grid" begin
+    sys_1d = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid_2d = CartesianGrid((-2.0, 2.0, 21), (-2.0, 2.0, 21))
+    @test_throws DimensionMismatch DiffusionGenerator(sys_1d, grid_2d)
+end
+
+@testset "MFPT / variance: empty target" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-2.0, 2.0, 50))
+    gen = DiffusionGenerator(sys, grid)
+
+    @test_throws ArgumentError mean_first_passage_time(gen, x -> false)
+    @test_throws ArgumentError first_passage_variance(gen, x -> false)
+end
+
+@testset "eigenmodes: k clamping and validation" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-3.0, 3.0, 30))
+    gen = DiffusionGenerator(sys, grid)
+
+    # k = 1 returns just the trivial mode.
+    λ1, V1 = eigenmodes(gen, 1)
+    @test length(λ1) == 1
+    @test size(V1) == (30, 1)
+    @test abs(λ1[1]) < 1.0e-10
+
+    # k > N is clamped to N.
+    λ_big, V_big = eigenmodes(gen, 1000)
+    @test length(λ_big) == 30
+    @test size(V_big) == (30, 30)
+
+    # k < 1 errors.
+    @test_throws ArgumentError eigenmodes(gen, 0)
+    @test_throws ArgumentError eigenmodes(gen, -1)
+end
+
+@testset "CartesianGrid: anisotropic per-axis spacing" begin
+    # Stationary density of 2D OU with very different x/y spacings should
+    # still match the analytical Gaussian (after normalisation).
+    sys = CoupledSDEs((u, p, t) -> [-u[1], -u[2]], [0.0, 0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-4.0, 4.0, 81), (-2.0, 2.0, 21))   # h_x ≠ h_y
+    gen = DiffusionGenerator(sys, grid)
+    @test grid.h[1] != grid.h[2]
+    ρ = stationary_distribution(gen)
+    xs = [grid.centers[1][I[1]] for I in CartesianIndices(grid.nbox)]
+    ys = [grid.centers[2][I[2]] for I in CartesianIndices(grid.nbox)]
+    ρ_ana = vec(exp.(-(xs .^ 2 .+ ys .^ 2)) ./ pi)
+    @test sum(abs.(ρ .- ρ_ana)) * prod(grid.h) < 1.0e-2
+end
+
+@testset "propagate_density: mass preservation by BC" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-3.0, 3.0, 60))
+
+    # Reflecting and Periodic both conserve mass.
+    for bc in (Reflecting(), Periodic())
+        gen = DiffusionGenerator(sys, grid; bc = bc)
+        ρ_0 = zeros(60); ρ_0[30] = 1 / grid.h[1]
+        ρs, _ = propagate_density(gen, 5.0, ρ_0; tol = 1.0e-12)
+        @test sum(ρs[:, end]) * grid.h[1] ≈ 1.0 atol = 1.0e-8
+    end
+
+    # Absorbing: mass should monotonically decay.
+    gen_abs = DiffusionGenerator(sys, grid; bc = Absorbing())
+    ρ_0 = zeros(60); ρ_0[30] = 1 / grid.h[1]
+    ts = collect(0.0:0.5:5.0)
+    ρs, _ = propagate_density(gen_abs, ts[end], ρ_0; Δt = ts[2] - ts[1], tol = 1.0e-12)
+    masses = [sum(ρs[:, i]) * grid.h[1] for i in 1:size(ρs, 2)]
+    @test issorted(masses; rev = true)            # monotonically decreasing
+    @test masses[1] ≈ 1.0 atol = 1.0e-8           # initial
+    @test masses[end] < masses[1]                # actually decayed
+end
+
+@testset "Mixed 3D BCs: per-axis tuple in 3D" begin
+    sys = CoupledSDEs(
+        (u, p, t) -> [-u[1], 0.0, -u[3]], [0.0, 0.0, 0.0]; noise_strength = 1.0
+    )
+    grid = CartesianGrid((-2.0, 2.0, 11), (-pi, pi, 12), (-2.0, 2.0, 11))
+    gen = DiffusionGenerator(sys, grid; bc = (Reflecting(), Periodic(), Absorbing()))
+    @test gen.bc == (Reflecting(), Periodic(), Absorbing())
+    @test gen isa DiffusionGenerator{3, Tuple{Reflecting, Periodic, Absorbing}}
+
+    # Periodic axis preserves row sum on cells where reflecting/periodic are
+    # the only contributions; absorbing axis injects negative diagonal on the
+    # axis-3 boundary cells. Total row sum is zero only on cells away from
+    # absorbing boundaries.
+    rsums = vec(sum(gen.Q; dims = 2))
+    inner_mask = vec(
+        [
+            (1 < I[3] < grid.nbox[3]) for I in CartesianIndices(grid.nbox)
+        ]
+    )
+    @test maximum(abs, rsums[inner_mask]) < 1.0e-10
+    @test minimum(rsums[.!inner_mask]) < 0       # absorbing axis-3 boundary leaks
+end
+
+# =====================================================================
+# Grid helpers (non-exported)
+# =====================================================================
+
+@testset "grid helpers: not exported but available via :-import" begin
+    @test !isdefined(Main, :ball)
+    @test !isdefined(Main, :cuboid)
+    @test !isdefined(Main, :sublevel)
+    @test !isdefined(Main, :reshape_to_grid)
+end
+
+@testset "ball / cuboid / sublevel predicates" begin
+    using CriticalTransitions: ball, cuboid, sublevel
+
+    A = ball((-1.0, 0.0), 0.25)
+    @test A((-1.0, 0.0)) == true
+    @test A((-1.2, 0.0)) == true
+    @test A((-1.3, 0.0)) == false
+    @test A((1.0, 0.0)) == false
+
+    C = cuboid((-1.0, -0.5), (1.0, 0.5))
+    @test C((0.0, 0.0)) == true
+    @test C((-1.0, -0.5)) == true              # closed box
+    @test C((1.0, 0.5)) == true
+    @test C((1.1, 0.0)) == false
+    @test C((0.0, -0.6)) == false
+
+    f(x) = x[1]^2 + x[2]^2
+    S = sublevel(f, 1.0)
+    @test S((0.0, 0.0)) == true
+    @test S((0.5, 0.5)) == true
+    @test S((1.0, 1.0)) == false               # strict <
+
+    # Compose with the public API as a predicate.
+    sys = CoupledSDEs((u, p, t) -> [-u[1], -u[2]], [0.0, 0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-3.0, 3.0, 21), (-3.0, 3.0, 21))
+    gen = DiffusionGenerator(sys, grid)
+    target = ball((1.0, 0.0), 0.25)
+    τ = mean_first_passage_time(gen, target)
+    @test minimum(τ) >= 0
+end
+
+@testset "reshape_to_grid" begin
+    using CriticalTransitions: reshape_to_grid
+    sys = CoupledSDEs((u, p, t) -> [-u[1], -u[2]], [0.0, 0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-3.0, 3.0, 21), (-3.0, 3.0, 21))
+    gen = DiffusionGenerator(sys, grid)
+
+    ρ = stationary_distribution(gen)
+    M_gen = reshape_to_grid(ρ, gen)
+    M_grid = reshape_to_grid(ρ, grid)
+    @test size(M_gen) == (21, 21)
+    @test M_gen == M_grid
+    @test M_gen[1, 1] == ρ[1]                           # column-major layout
+
+    @test_throws DimensionMismatch reshape_to_grid(zeros(10), grid)
+end
+
+@testset "Type stability" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-4.0, 4.0, 50))
+    gen = DiffusionGenerator(sys, grid)
+    @test (@inferred stationary_distribution(gen)) isa Vector{Float64}
+    @test (@inferred mean_first_passage_time(gen, x -> abs(x[1]) > 2)) isa Vector{Float64}
+end
+
+# =====================================================================
+# stationary_distribution: alternative backends agree
+# =====================================================================
+
+@testset "stationary_distribution: backends agree on well-conditioned 1D OU" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-4.0, 4.0, 100))
+    gen = DiffusionGenerator(sys, grid)
+
+    ρ_default = stationary_distribution(gen)                  # nothing → LinearSolve default
+    ρ_dense = stationary_distribution(gen, DenseEigen())
+    ρ_kk = stationary_distribution(gen, KrylovKitSolver())
+
+    @test ρ_default ≈ ρ_dense rtol = 1.0e-6
+    @test ρ_default ≈ ρ_kk rtol = 1.0e-6
+end
+
+@testset "quasi_stationary_distribution: backends agree" begin
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.4)
+    grid = CartesianGrid((-2.0, 2.0, 121))
+    gen = DiffusionGenerator(sys, grid)
+    right_basin = x -> x[1] > 0
+
+    ρ_kk, λ_kk = quasi_stationary_distribution(gen, right_basin, KrylovKitSolver())
+    ρ_de, λ_de = quasi_stationary_distribution(gen, right_basin, DenseEigen())
+
+    @test λ_kk ≈ λ_de rtol = 1.0e-6
+    @test ρ_kk ≈ ρ_de rtol = 1.0e-5
+end
+
+@testset "quasi_stationary_distribution / eigenmodes reject LinearSolve algs" begin
+    using LinearSolve: KrylovJL_GMRES
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.4)
+    grid = CartesianGrid((-2.0, 2.0, 60))
+    gen = DiffusionGenerator(sys, grid)
+    @test_throws ArgumentError quasi_stationary_distribution(gen, x -> x[1] > 0, KrylovJL_GMRES())
+    @test_throws ArgumentError eigenmodes(gen, 3, KrylovJL_GMRES())
+end
+
+# =====================================================================
+# quasi_stationary_distribution (QSD) on a metastable basin
+# =====================================================================
+
+@testset "quasi_stationary_distribution: 1D double-well" begin
+    # Symmetric double well with V'(x) = x³ - x; metastable basins are
+    # the half-lines x > 0 (right basin) and x < 0 (left basin).
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.3)
+    grid = CartesianGrid((-2.5, 2.5, 251))
+    gen = DiffusionGenerator(sys, grid)
+
+    right_basin = x -> x[1] > 0
+    left_basin = x -> x[1] < 0
+
+    ρ_R, λ_R = quasi_stationary_distribution(gen, right_basin)
+    ρ_L, λ_L = quasi_stationary_distribution(gen, left_basin)
+
+    # Exit rates of mirror-symmetric basins must match.
+    @test λ_R ≈ λ_L rtol = 1.0e-6
+    @test λ_R > 0
+
+    # QSD is zero outside its basin, positive inside.
+    @test all(ρ_R[grid.centers[1] .< 0] .== 0)
+    @test all(ρ_L[grid.centers[1] .> 0] .== 0)
+    @test maximum(ρ_R) > 0
+    @test maximum(ρ_L) > 0
+
+    # QSD normalised to 1 over its basin.
+    @test sum(ρ_R) * prod(grid.h) ≈ 1.0 atol = 1.0e-6
+    @test sum(ρ_L) * prod(grid.h) ≈ 1.0 atol = 1.0e-6
+
+    # x → -x symmetry: the reflected right QSD equals the left QSD.
+    ρ_R_flipped = ρ_R[end:-1:1]
+    @test ρ_R_flipped ≈ ρ_L rtol = 1.0e-5
+end
+
+
+@testset "quasi_stationary_distribution: empty basin throws" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+    grid = CartesianGrid((-3.0, 3.0, 30))
+    gen = DiffusionGenerator(sys, grid)
+    @test_throws ArgumentError quasi_stationary_distribution(gen, x -> false)
+end
+
+@testset "stationary_distribution: diagnostic warning fires on metastable generator" begin
+    # Maier-Stein-like with two FP basins and very small noise: the
+    # discrete generator has two near-zero eigenvalues within machine
+    # precision; the result depends on the pin row.
+    sys = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.03)
+    grid = CartesianGrid((-2.5, 2.5, 401))
+    gen = DiffusionGenerator(sys, grid)
+    @test_logs (:warn, r"may be unreliable"i) stationary_distribution(gen; verbose = true)
+    # Probe is off by default — cheap checks alone don't fire on this case.
+    @test_nowarn stationary_distribution(gen)
+end
+
+using DoubleFloats: Double64
+
+@testset "Parametric float type: CartesianGrid{T}/DiffusionGenerator{T}" begin
+    sys = CoupledSDEs((u, p, t) -> [-u[1]], [0.0]; noise_strength = 1.0)
+
+    # Default constructor remains Float64.
+    grid_f = CartesianGrid((-4.0, 4.0, 60))
+    @test grid_f isa CartesianGrid{1, Float64}
+    @test CriticalTransitions.floattype(grid_f) === Float64
+    gen_f = DiffusionGenerator(sys, grid_f)
+    @test gen_f isa DiffusionGenerator{1, Tuple{Reflecting}, Float64}
+    @test eltype(gen_f.Q) === Float64
+
+    # Explicit Double64 grid → Double64 generator, Double64 matrix entries.
+    grid_d = CartesianGrid{Double64}((-4.0, 4.0, 60))
+    @test grid_d isa CartesianGrid{1, Double64}
+    @test CriticalTransitions.floattype(grid_d) === Double64
+    @test eltype(grid_d.h) === Double64
+    gen_d = DiffusionGenerator(sys, grid_d)
+    @test gen_d isa DiffusionGenerator{1, Tuple{Reflecting}, Double64}
+    @test eltype(gen_d.Q) === Double64
+
+    # Same algebra at higher precision: Q at Double64 differs from Q at
+    # Float64 by a few hundred eps(Float64) (a few ulps per matrix entry,
+    # accumulated across the SG stencil).
+    @test Float64(maximum(abs.(Double64.(gen_f.Q) .- gen_d.Q))) < 1.0e-13
+
+    # Mass conservation holds at Double64 precision.
+    @test Float64(maximum(abs, vec(sum(gen_d.Q; dims = 2)))) < 1.0e-25
+
+    # Float64 solve path still works through the generic interface.
+    ρ_f = stationary_distribution(gen_f)
+    @test ρ_f isa Vector{Float64}
+    @test sum(ρ_f) * CriticalTransitions.cell_volume(grid_f) ≈ 1.0 atol = 1.0e-10
+end
+
