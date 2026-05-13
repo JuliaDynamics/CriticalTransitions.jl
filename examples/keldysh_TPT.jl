@@ -14,34 +14,27 @@
 #
 # ## Noise-strength regimes
 #
-# The single dimensionless control parameter is $D/\Delta\Phi$, the ratio of
-# the noise strength to the quasipotential barrier $\Delta\Phi$ between
-# attractors. Two regimes, two complementary mathematical frameworks:
+# The control parameter is $\Delta\Phi/D$, the barrier-to-noise ratio.
 #
-# **Large-deviation regime ($D \ll \Delta\Phi$).** Freidlin–Wentzell theory:
-# trajectories follow the deterministic flow except for rare excursions along
-# instanton (minimum-action) paths. Mean first-passage times scale as
-# $\tau \sim e^{\Delta\Phi/D}$ (Kramers/Arrhenius); the stationary density
-# $\rho_{ss} \sim e^{-\Phi/D}$ concentrates on attractors. The *geometry* of
-# the transition (instanton, separatrix, reactive tube) becomes $D$-independent
-# in this limit; only the absolute rate diverges.
+# - **Large-deviation regime ($\Delta\Phi/D \gg 1$).** Freidlin–Wentzell:
+#   $\rho_{ss}\sim e^{-\Phi/D}$ concentrates on attractors, $\tau\sim e^{\Delta\Phi/D}$.
+#   The transition geometry is $D$-independent.
+# - **TPT regime (any $D>0$).** The committor's saddle layer has width $\sim\sqrt{D}$;
+#   reactive currents spread over a tube. Natural for the grid-based solve below.
 #
-# **TPT regime (any $D > 0$).** Transition Path Theory does not require an
-# asymptotic limit. At finite $D$ the committor's transition layer across the
-# saddle has width $\sim\sqrt{D}$, reactive currents spread over a tube rather
-# than collapse onto a curve, and absolute rates remain numerically
-# representable. This is the natural setting for a grid-based
-# diffusion-generator solve like the one below.
+# **Practical limits for this PDE method.**
 #
-# To resolve the asymptotic large-deviation picture with this method, push $D$
-# low enough that $\Delta\Phi/D \gtrsim 10$ while keeping $D$ large enough that
-# (i) the stationary density does not underflow double precision
-# ($\Phi_{\max}/D \lesssim 700$) and (ii) the saddle boundary layer is
-# resolved by the grid ($\sqrt{D} \gtrsim \Delta x$). For the parameters below,
-# $D \in [0.02, 0.1]$ is the practical sweet spot; the script uses $D = 0.1$,
-# already deep in the large-deviation regime ($\Delta\Phi/D \approx 42$). The
-# strict $D \to 0$ limit is better attacked with instanton solvers (geometric
-# minimum action method, string method) than by refining this PDE.
+# | Constraint | Floor | Notes |
+# |---|---|---|
+# | spectral gap above `eps(T)` | $\Delta\Phi/D < \log(1/\varepsilon_T)$ | `Float64`: 36, `Double64`: 71, 256-bit `BigFloat`: 177 |
+# | $\rho_{ss}$ not underflowing | $\Phi_{\max}/D < \log(1/\varepsilon_T)$ | same per-type bound |
+# | saddle layer resolved by grid | $\sqrt{D} \gtrsim \Delta x$ | refine the grid for smaller $D$ |
+#
+# Grid discretisation smooths the true gap, so in practice `Double64` works
+# well past its analytical floor (down to $D \sim 10^{-3}$ at the grid below);
+# `BigFloat` is exact at any $D$ in the working range, ~6× slower. Below
+# $D \approx 10^{-2}$ the geometry is already $D$-independent, so instanton
+# solvers (`string_method`, gMAM) give the same answer far cheaper.
 #
 # ## Model
 #
@@ -66,8 +59,9 @@
 # with white noise on the momentum channel only — this matches the $iDx_{\mathrm{q}}^2$
 # term in the action.
 
-using CriticalTransitions, StaticArrays
+using CriticalTransitions, StaticArrays, ProgressMeter
 import LinearSolve as LS
+using Sparspak  # enables LS.SparspakFactorization() on non-Float64 sparse matrices
 using Attractors
 using LinearAlgebra: norm
 using Statistics: quantile
@@ -78,7 +72,7 @@ const γ = 0.03
 const μ = 0.1
 const α₃ = -0.25
 const α₅ = 0.01
-const D = 0.1  # noise strength D in the action; momentum noise = √(2D)
+const D = 0.001 # noise strength D in the action; momentum noise = √(2D)
 
 𝒟(x) = γ - μ * (1 - x^2)
 V′(x) = ω₀^2 * x + α₃ * x^3 + α₅ * x^5
@@ -202,72 +196,261 @@ fig
 # Scharfetter–Gummel exponential-fitting finite-volume scheme; with reflecting
 # boundaries the discrete generator preserves probability mass.
 
-grid = CartesianGrid((-5.5, 5.5, 251), (-3.0, 3.0, 121))
+# The grid eltype is `BigFloat` (default 256-bit). In `Float64` the true
+# spectral gap of $Q^\top$ falls below `eps`, so a direct sparse LU
+# converges to a quasi-stationary mode rather than the global invariant.
+# `SparspakFactorization` is the sparse direct LU that accepts arbitrary-
+# precision matrices; swap `BigFloat` for `Double64` (~6× faster) if
+# $D \gtrsim 10^{-3}$ is enough for your problem.
+
+grid = CartesianGrid{BigFloat}((-5.5, 5.5, 301), (-3.0, 3.0, 301))
 gen = DiffusionGenerator(sys, grid)
 @show size(gen.Q)
-@show maximum(abs, vec(sum(gen.Q; dims = 2)))  # row sums ≈ 0
+@show Float64(maximum(abs, vec(sum(gen.Q; dims = 2))))  # row sums ≈ 0
 
+# Cell centers as `Float64` for plotting; the underlying solve stays in
+# `BigFloat`.
 reshape_grid(v) = reshape(v, grid.nbox)
-xs_c = collect(grid.centers[1])
-ps_c = collect(grid.centers[2])
+xs_c = Float64.(grid.centers[1])
+ps_c = Float64.(grid.centers[2])
 
-# ## Quasipotential ($\varepsilon \to 0$)
+# ## Quasipotential
 #
-# The Freidlin–Wentzell quasipotential is
-# ```math
-# \Phi(x, p) = -\lim_{D\to 0} D\log\rho_{ss}^D(x, p) .
-# ```
-# At the small but finite $D=10^{-3}$ used here, $\Phi \simeq -D\log\rho_{ss}$
-# is dominated by the two deep fixed-point wells: their basins carry
-# essentially all of the equilibrium mass and the limit cycle is metastable
-# rather than a global minimum of $\Phi$.
+# $\Phi(x, p) = -\lim_{D\to 0} D\log\rho_{ss}^D$. At finite $D$ we plot
+# $\Phi \simeq -D\log\rho_{ss}$ directly. The fixed-point wells dominate;
+# the limit cycle is metastable but sits as a *local* min of the global
+# $\Phi$ at height $\approx \Delta\Phi_\text{FP→saddle}$ — invisible on a
+# full-range colorbar but easy to see when zoomed (see below).
 
-ρ = stationary_distribution(
-    gen, KrylovKitSolver();
-    krylovdim = 60,
-    tol = 1.0e-12,
-    maxiter = 2000,
-    inner_alg = LS.UMFPACKFactorization(),
-    verbose = true,
-)
-# ρ = stationary_distribution(
-#     gen, LS.KrylovJL_GMRES();
-# )
+ρ = stationary_distribution(gen, LS.SparspakFactorization())
 
-
-Φ = .-(D .* log.(max.(ρ, eps(Float64))))
+Φ = .-(D .* log.(max.(ρ, eps(eltype(ρ)))))
 Φ .-= minimum(Φ)
-@show extrema(Φ)
+@show Float64.(extrema(Φ))
 
-Φg = reshape_grid(Φ)
-qhi = quantile(filter(isfinite, vec(Φg)), 0.985)
+Φg = Float64.(reshape_grid(Φ))
+ρg = Float64.(reshape_grid(ρ))
+qhi = quantile(filter(isfinite, vec(Φg)), 0.999)
+ρhi = quantile(vec(ρg), 0.999)
 
-fig = Figure(; size = (820, 460))
-ax = Axis(
+fig = Figure(; size = (900, 900))
+
+ax_ρ = Axis(
     fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
+    title = "Stationary density ρ_ss  (D = $D)"
+)
+hm_ρ = heatmap!(ax_ρ, xs_c, ps_c, ρg; colormap = :magma, colorrange = (0, ρhi))
+scatter!(ax_ρ, [-x_fp, x_fp], [0.0, 0.0]; color = :white, markersize = 10)
+scatter!(
+    ax_ρ, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
+    marker = :diamond, markersize = 8
+)
+Colorbar(fig[1, 2], hm_ρ; label = "ρ_ss")
+
+ax_Φ = Axis(
+    fig[2, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
     title = "Quasipotential Φ = -D log ρ_ss  (D = $D)"
 )
-hm = heatmap!(ax, xs_c, ps_c, Φg; colormap = :viridis, colorrange = (0, qhi))
-contour!(ax, xs_c, ps_c, Φg; levels = 14, color = (:white, 0.4), linewidth = 0.7)
-streamplot!(
-    ax, u -> Point2f(u[2], -u[2] * 𝒟(u[1]) - V′(u[1])),
-    -5.5 .. 5.5, -3.0 .. 3.0; gridsize = (28, 14), arrow_size = 6,
-    stepsize = 0.005, linewidth = 0.5,
-    colormap = [(:gray85, 0.6), (:gray85, 0.6)]
-)
-scatter!(ax, [-x_fp, x_fp], [0.0, 0.0]; color = :red, markersize = 12)
+hm_Φ = heatmap!(ax_Φ, xs_c, ps_c, Φg; colormap = :viridis, colorrange = (0, qhi))
+contour!(ax_Φ, xs_c, ps_c, Φg; levels = 14, color = (:white, 0.4), linewidth = 0.7)
+# streamplot!(
+#     ax_Φ, u -> Point2f(u[2], -u[2] * 𝒟(u[1]) - V′(u[1])),
+#     -5.5 .. 5.5, -3.0 .. 3.0; gridsize = (28, 14), arrow_size = 6,
+#     stepsize = 0.005, linewidth = 0.5,
+#     colormap = [(:gray85, 0.6), (:gray85, 0.6)]
+# )
+scatter!(ax_Φ, [-x_fp, x_fp], [0.0, 0.0]; color = :red, markersize = 12)
 scatter!(
-    ax, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
+    ax_Φ, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
     marker = :diamond, markersize = 10
 )
-Colorbar(fig[1, 2], hm; label = "Φ")
+Colorbar(fig[2, 2], hm_Φ; label = "Φ")
 fig
 
-# The two fixed points sit at the bottom of deep wells; the saddles at
-# $(\pm\sqrt{5}, 0)$ are the lowest points on the ridge between the basins,
-# which the optimal (instanton) escape path crosses. The limit-cycle well is
-# very shallow on this scale — see the committor plot below for a finer
-# visualisation of its role.
+# **Left:** the raw stationary density. On a linear scale ρ_ss is a pair of
+# delta-like spikes localised on the two fixed-point wells — essentially all
+# the equilibrium mass sits within `r ~ √D` of $(\pm\sqrt{20}, 0)$, and the
+# rest of phase space (limit cycle included) is indistinguishable from
+# zero. **Right:** the same data viewed as Φ = -D log ρ_ss. The two fixed
+# points sit at the bottom of deep wells; the saddles at $(\pm\sqrt{5}, 0)$
+# are the lowest points on the ridge between the basins, which the optimal
+# (instanton) escape path crosses. The limit-cycle well is very shallow on
+# this scale — see the committor plot below for a finer visualisation of
+# its role.
+
+# ## Instanton limit ($D \to 0$)
+#
+# Everything above is a *finite-D* calculation: the PDE solves for $\rho_{ss}$
+# at the actual $D$ we picked, and $\Phi = -D \log \rho_{ss}$ inherits
+# $O(D)$ corrections to its strict $D \to 0$ value. The Freidlin–Wentzell
+# theory delivers that limit directly: the *anchored* quasipotential
+# $\Phi(x;\, A) = \inf_\gamma S[\gamma]$ over paths $\gamma$ from attractor
+# $A$ to $x$ is the minimum action of the instanton, computed pointwise by
+# the geometric minimum-action method (gMAM). gMAM is $D$-independent;
+# repeating it for many endpoints sweeps out $\Phi(x; A)$ over phase space.
+#
+# We anchor at the left fixed point FP⁻ = $(-\sqrt{20}, 0)$ and sweep a
+# coarse sub-grid over the same $(x, p)$ box used for the PDE. Each
+# endpoint requires its own minimisation, so the runtime scales linearly
+# with the number of sub-grid points.
+#
+# Two caveats. **(1)** The Keldysh noise covariance $\Sigma =
+# \mathrm{Diag}(0, 2D)$ is rank-deficient (no x-channel noise); we
+# regularise with a tiny $\epsilon$ on the x-channel so
+# $\Sigma_\epsilon = \mathrm{Diag}(\epsilon^2, 2D)$ becomes invertible.
+# **(2)** gMAM returns the *geometric* action $S_\text{geo} = 2\Phi$, so we
+# divide by 2 throughout.
+
+ε_reg = 0.01
+diff_reg(u, p, t) = SA[ε_reg     0.0;
+                       0.0   sqrt(2 * D)]
+sys_reg = CoupledSDEs(drift_kel, [-0.5, 0.0]; g = diff_reg, noise_strength = 1.0)
+x_fp_neg = -x_fp
+
+# Sweep a coarse sub-grid spanning the same phase-space box, computing the
+# gMAM action from FP⁻ to each sub-grid point. The result is the
+# *anchored* quasipotential $\Phi(x; \text{FP}^-)$, which equals the
+# global $\Phi$ on the FP⁻ basin and exceeds it on the FP⁺ side
+# (where the path must cross the saddle). The sub-grid is coarse because
+# each endpoint requires its own gMAM solve; the cost scales linearly with
+# the number of sub-grid points.
+
+nx_sub, np_sub = 101, 51
+xs_sub = range(-5.0, 5.0; length = nx_sub)
+ps_sub = range(-2.5, 2.5; length = np_sub)
+
+diff_r_sweep(u, p, t) = SA[ε_reg   0.0;
+                            0.0    sqrt(2 * D)]
+sys_r_sweep = CoupledSDEs(drift_kel, [-0.5, 0.0]; g = diff_r_sweep, noise_strength = 1.0)
+
+function _crude_init(x_end, p_end; npoints = 80)
+    Δx = x_end - x_fp_neg
+    sg = range(0, 1; length = npoints)
+    base = Δx == 0 ? 1.0 : Δx
+    return reduce(
+        hcat, [SA[x_fp_neg + Δx * s, s * p_end + base * sin(π * s)] for s in sg],
+    )
+end
+
+# Linear-shift warp: parent's converged path → init for a nearby endpoint.
+function _warp_path(path::Matrix{Float64}, new_end)
+    n = size(path, 2)
+    shift = collect(new_end) .- path[:, end]
+    out = copy(path)
+    @inbounds for k in 1:n
+        s = (k - 1) / (n - 1)
+        out[:, k] .+= s .* shift
+    end
+    return out
+end
+
+function _gmam_warm(init_path; reltol = 1.0e-6)
+    gmr = minimize_geometric_action(
+        sys_r_sweep, init_path; reltol = reltol, maxiters = 10_000, show_progress = false,
+    )
+    return gmr.action / 2, Matrix(Matrix(gmr.path)')
+end
+
+# Sweep endpoints in order of increasing distance from FP⁻; each gMAM solve
+# warm-starts from the previously-converged nearest neighbour. This propagates
+# the path topology smoothly outward instead of relying on a crude init for
+# every endpoint.
+all_ij = vec([(i, j) for i in 1:nx_sub, j in 1:np_sub])
+dists = [hypot(xs_sub[i] - x_fp_neg, ps_sub[j]) for (i, j) in all_ij]
+ij_sorted = all_ij[sortperm(dists)]
+
+function _nearest_visited(i, j, paths, Φ; max_action = 6.0)
+    # Skip parents whose own gMAM converged to a bad action — those paths
+    # carry a topology error that propagates to descendants. Falling back
+    # to a crude init is preferable.
+    best_idx = nothing; best_d = Inf
+    @inbounds for jj in 1:size(paths, 2), ii in 1:size(paths, 1)
+        paths[ii, jj] === nothing && continue
+        (isnan(Φ[ii, jj]) || Φ[ii, jj] > max_action) && continue
+        d = (ii - i)^2 + (jj - j)^2
+        if d < best_d; best_d = d; best_idx = (ii, jj); end
+    end
+    return best_idx
+end
+
+println("Sweeping gMAM over $(nx_sub)×$(np_sub) = $(nx_sub * np_sub) sub-grid points "
+      * "(sequential, warm-started)...")
+Φ_gmam = fill(NaN, nx_sub, np_sub)
+paths_gmam = Array{Union{Nothing, Matrix{Float64}}}(undef, nx_sub, np_sub)
+fill!(paths_gmam, nothing)
+
+@showprogress for (i, j) in ij_sorted
+    x_end, p_end = xs_sub[i], ps_sub[j]
+    if hypot(x_end - x_fp_neg, p_end) < 0.05    # endpoint = FP⁻
+        Φ_gmam[i, j] = 0.0
+        paths_gmam[i, j] = _crude_init(x_end, p_end)
+        continue
+    end
+    parent = _nearest_visited(i, j, paths_gmam, Φ_gmam)
+    init_p = parent === nothing ? _crude_init(x_end, p_end) :
+             _warp_path(paths_gmam[parent[1], parent[2]], [x_end, p_end])
+    Φ_gmam[i, j], paths_gmam[i, j] = _gmam_warm(init_p)
+end
+
+# True FW max in this box ≈ h₁ + h₂ ≈ 5.5 (FP⁻ → FP⁺ via both saddles).
+# Anything well above ~8 is the optimiser failing to find a competitive
+# path. Mask as NaN so the heatmap shows a blank region instead of a yellow
+# blob saturating the colormap.
+# Φ_gmam[Φ_gmam .> 8.0] .= NaN
+# println("  range (NaN above 8): ", extrema(filter(!isnan, Φ_gmam)))
+
+# Side-by-side: PDE Φ (full grid) vs gMAM Φ anchored at FP⁻ (sub-grid).
+fig = Figure(; size = (900, 900))
+
+qhi_l = quantile(filter(isfinite, vec(Φg)), 0.985)
+ax1 = Axis(
+    fig[1, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
+    title = "PDE Φ (D = $D, BigFloat)"
+)
+hm1 = heatmap!(ax1, xs_c, ps_c, Φg; colormap = :viridis, colorrange = (0, qhi_l))
+contour!(ax1, xs_c, ps_c, Φg; levels = 14, color = (:white, 0.3), linewidth = 0.6)
+scatter!(ax1, [-x_fp, x_fp], [0.0, 0.0]; color = :red, markersize = 10)
+scatter!(
+    ax1, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
+    marker = :diamond, markersize = 8
+)
+Colorbar(fig[1, 2], hm1; label = "Φ")
+
+qhi_r = quantile(vec(Φ_gmam), 0.985)
+ax2 = Axis(
+    fig[2, 1]; xlabel = "x", ylabel = "p", aspect = DataAspect(),
+    title = "gMAM Φ(x; FP⁻), instanton limit (anchored)"
+)
+hm2 = heatmap!(ax2, xs_sub, ps_sub, Φ_gmam; colormap = :viridis, colorrange = (0, qhi_r))
+contour!(ax2, xs_sub, ps_sub, Φ_gmam; levels = 10, color = (:white, 0.3), linewidth = 0.6)
+scatter!(ax2, [-x_fp, x_fp], [0.0, 0.0]; color = :red, markersize = 10)
+scatter!(
+    ax2, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
+    marker = :diamond, markersize = 8
+)
+Colorbar(fig[2, 2], hm2; label = "Φ(x; FP⁻)")
+fig
+
+# The two heatmaps agree on the **FP⁻ side**: FP⁻ is the deepest well in
+# both; the contours in the FP⁻ basin track the PDE contours qualitatively.
+# They differ on the **FP⁺ side**: PDE Φ collapses to 0 there (global $\Phi$
+# is the min over both attractors), while the anchored gMAM Φ keeps climbing
+# past saddle⁻ — that's the FW barrier from FP⁻ to FP⁺. To recover the
+# global $\Phi$ from gMAM you would also anchor at FP⁺ and take the
+# pointwise minimum.
+#
+# **Quantitative agreement is approximate**: 5-30% on the FP⁻ side near the
+# anchor, worse for endpoints far from FP⁻ or in regions where the path
+# topology is hard to seed (e.g. far below the x-axis with x > 0). The
+# fundamental obstruction is that the bare gMAM machinery assumes invertible
+# noise covariance, while the Keldysh $\Sigma = \mathrm{Diag}(0, 2D)$ is
+# rank-deficient. The $\epsilon$ regularisation makes the problem solvable
+# but introduces a residual penalty $(\dot x - p)^2 / \epsilon^2$ that the
+# optimiser cannot drive to zero. The shape of the landscape is correct;
+# the absolute values are an upper bound on the true FW action. A
+# proper rank-deficient FW solver (custom Hamiltonian via
+# `ExtendedPhaseSpace`, with `pinv(\Sigma)` and a velocity-projection step)
+# would close this gap.
 
 # ## Transition Path Theory ($\varepsilon > 0$)
 #
@@ -280,7 +463,7 @@ r_attr = 0.4
 near_Lfp(u) = norm(u .- SA[-x_fp, 0.0]) < r_attr
 near_Rfp(u) = norm(u .- SA[x_fp, 0.0]) < r_attr
 
-result = ReactiveTransition(gen, near_Lfp, near_Rfp)
+result = ReactiveTransition(gen, near_Lfp, near_Rfp; alg = LS.SparspakFactorization())
 
 qplus = forward_committor(result)
 qminus = backward_committor(result)
@@ -290,7 +473,7 @@ qminus = backward_committor(result)
 # $q^{+}(x, p)$ is the probability of reaching $B$ before $A$. The
 # 0.5-isocontour traces the stochastic separatrix.
 
-q2d = reshape_grid(qplus)
+q2d = Float64.(reshape_grid(qplus))
 
 fig = Figure(; size = (820, 460))
 ax = Axis(
@@ -322,8 +505,8 @@ Is = 1:step:grid.nbox[1]
 Js = 1:step:grid.nbox[2]
 xq = [xs_c[i] for i in Is, _ in Js]
 yq = [ps_c[j] for _ in Is, j in Js]
-ux = [Jx[i, j] for i in Is, j in Js]
-uy = [Jy[i, j] for i in Is, j in Js]
+ux = [Float64(Jx[i, j]) for i in Is, j in Js]
+uy = [Float64(Jy[i, j]) for i in Is, j in Js]
 mag = sqrt.(ux .^ 2 .+ uy .^ 2)
 mmax = maximum(mag)
 
@@ -346,8 +529,8 @@ fig
 # position. The limit-cycle interior is the region of longest wait.
 
 target = u -> near_Lfp(u) || near_Rfp(u)
-τ = mean_first_passage_time(gen, target)
-τ2d = reshape_grid(τ)
+τ = mean_first_passage_time(gen, target; alg = LS.SparspakFactorization())
+τ2d = Float64.(reshape_grid(τ))
 
 fig = Figure(; size = (820, 460))
 ax = Axis(
@@ -376,8 +559,8 @@ fig
 for r in (0.3, 0.4, 0.5, 0.6)
     local Ar = u -> norm(u .- SA[-x_fp, 0.0]) < r
     local Br = u -> norm(u .- SA[x_fp, 0.0]) < r
-    local res_r = ReactiveTransition(gen, Ar, Br)
-    println("r = $r → reactive_rate ≈ $(reactive_rate(res_r))")
+    local res_r = ReactiveTransition(gen, Ar, Br; alg = LS.SparspakFactorization())
+    println("r = $r → reactive_rate ≈ $(Float64(reactive_rate(res_r)))")
 end
 
 # At this small noise the absolute reactive rate underflows (Kramers
