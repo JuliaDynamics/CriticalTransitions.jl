@@ -43,3 +43,27 @@ $(TYPEDSIGNATURES)
 Returns the SDE solver specified in the `diffeq` settings of the `CoupledSDEs`.
 """
 solver(ds::ContinuousTimeDynamicalSystem) = ds.integ.alg
+
+"""
+$(TYPEDSIGNATURES)
+
+Returns the effective noise strength ``\\sigma_{\\mathrm{eff}}`` of the `CoupledSDEs`
+`sys`, defined as ``\\sigma_{\\mathrm{eff}} = \\sqrt{\\mathrm{tr}(\\Sigma)/D}`` where
+``\\Sigma = `` `covariance_matrix(sys)` is the SDE's noise rate matrix and `D` its
+state-space dimension.
+
+This is the σ produced by the trace-normalization convention used in the large-deviation
+action functionals (see [`fw_action`](@ref)): the SDE
+``\\mathrm{d}x = b\\,\\mathrm{d}t + \\sigma\\,\\Sigma_0\\,\\mathrm{d}W`` is canonicalized as
+``\\sigma_{\\mathrm{eff}}^2 = \\mathrm{tr}(\\sigma^2\\,Q)/D`` with
+``Q = \\Sigma_0\\Sigma_0^\\top``. For an SDE constructed with isotropic `covariance = I`,
+`noise_strength(sys)` recovers the `noise_strength` keyword passed at construction time.
+More generally, the returned value is the per-direction average of the noise variance.
+
+For an SDE built with a custom `g` that is not of the form `σ * sqrt(Q)`, the returned
+value is still the trace-based effective σ of the resulting covariance matrix.
+"""
+function noise_strength(sys::CoupledSDEs)
+    Σ = covariance_matrix(sys)
+    return sqrt(tr(Σ) / size(Σ, 1))
+end

@@ -75,3 +75,32 @@ end
     A = diffusion_matrix(ds)
     @test A * A' ≈ [1.0 0.5; 0.5 1.0]
 end
+
+@testset "noise_strength" begin
+    using StaticArrays, LinearAlgebra
+    f_ou(u, p, t) = -u
+
+    # Isotropic covariance: recovers the noise_strength keyword passed at construction.
+    sys_iso = CoupledSDEs(f_ou, SA[0.0, 0.0]; noise_strength = 0.3)
+    @test noise_strength(sys_iso) ≈ 0.3
+
+    # Anisotropic diagonal Q: returns the per-direction average noise std,
+    # i.e. σ · sqrt(tr(Q)/D).
+    sys_diag = CoupledSDEs(
+        f_ou, SA[0.0, 0.0]; covariance = [1.0 0.0; 0.0 4.0], noise_strength = 1.0
+    )
+    @test noise_strength(sys_diag) ≈ sqrt(5/2)
+
+    # Rotation invariance: the same physical SDE in a rotated basis returns
+    # the same effective noise strength.
+    R = [cos(π/4) -sin(π/4); sin(π/4) cos(π/4)]
+    Q_rot = R * [1.0 0.0; 0.0 4.0] * R'
+    sys_rot = CoupledSDEs(f_ou, SA[0.0, 0.0]; covariance = Q_rot, noise_strength = 1.0)
+    @test isapprox(noise_strength(sys_rot), noise_strength(sys_diag); rtol = 1.0e-12)
+
+    # Combined scaling: σ=0.5 with covariance=4I matches σ_eff = 0.5·sqrt(4) = 1.
+    sys_combined = CoupledSDEs(
+        f_ou, SA[0.0, 0.0]; covariance = [4.0 0.0; 0.0 4.0], noise_strength = 0.5
+    )
+    @test noise_strength(sys_combined) ≈ 1.0
+end
