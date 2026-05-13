@@ -3,7 +3,7 @@ EditURL = "../../../examples/Langevin_MCMC.jl"
 ```
 
 ````@example Langevin_MCMC
-using CriticalTransitions: StochSystem
+using CriticalTransitions: CoupledSDEs
 using CriticalTransitions: simulate, idfunc
 using Plots, StaticArrays, LinearAlgebra
 
@@ -127,7 +127,7 @@ Setup SPDE problem
 
 ````@example Langevin_MCMC
 function spde(eps, sigma)
-    return StochSystem(
+    return CoupledSDEs(
         FitzHughNagumoSPDE,
         [eps, β, α, γ, κ, Ι, a, sigma, dz],
         2N,
@@ -160,4 +160,3 @@ res_u
 ---
 
 *This page was generated using [Literate.jl](https://github.com/fredrikekre/Literate.jl).*
-
