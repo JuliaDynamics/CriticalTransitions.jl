@@ -10,20 +10,18 @@ $(FIELDS)
 Call signature: `(::RateSystemSpecs)(u, p, t)` for out-of-place and
 `(::RateSystemSpecs)(du, u, p, t)` for in-place dynamical systems.
 """
-mutable struct RateSystemSpecs{R,K,T,P} <: Function
-    "Dynamic rule of the underlying autonomous system"
-    unforced_rule::R
+mutable struct RateSystemSpecs{S,K,T,P} <: Function
+    "Underlying autonomous system"
+    unforced_system::S
     "Mapping parameter index => ForcingProfile"
-    forcing_profile::Dict{K,ForcingProfile}
+    forcing_profile::AbstractDict{K,ForcingProfile}
     "Mapping parameter index => forcing start time"
-    forcing_start_time::Dict{K,T}
+    forcing_start_time::AbstractDict{K,T}
     "Mapping parameter index => forcing duration"
-    forcing_duration::Dict{K,T}
+    forcing_duration::AbstractDict{K,T}
     "Mapping parameter index => forcing scale"
-    forcing_scale::Dict{K,T}
-    "Parameter container of the autonomous system (at t0)"
-    p0::P
-    "Placeholder parameter container (used for update_parameters!)"
+    forcing_scale::AbstractDict{K,T}
+    "Placeholder parameter container"
     pdummy::P
     "Initial time (of system initiation)"
     t0::T
@@ -31,7 +29,7 @@ end
 
 """
     RateSystem <: ContinuousTimeDynamicalSystem
-    RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::Dict; kw...)
+    RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::AbstractDict; kw...)
 
 Construct a non-autonomous dynamical system by applying time-dependent parametric
 forcing protocols to an underlying autonomous continuous-time dynamical system `ds`.
@@ -74,70 +72,56 @@ struct RateSystem{S,R} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
     system::S
     "Data structure representing the system and forcing specifications in system units"
-    forcing::RateSystemSpecs{R}
+    specs::RateSystemSpecs{R}
 end
 
 function RateSystem(
     ds::ContinuousTimeDynamicalSystem,
-    forcing_profile::Dict;
-    forcing_start_time::Dict = Dict(),
-    forcing_duration::Dict = Dict(),
-    forcing_scale::Dict = Dict(),
+    forcing_profile::AbstractDict;
+    forcing_start_time=initial_time(ds),
+    forcing_duration=1.0,
+    forcing_scale=1.0,
     t0=initial_time(ds),
     )
 
     if isempty(forcing_profile)
-        throw(ArgumentError("`forcing_profile` dictionary must contain at least one entry"))
+        throw(ArgumentError("`forcing_profile` must be a dictionary containing at least one entry"))
     end
 
-    if isempty(forcing_start_time)
-        for (k, _) in forcing_profile
-            forcing_start_time[k] = initial_time(ds)
-        end
-    end
-
-    if isempty(forcing_duration)
-        for (k, profile) in forcing_profile
-            forcing_duration[k] = (profile.interval[2] - profile.interval[1])
-        end
-    end
-
-    if isempty(forcing_scale)
-        for (k, _) in forcing_profile
-            forcing_scale[k] = 1.0
+    forcing_kw = Dict("start_time" => forcing_start_time, "duration" => forcing_duration,
+        "scale" => forcing_scale)
+    
+    for j in keys(forcing_kw)
+        if forcing_kw[j] isa Real
+            forcing_kw[j] = Dict(k => forcing_kw[j] for (k, _) in forcing_profile)
+        else
+            @assert keys(forcing_kw[j]) == keys(forcing_profile) |
+            "Dictionary keys of forcing_$(j) and forcing_profile must be identical."
         end
     end
 
     p0 = deepcopy(current_parameters(ds))
 
     rss = RateSystemSpecs{R,K,T,P}(
-        dynamic_rule(ds),
+        ds,
         forcing_profile,
-        forcing_start_time,
-        forcing_duration,
-        forcing_scale,
-        p0,
+        forcing_kw["start_time"],
+        forcing_kw["duration"],
+        forcing_kw["scale"],
         p0,
         t0
     )
 
     # preserve CoupledSDEs properties
     if ds isa CoupledSDEs
-        kw = (;)
-        hasproperty(ds, :g) ? kw = merge(kw, (; g = getproperty(ds, :g))) : nothing
-        hasproperty(ds, :noise_prototype) ? kw = merge(kw,
-            (; noise_prototype = getproperty(ds, :noise_prototype))) : nothing
-        hasproperty(ds, :noise_strength) ? kw = merge(kw,
-            (; noise_strength = getproperty(ds, :noise_strength))) : nothing
-        hasproperty(ds, :covariance) ? kw = merge(kw,
-            (; covariance = getproperty(ds, :covariance))) : nothing
-        hasproperty(ds, :diffeq) ? kw = merge(kw,
-            (; diffeq = getproperty(ds, :diffeq))) : nothing
-
-        # preserve initial time in wrapper
-        kw = merge(kw, (; t0 = t0 ))
-
-        system = CoupledSDEs(rss, current_state(ds), p0; kw...)
+        IIP = SciMLBase.isinplace(ds)
+        prob = referrenced_sciml_prob(ds)
+        new_prob = SDEProblem{IIP}(
+            rss, prob.g, current_state(ds), (t0, prob.tspan[2]), p0;
+            noise_rate_prototype = prob.noise_rate_prototype,
+            noise = prob.noise,
+        )
+        system = CoupledSDEs(new_prob, ds.diffeq, ds.noise_type)
     elseif ds isa CoupledODEs
         system = CoupledODEs(rss, current_state(ds), p0; t0)
     else
@@ -147,34 +131,24 @@ function RateSystem(
     return RateSystem(system, rss)
 end
 
-function RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
-    pkey;
-    forcing_start_time::Real = 0.0, 
-    forcing_duration::Real = 1.0,
-    forcing_scale::Real = 1.0,
-    kwargs...)
-
-    return RateSystem(ds, Dict(pkey => forcing_profile);
-        forcing_start_time = Dict(pkey => forcing_start_time),
-        forcing_duration = Dict(pkey => forcing_duration),
-        forcing_scale = Dict(pkey => forcing_scale),
-        kwargs...)
-end
+RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
+    pkey; kw...) = RateSystem(ds, Dict(pkey => forcing_profile); kw...)
 
 # Out-of-place
 function (rss::RateSystemSpecs)(u, p, t)
     update_parameters!(rss, t)
-    return rss.unforced_rule(u, rss.pdummy, rss.t0)
+    return dynamic_rule(rss.unforced_system)(u, rss.pdummy, rss.t0)
 end
 
 # In-place
 function (rss::RateSystemSpecs)(du, u, p, t)
     update_parameters!(rss, t)
-    return rss.unforced_rule(du, u, rss.pdummy, rss.t0)
+    return dynamic_rule(rss.unforced_system)(du, u, rss.pdummy, rss.t0)
 end
 
 function update_parameters!(rss::RateSystemSpecs, t::Real)
-    pdummy = rss.pdummy
+    p_dummy = rss.pdummy
+    ds_dummy = rss.unforced_system
 
     for (pkey, profile) in rss.forcing_profile
         p_old = current_parameter(ds, pkey)
@@ -182,7 +156,7 @@ function update_parameters!(rss::RateSystemSpecs, t::Real)
 
         section_start = profile.interval[1]
         section_end = profile.interval[2]
-        # Make the function piecewise constant with range [p0, p0+forcing_scale]
+        # Make the function piecewise constant
         if t > rss.forcing_start_time[pkey]
             if t < rss.forcing_start_time[pkey] + rss.forcing_duration[pkey]
                 # Stretch/squeeze forcing to the correct time units
@@ -200,7 +174,7 @@ function update_parameters!(rss::RateSystemSpecs, t::Real)
         end
         pdummy[pkey] = p_new
     end
-    set_parameters!(rss, pdummy, rss.pdummy)
+    set_parameters!(ds_dummy, p_dummy, rss.pdummy)
     return nothing
 end
 
@@ -211,8 +185,8 @@ Returns the parameter container of a [`RateSystem`](@ref) at time `t` (in system
 units).
 """
 function parameters(rs::RateSystem, t)
-    update_parameters!(rs.forcing, t)
-    return rs.forcing.pdummy
+    update_parameters!(rs.specs, t)
+    return rs.specs.pdummy
 end
 
 """
@@ -222,8 +196,8 @@ Returns the parameter with key `pkey` of a [`RateSystem`](@ref) at time `t` (in 
 time units).
 """
 function parameter(rs::RateSystem, t, pkey)
-    update_parameters!(rs.forcing, t)
-    return rs.forcing.pdummy[pkey]
+    update_parameters!(rs.specs, t)
+    return rs.specs.pdummy[pkey]
 end
 
 """
@@ -235,11 +209,11 @@ the specified parameter, otherwise update the forcing scale of _all_ parameters 
 """
 function set_forcing_scale!(rs::RateSystem, scale; pkey=nothing)
     if isnothing(pkey)
-        for k in keys(rs.forcing.forcing_profile)
-            rs.forcing.forcing_scale[k] = scale
+        for k in keys(rs.specs.forcing_profile)
+            rs.specs.forcing_scale[k] = scale
         end
     else
-        rs.forcing.forcing_scale[pkey] = scale
+        rs.specs.forcing_scale[pkey] = scale
     end
     return rs
 end
@@ -252,11 +226,11 @@ the [`RateSystem`](@ref) `rs`.
 """
 function set_forcing_duration!(rs::RateSystem, duration; pkey=nothing)
     if isnothing(pkey)
-        for k in keys(rs.forcing.forcing_profile)
-            rs.forcing.forcing_duration[k] = duration
+        for k in keys(rs.specs.forcing_profile)
+            rs.specs.forcing_duration[k] = duration
         end
     else
-        rs.forcing.forcing_duration[pkey] = duration
+        rs.specs.forcing_duration[pkey] = duration
     end
     return rs
 end
@@ -269,11 +243,11 @@ the [`RateSystem`](@ref) `rs`.
 """
 function set_forcing_start!(rs::RateSystem, start_time; pkey=nothing)
     if isnothing(pkey)
-        for k in keys(rs.forcing.forcing_profile)
-            rs.forcing.forcing_start_time[k] = start_time
+        for k in keys(rs.specs.forcing_profile)
+            rs.specs.forcing_start_time[k] = start_time
         end
     else
-        rs.forcing.forcing_start_time[pkey] = start_time
+        rs.specs.forcing_start_time[pkey] = start_time
     end
     return rs
 end
@@ -282,36 +256,23 @@ end
 $(TYPEDSIGNATURES)
 
 Returns an autonomous dynamical system corresponding to the frozen system of the
-non-autonomous [`RateSystem`](@ref) `rs` at time `t`. If the wrapped system is an
-SDE, a `CoupledSDEs` is returned (attempting to preserve the original SDE's
-noise/integrator settings); otherwise a `CoupledODEs` is returned.
+non-autonomous [`RateSystem`](@ref) `rs` at time `t`.
 """
 function frozen_system(rs::RateSystem, t)
-    p = DynamicalSystemsBase.current_parameters(rs, t)
-    if rs.system isa CoupledSDEs
-        kw = (;)
-        if hasproperty(rs.system, :g)
-            kw = merge(kw, (; g = getproperty(rs.system, :g)))
-        end
-        if hasproperty(rs.system, :noise_prototype)
-            kw = merge(kw, (; noise_prototype = getproperty(rs.system, :noise_prototype)))
-        end
-        if hasproperty(rs.system, :noise_strength)
-            kw = merge(kw, (; noise_strength = getproperty(rs.system, :noise_strength)))
-        end
-        if hasproperty(rs.system, :covariance)
-            kw = merge(kw, (; covariance = getproperty(rs.system, :covariance)))
-        end
-        if hasproperty(rs.system, :diffeq)
-            kw = merge(kw, (; diffeq = getproperty(rs.system, :diffeq)))
-        end
-
-        # preserve the RateSystem initial time for the frozen wrapper
-        kw = merge(kw, (; t0 = rs.forcing.t0 ))
-
-        return CoupledSDEs(rs.forcing.unforced_rule, current_state(rs), p; kw...)
+    p = parameters(rs, t)
+    # preserve CoupledSDEs properties
+    if rs isa CoupledSDEs
+        IIP = SciMLBase.isinplace(rs)
+        prob = referrenced_sciml_prob(rs)
+        new_prob = SDEProblem{IIP}(
+            dynamic_rule(rs.specs.unforced_system), prob.g, current_state(rs),
+            (t0, prob.tspan[2]), p;
+            noise_rate_prototype = prob.noise_rate_prototype,
+            noise = prob.noise,
+        )
+        return CoupledSDEs(new_prob, rs.diffeq, rs.noise_type)
     else
-        return CoupledODEs(rs.forcing.unforced_rule, current_state(rs), p)
+        return CoupledODEs(dynamic_rule(rs.specs.unforced_system), current_state(rs), p)
     end
 end
 
@@ -341,7 +302,7 @@ SciMLBase.step!(rs::RateSystem, args...) = (SciMLBase.step!(rs.system, args...);
 SciMLBase.isinplace(rs::RateSystem) = SciMLBase.isinplace(rs.system)
 DynamicalSystemsBase.set_state!(rs::RateSystem, u::AbstractArray) = (DynamicalSystemsBase.set_state!(rs.system, u); rs)
 
-# SDE-specific delegations: forward stochastic helpers to the wrapped system
+# SDE-specific delegations
 noise_process(rs::RateSystem) = noise_process(rs.system)
 
 solver(rs::RateSystem) = solver(rs.system)
