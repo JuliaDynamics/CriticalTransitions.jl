@@ -32,6 +32,10 @@ end
     include("largedeviations/interpolate.jl")
 end
 
+@testset "Diffusion operator" begin
+    include("diffusion_operator.jl")
+end
+
 @testset "Transition Path Theory" begin
     include("transition_path_theory.jl")
 end
