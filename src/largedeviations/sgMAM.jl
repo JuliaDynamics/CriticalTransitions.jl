@@ -258,7 +258,12 @@ function _sgmam_refresh!(xdot, p, lambda, x, H_p)
     return nothing
 end
 
-FW_action(xdot, p) = dot(xdot, p) / 2
+# Freidlin-Wentzell action of an instanton path discretized over a uniform arclength
+# parameter `s ∈ [0, 1]`. With `xdot` produced by `central_diff!` (which does not
+# divide by Δs), `xdot[:, i] ≈ Δs · dϕ/ds`, so `dot(xdot, p) ≈ ∫ p · dϕ`. On the
+# zero-energy shell `H = p·f + |p|²/2 = 0`, the identity `p · dϕ = (|p|²/2) dt`
+# holds along the instanton, so `∫ p · dϕ = ½ ∫ |p|² dt = S_FW`. No additional `/2`.
+FW_action(xdot, p) = dot(xdot, p)
 
 function proper_sgMAM_system(ds::CoupledSDEs)
     proper_MAM_system(ds)

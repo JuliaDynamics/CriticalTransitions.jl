@@ -44,14 +44,22 @@ end;
 """
 $(TYPEDSIGNATURES)
 
-Normalizes the covariance matrix ``Q`` (in-place) by dividing it by
-``L_1(Q)/\\text{dim}(Q)``, where ``L_1(Q)`` is the L1 matrix norm of ``Q`` and
-``\\text{dim}(Q)`` is the dimension of ``Q``.
+Normalizes the covariance matrix ``Q`` so that its trace equals its dimension,
+``\\mathrm{tr}(Q) = D`` (equivalently, the average eigenvalue equals 1).
+
+This canonicalization breaks the ``(\\varepsilon, a_0) \\leftrightarrow (c\\varepsilon, a_0/c)``
+rescaling symmetry of the Freidlin-Wentzell action, so the action functional
+becomes a well-defined quantity for an SDE constructed from a `noise_strength` and a
+`covariance`. The result is independent of the noise strength chosen during
+construction, and (unlike L1-of-entries normalization) invariant under orthogonal
+changes of basis: ``\\mathrm{tr}(R\\,Q\\,R^\\top) = \\mathrm{tr}(Q)`` for any orthogonal `R`.
+
+For diagonal positive ``Q`` this coincides with dividing by `L_1(Q)/D`, so existing
+diagonal-noise call sites are numerically unchanged.
 """
 function normalize_covariance!(covariance)
-    l1norm = norm(covariance, 1)
-    dim = size(covariance)[1]
-    return covariance * dim / l1norm
+    D = size(covariance, 1)
+    return covariance * D / tr(covariance)
 end
 
 # Central finite difference, second derivative
