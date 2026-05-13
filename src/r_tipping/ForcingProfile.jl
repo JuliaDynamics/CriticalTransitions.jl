@@ -34,13 +34,3 @@ function ForcingProfile(sym::Symbol)
         error("Only :linear or :tanh are supported input arguments.")
     end
 end
-
-"""
-    data(fp::ForcingProfile; N=100)
-
-Returns `N` data points `(x,y)` describing a given [`ForcingProfile`](@ref).
-"""
-function data(fp::ForcingProfile; N=100)
-    x = range(fp.interval[1], fp.interval[2], length=N)
-    return x, fp.profile.(x)
-end

@@ -8,7 +8,7 @@ A mutable data structure storing information needed to construct and modify a
 $(FIELDS)
 
 Call signature: `(::RateSystemSpecs)(u, p, t)` for out-of-place and
-`(::RateSystemSpecs)(du, u, p, t)` for in-place dynamical systems
+`(::RateSystemSpecs)(du, u, p, t)` for in-place dynamical systems.
 """
 mutable struct RateSystemSpecs{R,K,T,P} <: Function
     "Dynamic rule of the underlying autonomous system"
@@ -90,54 +90,43 @@ function RateSystem(
         throw(ArgumentError("`forcing_profile` dictionary must contain at least one entry"))
     end
 
-    pdummy = deepcopy(current_parameters(ds))
+    p0 = deepcopy(current_parameters(ds))
 
     rss = RateSystemSpecs{R,K,T,P}(
         dynamic_rule(ds),
         forcing_profile,
-        start_map,
-        duration_map,
-        scale_map,
-        p0_map,
-        pdummy,
+        forcing_start_time,
+        forcing_duration,
+        forcing_scale,
+        p0,
+        p0,
         t0
     )
 
-    # Wrap the modified (non-autonomous) drift in an appropriate Coupled* wrapper.
-    # If the input system is stochastic, construct a CoupledSDEs wrapper and
-    # attempt to preserve common SDE-related keyword settings (e.g. `g`,
-    # `noise_prototype`, `noise_strength`, `covariance`, `diffeq`). Otherwise
-    # fall back to a CoupledODEs wrapper.
+    # preserve CoupledSDEs properties
     if ds isa CoupledSDEs
         kw = (;)
-        if hasproperty(ds, :g)
-            kw = merge(kw, (; g = getproperty(ds, :g)))
-        end
-        if hasproperty(ds, :noise_prototype)
-            kw = merge(kw, (; noise_prototype = getproperty(ds, :noise_prototype)))
-        end
-        if hasproperty(ds, :noise_strength)
-            kw = merge(kw, (; noise_strength = getproperty(ds, :noise_strength)))
-        end
-        if hasproperty(ds, :covariance)
-            kw = merge(kw, (; covariance = getproperty(ds, :covariance)))
-        end
-        if hasproperty(ds, :diffeq)
-            kw = merge(kw, (; diffeq = getproperty(ds, :diffeq)))
-        end
+        hasproperty(ds, :g) ? kw = merge(kw, (; g = getproperty(ds, :g))) : nothing
+        hasproperty(ds, :noise_prototype) ? kw = merge(kw,
+            (; noise_prototype = getproperty(ds, :noise_prototype))) : nothing
+        hasproperty(ds, :noise_strength) ? kw = merge(kw,
+            (; noise_strength = getproperty(ds, :noise_strength))) : nothing
+        hasproperty(ds, :covariance) ? kw = merge(kw,
+            (; covariance = getproperty(ds, :covariance))) : nothing
+        hasproperty(ds, :diffeq) ? kw = merge(kw,
+            (; diffeq = getproperty(ds, :diffeq))) : nothing
 
         # preserve initial time in wrapper
         kw = merge(kw, (; t0 = t0 ))
 
-        newds = CoupledSDEs(rss, current_state(ds), deepcopy(current_parameters(ds)); kw...)
+        system = CoupledSDEs(rss, current_state(ds), p0; kw...)
+    elseif ds isa CoupledODEs
+        system = CoupledODEs(rss, current_state(ds), p0; t0)
     else
-        newds = CoupledODEs(rss, current_state(ds), deepcopy(current_parameters(ds)); t0)
+        error("A RateSystem can only be constructed from a CoupledODEs or CoupledSDEs.")
     end
 
-    # set owner and ensure pdummy has same shape as system parameters
-    rss.owner = newds
-    rss.pdummy = deepcopy(current_parameters(newds))
-    return RateSystem(newds, rss)
+    return RateSystem(system, rss)
 end
 
 function RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
@@ -154,32 +143,39 @@ function RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingP
         kwargs...)
 end
 
-# TODO: this must be rewritten using `set_parameter!` or its source code.
-# otherwise it doesn't work with ModelingToolkit.jl;
-# Or better yet, use `set_parameters!` and give a dict of parameters to set?
-function (rss::RateSystemSpecs)(u, p, t)
-    pmod = p_modified(rss, p, t)
-    # Prefer calling out-of-place signature `f(u,p,t)` which returns du
-    return rss.unforced_rule(u, pmod, t)
+# Out-of-place
+(rss::RateSystemSpecs)(u, p, t) = rss.unforced_rule(u, p_modified(rss, p, t), t)
+
+# In-place
+function (rss::RateSystemSpecs)(du, u, p, t)
+    du = rss.unforced_rule(u, p_modified(rss, p, t), t)
+    return nothing
 end
 
-function (rss::RateSystemSpecs)(du, u, p, t)
-    pmod = p_modified(rss, p, t)
-    # Try calling in-place signature `f(du,u,p,t)` first; if not defined,
-    # fall back to out-of-place `f(u,p,t)` and copy into `du`.
-    try
-        return rss.unforced_rule(du, u, pmod, t)
-    catch err
-        # Fall back to out-of-place: get result and copy
-        out = rss.unforced_rule(u, pmod, t)
-        try
-            du .= out
-            return nothing
-        catch
-            # If broadcasting assignment fails, rethrow original method error
-            rethrow(err)
+function p_modified(rss::RateSystemSpecs, t::Real)
+    pdummy = deepcopy(rss.p0)
+
+    for (pkey, profile) in rss.forcing_profile
+            p0 = getfield(rss, :p0)[pkey]
+            f = profile.profile
+            section_start = profile.interval[1]
+            section_end = profile.interval[2]
+            start_time = rss.forcing_start_time[pkey]
+            duration = rss.forcing_duration[pkey]
+            scale = rss.forcing_scale[pkey]
+
+            if t <= start_time
+                pt = p0
+            elseif t < start_time + duration
+                time_shift = ((section_end - section_start) / duration) * (t - start_time) + section_start
+                pt = p0 + scale * (f(time_shift) - f(section_start))
+            else
+                pt = p0 + scale * (f(section_end) - f(section_start))
+            end
+
+            p[pkey] = pt
         end
-    end
+    return p
 end
 
 """
