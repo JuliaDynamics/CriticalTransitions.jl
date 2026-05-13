@@ -118,11 +118,22 @@ function _adjoint_generator(
         G::SparseMatrixCSC{T, Int}, ρ::Vector{T}
     )::SparseMatrixCSC{T, Int} where {T <: AbstractFloat}
     N = size(G, 1)
+    length(ρ) == N || throw(
+        DimensionMismatch("ρ has length $(length(ρ)) but generator is $N×$N"),
+    )
+    # Time-reversal is only defined on a strictly positive invariant density;
+    # zeros (e.g. off-basin QSD entries) need to be restricted to a support
+    # mask by the caller instead of silently clamped.
+    any(ρi -> ρi <= 0, ρ) && throw(
+        ArgumentError(
+            "ρ must be strictly positive; restrict G and ρ to the supporting " *
+            "communicating class before calling `_adjoint_generator`"
+        ),
+    )
     Gtil = sparse(transpose(G))
     rv = rowvals(Gtil)
     nz = nonzeros(Gtil)
     diagacc = zeros(T, N)
-    ρ_safe = max.(ρ, eps(T))
 
     @inbounds for col in 1:N
         for p in nzrange(Gtil, col)
@@ -131,7 +142,7 @@ function _adjoint_generator(
                 nz[p] = zero(T)
                 continue
             end
-            val = nz[p] * ρ_safe[col] / ρ_safe[row]
+            val = nz[p] * ρ[col] / ρ[row]
             nz[p] = val
             diagacc[row] -= val
         end

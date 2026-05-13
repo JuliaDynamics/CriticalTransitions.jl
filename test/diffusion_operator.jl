@@ -192,7 +192,11 @@ end
 
     ρs_loose, _ = propagate_density(gen, 5.0, ρ_0; tol = 1.0e-3)
     ρs_tight, _ = propagate_density(gen, 5.0, ρ_0; tol = 1.0e-12, m = 60)
-    @test sum(abs.(ρs_loose[:, end] .- ρs_tight[:, end])) * grid.h[1] >= 0
+    # Tight should be closer to the discrete stationary distribution than loose.
+    ρ_∞ = stationary_distribution(gen)
+    err_loose = sum(abs, ρs_loose[:, end] .- ρ_∞) * grid.h[1]
+    err_tight = sum(abs, ρs_tight[:, end] .- ρ_∞) * grid.h[1]
+    @test err_tight <= err_loose
     # Mass exactly conserved with tight tolerance.
     @test sum(ρs_tight[:, end]) * grid.h[1] ≈ 1.0 atol = 1.0e-8
 end

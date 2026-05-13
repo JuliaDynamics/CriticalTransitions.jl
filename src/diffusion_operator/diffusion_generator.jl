@@ -191,6 +191,10 @@ function _assemble_generator(
     return sparse(view(rows, 1:idx), view(cols, 1:idx), view(vals, 1:idx), N, N)
 end
 
+# Replace the k-th component of a CartesianIndex with `value`.
+@inline _shift_axis(I::CartesianIndex{D}, k::Int, value::Int, ::Val{D}) where {D} =
+    CartesianIndex(ntuple(d -> d == k ? value : I[d], Val(D)))
+
 # SG rates for diffusive faces; upwind rates for deterministic axes.
 @inline function _face_rates(bf::T, Dk::T, ε_h2::T, h_ε::T, hk::T) where {T}
     return if Dk > 0
@@ -214,7 +218,7 @@ end
 
     @inbounds for I in CartesianIndices(nbox)
         if I[k] < nbox[k]
-            J = CartesianIndex(Base.setindex(I.I, I[k] + 1, k))
+            J = _shift_axis(I, k, I[k] + 1, Val(D))
             n = LI[I]
             m = LI[J]
             rate_nm, rate_mn = _face_rates(T(1) / 2 * (fk[I] + fk[J]), Dk, ε_h2, h_ε, hk)
@@ -227,7 +231,7 @@ end
             diagacc[m] -= sign * rate_mn
         else
             if bc_k isa Periodic
-                J = CartesianIndex(Base.setindex(I.I, 1, k))
+                J = _shift_axis(I, k, 1, Val(D))
                 n = LI[I]
                 m = LI[J]
                 rate_nm, rate_mn = _face_rates(T(1) / 2 * (fk[I] + fk[J]), Dk, ε_h2, h_ε, hk)

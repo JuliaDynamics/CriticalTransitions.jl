@@ -108,10 +108,10 @@ end
 $(TYPEDSIGNATURES)
 
 Slowest-decaying eigenmodes of the generator `gen`. Returns `(λ, V)`
-where `λ::Vector{ComplexF64}` are the eigenvalues with largest real part
-(least negative — slowest decay), sorted descending, and `V` collects
-the corresponding right eigenvectors of `Q` columnwise
-(`Q * V[:, i] = λ[i] * V[:, i]`).
+where `λ` is a vector of `Complex{T}` eigenvalues (with `T =
+floattype(gen)`) with largest real part (least negative — slowest decay),
+sorted descending, and `V` collects the corresponding right eigenvectors
+of `Q` columnwise (`Q * V[:, i] = λ[i] * V[:, i]`).
 
 For mass-preserving boundary conditions ([`Reflecting`](@ref) /
 [`Periodic`](@ref)) the eigenvalue closest to zero is exactly `0`, with
