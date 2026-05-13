@@ -122,7 +122,7 @@ export frozen_system, parameters
 
 # Diffusion operator
 export CartesianGrid, DiffusionGenerator
-export BoundaryCondition, Reflecting, Periodic, Absorbing
+export Reflecting, Periodic, Absorbing
 export rate_matrix, m_matrix, fokker_planck_operator
 export stationary_distribution
 export quasi_stationary_distribution
