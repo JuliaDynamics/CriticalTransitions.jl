@@ -127,7 +127,7 @@ function _adjoint_generator(
     any(ρi -> ρi <= 0, ρ) && throw(
         ArgumentError(
             "ρ must be strictly positive; restrict G and ρ to the supporting " *
-            "communicating class before calling `_adjoint_generator`"
+                "communicating class before calling `_adjoint_generator`"
         ),
     )
     Gtil = sparse(transpose(G))
