@@ -811,4 +811,3 @@ using DoubleFloats: Double64
     @test ρ_f isa Vector{Float64}
     @test sum(ρ_f) * CriticalTransitions.cell_volume(grid_f) ≈ 1.0 atol = 1.0e-10
 end
-
