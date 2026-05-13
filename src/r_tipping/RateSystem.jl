@@ -21,9 +21,9 @@ mutable struct RateSystemSpecs{R,K,T,P} <: Function
     forcing_duration::Dict{K,T}
     "Mapping parameter index => forcing scale"
     forcing_scale::Dict{K,T}
-    "Mapping parameter index => initial (autonomous) parameter value"
+    "Parameter container of the autonomous system (at t0)"
     p0::P
-    "Dummy parameter container (copy of parameters)"
+    "Placeholder parameter container (used for update_parameters!)"
     pdummy::P
     "Initial time (of system initiation)"
     t0::T
@@ -80,14 +80,32 @@ end
 function RateSystem(
     ds::ContinuousTimeDynamicalSystem,
     forcing_profile::Dict;
-    forcing_start_time=nothing,
-    forcing_duration=nothing,
-    forcing_scale=nothing,
+    forcing_start_time::Dict = Dict(),
+    forcing_duration::Dict = Dict(),
+    forcing_scale::Dict = Dict(),
     t0=initial_time(ds),
     )
 
     if isempty(forcing_profile)
         throw(ArgumentError("`forcing_profile` dictionary must contain at least one entry"))
+    end
+
+    if isempty(forcing_start_time)
+        for (k, _) in forcing_profile
+            forcing_start_time[k] = initial_time(ds)
+        end
+    end
+
+    if isempty(forcing_duration)
+        for (k, profile) in forcing_profile
+            forcing_duration[k] = (profile.interval[2] - profile.interval[1])
+        end
+    end
+
+    if isempty(forcing_scale)
+        for (k, _) in forcing_profile
+            forcing_scale[k] = 1.0
+        end
     end
 
     p0 = deepcopy(current_parameters(ds))
@@ -130,189 +148,60 @@ function RateSystem(
 end
 
 function RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
-    pidx::Int;
+    pkey;
     forcing_start_time::Real = 0.0, 
     forcing_duration::Real = 1.0,
     forcing_scale::Real = 1.0,
     kwargs...)
 
-    return RateSystem(ds, Dict(pidx => forcing_profile);
-        forcing_start_time = Dict(pidx => forcing_start_time),
-        forcing_duration = Dict(pidx => forcing_duration),
-        forcing_scale = Dict(pidx => forcing_scale),
+    return RateSystem(ds, Dict(pkey => forcing_profile);
+        forcing_start_time = Dict(pkey => forcing_start_time),
+        forcing_duration = Dict(pkey => forcing_duration),
+        forcing_scale = Dict(pkey => forcing_scale),
         kwargs...)
 end
 
 # Out-of-place
-(rss::RateSystemSpecs)(u, p, t) = rss.unforced_rule(u, p_modified(rss, p, t), t)
+function (rss::RateSystemSpecs)(u, p, t)
+    update_parameters!(rss, t)
+    return rss.unforced_rule(u, rss.pdummy, rss.t0)
+end
 
 # In-place
 function (rss::RateSystemSpecs)(du, u, p, t)
-    du = rss.unforced_rule(u, p_modified(rss, p, t), t)
-    return nothing
+    update_parameters!(rss, t)
+    return rss.unforced_rule(du, u, rss.pdummy, rss.t0)
 end
 
-function p_modified(rss::RateSystemSpecs, t::Real)
-    pdummy = deepcopy(rss.p0)
+function update_parameters!(rss::RateSystemSpecs, t::Real)
+    pdummy = rss.pdummy
 
     for (pkey, profile) in rss.forcing_profile
-            p0 = getfield(rss, :p0)[pkey]
-            f = profile.profile
-            section_start = profile.interval[1]
-            section_end = profile.interval[2]
-            start_time = rss.forcing_start_time[pkey]
-            duration = rss.forcing_duration[pkey]
-            scale = rss.forcing_scale[pkey]
+        p_old = current_parameter(ds, pkey)
+        f = profile.profile
 
-            if t <= start_time
-                pt = p0
-            elseif t < start_time + duration
-                time_shift = ((section_end - section_start) / duration) * (t - start_time) + section_start
-                pt = p0 + scale * (f(time_shift) - f(section_start))
+        section_start = profile.interval[1]
+        section_end = profile.interval[2]
+        # Make the function piecewise constant with range [p0, p0+forcing_scale]
+        if t > rss.forcing_start_time[pkey]
+            if t < rss.forcing_start_time[pkey] + rss.forcing_duration[pkey]
+                # Stretch/squeeze forcing to the correct time units
+                time_shift =
+                    ((section_end - section_start) / rss.forcing_duration[pkey]) *
+                    (t - rss.forcing_start_time[pkey]) + section_start
+                p_new = p_old + rss.forcing_scale[pkey] * 
+                    (f(time_shift) - f(section_start))
             else
-                pt = p0 + scale * (f(section_end) - f(section_start))
+                p_new = p_old + rss.forcing_scale[pkey] * 
+                    (f(section_end) - f(section_start))
             end
-
-            p[pkey] = pt
+        else
+            p_new = p_old
         end
-    return p
-end
-
-"""
-        p_modified(rss::RateSystemSpecs, p, t)
-
-Compute and return a parameter container appropriate for time `t` by applying
-the forcing profiles configured in `rss.forcing_profile` to the provided parameter
-container `p`.
-
-Behavior:
-- If `p` is an `AbstractDict` or `AbstractVector`, it is updated in-place and
-    returned (this avoids allocations when possible).
-- For arbitrary parameter container types, a copy of `rss.pdummy` is created and
-    updated. When `rss.owner` is available, `DynamicalSystemsBase.set_parameter!`
-    (per-key) or `set_parameters!` (bulk) is used where supported; otherwise
-    `setproperty!` is attempted on the copy.
-
-The returned container has the same general shape/type expected by the
-underlying system.
-"""
-function p_modified(rss::RateSystemSpecs, p, t::Real)
-        # In-place update for Dict and Vector parameter containers (mutates `p`),
-        # otherwise attempt to update the owning system via `set_parameter!`/`set_parameters!`.
-    if isa(p, AbstractDict)
-        for (pkey, profile) in rss.forcing_profile
-            p0 = getfield(rss, :p0)[pkey]
-            f = profile.profile
-            section_start = profile.interval[1]
-            section_end = profile.interval[2]
-            start_time = rss.forcing_start_time[pkey]
-            duration = rss.forcing_duration[pkey]
-            scale = rss.forcing_scale[pkey]
-
-            if t <= start_time
-                pt = p0
-            elseif t < start_time + duration
-                time_shift = ((section_end - section_start) / duration) * (t - start_time) + section_start
-                pt = p0 + scale * (f(time_shift) - f(section_start))
-            else
-                pt = p0 + scale * (f(section_end) - f(section_start))
-            end
-
-            p[pkey] = pt
-        end
-        return p
-
-    elseif isa(p, AbstractVector)
-        for (pkey, profile) in rss.forcing_profile
-            idx = Int(pkey)
-            p0 = getfield(rss, :p0)[pkey]
-            f = profile.profile
-            section_start = profile.interval[1]
-            section_end = profile.interval[2]
-            start_time = rss.forcing_start_time[pkey]
-            duration = rss.forcing_duration[pkey]
-            scale = rss.forcing_scale[pkey]
-
-            if t <= start_time
-                pt = p0
-            elseif t < start_time + duration
-                time_shift = ((section_end - section_start) / duration) * (t - start_time) + section_start
-                pt = p0 + scale * (f(time_shift) - f(section_start))
-            else
-                pt = p0 + scale * (f(section_end) - f(section_start))
-            end
-
-            p[idx] = pt
-        end
-        return p
-    else
-        # Arbitrary parameter container: build a copy in pd and try to apply updates
-        pd = deepcopy(rss.pdummy)
-        for (pkey, profile) in rss.forcing_profile
-            p0 = getfield(rss, :p0)[pkey]
-            f = profile.profile
-            section_start = profile.interval[1]
-            section_end = profile.interval[2]
-            start_time = rss.forcing_start_time[pkey]
-            duration = rss.forcing_duration[pkey]
-            scale = rss.forcing_scale[pkey]
-
-            if t <= start_time
-                pt = p0
-            elseif t < start_time + duration
-                time_shift = ((section_end - section_start) / duration) * (t - start_time) + section_start
-                pt = p0 + scale * (f(time_shift) - f(section_start))
-            else
-                pt = p0 + scale * (f(section_end) - f(section_start))
-            end
-
-            if isa(pd, AbstractDict)
-                pd[pkey] = pt
-            elseif isa(pd, AbstractVector)
-                pd[Int(pkey)] = pt
-            else
-                # Try per-parameter setter on owning system if available
-                if rss.owner !== nothing
-                    try
-                        DynamicalSystemsBase.set_parameter!(rss.owner, pkey, pt)
-                    catch
-                        # fall through to attempt setproperty!
-                        try
-                            setproperty!(pd, pkey, pt)
-                        catch err
-                            throw(ArgumentError("Cannot update parameter key $(pkey) for container type $(typeof(pd)). Provide a system with `set_parameter!` or use Dict/Vector parameter containers."))
-                        end
-                    end
-                else
-                    try
-                        setproperty!(pd, pkey, pt)
-                    catch err
-                        throw(ArgumentError("Cannot update parameter key $(pkey) for container type $(typeof(pd)). Provide a RateSystem constructed from a system supporting `set_parameter!` or use Dict/Vector parameter containers."))
-                    end
-                end
-            end
-        end
-
-        # If we updated the owning system per-key above, return its current parameters
-        if rss.owner !== nothing
-            try
-                return DynamicalSystemsBase.current_parameters(rss.owner)
-            catch
-                # fallback: try to set all parameters at once
-                try
-                    DynamicalSystemsBase.set_parameters!(rss.owner, pd)
-                    rss.pdummy = pd
-                    return DynamicalSystemsBase.current_parameters(rss.owner)
-                catch
-                    rss.pdummy = pd
-                    return pd
-                end
-            end
-        end
-
-        rss.pdummy = pd
-        return pd
+        pdummy[pkey] = p_new
     end
+    set_parameters!(rss, pdummy, rss.pdummy)
+    return nothing
 end
 
 """
@@ -321,8 +210,10 @@ end
 Returns the parameter container of a [`RateSystem`](@ref) at time `t` (in system time
 units).
 """
-parameters(rs::RateSystem, t) = p_modified(rs.forcing,
-    deepcopy(current_parameters(rs.system)), t)
+function parameters(rs::RateSystem, t)
+    update_parameters!(rs.forcing, t)
+    return rs.forcing.pdummy
+end
 
 """
     parameter(rs::RateSystem, t, pkey)
@@ -330,24 +221,25 @@ parameters(rs::RateSystem, t) = p_modified(rs.forcing,
 Returns the parameter with key `pkey` of a [`RateSystem`](@ref) at time `t` (in system
 time units).
 """
-parameter(rs::RateSystem, t, pkey) = parameters(rs, t)[pkey]
+function parameter(rs::RateSystem, t, pkey)
+    update_parameters!(rs.forcing, t)
+    return rs.forcing.pdummy[pkey]
+end
 
-# TODO: ensure all three key update functions follow the optional [, pidx] syntax
-# for multi parameters.
 """
-    set_forcing_scale!(rs::RateSystem, scale [, pidx])
+    set_forcing_scale!(rs::RateSystem, scale [, pkey])
 
 Sets the amplitude (`forcing_scale`) of the forcing of the [`RateSystem`](@ref) to `scale`.
-For multiple parameters, if `pidx` is given, change the forcing only corresponding to
+For multiple parameters, if `pkey` is given, change the forcing only corresponding to
 the specified parameter, otherwise update the forcing scale of _all_ parameters to `scale.`
 """
-function set_forcing_scale!(rs::RateSystem, scale; pidx=nothing)
-    if pidx === nothing
+function set_forcing_scale!(rs::RateSystem, scale; pkey=nothing)
+    if isnothing(pkey)
         for k in keys(rs.forcing.forcing_profile)
             rs.forcing.forcing_scale[k] = scale
         end
     else
-        rs.forcing.forcing_scale[pidx] = scale
+        rs.forcing.forcing_scale[pkey] = scale
     end
     return rs
 end
@@ -358,13 +250,13 @@ $(TYPEDSIGNATURES)
 Sets the duration (`forcing_duration`) of the forcing protocol applied to
 the [`RateSystem`](@ref) `rs`.
 """
-function set_forcing_duration!(rs::RateSystem, duration; pidx=nothing)
-    if pidx === nothing
+function set_forcing_duration!(rs::RateSystem, duration; pkey=nothing)
+    if isnothing(pkey)
         for k in keys(rs.forcing.forcing_profile)
             rs.forcing.forcing_duration[k] = duration
         end
     else
-        rs.forcing.forcing_duration[pidx] = duration
+        rs.forcing.forcing_duration[pkey] = duration
     end
     return rs
 end
@@ -375,18 +267,16 @@ $(TYPEDSIGNATURES)
 Sets the start time (`forcing_start_time`) of the forcing protocol applied to
 the [`RateSystem`](@ref) `rs`.
 """
-function set_forcing_start!(rs::RateSystem, start_time; pidx=nothing)
-    if pidx === nothing
+function set_forcing_start!(rs::RateSystem, start_time; pkey=nothing)
+    if isnothing(pkey)
         for k in keys(rs.forcing.forcing_profile)
             rs.forcing.forcing_start_time[k] = start_time
         end
     else
-        rs.forcing.forcing_start_time[pidx] = start_time
+        rs.forcing.forcing_start_time[pkey] = start_time
     end
     return rs
 end
-
-
 
 """
 $(TYPEDSIGNATURES)
