@@ -89,11 +89,11 @@ end
     sys_diag = CoupledSDEs(
         f_ou, SA[0.0, 0.0]; covariance = [1.0 0.0; 0.0 4.0], noise_strength = 1.0
     )
-    @test noise_strength(sys_diag) ≈ sqrt(5/2)
+    @test noise_strength(sys_diag) ≈ sqrt(5 / 2)
 
     # Rotation invariance: the same physical SDE in a rotated basis returns
     # the same effective noise strength.
-    R = [cos(π/4) -sin(π/4); sin(π/4) cos(π/4)]
+    R = [cos(π / 4) -sin(π / 4); sin(π / 4) cos(π / 4)]
     Q_rot = R * [1.0 0.0; 0.0 4.0] * R'
     sys_rot = CoupledSDEs(f_ou, SA[0.0, 0.0]; covariance = Q_rot, noise_strength = 1.0)
     @test isapprox(noise_strength(sys_rot), noise_strength(sys_diag); rtol = 1.0e-12)

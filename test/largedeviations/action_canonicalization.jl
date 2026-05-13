@@ -15,7 +15,7 @@ using LinearAlgebra: tr
     sys_diag = CoupledSDEs(ou, SA[0.0, 0.0]; covariance = Q_diag, noise_strength = 1.0)
 
     # 45-degree rotation
-    R = [cos(π/4) -sin(π/4); sin(π/4) cos(π/4)]
+    R = [cos(π / 4) -sin(π / 4); sin(π / 4) cos(π / 4)]
     Q_rot = R * Q_diag * R'
     sys_rot = CoupledSDEs(ou, SA[0.0, 0.0]; covariance = Q_rot, noise_strength = 1.0)
 
@@ -23,7 +23,7 @@ using LinearAlgebra: tr
     time_arr = range(0.0, 1.0; length = N)
     path_orig = zeros(2, N)
     for (i, t) in enumerate(time_arr)
-        path_orig[:, i] = [1.0 + t, 0.5 + 0.3*sin(2π*t)]
+        path_orig[:, i] = [1.0 + t, 0.5 + 0.3 * sin(2π * t)]
     end
     path_rot = R * path_orig
 
@@ -32,12 +32,12 @@ using LinearAlgebra: tr
     # L1-of-entries normalization, these differed by tr(Q)/||Q||_1 across bases.
     @test isapprox(
         fw_action(sys_diag, path_orig, time_arr),
-        fw_action(sys_rot,  path_rot,  time_arr);
+        fw_action(sys_rot, path_rot, time_arr);
         rtol = 1.0e-10,
     )
     @test isapprox(
         geometric_action(sys_diag, path_orig),
-        geometric_action(sys_rot,  path_rot);
+        geometric_action(sys_rot, path_rot);
         rtol = 1.0e-10,
     )
 end
@@ -53,7 +53,7 @@ end
     time_arr = range(0.0, 1.0; length = N)
     path = zeros(2, N)
     for (i, t) in enumerate(time_arr)
-        path[:, i] = [1.0 + t, 0.5 + 0.3*sin(2π*t)]
+        path[:, i] = [1.0 + t, 0.5 + 0.3 * sin(2π * t)]
     end
 
     @test isapprox(
@@ -80,7 +80,7 @@ end
     path = reshape([x_T * sinh(t) / sinh(T) for t in time_arr], 1, :)
 
     S_action = fw_action(sys, path, time_arr)
-    S_expected = x_T^2 / (1 - exp(-2*T))
+    S_expected = x_T^2 / (1 - exp(-2 * T))
     @test isapprox(S_action, S_expected; rtol = 1.0e-4)
 
     # σ-independence sanity check

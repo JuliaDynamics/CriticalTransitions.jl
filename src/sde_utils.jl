@@ -47,21 +47,24 @@ solver(ds::ContinuousTimeDynamicalSystem) = ds.integ.alg
 """
 $(TYPEDSIGNATURES)
 
-Returns the effective noise strength ``\\sigma_{\\mathrm{eff}}`` of the `CoupledSDEs`
-`sys`, defined as ``\\sigma_{\\mathrm{eff}} = \\sqrt{\\mathrm{tr}(\\Sigma)/D}`` where
-``\\Sigma = `` `covariance_matrix(sys)` is the SDE's noise rate matrix and `D` its
-state-space dimension.
+Effective noise strength ``\\sigma_{\\mathrm{eff}} = \\sqrt{\\mathrm{tr}(\\mathbf{\\Sigma})/D}``
+of `sys`, where ``\\mathbf{\\Sigma} = `` `covariance_matrix(sys)` and ``D = `` `dimension(sys)`.
+Together with [`normalize_covariance!`](@ref) it satisfies
+``\\sigma_{\\mathrm{eff}}^2 \\cdot \\mathbf{Q}_{\\mathrm{can}} = \\mathbf{\\Sigma}``.
 
-This is the σ produced by the trace-normalization convention used in the large-deviation
-action functionals (see [`fw_action`](@ref)): the SDE
-``\\mathrm{d}x = b\\,\\mathrm{d}t + \\sigma\\,\\Sigma_0\\,\\mathrm{d}W`` is canonicalized as
-``\\sigma_{\\mathrm{eff}}^2 = \\mathrm{tr}(\\sigma^2\\,Q)/D`` with
-``Q = \\Sigma_0\\Sigma_0^\\top``. For an SDE constructed with isotropic `covariance = I`,
-`noise_strength(sys)` recovers the `noise_strength` keyword passed at construction time.
-More generally, the returned value is the per-direction average of the noise variance.
+For an SDE built as ``\\mathrm{d}\\mathbf{x} = \\mathbf{b}\\,\\mathrm{d}t + \\sigma\\sqrt{\\mathbf{Q}}\\,\\mathrm{d}\\mathbf{W}``:
 
-For an SDE built with a custom `g` that is not of the form `σ * sqrt(Q)`, the returned
-value is still the trace-based effective σ of the resulting covariance matrix.
+  - **Isotropic `covariance = c·I`**: ``\\sigma_{\\mathrm{eff}} = \\sigma\\sqrt{c}``. The
+    default `covariance = I` (``c=1``) recovers the construction-time `noise_strength`
+    keyword exactly.
+  - **Anisotropic `Q`**: ``\\sigma_{\\mathrm{eff}} = \\sigma\\sqrt{\\mathrm{tr}(\\mathbf{Q})/D}``,
+    the per-direction average noise amplitude. Equals ``\\sigma`` whenever
+    ``\\mathrm{tr}(\\mathbf{Q}) = D``.
+  - **Custom `g`** (not of the form ``\\sigma\\sqrt{\\mathbf{Q}}``): still well-defined as the
+    trace-based effective σ of the resulting ``\\mathbf{\\Sigma}``.
+
+See [Large deviation theory](@ref) for the role of ``\\sigma_{\\mathrm{eff}}`` in the action
+functionals.
 """
 function noise_strength(sys::CoupledSDEs)
     Σ = covariance_matrix(sys)

@@ -11,6 +11,66 @@ This section applies results of large deviation theory (LDT), particularly actio
 
     This is a special case of the broader class of noise types supported by [`CoupledSDEs`](@ref).
 
+!!! note "Noise convention used by the action functionals"
+    **Starting point.** A [`CoupledSDEs`](@ref) exposes its noise via the diffusion
+    function ``g`` and, for additive invertible noise, the noise rate covariance
+    ```math
+    \mathbf{\Sigma} \;=\; \texttt{covariance\_matrix(sys)} \;=\; g\,g^\top.
+    ```
+    For an SDE built as ``\mathrm{d}\mathbf{x} = \mathbf{b}\,\mathrm{d}t + \sigma\,\mathbf{\Sigma}_0\,\mathrm{d}\mathbf{W}_t``
+    with ``\mathbf{\Sigma}_0\mathbf{\Sigma}_0^\top = \mathbf{Q}``, this gives ``\mathbf{\Sigma} = \sigma^2\,\mathbf{Q}``.
+    The Freidlin–Wentzell rate function only depends on the *product* ``\sigma^2\mathbf{Q}``;
+    the individual ``(\sigma, \mathbf{Q})`` split is not determined by the SDE alone
+    (``(\sigma, \mathbf{Q}) \leftrightarrow (c\sigma, \mathbf{Q}/c^2)`` is the same physical system).
+
+    **Convention.** The package picks a unique ``(\sigma, \mathbf{Q})`` pair from ``\mathbf{\Sigma}``
+    by adopting the **trace convention** ``\mathrm{tr}(\mathbf{Q}) = D``:
+    ```math
+    \sigma_{\mathrm{eff}}^2 \;=\; \frac{\mathrm{tr}(\mathbf{\Sigma})}{D},
+    \qquad
+    \mathbf{Q}_{\mathrm{can}} \;=\; \frac{D}{\mathrm{tr}(\mathbf{\Sigma})}\,\mathbf{\Sigma}.
+    ```
+    The accessor [`noise_strength`](@ref)`(sys)` returns ``\sigma_{\mathrm{eff}}``. The trace is
+    invariant under orthogonal changes of basis and reduces to the per-direction average
+    noise variance, making this the natural choice among rotation-invariant normalizations.
+
+    **Action functionals use the canonical covariance.** All action functionals in this
+    section evaluate the FW integrand in the ``\mathbf{Q}_{\mathrm{can}}^{-1}`` metric:
+    ```math
+    \texttt{fw\_action(sys, path, time)} \;=\; \Phi_{FW}^{\mathbf{Q}_{\mathrm{can}}}[\phi] \;=\;
+        \tfrac{1}{2}\!\int (\dot\phi - \mathbf{b})^\top \mathbf{Q}_{\mathrm{can}}^{-1}(\dot\phi - \mathbf{b})\,\mathrm{d}t.
+    ```
+    Two consequences:
+
+    - The returned action is **independent of the `noise_strength` keyword** chosen at
+      construction (both ``\sigma`` and the magnitude of ``\mathbf{Q}`` are absorbed into
+      ``\sigma_{\mathrm{eff}}``).
+    - The returned action is **invariant under orthogonal changes of basis**, matching
+      the coordinate-independence of the FW action as a geometric quantity.
+
+    **Converting to the user's parameterization.** If you built your system as
+    ``\mathrm{d}\mathbf{x} = \mathbf{b}\,\mathrm{d}t + \sigma_{\mathrm{user}}\,\mathbf{\Sigma}_0\,\mathrm{d}\mathbf{W}_t``
+    with ``\mathbf{Q}_{\mathrm{user}} = \mathbf{\Sigma}_0\mathbf{\Sigma}_0^\top`` and want the FW action in
+    *your* metric ``\mathbf{Q}_{\mathrm{user}}^{-1}``, multiply the returned action by
+    ``\mathrm{tr}(\mathbf{Q}_{\mathrm{user}})/D``:
+    ```math
+    \Phi_{FW}^{\mathbf{Q}_{\mathrm{user}}}[\phi] \;=\; \frac{\mathrm{tr}(\mathbf{Q}_{\mathrm{user}})}{D}\cdot
+        \texttt{fw\_action(sys, path, time)}.
+    ```
+    The factor is ``1`` whenever ``\mathbf{Q}_{\mathrm{user}}`` is isotropic (``c\,\mathbf{I}`` for any
+    ``c>0``) or already trace-normalized (``\mathrm{tr}(\mathbf{Q}_{\mathrm{user}}) = D``), in which
+    case `fw_action` returns ``\Phi_{FW}^{\mathbf{Q}_{\mathrm{user}}}`` directly. All examples and
+    tests in the package fall in this case.
+
+    **`fw_action` vs `om_action`.** [`fw_action`](@ref) and [`geometric_action`](@ref) are
+    fully ``\sigma``-independent under this convention. [`om_action`](@ref) takes
+    `noise_strength` as an explicit positional argument because the Onsager–Machlup
+    correction ``(\sigma^2/2)\int \nabla\cdot \mathbf{b}\,\mathrm{d}t`` is a *finite-noise*
+    correction that scales with ``\sigma^2``; only the FW part of OM is ``\sigma``-independent.
+    Pass the ``\sigma`` at which you want ``-\log P[\phi]`` evaluated (typically the same
+    `noise_strength` you used at construction). As ``\sigma \to 0`` the OM correction
+    vanishes and OM ``\to`` FW, recovering the leading-order LDP rate function.
+
 ## Action minimizers
 Several methods have been proposed to calculate transition paths that minimize a given [action functional](@ref "Action functionals"). In the weak-noise limit, this minimum action path (or instanton) corresponds to the most probable transition path. While the minimum action method (MAM) is the most basic version, it is often beneficial to minimize the [geometric action](@ref "Geometric Freidlin-Wentzell action") via a time-independent version called gMAM. The problem can also be cast in a Hamiltonian form, implemented as simple gMAM (sgMAM), which can have numerical advantages.
 

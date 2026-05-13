@@ -44,18 +44,18 @@ end;
 """
 $(TYPEDSIGNATURES)
 
-Normalizes the covariance matrix ``Q`` so that its trace equals its dimension,
-``\\mathrm{tr}(Q) = D`` (equivalently, the average eigenvalue equals 1).
+Returns ``\\mathbf{Q}\\cdot D/\\mathrm{tr}(\\mathbf{Q})``, the trace-normalized covariance
+(``\\mathrm{tr} = D``, average eigenvalue 1).
 
-This canonicalization breaks the ``(\\varepsilon, a_0) \\leftrightarrow (c\\varepsilon, a_0/c)``
-rescaling symmetry of the Freidlin-Wentzell action, so the action functional
-becomes a well-defined quantity for an SDE constructed from a `noise_strength` and a
-`covariance`. The result is independent of the noise strength chosen during
-construction, and (unlike L1-of-entries normalization) invariant under orthogonal
-changes of basis: ``\\mathrm{tr}(R\\,Q\\,R^\\top) = \\mathrm{tr}(Q)`` for any orthogonal `R`.
+For an SDE built as ``\\mathrm{d}\\mathbf{x} = \\mathbf{b}\\,\\mathrm{d}t + \\sigma\\sqrt{\\mathbf{Q}}\\,\\mathrm{d}\\mathbf{W}``
+the SDE only fixes the product ``\\sigma^2\\mathbf{Q} = `` `covariance_matrix(sys)`; this
+function picks the canonical pair ``(\\sigma_{\\mathrm{eff}}, \\mathbf{Q}_{\\mathrm{can}})``
+defined by ``\\mathrm{tr}(\\mathbf{Q}_{\\mathrm{can}}) = D`` (see [`noise_strength`](@ref) for the
+matching ``\\sigma_{\\mathrm{eff}}``). Used internally by [`fw_action`](@ref),
+[`om_action`](@ref), and [`geometric_action`](@ref). For diagonal positive ``\\mathbf{Q}``
+this coincides numerically with dividing by ``L_1(\\mathbf{Q})/D``.
 
-For diagonal positive ``Q`` this coincides with dividing by `L_1(Q)/D`, so existing
-diagonal-noise call sites are numerically unchanged.
+See [Large deviation theory](@ref) for the rotation-invariance and conversion factors.
 """
 function normalize_covariance!(covariance)
     D = size(covariance, 1)
