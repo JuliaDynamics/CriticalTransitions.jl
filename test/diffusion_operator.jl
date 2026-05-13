@@ -804,8 +804,12 @@ using DoubleFloats: Double64
 
     # Same algebra at higher precision: Q at Double64 differs from Q at
     # Float64 by a few hundred eps(Float64) (a few ulps per matrix entry,
-    # accumulated across the SG stencil).
-    @test Float64(maximum(abs.(Double64.(gen_f.Q) .- gen_d.Q))) < 1.0e-13
+    # accumulated across the SG stencil). Densify both sides first; sparse
+    # broadcasting across mixed eltypes returns SparseMatrixCSC{Any} on
+    # Julia 1.10 and trips `zero(Any)` in `maximum`.
+    Q_f_d = Matrix{Double64}(gen_f.Q)
+    Q_d = Matrix(gen_d.Q)
+    @test Float64(maximum(abs.(Q_f_d .- Q_d))) < 1.0e-13
 
     # Mass conservation holds at Double64 precision.
     @test Float64(maximum(abs, vec(sum(gen_d.Q; dims = 2)))) < 1.0e-25
