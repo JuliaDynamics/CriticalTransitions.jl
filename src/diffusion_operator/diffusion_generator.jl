@@ -31,10 +31,13 @@ The discretised generator of an autonomous Itô diffusion on a
 fitting finite-volume scheme.
 
 The matrix `Q` generates the **transition semigroup** `exp(t Q)` of the
-discretised process: it propagates probability distributions in time
-(`dρ/dt = ρ Q`, the discrete Fokker–Planck) and observables (`du/dt = Q u`,
-the discrete backward Kolmogorov). Equivalently, `Q[i, j]` for `i ≠ j` is
-the transition **rate** from cell `i` to cell `j`.
+discretised process. With probability densities and observables represented
+as column vectors (the convention used throughout this module), it
+propagates observables forward (`du/dt = Q u`, the discrete backward
+Kolmogorov) and densities forward via the transpose (`dρ/dt = Qᵀ ρ`, the
+discrete Fokker–Planck, exposed as [`fokker_planck_operator`](@ref)).
+Equivalently, `Q[i, j]` for `i ≠ j` is the transition **rate** from cell
+`i` to cell `j`.
 
 The same matrix has several traditional names:
 
@@ -144,15 +147,15 @@ function _assemble_generator(
         sys::CoupledSDEs,
         grid::CartesianGrid{D, T},
         sign::Int,
-        bc::Tuple,
-    )::SparseMatrixCSC{T, Int} where {D, T}
+        bc::BC,
+    )::SparseMatrixCSC{T, Int} where {D, T, BC <: Tuple}
     sign == +1 || sign == -1 || throw(ArgumentError("sign must be ±1"))
     diffusion = _diagonal_diffusion(sys, Val(D), T)
     nbox = grid.nbox
     N = ncells(grid)
     LI = LinearIndices(nbox)
 
-    drift_components = ntuple(_ -> Array{T, D}(undef, nbox), D)
+    drift_components = ntuple(_ -> Array{T, D}(undef, nbox), Val(D))
     @inbounds for I in CartesianIndices(nbox)
         x = cell_center(grid, I)
         f = drift(sys, x)
@@ -169,71 +172,13 @@ function _assemble_generator(
     diagacc = zeros(T, N)
     idx = 0
 
-    @inbounds for k in 1:D
-        Dk = diffusion[k]
-        hk = grid.h[k]
-        ε = Dk / 2
-        ε_h2 = ε / (hk * hk)
-        h_ε = ε > 0 ? hk / ε : T(NaN)
-        fk = drift_components[k]
-        bc_k = bc[k]
-
-        # SG rates for diffusive faces; upwind rates for deterministic axes.
-        face_rates(bf::T) = if Dk > 0
-            z = bf * h_ε
-            (ε_h2 * _bernoulli(-z), ε_h2 * _bernoulli(z))
-        else
-            (max(bf, zero(T)) / hk, max(-bf, zero(T)) / hk)
-        end
-
-        for I in CartesianIndices(nbox)
-            if I[k] < nbox[k]
-                # Standard interior face.
-                J = CartesianIndex(ntuple(d -> d == k ? I[d] + 1 : I[d], D))
-                n = LI[I]
-                m = LI[J]
-                rate_nm, rate_mn = face_rates(T(1) / 2 * (fk[I] + fk[J]))
-
-                idx += 1
-                rows[idx] = n; cols[idx] = m; vals[idx] = sign * rate_nm
-                idx += 1
-                rows[idx] = m; cols[idx] = n; vals[idx] = sign * rate_mn
-                diagacc[n] -= sign * rate_nm
-                diagacc[m] -= sign * rate_mn
-            else
-                if bc_k isa Reflecting
-                    # nothing to do
-                elseif bc_k isa Periodic
-                    # Wraparound face from the last cell to the first.
-                    J = CartesianIndex(ntuple(d -> d == k ? 1 : I[d], D))
-                    n = LI[I]
-                    m = LI[J]
-                    rate_nm, rate_mn = face_rates(T(1) / 2 * (fk[I] + fk[J]))
-
-                    idx += 1
-                    rows[idx] = n; cols[idx] = m; vals[idx] = sign * rate_nm
-                    idx += 1
-                    rows[idx] = m; cols[idx] = n; vals[idx] = sign * rate_mn
-                    diagacc[n] -= sign * rate_nm
-                    diagacc[m] -= sign * rate_mn
-                elseif bc_k isa Absorbing
-                    # Outflow through the +k wall.
-                    n = LI[I]
-                    rate_out, _ = face_rates(fk[I])
-                    diagacc[n] -= sign * rate_out
-                end
-            end
-        end
-
-        # -k wall only contributes for absorbing boundaries.
-        if bc_k isa Absorbing
-            for I in CartesianIndices(nbox)
-                I[k] == 1 || continue
-                n = LI[I]
-                _, rate_out = face_rates(fk[I])
-                diagacc[n] -= sign * rate_out
-            end
-        end
+    # Function barrier: each call specialises on the concrete type of `bc[k]`,
+    # turning the per-cell BC isa checks into compile-time branches.
+    for k in 1:D
+        idx = _fill_axis!(
+            bc[k], rows, cols, vals, diagacc, idx, k, sign,
+            drift_components[k], diffusion[k], grid.h[k], nbox, LI,
+        )
     end
 
     @inbounds for n in 1:N
@@ -244,6 +189,75 @@ function _assemble_generator(
     end
 
     return sparse(view(rows, 1:idx), view(cols, 1:idx), view(vals, 1:idx), N, N)
+end
+
+# SG rates for diffusive faces; upwind rates for deterministic axes.
+@inline function _face_rates(bf::T, Dk::T, ε_h2::T, h_ε::T, hk::T) where {T}
+    return if Dk > 0
+        z = bf * h_ε
+        (ε_h2 * _bernoulli(-z), ε_h2 * _bernoulli(z))
+    else
+        (max(bf, zero(T)) / hk, max(-bf, zero(T)) / hk)
+    end
+end
+
+@inline function _fill_axis!(
+        bc_k::BC_K,
+        rows::Vector{Int}, cols::Vector{Int}, vals::Vector{T},
+        diagacc::Vector{T}, idx::Int, k::Int, sign::Int,
+        fk::AbstractArray{T, D}, Dk::T, hk::T,
+        nbox::NTuple{D, Int}, LI::LinearIndices{D},
+    ) where {T, D, BC_K <: BoundaryCondition}
+    ε = Dk / 2
+    ε_h2 = ε / (hk * hk)
+    h_ε = ε > 0 ? hk / ε : T(NaN)
+
+    @inbounds for I in CartesianIndices(nbox)
+        if I[k] < nbox[k]
+            J = CartesianIndex(Base.setindex(I.I, I[k] + 1, k))
+            n = LI[I]
+            m = LI[J]
+            rate_nm, rate_mn = _face_rates(T(1) / 2 * (fk[I] + fk[J]), Dk, ε_h2, h_ε, hk)
+
+            idx += 1
+            rows[idx] = n; cols[idx] = m; vals[idx] = sign * rate_nm
+            idx += 1
+            rows[idx] = m; cols[idx] = n; vals[idx] = sign * rate_mn
+            diagacc[n] -= sign * rate_nm
+            diagacc[m] -= sign * rate_mn
+        else
+            if bc_k isa Periodic
+                J = CartesianIndex(Base.setindex(I.I, 1, k))
+                n = LI[I]
+                m = LI[J]
+                rate_nm, rate_mn = _face_rates(T(1) / 2 * (fk[I] + fk[J]), Dk, ε_h2, h_ε, hk)
+
+                idx += 1
+                rows[idx] = n; cols[idx] = m; vals[idx] = sign * rate_nm
+                idx += 1
+                rows[idx] = m; cols[idx] = n; vals[idx] = sign * rate_mn
+                diagacc[n] -= sign * rate_nm
+                diagacc[m] -= sign * rate_mn
+            elseif bc_k isa Absorbing
+                n = LI[I]
+                rate_out, _ = _face_rates(fk[I], Dk, ε_h2, h_ε, hk)
+                diagacc[n] -= sign * rate_out
+            end
+            # Reflecting: nothing to do.
+        end
+    end
+
+    # -k wall only contributes for absorbing boundaries.
+    if bc_k isa Absorbing
+        @inbounds for I in CartesianIndices(nbox)
+            I[k] == 1 || continue
+            n = LI[I]
+            _, rate_out = _face_rates(fk[I], Dk, ε_h2, h_ε, hk)
+            diagacc[n] -= sign * rate_out
+        end
+    end
+
+    return idx
 end
 
 function DiffusionGenerator(

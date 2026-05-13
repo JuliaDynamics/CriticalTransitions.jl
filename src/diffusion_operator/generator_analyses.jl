@@ -127,7 +127,8 @@ function _normalise_density!(v::AbstractVector{<:Real}, weights::AbstractVector{
     s = sign(sum(v))
     s == 0 && (s = 1)
     @. v = s * v
-    clamp!(v, 0.0, Inf)
+    Tv = eltype(v)
+    clamp!(v, zero(Tv), typemax(Tv))
     tot = dot(v, weights)
     tot > 0 && (@. v = v / tot)
     return v
@@ -184,7 +185,7 @@ function _multimodality_probe!(
         alg, multimodal_tol::Real
     ) where {T <: AbstractFloat}
     N = size(Q, 1)
-    pins = (p for p in unique!([div(N, 4), div(N, 2), div(3N, 4), N]) if p != 1)
+    pins = (p for p in unique!([div(N, 4), div(N, 2), div(3N, 4), N]) if p > 1)
     max_diff = zero(T)
     for p in pins
         ρ_alt = _invariant_density(Q, weights, alg; pin_row = p, clamp_negative = false)
@@ -242,10 +243,10 @@ $(TYPEDSIGNATURES)
 
 Quasi-stationary distribution (QSD) of a metastable basin.
 
-Returns `(ρ_QSD, λ_exit)` where `ρ_QSD::Vector{Float64}` is the
-length-`ncells(gen)` QSD (zero on cells outside `basin`, normalised to
-`∫ ρ_QSD dV = 1` on `basin`) and `λ_exit > 0` is the corresponding
-exit rate. The mean lifetime in the basin, conditional on staying in
+Returns `(ρ_QSD, λ_exit)` where `ρ_QSD` is the length-`ncells(gen)` QSD
+vector (with the generator's float element type, zero on cells outside
+`basin`, normalised to `∫ ρ_QSD dV = 1` on `basin`) and `λ_exit > 0` is
+the corresponding exit rate. The mean lifetime in the basin, conditional on staying in
 it long enough to reach quasi-equilibrium, is `1 / λ_exit`.
 
 `basin` accepts a predicate `x -> Bool`, a `BitVector` of length
@@ -342,7 +343,7 @@ indices.
 Default `alg` is `UMFPACKFactorization()` (sparse direct LU). Pass any
 `SciMLLinearSolveAlgorithm` for an iterative solver.
 
-See also [`first_passage_variance`](@ref) and [`forward_committor`](@ref).
+See also [`first_passage_variance`](@ref).
 """
 function mean_first_passage_time(
         generator::DiffusionGenerator{D, BC, T}, target;

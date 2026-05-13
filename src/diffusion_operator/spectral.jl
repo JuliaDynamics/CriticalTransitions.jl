@@ -113,10 +113,13 @@ where `λ::Vector{ComplexF64}` are the eigenvalues with largest real part
 the corresponding right eigenvectors of `Q` columnwise
 (`Q * V[:, i] = λ[i] * V[:, i]`).
 
-The eigenvalue closest to zero is exactly `0`, with eigenvector the
-constant function (since `Q * 1 = 0`); the corresponding *left*
-eigenvector is the invariant density. The remaining eigenvalues lie in
-the open left half-plane, and `-1 / Re(λ_k)` gives the metastable
+For mass-preserving boundary conditions ([`Reflecting`](@ref) /
+[`Periodic`](@ref)) the eigenvalue closest to zero is exactly `0`, with
+eigenvector the constant function (since `Q * 1 = 0`); the corresponding
+*left* eigenvector is the invariant density. For [`Absorbing`](@ref)
+boundaries `Q` is a sub-generator and all eigenvalues lie strictly in
+the open left half-plane (no zero mode). The remaining eigenvalues lie
+in the open left half-plane, and `-1 / Re(λ_k)` gives the metastable
 timescale of the `k`-th mode. The slow non-trivial right eigenvectors
 are the canonical reaction coordinates / metastable-state indicators
 used in Markov state model decomposition (e.g. PCCA+).

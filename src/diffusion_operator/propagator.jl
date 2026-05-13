@@ -6,8 +6,8 @@ equation `dρ/dt = Qᵀ ρ` (where `Qᵀ = `[`fokker_planck_operator`](@ref)`(ge
 starting from `ρ_0`, and records `ρ` on a uniform time grid.
 
 Returns `(ρs, t)` where `t = Ttr:Δt:(Ttr + T)` and `ρs` is a
-`Matrix{Float64}` of size `(ncells(gen), length(t))` whose `i`-th column
-is `ρ(t[i])`.
+`Matrix` (with the generator's float element type) of size
+`(ncells(gen), length(t))` whose `i`-th column is `ρ(t[i])`.
 
 ```julia
 ρs, t = propagate_density(gen, T, ρ_0)                      # snapshot at 0 and T
@@ -64,12 +64,17 @@ function propagate_density(
     F = fokker_planck_operator(gen)
     b = Vector{S}(ρ_0)
 
-    # expv_timestep returns a Vector for a scalar / single-element t and a
+    # expv_timestep returns a Vector for scalar/single-element t and a
     # Matrix for length(t) ≥ 2. Normalise to (N, length(t)) Matrix output.
+    # Scalar expv_timestep mishandles t=0; b is already a fresh copy of ρ_0.
     ρs = if length(t) == 1
-        reshape(
-            expv_timestep(t[1], F, b; tol = tol, m = m, adaptive = adaptive), :, 1,
-        )
+        if iszero(t[1])
+            reshape(b, :, 1)
+        else
+            reshape(
+                expv_timestep(t[1], F, b; tol = tol, m = m, adaptive = adaptive), :, 1,
+            )
+        end
     else
         expv_timestep(t, F, b; tol = tol, m = m, adaptive = adaptive)
     end

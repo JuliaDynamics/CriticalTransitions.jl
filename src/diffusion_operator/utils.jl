@@ -98,7 +98,7 @@ function _invariant_density(
     rhs[pin_row] = one(T)
 
     ρ = Vector{T}(solve(LinearProblem(A, rhs), alg; kwargs...).u)
-    clamp_negative && clamp!(ρ, zero(T), T(Inf))
+    clamp_negative && clamp!(ρ, zero(T), typemax(T))
     tot = dot(ρ, weights)
     tot > 0 && (@. ρ = ρ / tot)
     return ρ

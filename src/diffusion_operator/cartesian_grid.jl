@@ -25,6 +25,17 @@ struct CartesianGrid{D, T <: AbstractFloat}
     centers::NTuple{D, LinRange{T, Int}}
     "Cell-edge coordinates along each axis (length `N_k + 1`)."
     edges::NTuple{D, LinRange{T, Int}}
+
+    # Explicit inner constructor — suppresses the default outer constructor
+    # whose Vararg-tuple signature has unbound type parameters when D = 0.
+    function CartesianGrid{D, T}(
+            nbox::NTuple{D, Int},
+            h::NTuple{D, T},
+            centers::NTuple{D, LinRange{T, Int}},
+            edges::NTuple{D, LinRange{T, Int}},
+        ) where {D, T <: AbstractFloat}
+        return new{D, T}(nbox, h, centers, edges)
+    end
 end
 
 function CartesianGrid{T}(
