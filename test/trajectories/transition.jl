@@ -42,4 +42,44 @@
             sys, fp1, fp2, 10; Nmax = 3, tmax = 0.01, cut_start = false, show_progress = false
         )
     end
+
+    @testset "sys.diffeq forwarded (#283)" begin
+        # If maxiters from sys.diffeq is forwarded, the solver gives up before
+        # reaching fp2 and all attempts fail.
+        using StochasticDiffEq: SOSRA
+        sys_low = CoupledSDEs(
+            fitzhugh_nagumo, zeros(2), p;
+            noise_strength = σ, seed = SEED,
+            diffeq = (alg = SOSRA(), maxiters = 50),
+        )
+        ens = @test_logs (:warn, r"Maximum number of attempts") match_mode = :any transitions(
+            sys_low, fp1, fp2, 3; Nmax = 3, show_progress = false
+        )
+        @test ens.stats.success_rate < 1
+    end
+
+    @testset "seed independence (#284)" begin
+        sys_noseed = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength = σ)
+
+        # Intra-call: no two parallel sims should share an RNG seed (the original bug).
+        ens = transitions(sys_noseed, fp1, fp2, 3; show_progress = false)
+        @test allunique(ens.times)
+
+        # Cross-call: independent calls produce independent ensembles by default.
+        e1 = transitions(sys_noseed, fp1, fp2, 2; show_progress = false)
+        e2 = transitions(sys_noseed, fp1, fp2, 2; show_progress = false)
+        @test e1.times != e2.times
+    end
+
+    @testset "seed kwarg reproducibility" begin
+        sys_noseed = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength = σ)
+        e1 = transitions(sys_noseed, fp1, fp2, 2; seed = 42, show_progress = false)
+        e2 = transitions(sys_noseed, fp1, fp2, 2; seed = 42, show_progress = false)
+        @test e1.times == e2.times
+
+        tr1, t1, _ = CT.transition(sys_noseed, fp1, fp2; seed = 42)
+        tr2, t2, _ = CT.transition(sys_noseed, fp1, fp2; seed = 42)
+        @test t1 == t2
+        @test tr1 == tr2
+    end
 end
