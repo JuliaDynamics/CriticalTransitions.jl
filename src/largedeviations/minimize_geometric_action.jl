@@ -20,7 +20,7 @@ Returns a [`MinimumActionPath`](@ref) object.
   - `maxiters::Int=100`: maximum number of optimization iterations before the algorithm stops
   - `abstol::Real=NaN`: absolute tolerance of action change to determine convergence
   - `reltol::Real=NaN`: relative tolerance of action change to determine convergence
-  - `ad_type=Optimization.AutoFiniteDiff()`: type of automatic differentiation (only used with Optimization.jl solvers)
+  - `ad_type=OptimizationBase.AutoFiniteDiff()`: type of automatic differentiation (only used with Optimization.jl solvers)
   - `verbose=false`: if true, print additional output
   - `show_progress=true`: if true, display a progress bar
 
@@ -135,7 +135,7 @@ function minimize_geometric_action(
         maxiters::Int = 100,
         abstol::Real = NaN,
         reltol::Real = NaN,
-        ad_type = Optimization.AutoFiniteDiff(),
+        ad_type = OptimizationBase.AutoFiniteDiff(),
         show_progress = true,
     )
     path, N, alpha, arc, S, prog = _gmam_setup(sys, init, maxiters, show_progress)

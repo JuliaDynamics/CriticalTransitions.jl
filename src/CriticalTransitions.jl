@@ -40,7 +40,7 @@ using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq
 
 using Interpolations: linear_interpolation
-using Optimization: Optimization
+using OptimizationBase: OptimizationBase
 using OptimizationOptimisers: Optimisers
 using LinearSolve: LinearProblem, LUFactorization, init, solve, solve!
 
