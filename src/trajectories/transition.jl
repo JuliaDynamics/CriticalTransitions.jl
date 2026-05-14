@@ -123,7 +123,7 @@ function transitions(
     lock = ReentrantLock()
     tries = 0
     success = 0
-    function output_func(sol, i)
+    function output_func(sol, ctx)
         Base.lock(lock)
         try
             tries += 1
@@ -141,10 +141,10 @@ function transitions(
     end
 
     seed = referrenced_sciml_prob(sys).seed
-    function prob_func(prob, i, repeat)
+    function prob_func(prob, ctx)
         return remake(
             prob;
-            seed = rand(Random.MersenneTwister(seed + i + repeat), UInt32),
+            seed = rand(Random.MersenneTwister(seed + ctx.sim_id + ctx.repeat), UInt32),
             tspan = (0, tmax),
         )
     end
