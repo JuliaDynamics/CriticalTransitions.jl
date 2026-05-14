@@ -1,5 +1,5 @@
 using CriticalTransitions
-using ModelingToolkit
+using ModelingToolkitBase
 using Test
 using LinearAlgebra
 
