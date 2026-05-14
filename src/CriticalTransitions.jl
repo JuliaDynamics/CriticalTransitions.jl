@@ -43,6 +43,7 @@ using Interpolations: linear_interpolation
 using OptimizationBase: OptimizationBase
 using OptimizationOptimisers: Optimisers
 using LinearSolve: LinearProblem, LUFactorization, init, solve, solve!
+using SparseArrays: SparseArrays, sparse
 
 # io and documentation
 using Format: Format
@@ -91,7 +92,7 @@ export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_mat
 export drift, div_drift, solver
 export StateSpaceSet
 
-export minimize_simple_geometric_action, ExtendedPhaseSpace
+export minimize_simple_geometric_action, FreidlinWentzellHamiltonian, ExtendedPhaseSpace
 export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method
 export MinimumActionPath

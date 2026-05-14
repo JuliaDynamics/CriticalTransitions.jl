@@ -35,9 +35,11 @@ end
                 :EnsembleAlgorithm,
                 :Terminated,
                 :covariance_matrix,
+                :diffusion_function,
                 :diffusion_matrix,
                 :get_extension,
                 :register_error_hint,
+                Symbol("@deprecate_binding"),
             ),
         ),
     )

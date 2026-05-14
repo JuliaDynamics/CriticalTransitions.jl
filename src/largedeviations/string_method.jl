@@ -28,7 +28,7 @@ action via [`geometric_action`](@ref). For drift-only systems (e.g. `sys::Functi
 same geometric action is computed assuming an identity noise covariance.
 """
 function string_method(
-        sys::Union{ExtendedPhaseSpace, Function},
+        sys::Union{FreidlinWentzellHamiltonian, Function},
         x_initial::Matrix;
         stepsize::Real = 1.0e-1,
         integrator = Euler(),
@@ -56,7 +56,7 @@ function string_method(
     end
 
     path_sss = StateSpaceSet(x')
-    S = if sys isa ExtendedPhaseSpace
+    S = if sys isa FreidlinWentzellHamiltonian
         NaN
     elseif sys isa Function
         geometric_action(sys, x, 1.0)
@@ -108,7 +108,7 @@ function string_method(sys::CoupledSDEs, init; kwargs...)
 end
 
 function string_method(
-        b::Union{ExtendedPhaseSpace, Function},
+        b::Union{FreidlinWentzellHamiltonian, Function},
         x_initial::StateSpaceSet{D};
         stepsize::Real = 1.0e-1,
         integrator = Euler(),
@@ -137,7 +137,7 @@ function string_method(
     end
 
     path_sss = StateSpaceSet(x')
-    S = if b isa ExtendedPhaseSpace
+    S = if b isa FreidlinWentzellHamiltonian
         NaN
     elseif b isa Function
         geometric_action(b, x, 1.0)
@@ -182,7 +182,7 @@ function _string_matrix(y::StateSpaceSet{D}, ::Val{D}, Nt::Int) where {D}
     return _string_matrix(m, D, Nt)
 end
 
-function _hp_mode(sys::ExtendedPhaseSpace, x::Matrix)
+function _hp_mode(sys::FreidlinWentzellHamiltonian, x::Matrix)
     D, Nt = size(x)
 
     y_m = sys.H_p(x, zeros(size(x)))
@@ -202,7 +202,7 @@ function _hp_mode(sys::ExtendedPhaseSpace, x::Matrix)
 
     throw(
         ArgumentError(
-            "`ExtendedPhaseSpace.H_p` must return either a $(D)×$(Nt) Matrix when given a Matrix state, or a $(Nt)×$(D) StateSpaceSet when given a StateSpaceSet state.",
+            "`FreidlinWentzellHamiltonian.H_p` must return either a $(D)×$(Nt) Matrix when given a Matrix state, or a $(Nt)×$(D) StateSpaceSet when given a StateSpaceSet state.",
         ),
     )
 end
@@ -230,7 +230,7 @@ function _init_string_integrator(sys::Function, x::Matrix; ϵ::Real, alg)
     )
 end
 
-function _init_string_integrator(sys::ExtendedPhaseSpace, x::Matrix; ϵ::Real, alg)
+function _init_string_integrator(sys::FreidlinWentzellHamiltonian, x::Matrix; ϵ::Real, alg)
     D, Nt = size(x)
     mode = _hp_mode(sys, x)
 
