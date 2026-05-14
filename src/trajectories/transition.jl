@@ -45,7 +45,7 @@ function transition(
         prob = remake(prob; seed = UInt64(seed))
     end
 
-    diffeq_kw = Base.structdiff(sys.diffeq, (alg = nothing,))
+    diffeq_kw = NamedTuple{filter(!=(:alg), keys(sys.diffeq))}(sys.diffeq)
     sim = solve(prob, solver(sys); callback = cb_ball, diffeq_kw..., kwargs...)
     success = sim.retcode == SciMLBase.ReturnCode.Terminated
 
@@ -161,7 +161,7 @@ function transitions(
         )
     end
 
-    diffeq_kw = Base.structdiff(sys.diffeq, (alg = nothing,))
+    diffeq_kw = NamedTuple{filter(!=(:alg), keys(sys.diffeq))}(sys.diffeq)
     ensemble = SciMLBase.EnsembleProblem(prob; output_func = output_func, prob_func = prob_func)
     sim = solve(
         ensemble,
