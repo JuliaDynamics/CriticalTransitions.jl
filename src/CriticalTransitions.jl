@@ -95,7 +95,7 @@ export minimize_simple_geometric_action, ExtendedPhaseSpace
 export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method
 export MinimumActionPath
-export GeometricGradient
+export GeometricGradient, AdaptiveGeometricGradient
 
 export deterministic_orbit
 export transition, transitions
