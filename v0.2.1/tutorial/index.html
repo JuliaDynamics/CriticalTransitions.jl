@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial · CriticalTransitions.jl</title><meta name="title" content="Tutorial · CriticalTransitions.jl"/><meta property="og:title" content="Tutorial · CriticalTransitions.jl"/><meta property="twitter:title" content="Tutorial · CriticalTransitions.jl"/><meta name="description" content="Documentation for CriticalTransitions.jl."/><meta property="og:description" content="Documentation for CriticalTransitions.jl."/><meta property="twitter:description" content="Documentation for CriticalTransitions.jl."/><meta property="og:url" content="https://juliadynamics.github.io/CriticalTransitions.jl/tutorial/"/><meta property="twitter:url" content="https://juliadynamics.github.io/CriticalTransitions.jl/tutorial/"/><link rel="canonical" href="https://juliadynamics.github.io/CriticalTransitions.jl/tutorial/"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">CriticalTransitions.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../quickstart/">Quickstart</a></li><li class="is-active"><a class="tocitem" href>Tutorial</a><ul class="internal"><li><a class="tocitem" href="#Example:-FitzHugh-Nagumo-model"><span>Example: FitzHugh-Nagumo model</span></a></li></ul></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../man/stochsystem/">Defining a StochSystem</a></li><li><a class="tocitem" href="../man/systemanalysis/">Stability analysis</a></li><li><a class="tocitem" href="../man/simulation/">Simulating the system</a></li><li><a class="tocitem" href="../man/sampling/">Sampling transitions</a></li><li><a class="tocitem" href="../man/largedeviations/">Large deviation theory</a></li><li><a class="tocitem" href="../man/noise/">Noise processes</a></li><li><a class="tocitem" href="../man/utils/">Utilities</a></li></ul></li><li><a class="tocitem" href="../man/systems/">Predefined systems</a></li><li><a class="tocitem" href="../man/dev/">Development stage</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Tutorial</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorial</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/CriticalTransitions.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/CriticalTransitions.jl/blob/main/docs/src/tutorial.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorial"><a class="docs-heading-anchor" href="#Tutorial">Tutorial</a><a id="Tutorial-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial" title="Permalink"></a></h1><p>To give you an idea of how our package works, this tutorial provides some example code with explanations.</p><h2 id="Example:-FitzHugh-Nagumo-model"><a class="docs-heading-anchor" href="#Example:-FitzHugh-Nagumo-model">Example: FitzHugh-Nagumo model</a><a id="Example:-FitzHugh-Nagumo-model-1"></a><a class="docs-heading-anchor-permalink" href="#Example:-FitzHugh-Nagumo-model" title="Permalink"></a></h2><p>Consider the FitzHugh-Nagumo model,</p><p class="math-container">\[\begin{aligned}
+\frac{du}{dt} &amp;= \frac{1}{\epsilon} \left( -\alpha u^3 + \gamma u - \kappa v + I \right) \\
+\frac{dv}{dt} &amp;= -\beta v + u \ ,
+\end{aligned}\]</p><p>where <span>$\epsilon$</span> is the parameter of time scale separation between the state variables <span>$u$</span> and <span>$v$</span>. The parameters <span>$\alpha &gt;0$</span>, <span>$\beta &gt;1$</span>, <span>$\gamma&gt;0$</span>, and <span>$\kappa&gt;0$</span> are real constants, and <span>$I$</span> denotes a driving term.</p><p>Let&#39;s investigate this system under stochastic forcing.</p><h3 id="System-definition"><a class="docs-heading-anchor" href="#System-definition">System definition</a><a id="System-definition-1"></a><a class="docs-heading-anchor-permalink" href="#System-definition" title="Permalink"></a></h3><p>First, we need to translate the system equations above into Julia code.</p><p>This works by defining a function <code>f(u,p,t)</code> which takes as input a vector <code>u</code> of state variables (<span>$u$</span>,<span>$v$</span>), a vector <code>p</code> of parameters, and time <code>t</code>. The function must return an array of flow increments (<span>$du$</span>, <span>$dv$</span>). For performance reasons, it is advisable to return a StaticArray <code>SA[du, dv]</code> rather than just a Vector <code>[du, dv]</code>. This is why we need the <code>StaticArrays</code> package.</p><pre><code class="language-julia hljs">using CriticalTransitions
+
+function fitzhugh_nagumo(u,p,t)
+    u, v = u
+    ϵ, β, α, γ, κ, I = p[1]
+
+    du = (-α*u^3 + γ*u - κ*v + I)/ϵ
+    dv = -β*v + u
+
+    SA[du, dv]
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">fitzhugh_nagumo (generic function with 1 method)</code></pre><p>Note that the system parameters <code>ϵ, β, α, γ, κ, I = p[1]</code> are unpacked as the first component of <code>p</code>. This is necessary because in CriticalTransitions.jl one can also define a separate set of parameters for the stochastic component of the system, which would then make up the second component <code>p[2]</code> ( see <a href="../man/stochsystem/#Defining-a-StochSystem">Defining a StochSystem</a>).</p><div class="admonition is-success"><header class="admonition-header">In-place vs. out-of-place</header><div class="admonition-body"><p>The function <code>fitzhugh_nagumo(u,p,t)</code> is defined <em>out-of-place</em>. It is also possible to define the system <em>in-place</em> as <code>fitzhugh_nagumo!(du,u,p,t)</code>. For more info, see <a href="https://diffeq.sciml.ai/stable/types/ode_types/">here</a>.</p></div></div><h3 id="StochSystem"><a class="docs-heading-anchor" href="#StochSystem">StochSystem</a><a id="StochSystem-1"></a><a class="docs-heading-anchor-permalink" href="#StochSystem" title="Permalink"></a></h3><p>Next, we turn the <code>fitzhugh_nagumo</code> system into a stochastic dynamical system. Suppose we would like to force both state variables <span>$u$</span> and <span>$v$</span> with additive, uncorrelated Gaussian noise of intensity <span>$\sigma$</span>. This is the default case. We simply write</p><pre><code class="language-julia hljs">p = [1., 3., 1., 1., 1., 0.] # Parameters (ϵ, β, α, γ, κ, I)
+σ = 0.18 # noise strength
+
+# StochSystem
+sys = StochSystem(fitzhugh_nagumo, p, zeros(2), σ)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-dimensional stochastic dynamical system
+ f (deterministic function): fitzhugh_nagumo
+ pf (parameters of f):       Any[1.0, 3.0, 1.0, 1.0, 1.0, 0.0]
+ g (noise function):         idfunc
+ pg (parameters of g):       nothing
+ σ (noise intensity):        0.18
+ Σ (covariance matrix):      Bool[1 0; 0 1]
+ process (noise process):    WhiteGauss
+</code></pre><p>Here we have chosen <code>zeros(2)</code> as the initial state of the system. The length of this vector must correspond to the system&#39;s dimensionality, but for now the state is just a placeholder that aligns our syntax with that of DifferentialEquations.jl and DynamicalSystems.jl.</p><div class="admonition is-info"><header class="admonition-header">Multiplicative and/or correlated noise</header><div class="admonition-body"><p>Of course, it is also possible to define more complicated noise processes than simple additive white noise. This is done by specifying a custom <em>noise function</em> and <em>covariance matrix</em> in the <code>StochSystem</code> definition. For more info, see <a href="../man/stochsystem/#Defining-a-StochSystem">Defining a StochSystem</a>.</p></div></div><p>That&#39;s it! Now we can throw the toolbox of <code>CriticalTransitions</code> at our stochastic FitzHugh-Nagumo system <code>sys</code>.</p><h3 id="Find-stable-equilibria"><a class="docs-heading-anchor" href="#Find-stable-equilibria">Find stable equilibria</a><a id="Find-stable-equilibria-1"></a><a class="docs-heading-anchor-permalink" href="#Find-stable-equilibria" title="Permalink"></a></h3><p>For the parameters chosen above, the FitzHugh-Nagumo system is bistable. Let&#39;s compute the fixed points using the <a href="https://juliadynamics.github.io/DynamicalSystemsDocs.jl/chaostools/stable/periodicity/#ChaosTools.fixedpoints"><code>fixedpoints</code></a> function from ChaosTools.jl. As this function is from the <code>DynamicalSystems</code> ecosystem, it takes a system of type <code>CoupledODEs</code> as input. We can simply convert the <code>StochSystem</code> <code>sys</code> via the <a href="../man/utils/#DynamicalSystemsBase.CoupledODEs-Tuple{StochSystem}"><code>CoupledODEs</code></a> function:</p><pre><code class="language-julia hljs"># Calculate fixed points
+ds = CoupledODEs(sys)
+box = intervals_to_box([-2,-2], [2,2])
+eqs, eigs, stab = fixedpoints(ds, box)
+
+# Store the two stable fixed points
+fp1, fp2 = eqs[stab]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-dimensional StateSpaceSet{Float64} with 2 points
+  0.816497   0.272166
+ -0.816497  -0.272166</code></pre><h3 id="Stochastic-simulation"><a class="docs-heading-anchor" href="#Stochastic-simulation">Stochastic simulation</a><a id="Stochastic-simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-simulation" title="Permalink"></a></h3><p>Using the <code>simulate</code> function, we now run a simulation of our system starting out from the fixed point <code>fp1</code>:</p><pre><code class="language-julia hljs">sim = simulate(sys, fp1, dt=0.01, tmax=1e3)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">retcode: Success
+Interpolation: 1st order linear
+t: 100002-element Vector{Float64}:
+    0.0
+    0.01
+    0.02
+    0.03
+    0.04
+    0.05
+    0.060000000000000005
+    0.07
+    0.08
+    0.09
+    ⋮
+  999.9299999992356
+  999.9399999992356
+  999.9499999992356
+  999.9599999992356
+  999.9699999992356
+  999.9799999992356
+  999.9899999992356
+  999.9999999992356
+ 1000.0
+u: 100002-element Vector{SVector{2, Float64}}:
+ [0.816496580927726, 0.2721655269759087]
+ [0.862773096292363, 0.26079736067597026]
+ [0.8454657974466064, 0.2705955280444692]
+ [0.8534006570765639, 0.2630767855739871]
+ [0.8471336292413356, 0.2858274288561544]
+ [0.8405363324112399, 0.318761017142428]
+ [0.8686487778835547, 0.3032969785395604]
+ [0.8778029027037205, 0.2782559533870309]
+ [0.8989334924216074, 0.28064840370182137]
+ [0.8794109425312456, 0.27368667826756143]
+ ⋮
+ [0.7207218759508913, 0.2643708495988719]
+ [0.7300162795790328, 0.2647877700261496]
+ [0.7098917321061496, 0.28316992990240725]
+ [0.7111765995360798, 0.27974122338916696]
+ [0.7315536475983736, 0.25183231207185736]
+ [0.7393867846059452, 0.261622635487673]
+ [0.7427387493472404, 0.246061173938459]
+ [0.7157866521965419, 0.26705461692409665]
+ [0.7157791681228372, 0.2670602041222559]</code></pre><p>In the keyword arguments, we have specified the time step <code>dt</code> and total duration <code>tmax</code> of the numerical time integration.</p><p>The simulated trajectory is stored in <code>sim</code> as a matrix with 2 rows corresponding to the state variables <span>$u$</span>, <span>$v$</span>, and 10,000 columns corresponding to the time steps.</p><p>Let&#39;s plot the result. Did the trajectory transition to the other attractor?</p><pre><code class="language-julia hljs">using CairoMakie
+fig = Figure(size = (800, 600), fontsize=18)
+ax = Axis(fig[1, 1], xlabel = &quot;u&quot;, ylabel = &quot;v&quot;)
+limits!(-1.2,1.2,-0.6,0.6)
+lines!(ax, sim[1,:], sim[2,:])
+scatter!(ax, [fp1[1], fp2[1]], [fp1[2], fp2[2]], color=:red, markersize=20)
+fig</code></pre><img src="b6252bbc.png" alt="Example block output"/><p>Hopefully, this helped you to get started. For more info, check out the Manual section of these docs.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../quickstart/">« Quickstart</a><a class="docs-footer-nextpage" href="../man/stochsystem/">Defining a StochSystem »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.5.0 on <span class="colophon-date" title="Monday 22 July 2024 16:03">Monday 22 July 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Transition Path Theory using finite element method · CriticalTransitions.jl</title><meta name="title" content="Transition Path Theory using finite element method · CriticalTransitions.jl"/><meta property="og:title" content="Transition Path Theory using finite element method · CriticalTransitions.jl"/><meta property="twitter:title" content="Transition Path Theory using finite element method · CriticalTransitions.jl"/><meta name="description" content="Documentation for CriticalTransitions.jl."/><meta property="og:description" content="Documentation for CriticalTransitions.jl."/><meta property="twitter:description" content="Documentation for CriticalTransitions.jl."/><meta property="og:url" content="https://juliadynamics.github.io/CriticalTransitions.jl/examples/duffing_TPT/"/><meta property="twitter:url" content="https://juliadynamics.github.io/CriticalTransitions.jl/examples/duffing_TPT/"/><link rel="canonical" href="https://juliadynamics.github.io/CriticalTransitions.jl/examples/duffing_TPT/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CriticalTransitions.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../quickstart/">Quickstart</a></li><li><a class="tocitem" href="../tutorial/">Tutorial</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../gMAM_Maierstein/">Anlyses of the Maier-Stein system</a></li><li><a class="tocitem" href="../sgMAM_KPO/">sgMAM for the Kerr Parametric Oscillator</a></li><li class="is-active"><a class="tocitem" href>Transition Path Theory using finite element method</a></li></ul></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../../man/CoupledSDEs/">Define a CoupledSDEs system</a></li><li><a class="tocitem" href="../../man/systemanalysis/">Stability analysis</a></li><li><a class="tocitem" href="../../man/simulation/">Simulating the system</a></li><li><a class="tocitem" href="../../man/sampling/">Sampling transitions</a></li><li><a class="tocitem" href="../../man/largedeviations/">Large deviation theory</a></li><li><a class="tocitem" href="../../man/tpt/">Transition path theory</a></li><li><a class="tocitem" href="../../man/utils/">Utilities</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Transition Path Theory using finite element method</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Transition Path Theory using finite element method</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/CriticalTransitions.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/CriticalTransitions.jl/blob/main/docs/src/examples/duffing_TPT.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Transition-Path-Theory-(TPT)-for-the-undriven-Duffing-oscillator"><a class="docs-heading-anchor" href="#Transition-Path-Theory-(TPT)-for-the-undriven-Duffing-oscillator">Transition Path Theory (TPT) for the undriven Duffing oscillator</a><a id="Transition-Path-Theory-(TPT)-for-the-undriven-Duffing-oscillator-1"></a><a class="docs-heading-anchor-permalink" href="#Transition-Path-Theory-(TPT)-for-the-undriven-Duffing-oscillator" title="Permalink"></a></h1><pre><code class="language-julia hljs">using CriticalTransitions
+
+using CairoMakie
+using OrdinaryDiffEq, DelaunayTriangulation, Contour</code></pre><pre><code class="language-julia hljs">beta = 20.0
+gamma = 0.5
+
+function Hamiltonian(x, y)
+    return 0.5 .* y .^ 2 .+ 0.25 .* x .^ 4 .- 0.5 .* x .^ 2
+end
+
+function KE(x)
+    return 0.5 .* (x[:, 2] .^ 2)
+end
+
+function divfree(x, y)
+    f1 = y
+    f2 = .-x .^ 3 .+ x
+    return f1, f2
+end
+
+function duffing(x, y)
+    f1 = y
+    f2 = .- gamma .* y .- x.^3 .+ x
+    return f1, f2
+end
+
+langevin_sys = CriticalTransitions.Langevin(Hamiltonian, divfree, KE, gamma, beta)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Langevin{typeof(Main.Hamiltonian), typeof(Main.divfree), typeof(Main.KE), Float64}(Main.Hamiltonian, Main.divfree, Main.KE, 0.5, 20.0)</code></pre><p>We can easily evaluate the Hamiltonian and equally spaced grid in phase space.</p><pre><code class="language-julia hljs">nx, ny = 41, 41
+nxy = nx * ny
+xmin, xmax = -2.0, 2.0
+ymin, ymax = -2.0, 2.0
+
+x1 = range(xmin, xmax, length=nx)
+y1 = range(ymin, ymax, length=ny)
+
+x_grid = [xx for yy in y1, xx in x1]
+y_grid = [yy for yy in y1, xx in x1]
+
+drift1, drift2 = duffing(x_grid, y_grid)
+dnorm = sqrt.(drift1.^2 .+ drift2.^2 .+ 1e-12)
+Hgrid = Hamiltonian(x_grid, y_grid)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">41×41 Matrix{Float64}:
+ 4.0    3.45303  3.0044  2.64303  2.3584  …  2.64303  3.0044  3.45303  4.0
+ 3.805  3.25802  2.8094  2.44802  2.1634     2.44802  2.8094  3.25802  3.805
+ 3.62   3.07302  2.6244  2.26302  1.9784     2.26302  2.6244  3.07302  3.62
+ 3.445  2.89802  2.4494  2.08802  1.8034     2.08802  2.4494  2.89802  3.445
+ 3.28   2.73302  2.2844  1.92302  1.6384     1.92302  2.2844  2.73302  3.28
+ 3.125  2.57803  2.1294  1.76802  1.4834  …  1.76802  2.1294  2.57803  3.125
+ 2.98   2.43302  1.9844  1.62302  1.3384     1.62302  1.9844  2.43302  2.98
+ 2.845  2.29802  1.8494  1.48802  1.2034     1.48802  1.8494  2.29802  2.845
+ 2.72   2.17302  1.7244  1.36302  1.0784     1.36302  1.7244  2.17302  2.72
+ 2.605  2.05802  1.6094  1.24802  0.9634     1.24802  1.6094  2.05802  2.605
+ ⋮                                        ⋱                            ⋮
+ 2.72   2.17302  1.7244  1.36302  1.0784     1.36302  1.7244  2.17302  2.72
+ 2.845  2.29802  1.8494  1.48802  1.2034     1.48802  1.8494  2.29802  2.845
+ 2.98   2.43302  1.9844  1.62302  1.3384     1.62302  1.9844  2.43302  2.98
+ 3.125  2.57803  2.1294  1.76802  1.4834  …  1.76802  2.1294  2.57803  3.125
+ 3.28   2.73302  2.2844  1.92302  1.6384     1.92302  2.2844  2.73302  3.28
+ 3.445  2.89802  2.4494  2.08802  1.8034     2.08802  2.4494  2.89802  3.445
+ 3.62   3.07302  2.6244  2.26302  1.9784     2.26302  2.6244  3.07302  3.62
+ 3.805  3.25802  2.8094  2.44802  2.1634     2.44802  2.8094  3.25802  3.805
+ 4.0    3.45303  3.0044  2.64303  2.3584  …  2.64303  3.0044  3.45303  4.0</code></pre><pre><code class="language-julia hljs">fig = CairoMakie.contour(x1, y1, Hgrid&#39;, colormap = :viridis, levels=-1:0.4:2, linewidth = 2)
+v(x::Point2) = Point2f(duffing(x[1], x[2])...)
+streamplot!(v, -2..2, -2..2, linewidth = 0.5, colormap = [:black, :black], gridsize = (40, 40), arrow_size = 8)
+fig</code></pre><img src="792ffab9.png" alt="Example block output"/><p>We have two minima in the potential landscape, such that the system under the drift will dissipate to these corresponding attractors at close to <span>$(-1.0, 0.0)$</span> and <span>$(1.0, 0.0)$</span>. We compute two ellipses around these minima:</p><pre><code class="language-julia hljs">point_a = (-1.0, 0.0)
+point_b = (1.0, 0.0)
+radii = (0.3, 0.4)
+density = 0.04
+
+Na = round(Int, π * sum(radii) / density) # the number of points on the A-circle
+Nb = Na
+
+ptsA = get_ellipse(point_a, radii, Na)
+ptsB = get_ellipse(point_b, radii, Na);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">55×2 Matrix{Float64}:
+ 1.3       0.0
+ 1.29804   0.0455966
+ 1.2922    0.0905987
+ 1.28255   0.13442
+ 1.26922   0.176488
+ 1.25238   0.216256
+ 1.23224   0.253205
+ 1.20908   0.286853
+ 1.18319   0.316761
+ 1.15492   0.34254
+ ⋮        
+ 1.15492  -0.34254
+ 1.18319  -0.316761
+ 1.20908  -0.286853
+ 1.23224  -0.253205
+ 1.25238  -0.216256
+ 1.26922  -0.176488
+ 1.28255  -0.13442
+ 1.2922   -0.0905987
+ 1.29804  -0.0455966</code></pre><p>We also compute an outer boundary of the phase space defined by the maximum value of the Hamiltonian: <code>Hbdry=0.5</code>. For this, we use the contour package to compute the contour at the level <code>Hbdry</code>. Just as the ellipse around the attractors, we also reparametrize the boundary to have a uniform grid spacing.</p><pre><code class="language-julia hljs">import Contour as CTR
+Hbdry = 0.5
+cont = CTR.contour(x1, y1, Hgrid, Hbdry)
+yc, xc = coordinates(CTR.lines(cont)[1])
+p_outer = [xc yc]
+
+pts_outer = reparametrization(p_outer,density);
+Nouter = size(pts_outer, 1)
+Nfix = Na+Nb+Nouter</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">366</code></pre><p>We plot the computed boundaries, for which we compute a triangulation using the <code>distmesh2D</code> module.</p><pre><code class="language-julia hljs">fig = scatter(ptsA[:,1], ptsA[:,2], label=&quot;A points&quot;)
+scatter!(ptsB[:,1], ptsB[:,2], label=&quot;B points&quot;)
+scatter!(pts_outer[:,1], pts_outer[:,2], label=&quot;Outer points&quot;)
+fig</code></pre><img src="f0ccccbd.png" alt="Example block output"/><p>The overdamped undriven duffing oscillator, is autonomous and respect detailed balance. As such the maximum likelihood path is the path that is parallel to drift and can easily be computed with the string method. If one know the saddle point, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to the minima. As such, the maximum likelihood transition path from (-1,0) to (1,0) gives:</p><pre><code class="language-julia hljs"># Generate and plot the maximum likelihood transition path from (-1,0) to (1,0)
+using OrdinaryDiffEq
+
+function reverse_drift!(du, u, p, t)
+    du[1] = -u[2]
+    du[2] = -u[2] + u[1]*(u[1]^2 - 1)
+end
+
+function drift!(du, u, p, t)
+    du[1] =  u[2]
+    du[2] = -u[2] - u[1]*(u[1]^2 - 1)
+end
+
+prob0 = ODEProblem(reverse_drift!, [-0.001, 0.0], (0.0, 100.0))
+sol0 = solve(prob0, Tsit5(); abstol=1e-12, reltol=1e-12)
+
+prob1 = ODEProblem(drift!, [0.001, 0.0], (0.0, 100.0))
+sol1 = solve(prob1, Tsit5(); abstol=1e-12, reltol=1e-12)
+
+# plot!(legend=:topright, aspect_ratio=:equal)
+y = sol0
+lines!(y[1,:],y[2,:],linewidth = 2, color = :black)
+y = sol1
+lines!(y[1,:],y[2,:],linewidth = 2, color = :black)
+fig</code></pre><img src="206eae0c.png" alt="Example block output"/><p>We would like to compute the committor, the reactive current, and the reaction rate for the overdamped Duffing oscillator with additive Gaussian noise. We compute these quantities on a triangular mesh between the before computed boundaries.</p><pre><code class="language-julia hljs">box = [xmin, xmax, ymin, ymax]
+pfix = zeros(Nfix, 2)
+pfix[1:Na, :] .= ptsA
+pfix[Na+1:Na+Nb, :] .= ptsB
+pfix[Na+Nb+1:Nfix, :] .= pts_outer
+
+function dfunc(p)
+    d0 = Hamiltonian(p[:, 1], p[:, 2])
+    dA = dellipse(p, point_a, radii)
+    dB = dellipse(p, point_b, radii)
+    d = ddiff(d0 .- Hbdry, dunion(dA, dB))
+    return d
+end
+
+mesh = distmesh2D(dfunc, huniform, density, box, pfix)
+
+pts, tri = mesh.pts, mesh.tri
+fig = Figure()
+ax = Axis(fig[1, 1])
+for i in 1:size(tri,1)
+    lines!(ax, [pts[tri[i,j],1] for j in [1,2,3,1]],
+          [pts[tri[i,j],2] for j in [1,2,3,1]],
+          color=:black, linewidth=0.1)
+end
+fig</code></pre><img src="cf978fae.png" alt="Example block output"/><p>A committor measures the probability that a system, starting at a given point in phase space, will reach one designated region before another. Formally, for two disjoint sets A and B, the committor q(x) gives the likelihood that a trajectory initiated at x will reach B before A under the system’s dynamics.</p><pre><code class="language-julia hljs">_, Aind = find_boundary(mesh.pts, point_a, radii, density)
+_, Bind = find_boundary(mesh.pts, point_b, radii, density)
+
+q = committor(langevin_sys, mesh, Aind, Bind)
+
+@show extrema(q)
+
+tricontourf(Triangulation(mesh.pts&#39;, mesh.tri&#39;), q)</code></pre><img src="59203a38.png" alt="Example block output"/><p>We can also compute the reverse committor, which is the probability that a trajectory initiated at x will reach A before B under the system’s dynamics. Hence, we must reverse the drift function in the Langevin system and swap the boundaries A and B in the committor function.</p><pre><code class="language-julia hljs">function divfree1(x,y)
+    f1,f2 = divfree(x,y)
+    return -f1,-f2
+end
+
+langevin_sys_reverse = CriticalTransitions.Langevin(Hamiltonian, divfree1, KE, gamma, beta)
+
+qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
+
+@show extrema(qminus)
+
+tricontourf(Triangulation(mesh.pts&#39;, mesh.tri&#39;), qminus)</code></pre><img src="b29b1b80.png" alt="Example block output"/><pre><code class="language-julia hljs">function dfuncA(p)
+    return dellipse(p, point_a, radii)
+end
+
+function dfuncB(p)
+    return dellipse(p, point_b, radii)
+end
+
+xa, ya = point_a
+xb, yb = point_b
+rx, ry = radii
+bboxA = [xa - rx, xa + rx, ya - ry, ya + ry]
+Amesh = distmesh2D(dfuncA, huniform, density, bboxA, ptsA)
+bboxB = [xb - rx, xb + rx, yb - ry, yb + ry]
+Bmesh = distmesh2D(dfuncB, huniform, density, bboxB, ptsB)
+
+Z = invariant_pdf(langevin_sys, mesh, Amesh, Bmesh)
+
+@show Z</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">69.38287444542192</code></pre><pre><code class="language-julia hljs"># probability density of reactive trajectories
+mu = exp.(-beta * Hamiltonian(pts[:,1], pts[:,2])) / Z
+muAB = mu .* q .* qminus
+
+tricontourf(Triangulation(mesh.pts&#39;, mesh.tri&#39;), muAB)</code></pre><img src="57de4d7d.png" alt="Example block output"/><pre><code class="language-julia hljs">Rcurrent, Rrate = reactive_current(langevin_sys, mesh, q, qminus, Z)
+@show Rrate</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.0007505830782868726</code></pre><pre><code class="language-julia hljs">ARcurrent = vec(sqrt.(sum(Rcurrent.^2, dims=2)))
+ARCmax = maximum(ARcurrent)
+
+tricontourf(Triangulation(mesh.pts&#39;, mesh.tri&#39;), ARcurrent)</code></pre><img src="c774a5c7.png" alt="Example block output"/><pre><code class="language-julia hljs">c =ARcurrent./maxima(ARcurrent)
+arrows(pts[:,1], pts[:,2], Rcurrent[:,1]./maxima(ARcurrent), Rcurrent[:,2]./maxima(ARcurrent), arrowsize = c*10, lengthscale = 0.1, arrowcolor = c, linecolor = c)</code></pre><img src="31fabafb.png" alt="Example block output"/><pre><code class="language-julia hljs">prob_reactive = probability_reactive(langevin_sys, mesh, q, qminus, Z)
+print(&quot;Probability that a trajectory is reactive at a randomly picked time: &quot;,prob_reactive)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Probability that a trajectory is reactive at a randomly picked time: 0.004105982655719222</code></pre><pre><code class="language-julia hljs">prob_lastA = probability_last_A(langevin_sys, mesh, Amesh, qminus, Z)
+print(&quot;Probability that a trajectory last visited A: &quot;, prob_lastA)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Probability that a trajectory last visited A: 0.4999966041183326</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../sgMAM_KPO/">« sgMAM for the Kerr Parametric Oscillator</a><a class="docs-footer-nextpage" href="../../man/CoupledSDEs/">Define a CoupledSDEs system »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Monday 6 January 2025 10:26">Monday 6 January 2025</span>. Using Julia version 1.10.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
