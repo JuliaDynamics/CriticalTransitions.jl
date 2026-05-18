@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778745202318,
+  "lastUpdate": 1779095894917,
   "repoUrl": "https://github.com/JuliaDynamics/CriticalTransitions.jl",
   "entries": {
     "Benchmark Results": [
@@ -1872,6 +1872,54 @@ window.BENCHMARK_DATA = {
             "value": 100385573,
             "unit": "ns",
             "extra": "gctime=13317963\nmemory=222465520\nallocs=440739\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9322d31f34d019f6ed4ce5d34a20a320b8a29eeb",
+          "message": "fix: update DynamicalSystemsBase and remove StochasticSystemsBase (#335)",
+          "timestamp": "2026-05-18T11:12:34+02:00",
+          "tree_id": "d1d16e16e4513e0daa38bba4fc31e5603d852ba0",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/9322d31f34d019f6ed4ce5d34a20a320b8a29eeb"
+        },
+        "date": 1779095889755,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 3079754,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4597648\nallocs=100628\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1605094162.5,
+            "unit": "ns",
+            "extra": "gctime=447230816.5\nmemory=3321373984\nallocs=79900717\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 281522674,
+            "unit": "ns",
+            "extra": "gctime=53242713\nmemory=482588064\nallocs=1228904\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 108519972,
+            "unit": "ns",
+            "extra": "gctime=17011554\nmemory=222465536\nallocs=440739\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
           }
         ]
       }
