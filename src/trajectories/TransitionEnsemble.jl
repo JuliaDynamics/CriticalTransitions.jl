@@ -21,8 +21,8 @@ struct TransitionStatistics{T}
     rareness::T
 
     function TransitionStatistics(sim::SciMLBase.EnsembleSolution, success_rate)
-        mean_res_time = mean([sol.t[1] for sol in sim])
-        mean_trans_time = mean([(sol.t[end] - sol.t[1]) for sol in sim])
+        mean_res_time = mean([sol.t[1] for sol in sim.u])
+        mean_trans_time = mean([(sol.t[end] - sol.t[1]) for sol in sim.u])
 
         return new{typeof(mean_res_time)}(
             success_rate, mean_res_time, mean_trans_time, mean_res_time / mean_trans_time
@@ -55,8 +55,8 @@ struct TransitionEnsemble{SSS, T, ES}
     function TransitionEnsemble(sim::SciMLBase.EnsembleSolution, success_rate)
         stats = TransitionStatistics(sim, success_rate)
 
-        samples = [StateSpaceSet(sol.u) for sol in sim]
-        times = [sol.t for sol in sim]
+        samples = [StateSpaceSet(sol.u) for sol in sim.u]
+        times = [sol.t for sol in sim.u]
 
         return new{eltype(samples), eltype(eltype(times)), typeof(sim)}(
             samples, times, stats, sim

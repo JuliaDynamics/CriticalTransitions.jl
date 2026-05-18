@@ -55,7 +55,8 @@ function prepare_transition_problem(sys, x, radii, radius_directions, tmax)
     condition(u, t, integrator) = subnorm(u - x_f; directions = radius_directions) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
-    prob = remake(sys.integ.sol.prob; u0 = x_i, tspan = (0, tmax))
+    prob = referenced_sciml_prob(sys)
+    prob = remake(prob; u0 = oftype(prob.u0, x_i), tspan = (0, tmax))
     return prob, cb_ball
 end
 
@@ -122,7 +123,7 @@ function transitions(
     lock = ReentrantLock()
     tries = 0
     success = 0
-    function output_func(sol, i)
+    function output_func(sol, ctx)
         Base.lock(lock)
         try
             tries += 1
@@ -139,11 +140,11 @@ function transitions(
         return (sol, false)  # Never rerun, we control attempts via Nmax
     end
 
-    seed = sys.integ.sol.prob.seed
-    function prob_func(prob, i, repeat)
+    seed = referenced_sciml_prob(sys).seed
+    function prob_func(prob, ctx)
         return remake(
             prob;
-            seed = rand(Random.MersenneTwister(seed + i + repeat), UInt32),
+            seed = rand(Random.MersenneTwister(seed + ctx.sim_id + ctx.repeat), UInt32),
             tspan = (0, tmax),
         )
     end

@@ -1,15 +1,3 @@
-StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
-covariance_matrix = StochasticSystemsBase.covariance_matrix
-diffusion_matrix = StochasticSystemsBase.diffusion_matrix
-
-"""
-    StochSystem
-
-An alias to [`CoupledSDEs`](@ref).
-This was the name these systems had in CriticalTransitions.jl before v0.3
-"""
-const StochSystem = CoupledSDEs
-
 """
 $(TYPEDSIGNATURES)
 

@@ -1,4 +1,4 @@
-using CriticalTransitions: StochSystem
+using CriticalTransitions: CoupledSDEs
 using CriticalTransitions: simulate, idfunc
 using Plots, StaticArrays, LinearAlgebra
 
@@ -98,7 +98,7 @@ initpath = vcat(rr, ll)
 
 # Setup SPDE problem
 function spde(eps, sigma)
-    return StochSystem(
+    return CoupledSDEs(
         FitzHughNagumoSPDE,
         [eps, β, α, γ, κ, Ι, a, sigma, dz],
         2N,

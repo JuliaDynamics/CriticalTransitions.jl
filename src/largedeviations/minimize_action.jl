@@ -27,7 +27,7 @@ The optional positional argument `optimizer` selects the Optimization.jl solver.
     Defaults to [`fw_action`](@ref), alternative: "OM" for [`om_action`](@ref)
   - `npoints = 100`: number of path points to use for the discretization of the path
   - `noise_strength = nothing`: noise strength for the action functional. Specify only if `functional = "OM"`
-  - `ad_type = Optimization.AutoFiniteDiff()`: type of automatic differentiation to use
+  - `ad_type = OptimizationBase.AutoFiniteDiff()`: type of automatic differentiation to use
     (see [`Optimization.jl`](https://docs.sciml.ai/Optimization/stable/optimization_packages/optimisers/))
   - `maxiters = 100`: maximum number of iterations before the algorithm stops
   - `abstol::Real=NaN`: absolute tolerance of action gradient to determine convergence
@@ -68,7 +68,7 @@ function minimize_action(
         optimizer = Optimisers.Adam();
         functional = "FW",
         noise_strength = nothing,
-        ad_type = Optimization.AutoFiniteDiff(),
+        ad_type = OptimizationBase.AutoFiniteDiff(),
         maxiters::Int = 100,
         abstol::Real = NaN,
         reltol::Real = NaN,

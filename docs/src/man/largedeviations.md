@@ -16,6 +16,13 @@ Several methods have been proposed to calculate transition paths that minimize a
 
 These methods apply to non-gradient systems driven by Gaussian noise. In gradient systems, minimum action paths between attractors coincide with heteroclinic orbits, which can be computed via the so-called string method.
 
+!!! info "Action minimization as an optimal control problem"
+    All of the action minimizers listed below (MAM, gMAM, sgMAM) can equivalently be cast as **optimal control problems**: find a path ``\mathbf{x}`` and a control ``\mathbf{u}`` that minimize a Freidlin-Wentzell-type action
+    ```math
+    \int \| \mathbf{u}(t) - \mathbf{b}(\mathbf{x}(t)) \|^2 \, \text{d}t
+    ```
+    subject to the path dynamics ``\dot{\mathbf{x}}(t) = \mathbf{u}(t)`` and the boundary conditions ``\mathbf{x}(0) = \mathbf{x}_A``, ``\mathbf{x}(T) = \mathbf{x}_B`` (with ``T`` either fixed, as in MAM, or eliminated by reparameterization, as in gMAM/sgMAM). In this form the problem can be solved with dedicated optimal-control packages such as [`OptimalControl.jl`](https://control-toolbox.org/OptimalControl.jl); see the [control-toolbox.org MAM tutorial](https://control-toolbox.org/Tutorials.jl/stable/tutorial-mam.html) for a worked example on the Maier-Stein system.
+
 To summarize, the following methods are available:
 
 - Minimum action method [(MAM)](@ref "Minimum action method (MAM)")

@@ -11,7 +11,6 @@ end CriticalTransitions
 using Statistics: Statistics, mean
 using LinearAlgebra: LinearAlgebra, norm, dot, tr, det
 using StaticArrays: StaticArrays, SVector
-using DataStructures: CircularBuffer
 using Random: Random
 
 # Core
@@ -33,14 +32,17 @@ using DynamicalSystemsBase:
     current_parameters,
     set_parameters!,
     initial_time,
-    integrator
+    integrator,
+    referenced_sciml_prob,
+    covariance_matrix,
+    diffusion_matrix
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq
 
 using Interpolations: linear_interpolation
-using Optimization: Optimization
+using OptimizationBase: OptimizationBase
 using OptimizationOptimisers: Optimisers
 using LinearSolve: LinearProblem, LUFactorization, init, solve, solve!
 
@@ -70,7 +72,6 @@ include("largedeviations/methods.jl")
 include("largedeviations/MinimumActionPath.jl")
 include("largedeviations/minimize_action.jl")
 include("largedeviations/minimize_geometric_action.jl")
-
 include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
 

@@ -1,9 +1,6 @@
 using Test, DynamicalSystemsBase
 using StochasticDiffEq
 
-StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
-diffusion_matrix = StochasticSystemsBase.diffusion_matrix
-
 @inbounds function lorenz_rule(u, p, t)
     σ = p[1]
     ρ = p[2]

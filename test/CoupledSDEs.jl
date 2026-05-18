@@ -4,6 +4,7 @@ using CriticalTransitions, Test
     using DynamicalSystemsBase, Test
     using OrdinaryDiffEq: Tsit5, OrdinaryDiffEqCore
     using StochasticDiffEq: SDEProblem, SRA, SOSRA, LambaEM, CorrelatedWienerProcess
+    using SciMLLogging: None
     using CriticalTransitions
 
     @testset "drift" begin
@@ -72,14 +73,14 @@ using CriticalTransitions, Test
         @test lorenz_oop.integ.alg isa SOSRA
 
         lorenz_SRA = CoupledSDEs(
-            lorenz_rule, u0, p0; diffeq = (alg = SRA(), abstol = 1.0e-3, reltol = 1.0e-3, verbose = false)
+            lorenz_rule, u0, p0; diffeq = (alg = SRA(), abstol = 1.0e-3, reltol = 1.0e-3, verbose = None())
         )
         @test lorenz_SRA.integ.alg isa SRA
 
         # also test SDEproblem creation
         prob = lorenz_SRA.integ.sol.prob
 
-        ds = CoupledSDEs(prob, (alg = SRA(), abstol = 0.0, reltol = 1.0e-3, verbose = false))
+        ds = CoupledSDEs(prob, (alg = SRA(), abstol = 0.0, reltol = 1.0e-3, verbose = None()))
 
         @test ds.integ.alg isa SRA
 
@@ -103,9 +104,7 @@ using CriticalTransitions, Test
             corr = CoupledSDEs(f, zeros(2); covariance = [1 0.3; 0.3 1])
             corr_alt = CoupledSDEs(f, zeros(2); g = g, noise_prototype = zeros(2, 2))
             @test corr.noise_type == corr_alt.noise_type
-            @test all(
-                corr.integ.g(zeros(2), (), 0.0) .== corr_alt.integ.g(zeros(2), (), 0.0)
-            )
+            @test diffusion_matrix(corr) == diffusion_matrix(corr_alt)
         end
 
         @testset "ArgumentError" begin
