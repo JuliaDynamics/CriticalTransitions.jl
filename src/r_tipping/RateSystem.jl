@@ -102,7 +102,7 @@ function RateSystem(
 
     p0 = deepcopy(current_parameters(ds))
 
-    rss = RateSystemSpecs{R,K,T,P}(
+    rss = RateSystemSpecs{S,K,T,P}(
         ds,
         forcing_profile,
         forcing_kw["start_time"],
