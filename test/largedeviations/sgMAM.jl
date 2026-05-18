@@ -178,6 +178,37 @@ end
     @test res_bt.action <= res_no_bt.action + 1.0e-6
 end
 
+@testset "sgMAM action matches geometric_action on converged path" begin
+    # Regression guard for the spurious /2 in `FW_action`: once converged, the
+    # path-action reported by sgMAM and the geometric action evaluated on the
+    # same path must agree (both are S_FW on the instanton). Before the fix,
+    # sgMAM reported half the geometric action.
+    function meier_stein(u, p, t)
+        x, y = u
+        dx = x - x^3 - 10 * x * y^2
+        dy = -(1 + x^2) * y
+        return SA[dx, dy]
+    end
+    σ = 0.25
+    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
+    sys = ExtendedPhaseSpace(ds)
+
+    xx = range(-1.0, 1.0; length = 60)
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    x_initial = Matrix([xx yy]')
+
+    res = minimize_simple_geometric_action(
+        sys,
+        x_initial,
+        GeometricGradient(; max_backtracks = 20, stepsize = 1.0);
+        maxiters = 500,
+        show_progress = false,
+    )
+
+    S_geo = geometric_action(ds, Matrix(res.path)', 1.0)
+    @test isapprox(res.action, S_geo; rtol = 1.0e-3)
+end
+
 @testset "sgMAM step-size insensitivity" begin
     function meier_stein(u, p, t)
         x, y = u

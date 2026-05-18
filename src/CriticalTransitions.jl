@@ -90,7 +90,7 @@ using .CTLibrary
 
 # Core types
 export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
-export drift, div_drift, solver
+export drift, div_drift, solver, noise_strength
 export StateSpaceSet
 
 export minimize_simple_geometric_action, ExtendedPhaseSpace

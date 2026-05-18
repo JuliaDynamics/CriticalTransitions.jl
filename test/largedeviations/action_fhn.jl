@@ -23,7 +23,7 @@ end
 # Test om_action function
 @testset "om_action" begin
     S = om_action(sys, path, time, σ)
-    @test isapprox(S, 0.26, atol = 0.01)
+    @test isapprox(S, 0.21, atol = 0.01)
 end
 
 # Test action function
