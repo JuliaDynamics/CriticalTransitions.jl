@@ -46,7 +46,8 @@ end
             CriticalTransitions;
             skip = (Base => Base.Experimental, Base => Core),
             ignore = (
-                :referrenced_sciml_prob,
+                :covariance_matrix,
+                :diffusion_matrix,
                 :DEFAULT_DIFFEQ,
                 :_decompose_into_solver_and_remaining,
             ),
