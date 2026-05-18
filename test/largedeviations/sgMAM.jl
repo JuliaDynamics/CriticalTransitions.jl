@@ -318,7 +318,7 @@ end
     # Within 10% (Maier–Stein is overdamped: both regimes find similar paths;
     # adaptive uses 2× compute per probe window so with the same maxiters it may
     # be slightly behind).
-    @test res_ad.action <= res_gg.action * 1.10 + 1.0e-8
+    @test res_ad.action <= res_gg.action * 1.1 + 1.0e-8
 end
 
 @testset "AdaptiveGeometricGradient stepsize insensitivity" begin
@@ -388,17 +388,17 @@ end
     γ_val = λ_val / 2 * 0.05  # κ = 0.05, strongly underdamped
     ω0 = 1.0; ω_v = 1.0
 
-    fu(u, v) = (-4γ_val*ω_v*u - 2λ_val*v - 4(ω0-ω_v^2)*v - 3α_val*v*(u^2+v^2)) / (8ω_v)
-    fv(u, v) = (-4γ_val*ω_v*v - 2λ_val*u + 4(ω0-ω_v^2)*u + 3α_val*u*(u^2+v^2)) / (8ω_v)
-    dfudu(u, v) = (-4γ_val*ω_v - 6α_val*u*v) / (8ω_v)
-    dfudv(u, v) = (-2λ_val - 4(ω0-ω_v^2) - 3α_val*u^2 - 9α_val*v^2) / (8ω_v)
-    dfvdu(u, v) = (-2λ_val + 4(ω0-ω_v^2) + 9α_val*u^2 + 3α_val*v^2) / (8ω_v)
-    dfvdv(u, v) = (-4γ_val*ω_v + 6α_val*u*v) / (8ω_v)
+    fu(u, v) = (-4γ_val * ω_v * u - 2λ_val * v - 4(ω0 - ω_v^2) * v - 3α_val * v * (u^2 + v^2)) / (8ω_v)
+    fv(u, v) = (-4γ_val * ω_v * v - 2λ_val * u + 4(ω0 - ω_v^2) * u + 3α_val * u * (u^2 + v^2)) / (8ω_v)
+    dfudu(u, v) = (-4γ_val * ω_v - 6α_val * u * v) / (8ω_v)
+    dfudv(u, v) = (-2λ_val - 4(ω0 - ω_v^2) - 3α_val * u^2 - 9α_val * v^2) / (8ω_v)
+    dfvdu(u, v) = (-2λ_val + 4(ω0 - ω_v^2) + 9α_val * u^2 + 3α_val * v^2) / (8ω_v)
+    dfvdv(u, v) = (-4γ_val * ω_v + 6α_val * u * v) / (8ω_v)
 
     function H_x(x, p)
         u, v = eachrow(x); pu, pv = eachrow(p)
-        H_u = @. pu*dfudu(u, v) + pv*dfvdu(u, v)
-        H_v = @. pu*dfudv(u, v) + pv*dfvdv(u, v)
+        H_u = @. pu * dfudu(u, v) + pv * dfvdu(u, v)
+        H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
         return Matrix([H_u H_v]')
     end
     function H_p(x, p)
@@ -412,7 +412,7 @@ end
     κ = 2γ_val / λ_val
     r = sqrt(2λ_val * sqrt(1 - κ^2) / (3 * abs(α_val)))
     θ = atan(-κ, -sqrt(1 - κ^2)) / 2
-    xa = [r*cos(θ), r*sin(θ)]; xb = -xa
+    xa = [r * cos(θ), r * sin(θ)]; xb = -xa
     Nt = 200
     s = collect(range(0; stop = 1, length = Nt))
     xx = @. (xb[1] - xa[1]) * s + xa[1]
