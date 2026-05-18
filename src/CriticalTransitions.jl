@@ -33,7 +33,9 @@ using DynamicalSystemsBase:
     set_parameters!,
     initial_time,
     integrator,
-    referrenced_sciml_prob
+    referenced_sciml_prob,
+    covariance_matrix,
+    diffusion_matrix
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
