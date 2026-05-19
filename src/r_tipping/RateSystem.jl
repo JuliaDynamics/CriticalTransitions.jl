@@ -306,11 +306,9 @@ noise_process(rs::RateSystem) = noise_process(rs.system)
 
 solver(rs::RateSystem) = solver(rs.system)
 
-StochasticSystemsBase.covariance_matrix(rs::RateSystem, args...;
-    kw...) = StochasticSystemsBase.covariance_matrix(rs.system, args...; kw...)
+DynamicalSystemsBase.covariance_matrix(rs::RateSystem, args...; kw...) = covariance_matrix(rs.system, args...; kw...)
 
-StochasticSystemsBase.diffusion_matrix(rs::RateSystem, args...;
-    kw...) = StochasticSystemsBase.diffusion_matrix(rs.system, args...; kw...)
+DynamicalSystemsBase.diffusion_matrix(rs::RateSystem, args...; kw...) = diffusion_matrix(rs.system, args...; kw...)
 
 StateSpaceSets.dimension(rs::RateSystem) = StateSpaceSets.dimension(rs.system)
 DynamicalSystemsBase.isdeterministic(rs::RateSystem) = isa(rs.system, CoupledODEs)
