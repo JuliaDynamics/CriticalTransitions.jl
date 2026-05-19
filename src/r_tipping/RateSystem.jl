@@ -39,18 +39,15 @@ forcing protocols to an underlying autonomous continuous-time dynamical system `
 form of how the corresponding parameter evolves over time.
 
 ## Keyword arguments
-- `forcing_start_time` (default: `nothing`) — if `nothing`, each forcing_profile's start
-    time is set to `t0` (the system initial time). You may supply an `AbstractDict`
-    mapping keys to start times, or a single scalar value which will be applied to 
-    all forcing_profile, giving the time(s) for which the ramping of the corresponding 
-    parameters starts.
-- `forcing_duration` (default: `nothing`) — if `nothing`, each forcing_profile's
-    duration defaults to `fp.interval[2] - fp.interval[1]` for that profile. Can
-    be an `AbstractDict` or a scalar applied to all forcing_profile, giving the duration of 
-    the parameter ramping (in system time units).
-- `forcing_scale` (default: `nothing`) — if `nothing`, defaults to `1.0` for
-    each forcing_profile. Can be an `AbstractDict` or a scalar applied to all forcing_profile. 
-    Acts as amplitude multiplication factor of the forcing protocol(s).
+- `forcing_start_time` (default: `initial_time(ds)`) — start time(s) for the parameter
+    ramping. You may supply an `AbstractDict` mapping keys to start times, or a scalar
+    value which will be applied to all forcing profiles.
+- `forcing_duration` (default: `1.0`) — duration of the parameter ramping (in system
+    time units). Can be an `AbstractDict` mapping keys to durations or a scalar
+    applied to all forcing profiles.
+- `forcing_scale` (default: `1.0`) — amplitude multiplicative factor of the forcing
+    profile. Can be an `AbstractDict` mapping keys to scales or a scalar applied to
+    all forcing profiles.
 - `t0` (default: `initial_time(ds)`) — initial time of the `RateSystem`.
 
 ## Description
@@ -201,11 +198,11 @@ function parameter(rs::RateSystem, t, pkey)
 end
 
 """
-    set_forcing_scale!(rs::RateSystem, scale [, pkey])
+    set_forcing_scale!(rs::RateSystem, scale; pkey=nothing)
 
 Sets the amplitude (`forcing_scale`) of the forcing of the [`RateSystem`](@ref) to `scale`.
-For multiple parameters, if `pkey` is given, change the forcing only corresponding to
-the specified parameter, otherwise update the forcing scale of _all_ parameters to `scale.`
+If the keyword `pkey` is provided, only the corresponding parameter's forcing scale is
+changed; otherwise the forcing scale of all parameters is updated to `scale`.
 """
 function set_forcing_scale!(rs::RateSystem, scale; pkey=nothing)
     if isnothing(pkey)
@@ -222,7 +219,8 @@ end
 $(TYPEDSIGNATURES)
 
 Sets the duration (`forcing_duration`) of the forcing protocol applied to
-the [`RateSystem`](@ref) `rs`.
+the [`RateSystem`](@ref) `rs`. If the optional keyword `pkey` is provided, only the
+duration for that parameter is changed; otherwise all parameters are updated.
 """
 function set_forcing_duration!(rs::RateSystem, duration; pkey=nothing)
     if isnothing(pkey)
@@ -239,7 +237,8 @@ end
 $(TYPEDSIGNATURES)
 
 Sets the start time (`forcing_start_time`) of the forcing protocol applied to
-the [`RateSystem`](@ref) `rs`.
+the [`RateSystem`](@ref) `rs`. If the optional keyword `pkey` is provided, only the
+start time for that parameter is changed; otherwise all parameters are updated.
 """
 function set_forcing_start!(rs::RateSystem, start_time; pkey=nothing)
     if isnothing(pkey)
