@@ -50,7 +50,7 @@ using LinearSolve: LinearProblem, LUFactorization, init, solve, solve!
 using Format: Format
 using Printf: Printf
 using DocStringExtensions:
-    TYPEDSIGNATURES, TYPEDEF, TYPEDFIELDS, METHODLIST, DocStringExtensions
+    TYPEDSIGNATURES, TYPEDEF, TYPEDFIELDS, METHODLIST, FIELDS, DocStringExtensions
 using ProgressMeter: Progress, next!
 
 # reexport
@@ -75,6 +75,7 @@ include("largedeviations/minimize_geometric_action.jl")
 include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
 
+include("r_tipping/ForcingProfile.jl")
 include("r_tipping/RateSystem.jl")
 
 # Experimental features
@@ -102,8 +103,9 @@ export GeometricGradient
 export deterministic_orbit
 export transition, transitions
 
-export ForcingProfile, RateSystem
+export ForcingProfile
+export RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
-export frozen_system, parameters
+export frozen_system, parameters, initial_parameter_map, initial_parameter, initial_parameter_value
 
 end # module CriticalTransitions
