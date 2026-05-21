@@ -1,4 +1,4 @@
-using ModelingToolkit
+using ModelingToolkitBase
 using StochasticDiffEq: LambaEulerHeun
 
 @testset begin
@@ -34,7 +34,7 @@ using StochasticDiffEq: LambaEulerHeun
 end
 
 @testset begin
-    using ModelingToolkit
+    using ModelingToolkitBase
     @independent_variables t
     ps = @parameters α β
     sts = @variables x(t)

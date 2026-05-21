@@ -4,6 +4,7 @@ using CriticalTransitions, Test
     using DynamicalSystemsBase, Test
     using OrdinaryDiffEq: Tsit5, OrdinaryDiffEqCore
     using StochasticDiffEq: SDEProblem, SRA, SOSRA, LambaEM, CorrelatedWienerProcess
+    using SciMLLogging: None
     using CriticalTransitions
 
     @testset "drift" begin
@@ -72,14 +73,14 @@ using CriticalTransitions, Test
         @test lorenz_oop.integ.alg isa SOSRA
 
         lorenz_SRA = CoupledSDEs(
-            lorenz_rule, u0, p0; diffeq = (alg = SRA(), abstol = 1.0e-3, reltol = 1.0e-3, verbose = false)
+            lorenz_rule, u0, p0; diffeq = (alg = SRA(), abstol = 1.0e-3, reltol = 1.0e-3, verbose = None())
         )
         @test lorenz_SRA.integ.alg isa SRA
 
         # also test SDEproblem creation
         prob = lorenz_SRA.integ.sol.prob
 
-        ds = CoupledSDEs(prob, (alg = SRA(), abstol = 0.0, reltol = 1.0e-3, verbose = false))
+        ds = CoupledSDEs(prob, (alg = SRA(), abstol = 0.0, reltol = 1.0e-3, verbose = None()))
 
         @test ds.integ.alg isa SRA
 

@@ -4,8 +4,8 @@ $(TYPEDSIGNATURES)
 Generates a sample transition from point `x_i` to point `x_f`.
 
 This function simulates `sys` in time, starting from initial condition `x_i`,
-until entering a ball of given radius around `x_f`. If a seed was given to `sys` the solver
-is initialized with this seed. To change the seed you can pass a new seed to the `seed` keyword.
+until entering a ball of given radius around `x_f`. By default the solver is initialized
+with the seed stored on `sys`; pass `seed` to override it.
 
 ## Keyword arguments
 * `radii=(0.1, 0.1)`: radius of the ball around `x_i` and `x_f`, respectively
@@ -14,7 +14,9 @@ is initialized with this seed. To change the seed you can pass a new seed to the
   `rad_i` and `rad_f`. Defaults to all directions. To consider only a subspace of state space,
   insert a vector of indices of the dimensions to be included.
 * `cut_start=true`: if `false`, returns the whole trajectory up to the transition
-* `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts)
+* `seed=nothing`: if given, override the solver seed for this call (else use `sys`'s seed)
+* `kwargs...`: keyword arguments passed to [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts).
+  These take precedence over the options stored in `sys.diffeq`, which are forwarded by default.
 
 ## Output
 `[path, times, success]`
@@ -32,14 +34,19 @@ function transition(
         tmax = 1.0e3,
         radius_directions = 1:length(current_state(sys)),
         cut_start = true,
+        seed::Union{Nothing, Integer} = nothing,
         kwargs...,
     )
     rad_i, rad_f = radii
     prob, cb_ball = prepare_transition_problem(
         sys, (x_i, x_f), radii, radius_directions, tmax
     )
+    if seed !== nothing
+        prob = remake(prob; seed = UInt64(seed))
+    end
 
-    sim = solve(prob, solver(sys); callback = cb_ball, kwargs...)
+    diffeq_kw = NamedTuple{filter(!=(:alg), keys(sys.diffeq))}(sys.diffeq)
+    sim = solve(prob, solver(sys); callback = cb_ball, diffeq_kw..., kwargs...)
     success = sim.retcode == SciMLBase.ReturnCode.Terminated
 
     if success && cut_start
@@ -55,7 +62,7 @@ function prepare_transition_problem(sys, x, radii, radius_directions, tmax)
     condition(u, t, integrator) = subnorm(u - x_f; directions = radius_directions) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
-    prob = referrenced_sciml_prob(sys)
+    prob = referenced_sciml_prob(sys)
     prob = remake(prob; u0 = oftype(prob.u0, x_i), tspan = (0, tmax))
     return prob, cb_ball
 end
@@ -94,8 +101,12 @@ to the EnsembleAlg algorithm.
     insert a vector of indices of the dimensions to be included.
   - `cut_start=true`: if `false`, returns the whole trajectory up to the transition
   - `show_progress=true`: shows a progress bar with respect to `Nmax`
+  - `seed=nothing`: master seed for per-simulation reseeding. If `nothing`, a fresh
+    random master seed is drawn each call (so independent calls give independent ensembles
+    even when the same `sys` is reused). Pass an integer for reproducibility.
   - `kwargs...`: keyword arguments passed to
-    [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts)
+    [`CommonSolve.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts).
+    These take precedence over the options stored in `sys.diffeq`, which are forwarded by default.
 
 See also [`transition`](@ref).
 
@@ -114,6 +125,7 @@ function transitions(
         radius_directions = 1:length(current_state(sys)),
         show_progress::Bool = true,
         EnsembleAlg = EnsembleThreads()::SciMLBase.EnsembleAlgorithm,
+        seed::Union{Nothing, Integer} = nothing,
         kwargs...,
     )
     prob, cb_ball = prepare_transition_problem(
@@ -123,7 +135,7 @@ function transitions(
     lock = ReentrantLock()
     tries = 0
     success = 0
-    function output_func(sol, i)
+    function output_func(sol, ctx)
         Base.lock(lock)
         try
             tries += 1
@@ -140,15 +152,16 @@ function transitions(
         return (sol, false)  # Never rerun, we control attempts via Nmax
     end
 
-    seed = referrenced_sciml_prob(sys).seed
-    function prob_func(prob, i, repeat)
+    master_seed = seed === nothing ? rand(UInt64) : UInt64(seed)
+    function prob_func(prob, ctx)
         return remake(
             prob;
-            seed = rand(Random.MersenneTwister(seed + i + repeat), UInt32),
+            seed = rand(Random.MersenneTwister(master_seed + ctx.sim_id + ctx.repeat), UInt32),
             tspan = (0, tmax),
         )
     end
 
+    diffeq_kw = NamedTuple{filter(!=(:alg), keys(sys.diffeq))}(sys.diffeq)
     ensemble = SciMLBase.EnsembleProblem(prob; output_func = output_func, prob_func = prob_func)
     sim = solve(
         ensemble,
@@ -156,6 +169,7 @@ function transitions(
         EnsembleAlg;
         callback = cb_ball,
         trajectories = min(N, Nmax),
+        diffeq_kw...,
         kwargs...,
     )
 

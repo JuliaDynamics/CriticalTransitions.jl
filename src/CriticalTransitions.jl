@@ -34,7 +34,9 @@ using DynamicalSystemsBase:
     set_parameters!,
     initial_time,
     integrator,
-    referrenced_sciml_prob
+    referenced_sciml_prob,
+    covariance_matrix,
+    diffusion_matrix
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
@@ -44,7 +46,7 @@ using SparseArrays:
     SparseArrays, sparse, SparseMatrixCSC, rowvals, nonzeros, nzrange
 
 using Interpolations: linear_interpolation
-using Optimization: Optimization
+using OptimizationBase: OptimizationBase
 using OptimizationOptimisers: Optimisers
 using LinearSolve:
     LinearProblem, LUFactorization, UMFPACKFactorization, init, solve, solve!
@@ -104,14 +106,14 @@ using .CTLibrary
 
 # Core types
 export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_matrix
-export drift, div_drift, solver
+export drift, div_drift, solver, noise_strength
 export StateSpaceSet
 
 export minimize_simple_geometric_action, ExtendedPhaseSpace
 export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method
 export MinimumActionPath
-export GeometricGradient
+export GeometricGradient, AdaptiveGeometricGradient
 
 export deterministic_orbit
 export transition, transitions
