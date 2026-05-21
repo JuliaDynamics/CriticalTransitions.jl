@@ -246,3 +246,200 @@ end
     )
     @test res_notol.action <= res_tol.action + 1.0e-10
 end
+
+function _maier_stein_setup(; Nt = 60)
+    function meier_stein(u, p, t)
+        x, y = u
+        dx = x - x^3 - 10 * x * y^2
+        dy = -(1 + x^2) * y
+        return SA[dx, dy]
+    end
+    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = 0.25)
+    sys = ExtendedPhaseSpace(ds)
+    xx = range(-1.0, 1.0; length = Nt)
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    return ds, sys, Matrix([xx yy]')
+end
+
+@testset "AdaptiveGeometricGradient constructor" begin
+    opt = AdaptiveGeometricGradient()
+    @test opt isa AdaptiveGeometricGradient
+    @test opt isa CriticalTransitions.GMAMOptimizer
+    @test opt.probe_length == 200
+    @test 0 < opt.shrink < 1
+    @test opt.grow > 1
+
+    opt2 = AdaptiveGeometricGradient(;
+        stepsize = 50.0, probe_length = 100, shrink = 0.4, grow = 1.5,
+    )
+    @test opt2.stepsize == 50.0
+    @test opt2.probe_length == 100
+    @test opt2.shrink == 0.4
+    @test opt2.grow == 1.5
+
+    # Validation
+    @test_throws ArgumentError AdaptiveGeometricGradient(; probe_length = 0)
+    @test_throws ArgumentError AdaptiveGeometricGradient(; shrink = 0.0)
+    @test_throws ArgumentError AdaptiveGeometricGradient(; shrink = 1.0)
+    @test_throws ArgumentError AdaptiveGeometricGradient(; grow = 1.0)
+end
+
+@testset "AdaptiveGeometricGradient Maier–Stein" begin
+    CT = CriticalTransitions
+    _, sys, x_initial = _maier_stein_setup()
+
+    # Baseline action
+    x0 = deepcopy(x_initial)
+    Nt = size(x0, 2)
+    s = range(0; stop = 1, length = Nt)
+    α = zeros(Nt)
+    CT.interpolate_path!(x0, α, s)
+    xdot = zeros(size(x0)); p = zeros(size(x0)); λ = zeros(1, Nt)
+    CT.central_diff!(xdot, x0)
+    CT.update_p!(p, λ, x0, xdot, sys.H_p)
+    S0 = CT.FW_action(xdot, p)
+    @test isfinite(S0)
+
+    # Adaptive should strictly improve on the initial path
+    res_ad = minimize_simple_geometric_action(
+        sys, x_initial,
+        AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 50);
+        maxiters = 500, show_progress = false,
+    )
+    @test isfinite(res_ad.action)
+    @test res_ad.action < S0
+
+    # Adaptive should be competitive with backtracking GeometricGradient
+    res_gg = minimize_simple_geometric_action(
+        sys, x_initial,
+        GeometricGradient(; stepsize = 100.0);
+        maxiters = 1000, show_progress = false,
+    )
+    # Within 10% (Maier–Stein is overdamped: both regimes find similar paths;
+    # adaptive uses 2× compute per probe window so with the same maxiters it may
+    # be slightly behind).
+    @test res_ad.action <= res_gg.action * 1.1 + 1.0e-8
+end
+
+@testset "AdaptiveGeometricGradient stepsize insensitivity" begin
+    _, sys, x_initial = _maier_stein_setup()
+
+    actions = Float64[]
+    for ss in (1.0, 100.0, 1.0e4)
+        res = minimize_simple_geometric_action(
+            sys, x_initial,
+            AdaptiveGeometricGradient(; stepsize = ss, probe_length = 50);
+            maxiters = 500, show_progress = false,
+        )
+        @test isfinite(res.action)
+        push!(actions, res.action)
+    end
+    # All actions within 5% — the adaptive controller should erase the initial-step bias
+    @test maximum(actions) / minimum(actions) < 1.05
+end
+
+@testset "AdaptiveGeometricGradient convergence tolerances" begin
+    _, sys, x_initial = _maier_stein_setup()
+
+    # reltol-based early stop
+    res_tol = minimize_simple_geometric_action(
+        sys, x_initial,
+        AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 50);
+        maxiters = 10_000, reltol = 1.0e-6, show_progress = false,
+    )
+    @test isfinite(res_tol.action)
+
+    res_notol = minimize_simple_geometric_action(
+        sys, x_initial,
+        AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 50);
+        maxiters = 10_000, show_progress = false,
+    )
+    @test res_notol.action <= res_tol.action + 1.0e-8
+end
+
+@testset "AdaptiveGeometricGradient API forms" begin
+    ds, sys, x_initial = _maier_stein_setup(; Nt = 40)
+
+    # ContinuousTimeDynamicalSystem dispatch: existing convention here is (Nt, D)
+    res_ds = minimize_simple_geometric_action(
+        ds, collect(x_initial'),
+        AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 30);
+        maxiters = 100, show_progress = false,
+    )
+    @test isfinite(res_ds.action)
+
+    # Accepts a StateSpaceSet
+    sss = StateSpaceSet(x_initial')
+    res_sss = minimize_simple_geometric_action(
+        sys, sss,
+        AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 30);
+        maxiters = 100, show_progress = false,
+    )
+    @test isfinite(res_sss.action)
+end
+
+@testset "AdaptiveGeometricGradient underdamped KPO" begin
+    # KPO in the underdamped regime is the canonical test for AdaptiveGeometricGradient:
+    # backtracking GeometricGradient settles at stepsize_max which over-smooths the
+    # spiral structure near the attractor, while the adaptive variant detects this over
+    # the probe window and shrinks the step.
+    λ_val = 3 / 1.21 * 2 / 100
+    α_val = -1.0
+    γ_val = λ_val / 2 * 0.05  # κ = 0.05, strongly underdamped
+    ω0 = 1.0; ω_v = 1.0
+
+    fu(u, v) = (-4γ_val * ω_v * u - 2λ_val * v - 4(ω0 - ω_v^2) * v - 3α_val * v * (u^2 + v^2)) / (8ω_v)
+    fv(u, v) = (-4γ_val * ω_v * v - 2λ_val * u + 4(ω0 - ω_v^2) * u + 3α_val * u * (u^2 + v^2)) / (8ω_v)
+    dfudu(u, v) = (-4γ_val * ω_v - 6α_val * u * v) / (8ω_v)
+    dfudv(u, v) = (-2λ_val - 4(ω0 - ω_v^2) - 3α_val * u^2 - 9α_val * v^2) / (8ω_v)
+    dfvdu(u, v) = (-2λ_val + 4(ω0 - ω_v^2) + 9α_val * u^2 + 3α_val * v^2) / (8ω_v)
+    dfvdv(u, v) = (-4γ_val * ω_v + 6α_val * u * v) / (8ω_v)
+
+    function H_x(x, p)
+        u, v = eachrow(x); pu, pv = eachrow(p)
+        H_u = @. pu * dfudu(u, v) + pv * dfvdu(u, v)
+        H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
+        return Matrix([H_u H_v]')
+    end
+    function H_p(x, p)
+        u, v = eachrow(x); pu, pv = eachrow(p)
+        H_pu = @. pu + fu(u, v)
+        H_pv = @. pv + fv(u, v)
+        return Matrix([H_pu H_pv]')
+    end
+    sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
+
+    κ = 2γ_val / λ_val
+    r = sqrt(2λ_val * sqrt(1 - κ^2) / (3 * abs(α_val)))
+    θ = atan(-κ, -sqrt(1 - κ^2)) / 2
+    xa = [r * cos(θ), r * sin(θ)]; xb = -xa
+    Nt = 200
+    s = collect(range(0; stop = 1, length = Nt))
+    xx = @. (xb[1] - xa[1]) * s + xa[1]
+    yy = @. (xb[2] - xa[2]) * s + xa[2] + 0.01sin(2π * s)
+    x_initial = Matrix([xx yy]')
+
+    # Backtracking GeometricGradient (incumbent) starting from a large step size
+    res_gg = minimize_simple_geometric_action(
+        sys, x_initial,
+        GeometricGradient(; stepsize = 100.0);
+        maxiters = 2000, show_progress = false,
+    )
+
+    # Adaptive — should reach a lower or equal action on this underdamped problem
+    res_ad = minimize_simple_geometric_action(
+        sys, x_initial,
+        AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 100);
+        maxiters = 2000, show_progress = false,
+    )
+    @test isfinite(res_ad.action)
+    @test isfinite(res_gg.action)
+    # On underdamped systems, adaptive should be strictly competitive (no worse than 0.5%)
+    @test res_ad.action <= res_gg.action * 1.005 + 1.0e-8
+
+    # Returned path is well-formed
+    @test length(res_ad.path) == Nt
+    @test size(res_ad.generalized_momentum) == (2, Nt)
+    @test size(res_ad.path_velocity) == (2, Nt)
+    @test size(res_ad.λ) == (1, Nt)
+end
