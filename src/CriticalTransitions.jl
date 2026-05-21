@@ -33,7 +33,9 @@ using DynamicalSystemsBase:
     set_parameters!,
     initial_time,
     integrator,
-    referrenced_sciml_prob
+    referenced_sciml_prob,
+    covariance_matrix,
+    diffusion_matrix
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
@@ -95,7 +97,7 @@ export minimize_simple_geometric_action, ExtendedPhaseSpace
 export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method
 export MinimumActionPath
-export GeometricGradient
+export GeometricGradient, AdaptiveGeometricGradient
 
 export deterministic_orbit
 export transition, transitions

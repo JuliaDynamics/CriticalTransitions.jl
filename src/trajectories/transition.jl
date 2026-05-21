@@ -62,7 +62,7 @@ function prepare_transition_problem(sys, x, radii, radius_directions, tmax)
     condition(u, t, integrator) = subnorm(u - x_f; directions = radius_directions) < rad_f
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
-    prob = referrenced_sciml_prob(sys)
+    prob = referenced_sciml_prob(sys)
     prob = remake(prob; u0 = oftype(prob.u0, x_i), tspan = (0, tmax))
     return prob, cb_ball
 end

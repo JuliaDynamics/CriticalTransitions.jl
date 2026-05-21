@@ -4,12 +4,6 @@ using CriticalTransitions, ChaosTools, Attractors
 using DynamicalSystemsBase
 using StochasticDiffEq, DiffEqNoiseProcess
 
-# TODO: It is bad practice to access extensions at the top level.
-# We need to remove these, but not clear where they are used currently.
-StochasticSystemsBase = Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase)
-ChaosToolsExt = Base.get_extension(CriticalTransitions, :ChaosToolsExt)
-CoupledSDEsBasin = Base.get_extension(CriticalTransitions, :CoupledSDEsBasin)
-
 if get(ENV, "CI", nothing) == "true"
     include("make_md_examples.jl")
 end
@@ -67,17 +61,7 @@ if Documenter.DOCUMENTER_VERSION >= v"1.3.0"
     html_options[:inventory_version] = package_version
 end
 
-modules = filter(
-    !isnothing,
-    [
-        CriticalTransitions,
-        DynamicalSystemsBase,
-        Attractors,
-        Base.get_extension(CriticalTransitions, :ChaosToolsExt),
-        Base.get_extension(CriticalTransitions, :AttractorsExt),
-        Base.get_extension(DynamicalSystemsBase, :StochasticSystemsBase),
-    ],
-)
+modules = [CriticalTransitions, DynamicalSystemsBase, Attractors]
 
 # Build docs
 build_docs_with_style(

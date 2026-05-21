@@ -3,6 +3,69 @@ abstract type GMAMOptimizer end
 """
 $(TYPEDEF)
 
+Optimizer configuration for the adaptive multi-phase step-size selection variant of the
+(s)gMAM projected-gradient update.
+
+Unlike [`GeometricGradient`](@ref), which adapts the step size from one iteration to the
+next, this optimizer compares two probes of `probe_length` iterations each, both starting
+from the same path: one at the current step size `ϵ`, one at `ϵ * shrink`. Whichever probe
+yields the lower action after the full window is kept, and the step size is updated
+accordingly (shrunk if the small probe wins, grown otherwise).
+
+This is significantly more robust than single-iteration backtracking on underdamped systems
+where a large step size makes immediate progress but over-smooths the path, and a small
+step size accumulates to a better final result. By comparing over many iterations rather
+than a single update, the cumulative effect of over-smoothing becomes detectable.
+
+The cost is roughly 2× per probe window relative to a fixed-step run.
+
+# Fields
+$(TYPEDFIELDS)
+
+# Keyword constructors
+$(METHODLIST)
+"""
+struct AdaptiveGeometricGradient{T <: Real} <: GMAMOptimizer
+    """Initial step size for the projected gradient update."""
+    stepsize::T
+    """Number of inner iterations per probe window."""
+    probe_length::Int
+    """Step-size shrink factor (also defines the small-probe step `ϵ * shrink`)."""
+    shrink::T
+    """Step-size growth factor applied when the larger probe wins."""
+    grow::T
+    """Lower clamp for step size."""
+    stepsize_min::T
+    """Upper clamp for step size."""
+    stepsize_max::T
+end
+
+function AdaptiveGeometricGradient(;
+        stepsize::Real = 1.0e3,
+        probe_length::Int = 200,
+        shrink::Real = 0.5,
+        grow::Real = 1.3,
+        stepsize_min::Real = 1.0e-12,
+        stepsize_max::Real = Inf,
+    )
+    probe_length > 0 || throw(ArgumentError("probe_length must be positive"))
+    0 < shrink < 1 || throw(ArgumentError("shrink must be in (0,1)"))
+    grow > 1 || throw(ArgumentError("grow must be > 1"))
+    T = promote_type(
+        typeof(float(stepsize)),
+        typeof(float(shrink)),
+        typeof(float(grow)),
+        typeof(float(stepsize_min)),
+        typeof(float(stepsize_max)),
+    )
+    return AdaptiveGeometricGradient{T}(
+        T(stepsize), probe_length, T(shrink), T(grow), T(stepsize_min), T(stepsize_max)
+    )
+end
+
+"""
+$(TYPEDEF)
+
 Optimizer configuration for the (s)gMAM projected-gradient update with built-in
 backtracking step-size control.
 

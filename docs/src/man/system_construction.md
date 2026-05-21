@@ -38,8 +38,8 @@ CoupledSDEs
 solver
 drift
 div_drift
-StochasticSystemsBase.covariance_matrix
-StochasticSystemsBase.diffusion_matrix
+covariance_matrix
+diffusion_matrix
 noise_process
 ```
 
