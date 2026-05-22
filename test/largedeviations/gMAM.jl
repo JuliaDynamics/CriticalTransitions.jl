@@ -1,7 +1,35 @@
 using CriticalTransitions
 using Test
+using LinearAlgebra
+using StaticArrays
+
+const CT = CriticalTransitions
 
 using CriticalTransitions.CTLibrary: fitzhugh_nagumo
+
+@testset "GeometricGradientWorkspace carries NoiseShape" begin
+    f_lin(u, p, t) = SA[-u[1], -u[2]]
+    ds_iso = CoupledSDEs(f_lin, SA[0.0, 0.0]; noise_strength = 1.0)
+    xx = collect(range(-1.0, 1.0; length = 20))
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    path = Matrix([xx yy]')
+    ws = CT.geometric_gradient_workspace(ds_iso, path)
+    @test ws isa CT.GeometricGradientWorkspace{<:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, AdditiveNoise}
+end
+
+@testset "GeometricGradientWorkspace + step! type-stable" begin
+    function meier_stein(u, p, t)
+        x, y = u
+        return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
+    end
+    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = 0.25)
+    Nt = 20
+    xx = range(-1.0, 1.0; length = Nt)
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    path = Matrix([xx yy]')
+    ws = CT.geometric_gradient_workspace(ds, path)
+    @inferred CT.geometric_gradient_step!(ws, ds, path; stepsize = 0.1)
+end
 
 @testset "gMAM FitzHugh-Nagumo" begin
     p = [0.1, 3, 1, 1, 1, 0]

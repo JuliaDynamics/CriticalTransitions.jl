@@ -4,6 +4,55 @@ using Test
 using LinearAlgebra
 using StaticArrays
 
+const CT = CriticalTransitions
+
+@testset "FreidlinWentzellHamiltonian inner-loop type-stable" begin
+    function meier_stein_ts(u, p, t)
+        x, y = u
+        return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
+    end
+    ds = CoupledSDEs(meier_stein_ts, zeros(2); noise_strength = 0.25)
+    sys = FreidlinWentzellHamiltonian(ds)
+
+    Nt = 20
+    xx = range(-1.0, 1.0; length = Nt)
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    xpath = Matrix([xx yy]')
+    xdot = zeros(size(xpath)); ppath = zeros(size(xpath)); λ = zeros(1, Nt)
+    pdot = zeros(size(xpath)); xdotdot = zeros(size(xpath))
+    CT.central_diff!(xdot, xpath)
+    CT.update_p!(ppath, λ, xpath, xdot, sys)
+    Hx = sys.H_x(xpath, ppath)
+    CT.central_diff!(pdot, ppath); CT.central_diff!(xdotdot, xdot)
+
+    @inferred CT.update_p!(ppath, λ, xpath, xdot, sys)
+    @inferred CT.update_x!(xpath, λ, pdot, xdotdot, Hx, sys, 1.0)
+end
+
+@testset "AdditiveNoise update_x! no per-iteration sparse alloc" begin
+    function meier_stein(u, p, t)
+        x, y = u
+        return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
+    end
+    ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = 0.25)
+    sys = FreidlinWentzellHamiltonian(ds)
+    Nt = 60
+    xx = range(-1.0, 1.0; length = Nt)
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    x_initial = Matrix([xx yy]')
+    minimize_geometric_action(
+        sys, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 1, show_progress = false,
+    )
+    bytes_before = Base.gc_num().total_allocd
+    minimize_geometric_action(
+        sys, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 10, show_progress = false,
+    )
+    bytes_after = Base.gc_num().total_allocd
+    @test (bytes_after - bytes_before) < 5_000_000
+end
+
 @testset "FreidlinWentzellHamiltonian carries NoiseShape" begin
     f_lin(u, p, t) = SA[-u[1], -u[2]]
     ds_ode = CoupledODEs(f_lin, SA[0.0, 0.0])
