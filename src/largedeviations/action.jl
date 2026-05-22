@@ -15,7 +15,7 @@ function _action_metric(sys::CoupledSDEs)
         σ_mat * σ_mat'
     end
     a0 = a_of(u₀)
-    s  = LinearAlgebra.tr(a0) / size(a0, 1)
+    s = LinearAlgebra.tr(a0) / size(a0, 1)
     if sys.noise_type[:additive]
         return Returns(inv(a0 / s))
     else

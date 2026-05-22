@@ -210,8 +210,8 @@ function _build_a_func(sys::CoupledSDEs)
         return Returns(LinearAlgebra.Diagonal(ones(Float64, D)))
     end
     σ_fn = diffusion_function(sys)
-    ps   = current_parameters(sys)
-    u₀   = current_state(sys)
+    ps = current_parameters(sys)
+    u₀ = current_state(sys)
     σ0 = σ_fn(u₀, ps, 0.0)
     σ_mat0 = σ0 isa AbstractMatrix ? σ0 : LinearAlgebra.Diagonal(σ0)
     a0 = σ_mat0 * σ_mat0'
@@ -338,7 +338,7 @@ end
 function _geometric_gradient_step!(
         ws, sys, path, ::DiagonalNoise; stepsize = 0.1, diff_order = 4,
     )
-    N  = size(path, 2)
+    N = size(path, 2)
     Nx = size(path, 1)
     dx = 1.0 / (N - 1)
     h_fd = max(sqrt(eps(eltype(path))), eltype(path)(1.0e-8))
@@ -353,7 +353,7 @@ function _geometric_gradient_step!(
         xi = path[:, i]
         a_i = LinearAlgebra.diag(ws.a_func(xi))
         b_i = ws.drift_cache[:, i - 1]
-        φp  = ws.x_prime[:, i]
+        φp = ws.x_prime[:, i]
         num = sum(b_i .^ 2 ./ a_i)
         den = sum(φp .^ 2 ./ a_i)
         λ = den > 1.0e-28 ? sqrt(num / den) : 0.0
@@ -368,28 +368,28 @@ function _geometric_gradient_step!(
     end
 
     e = zeros(eltype(path), Nx)
-    Hphi  = zeros(eltype(path), Nx)
+    Hphi = zeros(eltype(path), Nx)
     Hpphi = zeros(eltype(path), Nx)
     @views for i in 2:(N - 1)
         xi = path[:, i]
         φp = ws.x_prime[:, i]
-        θ  = ws.theta_cache[:, i - 1]
-        J  = ws.jac(xi)
+        θ = ws.theta_cache[:, i - 1]
+        J = ws.jac(xi)
         fill!(Hphi, 0); fill!(Hpphi, 0)
         LinearAlgebra.mul!(Hpphi, J, φp)
-        LinearAlgebra.mul!(Hphi,  J', θ)
+        LinearAlgebra.mul!(Hphi, J', θ)
         @inbounds for l in 1:Nx
             fill!(e, 0); e[l] = h_fd
             ap = LinearAlgebra.diag(ws.a_func(xi .+ e))
             am = LinearAlgebra.diag(ws.a_func(xi .- e))
             @inbounds for k in 1:Nx
                 dla = (ap[k] - am[k]) / (2 * h_fd)
-                Hphi[l]  += 0.5 * dla * θ[k]^2
+                Hphi[l] += 0.5 * dla * θ[k]^2
                 Hpphi[k] += dla * θ[k] * φp[l]
             end
         end
         a_i = LinearAlgebra.diag(ws.a_func(xi))
-        λ  = ws.lambdas[i]
+        λ = ws.lambdas[i]
         λp = ws.lambdas_prime[i]
         @inbounds for k in 1:Nx
             ws.rhs_explicit[k, i - 1] = -λ * Hpphi[k] + a_i[k] * Hphi[k] + λ * λp * φp[k]
@@ -405,7 +405,7 @@ end
 function _geometric_gradient_step!(
         ws, sys, path, ::GeneralNoise; stepsize = 0.1, diff_order = 4,
     )
-    N  = size(path, 2)
+    N = size(path, 2)
     Nx = size(path, 1)
     dx = 1.0 / (N - 1)
     h_fd = max(sqrt(eps(eltype(path))), eltype(path)(1.0e-8))
@@ -420,8 +420,8 @@ function _geometric_gradient_step!(
         xi = path[:, i]
         a_i = ws.a_func(xi)
         b_i = ws.drift_cache[:, i - 1]
-        φp  = ws.x_prime[:, i]
-        A_inv_b   = a_i \ Vector(b_i)
+        φp = ws.x_prime[:, i]
+        A_inv_b = a_i \ Vector(b_i)
         A_inv_phi = a_i \ Vector(φp)
         num = dot(b_i, A_inv_b)
         den = dot(φp, A_inv_phi)
@@ -438,30 +438,30 @@ function _geometric_gradient_step!(
     end
 
     e = zeros(eltype(path), Nx)
-    Hphi  = zeros(eltype(path), Nx)
+    Hphi = zeros(eltype(path), Nx)
     Hpphi = zeros(eltype(path), Nx)
     aHphi = zeros(eltype(path), Nx)
     @views for i in 2:(N - 1)
         xi = path[:, i]
         φp = ws.x_prime[:, i]
-        θ  = ws.theta_cache[:, i - 1]
-        J  = ws.jac(xi)
+        θ = ws.theta_cache[:, i - 1]
+        J = ws.jac(xi)
         a_i = ws.a_func(xi)
         fill!(Hphi, 0); fill!(Hpphi, 0)
         LinearAlgebra.mul!(Hpphi, J, φp)
-        LinearAlgebra.mul!(Hphi,  J', θ)
+        LinearAlgebra.mul!(Hphi, J', θ)
         @inbounds for l in 1:Nx
             fill!(e, 0); e[l] = h_fd
             ap = ws.a_func(xi .+ e)
             am = ws.a_func(xi .- e)
             @inbounds for k1 in 1:Nx, k2 in 1:Nx
                 dla = (ap[k1, k2] - am[k1, k2]) / (2 * h_fd)
-                Hphi[l]   += 0.5 * dla * θ[k1] * θ[k2]
+                Hphi[l] += 0.5 * dla * θ[k1] * θ[k2]
                 Hpphi[k1] += dla * θ[k2] * φp[l]
             end
         end
         LinearAlgebra.mul!(aHphi, a_i, Hphi)
-        λ  = ws.lambdas[i]; λp = ws.lambdas_prime[i]
+        λ = ws.lambdas[i]; λp = ws.lambdas_prime[i]
         @inbounds for k in 1:Nx
             ws.rhs_explicit[k, i - 1] = -λ * Hpphi[k] + aHphi[k] + λ * λp * φp[k]
         end
@@ -475,15 +475,15 @@ end
 # Row i has α_i = ε λ_i²/dx², with both off-diagonals from row i using α_i (matching
 # the main-branch convention). The `α_i == 0` skip preserves λ=0 path points.
 function _gmam_implicit_shared!(ws, path, N, stepsize, dx; is_state_dep)
-    ws.d  .= 1
+    ws.d .= 1
     ws.dl .= 0
     ws.du .= 0
     @views for i in 2:(N - 1)
         ws.alpha_cache[i] = stepsize * ws.lambdas[i]^2 / dx^2
         if isfinite(ws.alpha_cache[i])
-            ws.d[i]      += 2 * ws.alpha_cache[i]
-            ws.dl[i - 1]  = -ws.alpha_cache[i]
-            ws.du[i]      = -ws.alpha_cache[i]
+            ws.d[i] += 2 * ws.alpha_cache[i]
+            ws.dl[i - 1] = -ws.alpha_cache[i]
+            ws.du[i] = -ws.alpha_cache[i]
         else
             ws.alpha_cache[i] = 0.0
         end
@@ -498,7 +498,7 @@ function _gmam_implicit_shared!(ws, path, N, stepsize, dx; is_state_dep)
     rhs = cache.b
 
     @inbounds for j in 1:size(path, 1)
-        rhs[1]   = path[j, 1]
+        rhs[1] = path[j, 1]
         rhs[end] = path[j, end]
         for i in 2:(N - 1)
             if ws.alpha_cache[i] == 0.0

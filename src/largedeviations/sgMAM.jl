@@ -22,7 +22,7 @@ function FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)
     NS = _classify_noise_shape(ds)
 
     σ_fn = ds isa CoupledSDEs ? diffusion_function(ds) : nothing
-    ps   = current_parameters(ds)
+    ps = current_parameters(ds)
 
     # Decision for `a(x)`:
     #  * No noise (CoupledODEs):                 a ≡ I, wrap in Returns.
@@ -60,7 +60,7 @@ function FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)
         end
     end
 
-    f   = dynamic_rule(ds)
+    f = dynamic_rule(ds)
     jac = jacobian(ds)
 
     # Constant `a` (additive SDE or CoupledODEs) gives ∂ₓa ≡ 0, so skip the FD
@@ -71,7 +71,7 @@ function FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)
     function H_x(x, p)
         Hx = similar(x)
         Nt = size(x, 2); Dn = size(x, 1)
-        h_fd = max(sqrt(eps(eltype(x))), eltype(x)(1e-8))
+        h_fd = max(sqrt(eps(eltype(x))), eltype(x)(1.0e-8))
         for idx in 1:Nt
             xi = x[:, idx]
             pi_v = p[:, idx]
@@ -398,18 +398,18 @@ end
 
 _sgmam_nthreads() =
     hasmethod(Threads.nthreads, Tuple{Symbol}) ?
-        (Threads.nthreads(:default) + Threads.nthreads(:interactive)) :
-        Threads.nthreads()
+    (Threads.nthreads(:default) + Threads.nthreads(:interactive)) :
+    Threads.nthreads()
 
 # Allocate `nthreads` LinearSolve caches with placeholder Tridiagonal storage of
 # the right size. Each `_update_x!` call reuses these by mutating the aliased A
 # and b in place and calling `LinearSolve.reinit!`.
 function _sgmam_init_tridiag_caches(::Type{T}, L::Int, nthreads::Int) where {T}
     return map(1:nthreads) do _
-        d0  = ones(T, L)
+        d0 = ones(T, L)
         du0 = zeros(T, L - 1)
         dl0 = zeros(T, L - 1)
-        T0  = LinearAlgebra.Tridiagonal(dl0, d0, du0)
+        T0 = LinearAlgebra.Tridiagonal(dl0, d0, du0)
         rhs0 = zeros(T, L)
         init(
             LinearProblem(T0, rhs0), LUFactorization();
@@ -424,7 +424,7 @@ function _update_x!(
         _cache = nothing,
     ) where {IIP, D, Hx_t, Hp_t, AF}
     a_diag = LinearAlgebra.diag(sys.a(view(x, :, 1)))
-    a_inv  = inv.(a_diag)
+    a_inv = inv.(a_diag)
 
     Nx, Nt = size(x); xa = x[:, 1]; xb = x[:, end]; idxc = 2:(Nt - 1)
     L = Nt - 2
@@ -448,7 +448,7 @@ function _update_x!(
             i = k + 1
             rhs[k] = x[dof, i] + ϵ * (λ[i] * p′[dof, i] + Hx[dof, i] - c * λ[i]^2 * x′′[dof, i])
         end
-        rhs[1]   += ϵ * c * λ[2]^2 * xa[dof]
+        rhs[1] += ϵ * c * λ[2]^2 * xa[dof]
         rhs[end] += ϵ * c * λ[end - 1]^2 * xb[dof]
         LinearSolve.reinit!(cache; A = Tmat, b = rhs)
         solve!(cache)
@@ -493,9 +493,9 @@ function _update_x!(
                 λ[i] * p′[dof, i] + Hx[dof, i] - (λ[i]^2 / a_at[dof, i]) * x′′[dof, i]
             )
         end
-        α_left  = ϵ * λ[2]^2 / a_at[dof, 2]
+        α_left = ϵ * λ[2]^2 / a_at[dof, 2]
         α_right = ϵ * λ[Nt - 1]^2 / a_at[dof, Nt - 1]
-        rhs[1]   += α_left  * xa[dof]
+        rhs[1] += α_left * xa[dof]
         rhs[end] += α_right * xb[dof]
         LinearSolve.reinit!(cache; A = Tmat, b = rhs)
         solve!(cache)
@@ -543,7 +543,7 @@ end
 
 function _build_sgmam_general_cache(::Type{T}, Nx::Int, Nt::Int) where {T}
     N_in = Nt - 2
-    n    = N_in * Nx
+    n = N_in * Nx
     nnz_est = N_in * Nx * Nx + 2 * (N_in - 1) * Nx
 
     Iv = Vector{Int}(undef, nnz_est)
@@ -570,8 +570,8 @@ function _build_sgmam_general_cache(::Type{T}, Nx::Int, Nt::Int) where {T}
     end
     M = SparseArrays.sparse(Iv, Jv, Vv, n, n)
 
-    diag_idx  = Array{Int}(undef, Nx, Nx, N_in)
-    left_idx  = Matrix{Int}(undef, Nx, N_in - 1)
+    diag_idx = Array{Int}(undef, Nx, Nx, N_in)
+    left_idx = Matrix{Int}(undef, Nx, N_in - 1)
     right_idx = Matrix{Int}(undef, Nx, N_in - 1)
     @inbounds for i_in in 1:N_in
         rb = (i_in - 1) * Nx
@@ -683,7 +683,7 @@ function _update_p!(
     ) where {IIP, D, Hx, Hp, AF}
     b_ = sys.H_p(x, zero(x))
     a_diag = LinearAlgebra.diag(sys.a(view(x, :, 1)))
-    a_inv  = inv.(a_diag)
+    a_inv = inv.(a_diag)
     num = sum(b_ .^ 2 .* a_inv; dims = 1)
     den = sum(xdot .^ 2 .* a_inv; dims = 1)
     lambda .= sqrt.(num ./ den)
@@ -700,12 +700,12 @@ function _update_p!(
     b_ = sys.H_p(x, zero(x))
     Nt = size(x, 2)
     for t in 1:Nt
-        a_t   = sys.a(view(x, :, t))
+        a_t = sys.a(view(x, :, t))
         diag_t = LinearAlgebra.diag(a_t)
-        inv_t  = inv.(diag_t)
+        inv_t = inv.(diag_t)
         num_t = sum(b_[:, t] .^ 2 .* inv_t)
         den_t = sum(xdot[:, t] .^ 2 .* inv_t)
-        λ_t = den_t > 1e-28 ? sqrt(num_t / den_t) : zero(eltype(b_))
+        λ_t = den_t > 1.0e-28 ? sqrt(num_t / den_t) : zero(eltype(b_))
         lambda[1, t] = isfinite(λ_t) ? λ_t : zero(eltype(b_))
         @inbounds for i in 1:D
             p[i, t] = (lambda[1, t] * xdot[i, t] - b_[i, t]) * inv_t[i]
@@ -722,16 +722,16 @@ function _update_p!(
     ) where {IIP, D, Hx, Hp, AF}
     b_ = sys.H_p(x, zero(x))
     Nt = size(x, 2)
-    inv_b    = Vector{eltype(b_)}(undef, D)
+    inv_b = Vector{eltype(b_)}(undef, D)
     inv_xdot = Vector{eltype(b_)}(undef, D)
-    rhs      = Vector{eltype(b_)}(undef, D)
+    rhs = Vector{eltype(b_)}(undef, D)
     for t in 1:Nt
         a_t = sys.a(view(x, :, t))
-        inv_b    .= a_t \ Vector(view(b_, :, t))
+        inv_b .= a_t \ Vector(view(b_, :, t))
         inv_xdot .= a_t \ Vector(view(xdot, :, t))
-        num_t = dot(view(b_, :, t),   inv_b)
+        num_t = dot(view(b_, :, t), inv_b)
         den_t = dot(view(xdot, :, t), inv_xdot)
-        λ_t = den_t > 1e-28 ? sqrt(num_t / den_t) : zero(eltype(b_))
+        λ_t = den_t > 1.0e-28 ? sqrt(num_t / den_t) : zero(eltype(b_))
         lambda[1, t] = isfinite(λ_t) ? λ_t : zero(eltype(b_))
         @inbounds for i in 1:D
             rhs[i] = lambda[1, t] * xdot[i, t] - b_[i, t]

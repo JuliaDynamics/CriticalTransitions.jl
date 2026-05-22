@@ -25,7 +25,7 @@ end
     probes = CriticalTransitions._probe_points(u₀)
     @test length(probes) == 2 * length(u₀) + 1
     @test probes[1] == u₀
-    h = max(sqrt(eps(eltype(u₀))), 1e-6)
+    h = max(sqrt(eps(eltype(u₀))), 1.0e-6)
     @test probes[2] ≈ u₀ + [h, 0]
     @test probes[3] ≈ u₀ - [h, 0]
     @test probes[4] ≈ u₀ + [0, h]

@@ -60,15 +60,15 @@ detection.
 function _probe_points(u₀::AbstractVector)
     D = length(u₀)
     T = eltype(u₀)
-    h = max(sqrt(eps(real(T))), T(1e-6))
+    h = max(sqrt(eps(real(T))), T(1.0e-6))
     probes = Vector{Vector{T}}(undef, 2D + 1)
     probes[1] = collect(u₀)
     @inbounds for i in 1:D
-        plus  = collect(u₀)
+        plus = collect(u₀)
         minus = collect(u₀)
-        plus[i]  += h
+        plus[i] += h
         minus[i] -= h
-        probes[2i]     = plus
+        probes[2i] = plus
         probes[2i + 1] = minus
     end
     return probes
@@ -90,8 +90,8 @@ function _classify_noise_shape(ds::CoupledSDEs)
         throw(ArgumentError("non-autonomous noise not supported"))
 
     σ_fn = diffusion_function(ds)
-    u₀   = current_state(ds)
-    ps   = current_parameters(ds)
+    u₀ = current_state(ds)
+    ps = current_parameters(ds)
 
     a_of(u) = let σx = σ_fn(u, ps, 0.0)
         σ_mat = σx isa AbstractMatrix ? σx : LinearAlgebra.Diagonal(σx)

@@ -128,14 +128,18 @@ end
 
     function simpson(f, a, b, n)
         h = (b - a) / n; s = f(a) + f(b)
-        for i in 1:2:(n - 1); s += 4 * f(a + i * h); end
-        for i in 2:2:(n - 2); s += 2 * f(a + i * h); end
+        for i in 1:2:(n - 1)
+            s += 4 * f(a + i * h)
+        end
+        for i in 2:2:(n - 2)
+            s += 2 * f(a + i * h)
+        end
         return s * h / 3
     end
     s_norm = 1 + α
     integrand = t -> t^2 / (1 + α * (1 - t)^2)
     analytic = s_norm * simpson(integrand, 0, 1, 10_000) / 2
-    @test isapprox(S, analytic; rtol = 1e-4)
+    @test isapprox(S, analytic; rtol = 1.0e-4)
 end
 
 @testset "gMAM diagonal multiplicative converges" begin
