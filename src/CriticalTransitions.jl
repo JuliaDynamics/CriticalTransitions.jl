@@ -46,7 +46,7 @@ using StochasticDiffEq: StochasticDiffEq
 using Interpolations: linear_interpolation
 using OptimizationBase: OptimizationBase
 using OptimizationOptimisers: Optimisers
-using LinearSolve: LinearProblem, LUFactorization, init, solve, solve!
+using LinearSolve: LinearSolve, LinearProblem, LUFactorization, init, solve, solve!
 
 # io and documentation
 using Format: Format

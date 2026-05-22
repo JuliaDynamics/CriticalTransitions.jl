@@ -181,6 +181,8 @@ function minimize_simple_geometric_action(
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
     xdotdot = zeros(size(xdot))
 
+    cache = _build_sgmam_cache(sys, eltype(x), Nx, Nt)
+
     x_prev = similar(x)
 
     # Ensure a consistent starting path for action comparisons
@@ -189,7 +191,7 @@ function minimize_simple_geometric_action(
     initial_action = FW_action(xdot, p)
 
     function try_step!(ϵ)
-        update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ)
+        update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ; cache)
         interpolate_path!(x, alpha, s)
         _sgmam_refresh!(xdot, p, lambda, x, sys)
         return FW_action(xdot, p)
@@ -262,10 +264,13 @@ function minimize_simple_geometric_action(
         abstol::Real = NaN,
         reltol::Real = NaN,
     ) where {T}
+    Nx = size(x_initial, 1)
     Nt = size(x_initial, 2)
     s = range(0; stop = 1, length = Nt)
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
     xdotdot = zeros(size(xdot))
+
+    cache = _build_sgmam_cache(sys, eltype(x), Nx, Nt)
 
     x_start = similar(x)        # path snapshot at start of probe window
     x_big_result = similar(x)   # store big-probe result while running small probe
@@ -280,7 +285,7 @@ function minimize_simple_geometric_action(
     function run_probe!(ϵ, n)
         S = oftype(ϵ, NaN)
         for _ in 1:n
-            update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ)
+            update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ; cache)
             interpolate_path!(x, alpha, s)
             _sgmam_refresh!(xdot, p, lambda, x, sys)
             S = oftype(ϵ, FW_action(xdot, p))
@@ -387,47 +392,75 @@ function init_allocation(x_initial, Nt)
     return x, p, pdot, xdot, lambda, alpha
 end
 
-function update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ)
+function update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ; cache = nothing)
     # xdot, p, and lambda are assumed to be pre-computed and consistent with x
     # (via _sgmam_refresh! or central_diff! + update_p!)
     central_diff!(pdot, p)
     Hx = sys.H_x(x, p)
     central_diff!(xdotdot, xdot)
-    return update_x!(x, lambda, pdot, xdotdot, Hx, sys, ϵ)
+    return update_x!(x, lambda, pdot, xdotdot, Hx, sys, ϵ; cache)
 end
 
-function update_x!(x, λ, p′, x′′, Hx, sys::FreidlinWentzellHamiltonian, ϵ)
-    _update_x!(x, λ, p′, x′′, Hx, sys, ϵ)
+function update_x!(x, λ, p′, x′′, Hx, sys::FreidlinWentzellHamiltonian, ϵ; cache = nothing)
+    _update_x!(x, λ, p′, x′′, Hx, sys, ϵ, cache)
     return nothing
+end
+
+_sgmam_nthreads() =
+    hasmethod(Threads.nthreads, Tuple{Symbol}) ?
+        (Threads.nthreads(:default) + Threads.nthreads(:interactive)) :
+        Threads.nthreads()
+
+# Allocate `nthreads` LinearSolve caches with placeholder Tridiagonal storage of
+# the right size. Each `_update_x!` call reuses these by mutating the aliased A
+# and b in place and calling `LinearSolve.reinit!`.
+function _sgmam_init_tridiag_caches(::Type{T}, L::Int, nthreads::Int) where {T}
+    return map(1:nthreads) do _
+        d0  = ones(T, L)
+        du0 = zeros(T, L - 1)
+        dl0 = zeros(T, L - 1)
+        T0  = LinearAlgebra.Tridiagonal(dl0, d0, du0)
+        rhs0 = zeros(T, L)
+        init(
+            LinearProblem(T0, rhs0), LUFactorization();
+            alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
+        )
+    end
 end
 
 function _update_x!(
         x, λ, p′, x′′, Hx,
         sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, AdditiveNoise}, ϵ,
+        _cache = nothing,
     ) where {IIP, D, Hx_t, Hp_t, AF}
     a_diag = LinearAlgebra.diag(sys.a(view(x, :, 1)))
     a_inv  = inv.(a_diag)
 
     Nx, Nt = size(x); xa = x[:, 1]; xb = x[:, end]; idxc = 2:(Nt - 1)
+    L = Nt - 2
+
+    nthreads = _sgmam_nthreads()
+    caches = _sgmam_init_tridiag_caches(eltype(x), L, nthreads)
 
     Threads.@threads for dof in 1:Nx
         c = a_inv[dof]
-        d  = 1 .+ 2 .* ϵ .* λ[2:(end - 1)] .^ 2 .* c
-        du = -ϵ .* λ[2:(end - 2)] .^ 2 .* c
-        dl = -ϵ .* λ[3:(end - 1)] .^ 2 .* c
-        T = LinearAlgebra.Tridiagonal(dl, d, du)
-        rhs = Vector{eltype(x)}(undef, length(d))
-        @inbounds for k in 1:length(rhs)
+        cache = caches[Threads.threadid()]
+        Tmat = cache.A
+        @inbounds for i in 1:L
+            Tmat.d[i] = 1 + 2 * ϵ * λ[i + 1]^2 * c
+        end
+        @inbounds for i in 1:(L - 1)
+            Tmat.du[i] = -ϵ * λ[i + 1]^2 * c
+            Tmat.dl[i] = -ϵ * λ[i + 2]^2 * c
+        end
+        rhs = cache.b
+        @inbounds for k in 1:L
             i = k + 1
             rhs[k] = x[dof, i] + ϵ * (λ[i] * p′[dof, i] + Hx[dof, i] - c * λ[i]^2 * x′′[dof, i])
         end
         rhs[1]   += ϵ * c * λ[2]^2 * xa[dof]
         rhs[end] += ϵ * c * λ[end - 1]^2 * xb[dof]
-        prob = LinearProblem(T, rhs)
-        cache = init(
-            prob, LUFactorization();
-            alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
-        )
+        LinearSolve.reinit!(cache; A = Tmat, b = rhs)
         solve!(cache)
         x[dof, idxc] .= cache.u
     end
@@ -437,6 +470,7 @@ end
 function _update_x!(
         x, λ, p′, x′′, Hx,
         sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, DiagonalNoise}, ϵ,
+        _cache = nothing,
     ) where {IIP, D, Hx_t, Hp_t, AF}
     Nx, Nt = size(x)
     a_at = Matrix{eltype(x)}(undef, Nx, Nt)
@@ -445,100 +479,203 @@ function _update_x!(
     end
 
     xa = x[:, 1]; xb = x[:, end]; idxc = 2:(Nt - 1)
+    L = Nt - 2
+
+    nthreads = _sgmam_nthreads()
+    caches = _sgmam_init_tridiag_caches(eltype(x), L, nthreads)
 
     Threads.@threads for dof in 1:Nx
-        α = [ϵ * λ[i]^2 / a_at[dof, i] for i in 2:(Nt - 1)]
-        d  = 1 .+ 2 .* α
-        du = -α[1:(end - 1)]
-        dl = -α[2:end]
-        T = LinearAlgebra.Tridiagonal(dl, d, du)
-        rhs = Vector{eltype(x)}(undef, length(d))
-        @inbounds for k in 1:length(rhs)
+        cache = caches[Threads.threadid()]
+        Tmat = cache.A
+        @inbounds for i in 1:L
+            ii = i + 1
+            α_i = ϵ * λ[ii]^2 / a_at[dof, ii]
+            Tmat.d[i] = 1 + 2 * α_i
+        end
+        @inbounds for i in 1:(L - 1)
+            Tmat.du[i] = -ϵ * λ[i + 1]^2 / a_at[dof, i + 1]
+            Tmat.dl[i] = -ϵ * λ[i + 2]^2 / a_at[dof, i + 2]
+        end
+        rhs = cache.b
+        @inbounds for k in 1:L
             i = k + 1
             rhs[k] = x[dof, i] + ϵ * (
                 λ[i] * p′[dof, i] + Hx[dof, i] - (λ[i]^2 / a_at[dof, i]) * x′′[dof, i]
             )
         end
-        rhs[1]   += α[1]   * xa[dof]
-        rhs[end] += α[end] * xb[dof]
-        prob = LinearProblem(T, rhs)
-        cache = init(
-            prob, LUFactorization();
-            alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
-        )
+        α_left  = ϵ * λ[2]^2 / a_at[dof, 2]
+        α_right = ϵ * λ[Nt - 1]^2 / a_at[dof, Nt - 1]
+        rhs[1]   += α_left  * xa[dof]
+        rhs[end] += α_right * xb[dof]
+        LinearSolve.reinit!(cache; A = Tmat, b = rhs)
         solve!(cache)
         x[dof, idxc] .= cache.u
     end
     return nothing
 end
 
-function _update_x!(
-        x, λ, p′, x′′, Hx,
-        sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, GeneralNoise}, ϵ,
-    ) where {IIP, D, Hx_t, Hp_t, AF}
-    Nx, Nt = size(x)
-    N_in   = Nt - 2
-    n      = N_in * Nx
+"""
+Cross-iteration cache for the GeneralNoise sgMAM `_update_x!` path: holds the sparse
+block-tridiagonal matrix `M`, an index map from logical (i_in, k1, k2) entries into
+`M.nzval`, an RHS buffer, and a reusable `LinearSolve.LinearCache`. The sparsity
+pattern is fixed (depends only on `Nt`, `Nx`); only `nzval` and `rhs` change per call.
+"""
+struct _SgMAMGeneralCache{T, LC}
+    M::SparseArrays.SparseMatrixCSC{T, Int}
+    diag_nzval_idx::Array{Int, 3}    # (Nx, Nx, N_in)
+    left_nzval_idx::Matrix{Int}      # (Nx, N_in - 1): for i_in in 2:N_in
+    right_nzval_idx::Matrix{Int}     # (Nx, N_in - 1): for i_in in 1:N_in-1
+    rhs::Vector{T}
+    linear_cache::LC
+end
 
-    A_blocks = [Matrix(sys.a(view(x, :, i_in + 1))) for i_in in 1:N_in]
+"""
+Dispatcher that builds a cross-iteration cache for the inner `_update_x!` linear
+solve when the noise shape benefits from one. Currently only `GeneralNoise` uses a
+cache; other shapes return `nothing` (per-call buffers in their `_update_x!`).
+"""
+_build_sgmam_cache(::FreidlinWentzellHamiltonian, ::Type, ::Int, ::Int) = nothing
+function _build_sgmam_cache(
+        ::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, GeneralNoise},
+        ::Type{T}, Nx::Int, Nt::Int,
+    ) where {IIP, D, Hx, Hp, AF, T}
+    return _build_sgmam_general_cache(T, Nx, Nt)
+end
 
-    Iv = Int[]; Jv = Int[]; Vv = Vector{eltype(x)}()
-    nnz_est = N_in * Nx * Nx + 2 * (N_in - 1) * Nx
-    sizehint!(Iv, nnz_est); sizehint!(Jv, nnz_est); sizehint!(Vv, nnz_est)
-
-    rhs = zeros(eltype(x), n)
-    xa = x[:, 1]; xb = x[:, end]
-
-    for i_in in 1:N_in
-        i = i_in + 1
-        rb  = (i_in - 1) * Nx
-        A_i = A_blocks[i_in]
-        λi2 = λ[i]^2
-
-        # Diagonal block: a(x_i) + 2 ϵ λ_i² I.
-        for k1 in 1:Nx, k2 in 1:Nx
-            v = A_i[k1, k2] + (k1 == k2 ? 2 * ϵ * λi2 : zero(eltype(x)))
-            push!(Iv, rb + k1); push!(Jv, rb + k2); push!(Vv, v)
+function _find_nzval_idx(M::SparseArrays.SparseMatrixCSC, r::Int, c::Int)
+    @inbounds for k in M.colptr[c]:(M.colptr[c + 1] - 1)
+        if M.rowval[k] == r
+            return k
         end
+    end
+    error("entry ($r, $c) is not in the sparsity pattern")
+end
 
-        # Left off-diagonal (row i, col i-1): -ϵ λ_i² I.
+function _build_sgmam_general_cache(::Type{T}, Nx::Int, Nt::Int) where {T}
+    N_in = Nt - 2
+    n    = N_in * Nx
+    nnz_est = N_in * Nx * Nx + 2 * (N_in - 1) * Nx
+
+    Iv = Vector{Int}(undef, nnz_est)
+    Jv = Vector{Int}(undef, nnz_est)
+    Vv = ones(T, nnz_est)   # placeholder so M is non-singular at build time
+    pos = 0
+    @inbounds for i_in in 1:N_in
+        rb = (i_in - 1) * Nx
+        for k1 in 1:Nx, k2 in 1:Nx
+            pos += 1; Iv[pos] = rb + k1; Jv[pos] = rb + k2
+        end
         if i_in > 1
             base_L = (i_in - 2) * Nx
             for k in 1:Nx
-                push!(Iv, rb + k); push!(Jv, base_L + k); push!(Vv, -ϵ * λi2)
+                pos += 1; Iv[pos] = rb + k; Jv[pos] = base_L + k
             end
         end
-
-        # Right off-diagonal (row i, col i+1): -ϵ λ_i² I.
         if i_in < N_in
             base_R = i_in * Nx
             for k in 1:Nx
-                push!(Iv, rb + k); push!(Jv, base_R + k); push!(Vv, -ϵ * λi2)
+                pos += 1; Iv[pos] = rb + k; Jv[pos] = base_R + k
             end
         end
+    end
+    M = SparseArrays.sparse(Iv, Jv, Vv, n, n)
 
-        # RHS: A_i (x_i + ϵ (λ_i p'_i + Hx_i)) - ϵ λ_i² x''_i + boundary contributions.
-        rhs_block = A_i * (x[:, i] .+ ϵ .* (λ[i] .* p′[:, i] .+ Hx[:, i])) .-
-            ϵ * λi2 .* x′′[:, i]
-        if i_in == 1
-            rhs_block .+= ϵ * λi2 .* xa
+    diag_idx  = Array{Int}(undef, Nx, Nx, N_in)
+    left_idx  = Matrix{Int}(undef, Nx, N_in - 1)
+    right_idx = Matrix{Int}(undef, Nx, N_in - 1)
+    @inbounds for i_in in 1:N_in
+        rb = (i_in - 1) * Nx
+        for k1 in 1:Nx, k2 in 1:Nx
+            diag_idx[k1, k2, i_in] = _find_nzval_idx(M, rb + k1, rb + k2)
         end
-        if i_in == N_in
-            rhs_block .+= ϵ * λi2 .* xb
+        if i_in > 1
+            base_L = (i_in - 2) * Nx
+            for k in 1:Nx
+                left_idx[k, i_in - 1] = _find_nzval_idx(M, rb + k, base_L + k)
+            end
         end
-        @inbounds for k in 1:Nx
-            rhs[rb + k] = rhs_block[k]
+        if i_in < N_in
+            base_R = i_in * Nx
+            for k in 1:Nx
+                right_idx[k, i_in] = _find_nzval_idx(M, rb + k, base_R + k)
+            end
         end
     end
 
-    M = SparseArrays.sparse(Iv, Jv, Vv, n, n)
-    prob = LinearProblem(M, rhs)
-    cache = init(prob, LUFactorization())
-    solve!(cache)
-    sol = cache.u
-    for i_in in 1:N_in
+    rhs = zeros(T, n)
+    fill!(M.nzval, zero(T))
+    lc = init(LinearProblem(M, rhs), LUFactorization())
+    return _SgMAMGeneralCache{T, typeof(lc)}(M, diag_idx, left_idx, right_idx, rhs, lc)
+end
+
+# Fallback dispatch when a GeneralNoise system is invoked without an explicit cache
+# (rare path: direct `update_x!` call from tests). Builds a one-shot cache and uses it.
+function _update_x!(
+        x, λ, p′, x′′, Hx,
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, GeneralNoise}, ϵ,
+        ::Nothing = nothing,
+    ) where {IIP, D, Hx_t, Hp_t, AF}
+    Nx, Nt = size(x)
+    cache = _build_sgmam_general_cache(eltype(x), Nx, Nt)
+    return _update_x!(x, λ, p′, x′′, Hx, sys, ϵ, cache)
+end
+
+function _update_x!(
+        x, λ, p′, x′′, Hx,
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, GeneralNoise}, ϵ,
+        cache::_SgMAMGeneralCache,
+    ) where {IIP, D, Hx_t, Hp_t, AF}
+    Nx, Nt = size(x)
+    N_in = Nt - 2
+
+    M = cache.M
+    rhs = cache.rhs
+    xa = view(x, :, 1); xb = view(x, :, Nt)
+
+    @inbounds for i_in in 1:N_in
+        i = i_in + 1
         rb = (i_in - 1) * Nx
-        @inbounds for k in 1:Nx
+        A_i = sys.a(view(x, :, i))
+        λi2 = λ[i]^2
+
+        for k1 in 1:Nx, k2 in 1:Nx
+            v = A_i[k1, k2] + (k1 == k2 ? 2 * ϵ * λi2 : zero(eltype(x)))
+            M.nzval[cache.diag_nzval_idx[k1, k2, i_in]] = v
+        end
+        if i_in > 1
+            for k in 1:Nx
+                M.nzval[cache.left_nzval_idx[k, i_in - 1]] = -ϵ * λi2
+            end
+        end
+        if i_in < N_in
+            for k in 1:Nx
+                M.nzval[cache.right_nzval_idx[k, i_in]] = -ϵ * λi2
+            end
+        end
+
+        for k in 1:Nx
+            acc = zero(eltype(x))
+            for k2 in 1:Nx
+                acc += A_i[k, k2] * (x[k2, i] + ϵ * (λ[i] * p′[k2, i] + Hx[k2, i]))
+            end
+            v = acc - ϵ * λi2 * x′′[k, i]
+            if i_in == 1
+                v += ϵ * λi2 * xa[k]
+            end
+            if i_in == N_in
+                v += ϵ * λi2 * xb[k]
+            end
+            rhs[rb + k] = v
+        end
+    end
+
+    lc = cache.linear_cache
+    LinearSolve.reinit!(lc; A = M, b = rhs)
+    solve!(lc)
+    sol = lc.u
+    @inbounds for i_in in 1:N_in
+        rb = (i_in - 1) * Nx
+        for k in 1:Nx
             x[k, i_in + 1] = sol[rb + k]
         end
     end
