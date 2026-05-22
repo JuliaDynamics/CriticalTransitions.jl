@@ -8,18 +8,13 @@ tensor `a(x)/s` with `s = tr(a(u₀))/D`. For additive `sys` the callable is `Re
 """
 function _action_metric(sys::CoupledSDEs)
     _classify_noise_shape(sys)
-    σ_fn = diffusion_function(sys)
-    u₀ = current_state(sys); ps = current_parameters(sys)
-    a_of(x) = let σx = σ_fn(x, ps, 0.0)
-        σ_mat = σx isa AbstractMatrix ? σx : LinearAlgebra.Diagonal(σx)
-        σ_mat * σ_mat'
-    end
-    a0 = a_of(u₀)
-    s = LinearAlgebra.tr(a0) / size(a0, 1)
+    a_callable = _trace_normalized_a(sys)
     if sys.noise_type[:additive]
-        return Returns(inv(a0 / s))
+        return Returns(inv(a_callable(current_state(sys))))
     else
-        return x -> inv(a_of(x) / s)
+        return let a_callable = a_callable
+            x -> inv(a_callable(x))
+        end
     end
 end
 

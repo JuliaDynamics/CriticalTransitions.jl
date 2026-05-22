@@ -201,41 +201,10 @@ struct GeometricGradientWorkspace{
     a_func::AF
 end
 
-# Build a trace-normalized `a(x)` callable for the gMAM workspace. Mirrors the logic
-# in FreidlinWentzellHamiltonian's constructor: identity for CoupledODEs, constant
-# wrapped in `Returns` for additive SDE, closure for state-dependent SDE.
-function _build_a_func(sys::CoupledSDEs)
-    D = dimension(sys)
-    if sys isa CoupledODEs
-        return Returns(LinearAlgebra.Diagonal(ones(Float64, D)))
-    end
-    σ_fn = diffusion_function(sys)
-    ps = current_parameters(sys)
-    u₀ = current_state(sys)
-    σ0 = σ_fn(u₀, ps, 0.0)
-    σ_mat0 = σ0 isa AbstractMatrix ? σ0 : LinearAlgebra.Diagonal(σ0)
-    a0 = σ_mat0 * σ_mat0'
-    s = LinearAlgebra.tr(a0) / D
-    if sys.noise_type[:additive]
-        a_const = LinearAlgebra.isdiag(a0) ?
-            LinearAlgebra.Diagonal(collect(LinearAlgebra.diag(a0)) ./ s) :
-            Matrix(a0 ./ s)
-        return Returns(a_const)
-    else
-        return let σ_fn = σ_fn, ps = ps, s = s
-            x -> begin
-                σx = σ_fn(x, ps, 0.0)
-                σ_mat = σx isa AbstractMatrix ? σx : LinearAlgebra.Diagonal(σx)
-                (σ_mat * σ_mat') / s
-            end
-        end
-    end
-end
-
 function geometric_gradient_workspace(sys::CoupledSDEs, path)
     N = size(path, 2)
     NS = _classify_noise_shape(sys)
-    a_func = _build_a_func(sys)
+    a_func = _trace_normalized_a(sys)
     A = a_func(view(path, :, 1))
     A = LinearAlgebra.isdiag(A) && size(A, 1) == size(A, 2) ?
         inv(LinearAlgebra.Diagonal(LinearAlgebra.diag(A))) : inv(Matrix(A))
@@ -333,85 +302,68 @@ function _geometric_gradient_step!(
     return nothing
 end
 
-# DiagonalNoise: per-grid-point diagonal a(x_i). θ_i recovered via diag(a(x_i)),
-# explicit RHS includes (1/2) ∂_l a_kk θ_k² and (∂_l a_kk θ_k) φ'_l contributions.
-function _geometric_gradient_step!(
-        ws, sys, path, ::DiagonalNoise; stepsize = 0.1, diff_order = 4,
-    )
-    N = size(path, 2)
-    Nx = size(path, 1)
-    dx = 1.0 / (N - 1)
-    h_fd = max(sqrt(eps(eltype(path))), eltype(path)(1.0e-8))
-
-    path_velocity!(ws.x_prime, path, ws.arc; order = diff_order)
-
-    @views for i in 2:(N - 1)
-        ws.drift_cache[:, i - 1] .= drift(sys, path[:, i])
+# Writes θ_i into `θ_out` and returns λ_i for grid point i. Diagonal branch uses
+# elementwise division; General branch does one LU factorization shared across three
+# solves. Both paths avoid allocating intermediate vectors.
+function _gmam_lambda_theta!(::DiagonalNoise, θ_out, a_i, b_i, φp)
+    diag_a = LinearAlgebra.diag(a_i)
+    num = den = zero(eltype(b_i))
+    @inbounds for k in eachindex(b_i)
+        ia = inv(diag_a[k])
+        num += b_i[k]^2 * ia
+        den += φp[k]^2 * ia
     end
-
-    @views for i in 2:(N - 1)
-        xi = path[:, i]
-        a_i = LinearAlgebra.diag(ws.a_func(xi))
-        b_i = ws.drift_cache[:, i - 1]
-        φp = ws.x_prime[:, i]
-        num = sum(b_i .^ 2 ./ a_i)
-        den = sum(φp .^ 2 ./ a_i)
-        λ = den > 1.0e-28 ? sqrt(num / den) : 0.0
-        isfinite(λ) || (λ = 0.0)
-        ws.lambdas[i] = λ
-        @inbounds for k in 1:Nx
-            ws.theta_cache[k, i - 1] = (λ * φp[k] - b_i[k]) / a_i[k]
-        end
+    λ = den > 1.0e-28 ? sqrt(num / den) : zero(eltype(b_i))
+    @inbounds for k in eachindex(b_i)
+        θ_out[k] = (λ * φp[k] - b_i[k]) / diag_a[k]
     end
-    @views for i in 2:(N - 1)
-        ws.lambdas_prime[i] = (ws.lambdas[i + 1] - ws.lambdas[i - 1]) / (2 * dx)
-    end
-
-    e = zeros(eltype(path), Nx)
-    Hphi = zeros(eltype(path), Nx)
-    Hpphi = zeros(eltype(path), Nx)
-    @views for i in 2:(N - 1)
-        xi = path[:, i]
-        φp = ws.x_prime[:, i]
-        θ = ws.theta_cache[:, i - 1]
-        J = ws.jac(xi)
-        fill!(Hphi, 0); fill!(Hpphi, 0)
-        LinearAlgebra.mul!(Hpphi, J, φp)
-        LinearAlgebra.mul!(Hphi, J', θ)
-        @inbounds for l in 1:Nx
-            fill!(e, 0); e[l] = h_fd
-            ap = LinearAlgebra.diag(ws.a_func(xi .+ e))
-            am = LinearAlgebra.diag(ws.a_func(xi .- e))
-            @inbounds for k in 1:Nx
-                dla = (ap[k] - am[k]) / (2 * h_fd)
-                Hphi[l] += 0.5 * dla * θ[k]^2
-                Hpphi[k] += dla * θ[k] * φp[l]
-            end
-        end
-        a_i = LinearAlgebra.diag(ws.a_func(xi))
-        λ = ws.lambdas[i]
-        λp = ws.lambdas_prime[i]
-        @inbounds for k in 1:Nx
-            ws.rhs_explicit[k, i - 1] = -λ * Hpphi[k] + a_i[k] * Hphi[k] + λ * λp * φp[k]
-        end
-    end
-
-    _gmam_implicit_shared!(ws, path, N, stepsize, dx; is_state_dep = true)
-    return nothing
+    return λ
 end
 
-# GeneralNoise: per-grid-point matrix a(x_i). θ_i = a(x_i)^{-1} (λ φ' - b).
-# Explicit RHS uses (1/2) θ^T (∂_l a) θ for each l, plus (∂_l a · θ) φ'_l terms.
+function _gmam_lambda_theta!(::GeneralNoise, θ_out, a_i, b_i, φp)
+    F = LinearAlgebra.lu(a_i isa Matrix ? a_i : Matrix(a_i))
+    rhs = similar(θ_out)
+    copyto!(rhs, b_i); LinearAlgebra.ldiv!(F, rhs)
+    num = dot(b_i, rhs)
+    copyto!(rhs, φp); LinearAlgebra.ldiv!(F, rhs)
+    den = dot(φp, rhs)
+    λ = den > 1.0e-28 ? sqrt(num / den) : zero(eltype(b_i))
+    @inbounds for k in eachindex(b_i)
+        θ_out[k] = λ * φp[k] - b_i[k]
+    end
+    LinearAlgebra.ldiv!(F, θ_out)
+    return λ
+end
+
+# Accumulate (1/2) θᵀ(∂_l a) θ into Hphi[l] and (∂_l a · θ) into Hpphi.
+# For DiagonalNoise the (k1, k2) cross-terms vanish, so we walk only the diagonal.
+function _accumulate_fd_term!(::DiagonalNoise, Hphi, Hpphi, dla, θ, φp, l)
+    dla_diag = LinearAlgebra.diag(dla)
+    @inbounds for k in eachindex(Hphi)
+        Hphi[l] += 0.5 * dla_diag[k] * θ[k]^2
+        Hpphi[k] += dla_diag[k] * θ[k] * φp[l]
+    end
+end
+
+function _accumulate_fd_term!(::GeneralNoise, Hphi, Hpphi, dla, θ, φp, l)
+    Nx = length(Hphi)
+    @inbounds for k1 in 1:Nx, k2 in 1:Nx
+        Hphi[l] += 0.5 * dla[k1, k2] * θ[k1] * θ[k2]
+        Hpphi[k1] += dla[k1, k2] * θ[k2] * φp[l]
+    end
+end
+
+# State-dependent branches (Diagonal and General) share everything except the two
+# per-NS helpers above.
 function _geometric_gradient_step!(
-        ws, sys, path, ::GeneralNoise; stepsize = 0.1, diff_order = 4,
+        ws, sys, path, NS::Union{DiagonalNoise, GeneralNoise};
+        stepsize = 0.1, diff_order = 4,
     )
-    N = size(path, 2)
-    Nx = size(path, 1)
+    N = size(path, 2); Nx = size(path, 1)
     dx = 1.0 / (N - 1)
-    h_fd = max(sqrt(eps(eltype(path))), eltype(path)(1.0e-8))
+    h_fd = _fd_step(eltype(path))
 
     path_velocity!(ws.x_prime, path, ws.arc; order = diff_order)
-
     @views for i in 2:(N - 1)
         ws.drift_cache[:, i - 1] .= drift(sys, path[:, i])
     end
@@ -420,45 +372,29 @@ function _geometric_gradient_step!(
         xi = path[:, i]
         a_i = ws.a_func(xi)
         b_i = ws.drift_cache[:, i - 1]
-        φp = ws.x_prime[:, i]
-        A_inv_b = a_i \ Vector(b_i)
-        A_inv_phi = a_i \ Vector(φp)
-        num = dot(b_i, A_inv_b)
-        den = dot(φp, A_inv_phi)
-        λ = den > 1.0e-28 ? sqrt(num / den) : 0.0
-        isfinite(λ) || (λ = 0.0)
-        ws.lambdas[i] = λ
-        θ = a_i \ (λ .* Vector(φp) .- Vector(b_i))
-        @inbounds for k in 1:Nx
-            ws.theta_cache[k, i - 1] = θ[k]
-        end
+        φp  = ws.x_prime[:, i]
+        ws.lambdas[i] = _gmam_lambda_theta!(NS, ws.theta_cache[:, i - 1], a_i, b_i, φp)
     end
     @views for i in 2:(N - 1)
         ws.lambdas_prime[i] = (ws.lambdas[i + 1] - ws.lambdas[i - 1]) / (2 * dx)
     end
 
     e = zeros(eltype(path), Nx)
-    Hphi = zeros(eltype(path), Nx)
+    Hphi  = zeros(eltype(path), Nx)
     Hpphi = zeros(eltype(path), Nx)
     aHphi = zeros(eltype(path), Nx)
     @views for i in 2:(N - 1)
         xi = path[:, i]
         φp = ws.x_prime[:, i]
-        θ = ws.theta_cache[:, i - 1]
-        J = ws.jac(xi)
+        θ  = ws.theta_cache[:, i - 1]
+        J  = ws.jac(xi)
         a_i = ws.a_func(xi)
         fill!(Hphi, 0); fill!(Hpphi, 0)
         LinearAlgebra.mul!(Hpphi, J, φp)
-        LinearAlgebra.mul!(Hphi, J', θ)
+        LinearAlgebra.mul!(Hphi,  J', θ)
         @inbounds for l in 1:Nx
-            fill!(e, 0); e[l] = h_fd
-            ap = ws.a_func(xi .+ e)
-            am = ws.a_func(xi .- e)
-            @inbounds for k1 in 1:Nx, k2 in 1:Nx
-                dla = (ap[k1, k2] - am[k1, k2]) / (2 * h_fd)
-                Hphi[l] += 0.5 * dla * θ[k1] * θ[k2]
-                Hpphi[k1] += dla * θ[k2] * φp[l]
-            end
+            dla = _da_dx_l(ws.a_func, xi, l, h_fd, e)
+            _accumulate_fd_term!(NS, Hphi, Hpphi, dla, θ, φp, l)
         end
         LinearAlgebra.mul!(aHphi, a_i, Hphi)
         λ = ws.lambdas[i]; λp = ws.lambdas_prime[i]

@@ -5,11 +5,25 @@ using Random
 
 const CT = CriticalTransitions
 
+# Canonical 1D OU with multiplicative diagonal noise σ(x) = √(1 + α x²).
+_b1d(u, p, t) = SA[-u[1]]
+_make_1d_ou(α) = let
+    g(u, p, t) = SA[sqrt(1 + α * u[1]^2);;]
+    CoupledSDEs(_b1d, SA[1.0]; g = g, noise_prototype = SMatrix{1, 1}(0.0))
+end
+
+# Canonical 2D linear drift with full off-diagonal multiplicative noise.
+_b2(u, p, t) = SA[-u[1], -u[2]]
+function _g2(u, p, t)
+    s11 = 1 + 0.2 * u[1]; s22 = 1 + 0.2 * u[2]
+    s12 = 0.3 * u[2];     s21 = 0.3 * u[1]
+    return @SMatrix [s11 s12; s21 s22]
+end
+_make_2d_offdiag() =
+    CoupledSDEs(_b2, SA[1.0, 0.0]; g = _g2, noise_prototype = SMatrix{2, 2}(zeros(2, 2)))
+
 @testset "DiagonalNoise update_p!: 1D OU multiplicative" begin
-    α = 0.3
-    b1d(u, p, t) = SA[-u[1]]
-    g1d(u, p, t) = SA[sqrt(1 + α * u[1]^2);;]
-    ds = CoupledSDEs(b1d, SA[1.0]; g = g1d, noise_prototype = SMatrix{1, 1}(0.0))
+    ds = _make_1d_ou(0.3)
 
     sys = FreidlinWentzellHamiltonian(ds)
     @test sys isa FreidlinWentzellHamiltonian{<:Any, 1, <:Any, <:Any, <:Any, DiagonalNoise}
@@ -29,15 +43,7 @@ const CT = CriticalTransitions
 end
 
 @testset "GeneralNoise update_p!: 2D off-diagonal" begin
-    b2(u, p, t) = SA[-u[1], -u[2]]
-    function g2(u, p, t)
-        s11 = 1 + 0.2 * u[1]; s22 = 1 + 0.2 * u[2]
-        s12 = 0.3 * u[2];     s21 = 0.3 * u[1]
-        return @SMatrix [s11 s12; s21 s22]
-    end
-    ds = CoupledSDEs(
-        b2, SA[1.0, 0.0]; g = g2, noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
-    )
+    ds = _make_2d_offdiag()
     sys = FreidlinWentzellHamiltonian(ds)
     @test sys isa FreidlinWentzellHamiltonian{<:Any, 2, <:Any, <:Any, <:Any, GeneralNoise}
 
@@ -58,12 +64,7 @@ end
 end
 
 @testset "sgMAM end-to-end: 1D OU multiplicative converges" begin
-    α = 0.3
-    b1d(u, p, t) = SA[-u[1]]
-    g1d(u, p, t) = SA[sqrt(1 + α * u[1]^2);;]
-    ds = CoupledSDEs(b1d, SA[1.0]; g = g1d, noise_prototype = SMatrix{1, 1}(0.0))
-    sys = FreidlinWentzellHamiltonian(ds)
-
+    sys = FreidlinWentzellHamiltonian(_make_1d_ou(0.3))
     Nt = 80
     x_initial = reshape(collect(range(1.0, -1.0; length = Nt)), 1, Nt)
     res = minimize_geometric_action(
@@ -75,17 +76,7 @@ end
 
 @testset "sgMAM end-to-end: 2D off-diagonal multiplicative converges" begin
     Random.seed!(0)
-    b2(u, p, t) = SA[-u[1], -u[2]]
-    function g2(u, p, t)
-        s11 = 1 + 0.2 * u[1]; s22 = 1 + 0.2 * u[2]
-        s12 = 0.3 * u[2];     s21 = 0.3 * u[1]
-        return @SMatrix [s11 s12; s21 s22]
-    end
-    ds = CoupledSDEs(
-        b2, SA[1.0, 0.0]; g = g2, noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
-    )
-    sys = FreidlinWentzellHamiltonian(ds)
-
+    sys = FreidlinWentzellHamiltonian(_make_2d_offdiag())
     Nt = 60
     xx = collect(range(1.0, 0.0; length = Nt))
     yy = collect(range(0.0, 1.0; length = Nt))
@@ -106,20 +97,14 @@ end
 end
 
 @testset "_action_metric: state-dependent evaluates per point" begin
-    α = 0.3
-    b1d(u, p, t) = SA[-u[1]]
-    g1d(u, p, t) = SA[sqrt(1 + α * u[1]^2);;]
-    ds = CoupledSDEs(b1d, SA[1.0]; g = g1d, noise_prototype = SMatrix{1, 1}(0.0))
-    metric = CT._action_metric(ds)
+    metric = CT._action_metric(_make_1d_ou(0.3))
     @test !(metric isa Base.Returns)
     @test metric([1.0])[1, 1] ≈ 1.0
 end
 
 @testset "fw_action: 1D OU multiplicative vs analytic Simpson" begin
     α = 0.3
-    b1d(u, p, t) = SA[-u[1]]
-    g1d(u, p, t) = SA[sqrt(1 + α * u[1]^2);;]
-    ds = CoupledSDEs(b1d, SA[1.0]; g = g1d, noise_prototype = SMatrix{1, 1}(0.0))
+    ds = _make_1d_ou(α)
 
     N, T = 200, 1.0
     path = reduce(hcat, range([1.0], [0.0]; length = N))
@@ -128,12 +113,8 @@ end
 
     function simpson(f, a, b, n)
         h = (b - a) / n; s = f(a) + f(b)
-        for i in 1:2:(n - 1)
-            s += 4 * f(a + i * h)
-        end
-        for i in 2:2:(n - 2)
-            s += 2 * f(a + i * h)
-        end
+        for i in 1:2:(n - 1); s += 4 * f(a + i * h); end
+        for i in 2:2:(n - 2); s += 2 * f(a + i * h); end
         return s * h / 3
     end
     s_norm = 1 + α
@@ -144,11 +125,7 @@ end
 
 @testset "gMAM diagonal multiplicative converges" begin
     Random.seed!(0)
-    α = 0.3
-    b1d(u, p, t) = SA[-u[1]]
-    g1d(u, p, t) = SA[sqrt(1 + α * u[1]^2);;]
-    ds = CoupledSDEs(b1d, SA[1.0]; g = g1d, noise_prototype = SMatrix{1, 1}(0.0))
-
+    ds = _make_1d_ou(0.3)
     Nt = 80
     x_initial = reshape(collect(range(1.0, -1.0; length = Nt)), 1, Nt)
     res_g = minimize_geometric_action(
@@ -185,13 +162,7 @@ end
 
 @testset "gMAM general multiplicative converges" begin
     Random.seed!(0)
-    b2(u, p, t) = SA[-u[1], -u[2]]
-    function g2(u, p, t)
-        s11 = 1 + 0.2 * u[1]; s22 = 1 + 0.2 * u[2]
-        s12 = 0.3 * u[2];     s21 = 0.3 * u[1]
-        return @SMatrix [s11 s12; s21 s22]
-    end
-    ds = CoupledSDEs(b2, SA[1.0, 0.0]; g = g2, noise_prototype = SMatrix{2, 2}(zeros(2, 2)))
+    ds = _make_2d_offdiag()
     Nt = 60
     xx = collect(range(1.0, 0.0; length = Nt))
     yy = collect(range(0.0, 1.0; length = Nt))
