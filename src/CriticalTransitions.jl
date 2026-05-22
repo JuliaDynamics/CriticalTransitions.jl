@@ -96,7 +96,7 @@ export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_mat
 export drift, div_drift, solver, noise_strength
 export StateSpaceSet
 
-export minimize_simple_geometric_action, FreidlinWentzellHamiltonian
+export FreidlinWentzellHamiltonian
 export NoiseShape, AdditiveNoise, DiagonalNoise, GeneralNoise
 export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method

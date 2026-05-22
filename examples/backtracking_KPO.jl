@@ -2,7 +2,7 @@
 #
 # This example demonstrates the benefit of the backtracking line search built
 # into [`GeometricGradient`](@ref) when computing instantons with
-# [`minimize_simple_geometric_action`](@ref).
+# [`minimize_geometric_action`](@ref).
 #
 # We use the **Kerr parametric oscillator (KPO)**, an underdamped 2D system
 # (damping γ ≈ 1/295) whose instanton spirals near the attractors. A fixed
@@ -64,15 +64,15 @@ x_initial = Matrix([xx yy]')
 maxiters = 20_000
 show_progress = false
 reltol = 1.0e-8
-res_small = minimize_simple_geometric_action(
+res_small = minimize_geometric_action(
     sys, x_initial, GeometricGradient(; stepsize = 1.0e1, max_backtracks = 0);
     maxiters, show_progress, reltol
 )
-res_large = minimize_simple_geometric_action(
+res_large = minimize_geometric_action(
     sys, x_initial, GeometricGradient(; stepsize = 1.0e4, max_backtracks = 0);
     maxiters, show_progress, reltol
 )
-res_bt = minimize_simple_geometric_action(
+res_bt = minimize_geometric_action(
     sys, x_initial, GeometricGradient(; stepsize = 1.0e3);
     maxiters, show_progress, reltol
 )
@@ -116,7 +116,7 @@ stepsizes = [1.0e0, 1.0e1, 1.0e2, 5.0e2, 1.0e3, 2.0e3, 5.0e3, 1.0e4]
 fixed_actions = Float64[]
 fixed_times = Float64[]
 for ss in stepsizes
-    t = @elapsed res = minimize_simple_geometric_action(
+    t = @elapsed res = minimize_geometric_action(
         sys, x_initial, GeometricGradient(; stepsize = ss, max_backtracks = 0);
         maxiters, show_progress = false, reltol = 1.0e-8
     )
@@ -128,7 +128,7 @@ bt_stepsizes = [1.0e0, 1.0e2, 1.0e3, 1.0e6]
 bt_actions = Float64[]
 bt_times = Float64[]
 for ss in bt_stepsizes
-    t = @elapsed res = minimize_simple_geometric_action(
+    t = @elapsed res = minimize_geometric_action(
         sys, x_initial, GeometricGradient(; stepsize = ss);
         maxiters, show_progress = false, reltol = 1.0e-8
     )

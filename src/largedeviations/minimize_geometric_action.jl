@@ -43,7 +43,7 @@ The `optimizer` argument accepts:
 Only the Freidlin-Wentzell action has a geometric formulation.
 """
 function minimize_geometric_action(
-        sys::ContinuousTimeDynamicalSystem,
+        sys::CoupledSDEs,
         x_i,
         x_f,
         optimizer = GeometricGradient();
@@ -54,10 +54,8 @@ function minimize_geometric_action(
     return minimize_geometric_action(sys, path, optimizer; kwargs...)
 end
 
-function _gmam_setup(sys, init, maxiters, show_progress)
-    if sys isa CoupledSDEs
-        proper_FW_system(sys)
-    end
+function _gmam_setup(sys::CoupledSDEs, init, maxiters, show_progress)
+    proper_FW_system(sys)
     path = deepcopy(init)
     N = length(init[1, :])
     alpha = zeros(N)
@@ -68,10 +66,11 @@ function _gmam_setup(sys, init, maxiters, show_progress)
 end
 
 function minimize_geometric_action(
-        sys::ContinuousTimeDynamicalSystem, init::Matrix; kwargs...
+        sys::CoupledSDEs, init::Matrix; kwargs...
     )
     return minimize_geometric_action(sys, init, GeometricGradient(); kwargs...)
 end
+
 
 """
 $(TYPEDSIGNATURES)
@@ -86,7 +85,7 @@ For more information see the main method,
 [`minimize_geometric_action(sys::CoupledSDEs, x_i, x_f, arclength::Real; kwargs...)`](@ref).
 """
 function minimize_geometric_action(
-        sys::ContinuousTimeDynamicalSystem,
+        sys::CoupledSDEs,
         init::Matrix,
         optimizer::GeometricGradient;
         maxiters::Int = 100,
@@ -129,7 +128,7 @@ function minimize_geometric_action(
 end
 
 function minimize_geometric_action(
-        sys::ContinuousTimeDynamicalSystem,
+        sys::CoupledSDEs,
         init::Matrix,
         optimizer;
         maxiters::Int = 100,
@@ -170,7 +169,7 @@ arclength `L`.
 - [heymann_pathways_2008](@cite)
 """
 function geometric_gradient_step(
-        sys::ContinuousTimeDynamicalSystem, path, N; stepsize = 0.1, diff_order = 4
+        sys::CoupledSDEs, path, N; stepsize = 0.1, diff_order = 4
     )
     ws = geometric_gradient_workspace(sys, path)
     geometric_gradient_step!(ws, sys, path; stepsize = stepsize, diff_order = diff_order)
@@ -205,7 +204,7 @@ end
 # Build a trace-normalized `a(x)` callable for the gMAM workspace. Mirrors the logic
 # in FreidlinWentzellHamiltonian's constructor: identity for CoupledODEs, constant
 # wrapped in `Returns` for additive SDE, closure for state-dependent SDE.
-function _build_a_func(sys::ContinuousTimeDynamicalSystem)
+function _build_a_func(sys::CoupledSDEs)
     D = dimension(sys)
     if sys isa CoupledODEs
         return Returns(LinearAlgebra.Diagonal(ones(Float64, D)))
@@ -233,7 +232,7 @@ function _build_a_func(sys::ContinuousTimeDynamicalSystem)
     end
 end
 
-function geometric_gradient_workspace(sys::ContinuousTimeDynamicalSystem, path)
+function geometric_gradient_workspace(sys::CoupledSDEs, path)
     N = size(path, 2)
     NS = _classify_noise_shape(sys)
     a_func = _build_a_func(sys)

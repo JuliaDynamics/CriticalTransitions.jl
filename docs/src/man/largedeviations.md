@@ -125,7 +125,7 @@ The simple gMAM reduces the complexity of the original gMAM by requiring only fi
 
 The implementation below performs a constrained gradient descent assuming an autonomous system with additive Gaussian noise.
 ```@docs
-minimize_simple_geometric_action
+minimize_geometric_action
 FreidlinWentzellHamiltonian
 ```
 
@@ -151,8 +151,8 @@ ds = CoupledSDEs(KPO, zeros(2), ())
 sys_generic = FreidlinWentzellHamiltonian(ds)              # uses jacobian(ds)
 
 opt = GeometricGradient(; stepsize=0.5)
-@btime minimize_simple_geometric_action($sys_fast,    $x_initial, $opt; maxiters=100, show_progress=false)
-@btime minimize_simple_geometric_action($sys_generic, $x_initial, $opt; maxiters=100, show_progress=false)
+@btime minimize_geometric_action($sys_fast,    $x_initial, $opt; maxiters=100, show_progress=false)
+@btime minimize_geometric_action($sys_generic, $x_initial, $opt; maxiters=100, show_progress=false)
 ```
 
 Aside: the same “vectorized + allocation-free inner loop” principle also tends to make [`string_method`](@ref) faster when used with `FreidlinWentzellHamiltonian`.

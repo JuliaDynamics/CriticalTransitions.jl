@@ -53,7 +53,7 @@ function benchmark_KPO!(SUITE)
     x_initial = Matrix([xx yy]')
 
     sgmam_opt = GeometricGradient(; max_backtracks = 0, stepsize = 10.0e2)
-    SUITE["Large deviation"]["Simple geometric minimal action"]["KPO"] = @benchmarkable minimize_simple_geometric_action(
+    SUITE["Large deviation"]["Simple geometric minimal action"]["KPO"] = @benchmarkable minimize_geometric_action(
         $sys, $x_initial, $sgmam_opt; maxiters = 10_000, show_progress = false
     ) seconds = 10
 

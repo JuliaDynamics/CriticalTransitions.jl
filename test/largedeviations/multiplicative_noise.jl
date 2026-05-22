@@ -66,7 +66,7 @@ end
 
     Nt = 80
     x_initial = reshape(collect(range(1.0, -1.0; length = Nt)), 1, Nt)
-    res = minimize_simple_geometric_action(
+    res = minimize_geometric_action(
         sys, x_initial, GeometricGradient(; stepsize = 1.0);
         maxiters = 500, show_progress = false,
     )
@@ -90,7 +90,7 @@ end
     xx = collect(range(1.0, 0.0; length = Nt))
     yy = collect(range(0.0, 1.0; length = Nt))
     x_initial = Matrix([xx yy]')
-    res = minimize_simple_geometric_action(
+    res = minimize_geometric_action(
         sys, x_initial, GeometricGradient(; stepsize = 1.0);
         maxiters = 300, show_progress = false,
     )

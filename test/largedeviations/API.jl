@@ -17,6 +17,6 @@
     for inst in [corr_alt, addit_non_autom, linear_multipli]
         @test_throws ArgumentError minimize_action(inst, init, T)
         @test_throws ArgumentError minimize_geometric_action(inst, init)
-        @test_throws ArgumentError minimize_simple_geometric_action(inst, init)
+        @test_throws ArgumentError minimize_geometric_action(inst, init)
     end
 end

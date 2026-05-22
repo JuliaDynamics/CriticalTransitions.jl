@@ -166,7 +166,7 @@ sacrificing accuracy.
   - `abstol::Real=NaN`: absolute tolerance for early stopping based on action change
   - `reltol::Real=NaN`: relative tolerance for early stopping based on action change
 """
-function minimize_simple_geometric_action(
+function minimize_geometric_action(
         sys::FreidlinWentzellHamiltonian,
         x_initial::Matrix{T},
         optimizer::GeometricGradient = GeometricGradient(; stepsize = 1.0e3);
@@ -222,24 +222,14 @@ function minimize_simple_geometric_action(
         path_velocity = xdot,
     )
 end
-function minimize_simple_geometric_action(
-        sys,
+function minimize_geometric_action(
+        sys::FreidlinWentzellHamiltonian,
         x_initial::StateSpaceSet,
         optimizer::GMAMOptimizer = GeometricGradient(; stepsize = 1.0e3);
         kwargs...,
     )
-    return minimize_simple_geometric_action(
+    return minimize_geometric_action(
         sys, Matrix(Matrix(x_initial)'), optimizer; kwargs...
-    )
-end
-function minimize_simple_geometric_action(
-        sys::ContinuousTimeDynamicalSystem,
-        x_initial::Matrix{<:Real},
-        optimizer::GMAMOptimizer = GeometricGradient(; stepsize = 1.0e3);
-        kwargs...,
-    )
-    return minimize_simple_geometric_action(
-        FreidlinWentzellHamiltonian(sys), Matrix(Matrix(x_initial)'), optimizer; kwargs...
     )
 end
 
@@ -254,7 +244,7 @@ across all probe windows. Each probe window does `2 * probe_length` actual gradi
 updates but advances the path by `probe_length` accepted iterations, so wall time is
 roughly twice that of a fixed-step run with the same `maxiters`.
 """
-function minimize_simple_geometric_action(
+function minimize_geometric_action(
         sys::FreidlinWentzellHamiltonian,
         x_initial::Matrix{T},
         optimizer::AdaptiveGeometricGradient;

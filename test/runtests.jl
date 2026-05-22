@@ -30,6 +30,7 @@ end
     include("largedeviations/gMAM.jl")
     include("largedeviations/sgMAM.jl")
     include("largedeviations/multiplicative_noise.jl")
+    include("largedeviations/unified_api.jl")
     include("largedeviations/string_method.jl")
     include("largedeviations/Maier_stein.jl")
     include("largedeviations/interpolate.jl")

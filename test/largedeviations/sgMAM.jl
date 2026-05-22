@@ -113,14 +113,14 @@ end
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     x_initial = Matrix([xx yy]')
 
-    res_small = minimize_simple_geometric_action(
+    res_small = minimize_geometric_action(
         sys,
         x_initial,
         GeometricGradient(; stepsize = 1.0e-6, max_backtracks = 0);
         maxiters = 2,
         show_progress = false,
     )
-    res_large = minimize_simple_geometric_action(
+    res_large = minimize_geometric_action(
         sys,
         x_initial,
         GeometricGradient(; stepsize = 1.0, max_backtracks = 0);
@@ -165,7 +165,7 @@ end
 
     # Single iteration with huge stepsize: backtracking should prevent blowup
     opt = GeometricGradient(; max_backtracks = 20, stepsize = 1.0e6)
-    res = minimize_simple_geometric_action(
+    res = minimize_geometric_action(
         sys, x_initial, opt; maxiters = 1, show_progress = false
     )
     @test isfinite(res.action)
@@ -174,7 +174,7 @@ end
     # Multi-iteration: backtracking should converge to a lower action than the initial path
     bt_max_backtracks = 20
     bt_maxiters = 200
-    res_bt = minimize_simple_geometric_action(
+    res_bt = minimize_geometric_action(
         sys,
         x_initial,
         GeometricGradient(; max_backtracks = bt_max_backtracks, stepsize = 1.0);
@@ -185,7 +185,7 @@ end
 
     # Fairness baseline: no-backtracking gets the same total trial-step budget
     # as the backtracking run could consume (max_backtracks+1 trials per outer iter).
-    res_no_bt = minimize_simple_geometric_action(
+    res_no_bt = minimize_geometric_action(
         sys,
         x_initial,
         GeometricGradient(; max_backtracks = 0, stepsize = 1.0);
@@ -215,7 +215,7 @@ end
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     x_initial = Matrix([xx yy]')
 
-    res = minimize_simple_geometric_action(
+    res = minimize_geometric_action(
         sys,
         x_initial,
         GeometricGradient(; max_backtracks = 20, stepsize = 1.0);
@@ -245,7 +245,7 @@ end
     # Different starting stepsizes should converge to the same action
     actions = Float64[]
     for ss in [1.0, 100.0, 1.0e4]
-        res = minimize_simple_geometric_action(
+        res = minimize_geometric_action(
             sys,
             x_initial,
             GeometricGradient(; stepsize = ss);
@@ -274,7 +274,7 @@ end
     x_initial = Matrix([xx yy]')
 
     # With a tight reltol, should converge and get a finite action
-    res_tol = minimize_simple_geometric_action(
+    res_tol = minimize_geometric_action(
         sys,
         x_initial,
         GeometricGradient(; stepsize = 100.0);
@@ -286,7 +286,7 @@ end
     @test isfinite(res_tol.action)
 
     # Without reltol and more iterations should get same or better action
-    res_notol = minimize_simple_geometric_action(
+    res_notol = minimize_geometric_action(
         sys,
         x_initial,
         GeometricGradient(; stepsize = 100.0);
@@ -350,7 +350,7 @@ end
     @test isfinite(S0)
 
     # Adaptive should strictly improve on the initial path
-    res_ad = minimize_simple_geometric_action(
+    res_ad = minimize_geometric_action(
         sys, x_initial,
         AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 50);
         maxiters = 500, show_progress = false,
@@ -359,7 +359,7 @@ end
     @test res_ad.action < S0
 
     # Adaptive should be competitive with backtracking GeometricGradient
-    res_gg = minimize_simple_geometric_action(
+    res_gg = minimize_geometric_action(
         sys, x_initial,
         GeometricGradient(; stepsize = 100.0);
         maxiters = 1000, show_progress = false,
@@ -375,7 +375,7 @@ end
 
     actions = Float64[]
     for ss in (1.0, 100.0, 1.0e4)
-        res = minimize_simple_geometric_action(
+        res = minimize_geometric_action(
             sys, x_initial,
             AdaptiveGeometricGradient(; stepsize = ss, probe_length = 50);
             maxiters = 500, show_progress = false,
@@ -391,14 +391,14 @@ end
     _, sys, x_initial = _maier_stein_setup()
 
     # reltol-based early stop
-    res_tol = minimize_simple_geometric_action(
+    res_tol = minimize_geometric_action(
         sys, x_initial,
         AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 50);
         maxiters = 10_000, reltol = 1.0e-6, show_progress = false,
     )
     @test isfinite(res_tol.action)
 
-    res_notol = minimize_simple_geometric_action(
+    res_notol = minimize_geometric_action(
         sys, x_initial,
         AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 50);
         maxiters = 10_000, show_progress = false,
@@ -407,19 +407,11 @@ end
 end
 
 @testset "AdaptiveGeometricGradient API forms" begin
-    ds, sys, x_initial = _maier_stein_setup(; Nt = 40)
-
-    # ContinuousTimeDynamicalSystem dispatch: existing convention here is (Nt, D)
-    res_ds = minimize_simple_geometric_action(
-        ds, collect(x_initial'),
-        AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 30);
-        maxiters = 100, show_progress = false,
-    )
-    @test isfinite(res_ds.action)
+    _, sys, x_initial = _maier_stein_setup(; Nt = 40)
 
     # Accepts a StateSpaceSet
     sss = StateSpaceSet(x_initial')
-    res_sss = minimize_simple_geometric_action(
+    res_sss = minimize_geometric_action(
         sys, sss,
         AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 30);
         maxiters = 100, show_progress = false,
@@ -469,14 +461,14 @@ end
     x_initial = Matrix([xx yy]')
 
     # Backtracking GeometricGradient (incumbent) starting from a large step size
-    res_gg = minimize_simple_geometric_action(
+    res_gg = minimize_geometric_action(
         sys, x_initial,
         GeometricGradient(; stepsize = 100.0);
         maxiters = 2000, show_progress = false,
     )
 
     # Adaptive — should reach a lower or equal action on this underdamped problem
-    res_ad = minimize_simple_geometric_action(
+    res_ad = minimize_geometric_action(
         sys, x_initial,
         AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 100);
         maxiters = 2000, show_progress = false,
