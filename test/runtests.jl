@@ -31,6 +31,7 @@ end
     include("largedeviations/sgMAM.jl")
     include("largedeviations/multiplicative_noise.jl")
     include("largedeviations/unified_api.jl")
+    include("largedeviations/rank_deficient_rejection.jl")
     include("largedeviations/string_method.jl")
     include("largedeviations/Maier_stein.jl")
     include("largedeviations/interpolate.jl")

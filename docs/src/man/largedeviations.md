@@ -103,7 +103,7 @@ The literature contains a number of extensions of MAM-type methods that may be r
 - **tMAM / optimal linear time scaling**: avoids explicit optimization over the transition time by introducing an optimal linear time scaling; can be combined with adaptivity in time discretization [wan_tmam_2015](@citet).
 - **Adaptive MAM**: uses a moving-mesh strategy to concentrate grid points in dynamically important portions of the path, improving efficiency and robustness [zhou_adaptive_mam_2008](@citet).
 - **Non-Gaussian (jump / Lévy) noise**: for systems driven by jump noise, the rate function and path optimization problem differ from the Freidlin--Wentzell diffusive setting; see e.g. an optimal-control-based approach in [wei_most_likely_jumps_2023](@citet).
-- **Multiplicative / state-dependent noise**: extensions of geometric action minimization to degenerate or multiplicative noise are discussed in [grafke_small_random_2017](@citet); the current `sgMAM` implementation assumes additive noise.
+- **Multiplicative / state-dependent noise**: state-dependent diagonal and full-matrix multiplicative noise is supported by both `gMAM` (via `minimize_geometric_action(::CoupledSDEs, ...)`) and `sgMAM` (via `FreidlinWentzellHamiltonian(::CoupledSDEs)`). The diffusion tensor shape is detected once at construction via the [`NoiseShape`](@ref) type hierarchy and dispatched at compile time; see [grafke_small_random_2017](@citet) for the underlying Hamiltonian formulation. Rank-deficient (degenerate) noise is rejected at construction; see [grafke_small_random_2017](@citet) for the rank-deficient extension that would be needed to support it.
 
 ### Minimum action method (MAM)
 Minimization of the specified action functional using the optimization algorithm of `Optimization.jl`. See also [e_minimum_2004](@citet).
@@ -123,10 +123,28 @@ minimize_geometric_action
 Simplified minimization of the geometric action following [grafke_long_2017](@citet).
 The simple gMAM reduces the complexity of the original gMAM by requiring only first-order derivatives of the underlying Hamiltonian optimization formulation. This simplifies the numerical treatment and computational complexity.
 
-The implementation below performs a constrained gradient descent assuming an autonomous system with additive Gaussian noise.
+The implementation below performs a constrained gradient descent on the Hamiltonian system, supporting autonomous diffusions with additive, diagonal-multiplicative, or general-matrix multiplicative noise.
+
+#### Hamiltonian picture
+
+The Freidlin-Wentzell rate function admits an equivalent Hamiltonian formulation with conjugate momentum ``p``:
+
+```math
+H(\varphi, p) = \langle b(\varphi), p \rangle + \tfrac{1}{2}\, \langle p,\, a(\varphi)\, p \rangle,
+```
+
+where ``a(x) = \sigma(x)\sigma(x)^{\top}``. The action along an instanton (where ``H \equiv 0``) reduces to ``S[\varphi] = \int_0^T \langle p, \mathrm{d}\varphi\rangle``, the form used by `minimize_geometric_action` when the input is a [`FreidlinWentzellHamiltonian`](@ref).
+
+The implementation classifies ``a(x)`` once at construction into one of three [`NoiseShape`](@ref) singletons: [`AdditiveNoise`](@ref) (constant diagonal ``a``), [`DiagonalNoise`](@ref) (state-dependent diagonal ``a``), or [`GeneralNoise`](@ref) (off-diagonal, state-independent or state-dependent). The tag is a type parameter, so the per-shape inner loops in `update_p!`, `update_x!`, and `geometric_gradient_step!` dispatch at compile time.
+
+Rank-deficient ``a(x)`` is rejected at construction; see issue #325 for the supporting design.
+
 ```@docs
-minimize_geometric_action
 FreidlinWentzellHamiltonian
+NoiseShape
+AdditiveNoise
+DiagonalNoise
+GeneralNoise
 ```
 
 

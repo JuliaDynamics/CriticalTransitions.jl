@@ -15,9 +15,27 @@ Rank-deficient noise (a singular diffusion tensor) is not supported in this rele
 """
 abstract type NoiseShape end
 
+"""
+    AdditiveNoise <: NoiseShape
+
+Singleton tag for state-independent diagonal diffusion: `a(x) ≡ const` and `isdiag(a)`.
+"""
 struct AdditiveNoise <: NoiseShape end
+
+"""
+    DiagonalNoise <: NoiseShape
+
+Singleton tag for state-dependent diagonal diffusion: `a(x)` varies with `x` but is
+diagonal at every probe point.
+"""
 struct DiagonalNoise <: NoiseShape end
-struct GeneralNoise  <: NoiseShape end
+
+"""
+    GeneralNoise <: NoiseShape
+
+Singleton tag for diffusion with off-diagonal entries, either constant or state-dependent.
+"""
+struct GeneralNoise <: NoiseShape end
 
 """
     _is_rank_deficient(M)

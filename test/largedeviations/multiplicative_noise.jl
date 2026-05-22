@@ -154,6 +154,31 @@ end
     @test isfinite(res_g.action)
 end
 
+@testset "Additive non-diagonal Σ goes through GeneralNoise" begin
+    function meier_stein(u, p, t)
+        x, y = u
+        return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
+    end
+    Nt = 60
+    xx = range(-1.0, 1.0; length = Nt)
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    x_initial = Matrix([xx yy]')
+
+    θ = 0.4
+    R = [cos(θ) -sin(θ); sin(θ) cos(θ)]
+    D = Diagonal([0.5, 2.0])
+    Q_rot = R * D * R'
+    ds_rot = CoupledSDEs(meier_stein, zeros(2); covariance = Q_rot)
+    sys_rot = FreidlinWentzellHamiltonian(ds_rot)
+    @test sys_rot isa FreidlinWentzellHamiltonian{<:Any, 2, <:Any, <:Any, <:Any, GeneralNoise}
+
+    res = minimize_geometric_action(
+        sys_rot, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 500, show_progress = false,
+    )
+    @test isfinite(res.action)
+end
+
 @testset "gMAM general multiplicative converges" begin
     Random.seed!(0)
     b2(u, p, t) = SA[-u[1], -u[2]]
