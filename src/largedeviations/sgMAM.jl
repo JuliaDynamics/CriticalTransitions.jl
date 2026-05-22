@@ -176,8 +176,6 @@ function minimize_simple_geometric_action(
         abstol::Real = NaN,
         reltol::Real = NaN,
     ) where {T}
-    H_p, H_x = sys.H_p, sys.H_x
-
     Nx, Nt = size(x_initial)
     s = range(0; stop = 1, length = Nt)
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
@@ -187,19 +185,19 @@ function minimize_simple_geometric_action(
 
     # Ensure a consistent starting path for action comparisons
     interpolate_path!(x, alpha, s)
-    _sgmam_refresh!(xdot, p, lambda, x, H_p)
+    _sgmam_refresh!(xdot, p, lambda, x, sys)
     initial_action = FW_action(xdot, p)
 
     function try_step!(ϵ)
-        update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ)
+        update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ)
         interpolate_path!(x, alpha, s)
-        _sgmam_refresh!(xdot, p, lambda, x, H_p)
+        _sgmam_refresh!(xdot, p, lambda, x, sys)
         return FW_action(xdot, p)
     end
     save!() = copyto!(x_prev, x)
     function restore!()
         copyto!(x, x_prev)
-        return _sgmam_refresh!(xdot, p, lambda, x, H_p)
+        return _sgmam_refresh!(xdot, p, lambda, x, sys)
     end
 
     current_action, _ = backtracking_optimize!(
@@ -264,8 +262,6 @@ function minimize_simple_geometric_action(
         abstol::Real = NaN,
         reltol::Real = NaN,
     ) where {T}
-    H_p, H_x = sys.H_p, sys.H_x
-
     Nt = size(x_initial, 2)
     s = range(0; stop = 1, length = Nt)
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
@@ -275,7 +271,7 @@ function minimize_simple_geometric_action(
     x_big_result = similar(x)   # store big-probe result while running small probe
 
     interpolate_path!(x, alpha, s)
-    _sgmam_refresh!(xdot, p, lambda, x, H_p)
+    _sgmam_refresh!(xdot, p, lambda, x, sys)
     Tϵ = typeof(optimizer.stepsize)
     current_action = Tϵ(FW_action(xdot, p))
 
@@ -284,9 +280,9 @@ function minimize_simple_geometric_action(
     function run_probe!(ϵ, n)
         S = oftype(ϵ, NaN)
         for _ in 1:n
-            update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ)
+            update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ)
             interpolate_path!(x, alpha, s)
-            _sgmam_refresh!(xdot, p, lambda, x, H_p)
+            _sgmam_refresh!(xdot, p, lambda, x, sys)
             S = oftype(ϵ, FW_action(xdot, p))
             isfinite(S) || return oftype(ϵ, Inf)
         end
@@ -309,7 +305,7 @@ function minimize_simple_geometric_action(
         copyto!(x_big_result, x)
 
         copyto!(x, x_start)
-        _sgmam_refresh!(xdot, p, lambda, x, H_p)
+        _sgmam_refresh!(xdot, p, lambda, x, sys)
         ϵ_small = clamp(
             stepsize * optimizer.shrink, optimizer.stepsize_min, optimizer.stepsize_max
         )
@@ -326,12 +322,12 @@ function minimize_simple_geometric_action(
             stepsize = max(optimizer.stepsize_min, stepsize * optimizer.shrink)
         elseif big_ok
             copyto!(x, x_big_result)
-            _sgmam_refresh!(xdot, p, lambda, x, H_p)
+            _sgmam_refresh!(xdot, p, lambda, x, sys)
             current_action = S_big
             stepsize = min(optimizer.stepsize_max, stepsize * optimizer.grow)
         else
             copyto!(x, x_start)
-            _sgmam_refresh!(xdot, p, lambda, x, H_p)
+            _sgmam_refresh!(xdot, p, lambda, x, sys)
             stepsize = max(optimizer.stepsize_min, stepsize * optimizer.shrink^2)
             accepted = false
             verbose &&
@@ -391,72 +387,232 @@ function init_allocation(x_initial, Nt)
     return x, p, pdot, xdot, lambda, alpha
 end
 
-function update!(x, xdot, xdotdot, p, pdot, lambda, H_x, H_p, ϵ)
+function update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ)
     # xdot, p, and lambda are assumed to be pre-computed and consistent with x
     # (via _sgmam_refresh! or central_diff! + update_p!)
     central_diff!(pdot, p)
-    Hx = H_x(x, p)
-
-    # implicit update
+    Hx = sys.H_x(x, p)
     central_diff!(xdotdot, xdot)
-
-    return update_x!(x, lambda, pdot, xdotdot, Hx, ϵ)
+    return update_x!(x, lambda, pdot, xdotdot, Hx, sys, ϵ)
 end
 
-function update_x!(x, λ, p′, x′′, Hx, ϵ)
-    # each dof has same lambda, but possibly different H_pp^{-1}
-    Nx, Nt = size(x)
-    xa = x[:, 1]
-    xb = x[:, end]
+function update_x!(x, λ, p′, x′′, Hx, sys::FreidlinWentzellHamiltonian, ϵ)
+    _update_x!(x, λ, p′, x′′, Hx, sys, ϵ)
+    return nothing
+end
 
-    idxc = 2:(Nt - 1)
+function _update_x!(
+        x, λ, p′, x′′, Hx,
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, AdditiveNoise}, ϵ,
+    ) where {IIP, D, Hx_t, Hp_t, AF}
+    a_diag = LinearAlgebra.diag(sys.a(view(x, :, 1)))
+    a_inv  = inv.(a_diag)
 
-    # Tridiagonal system is shared across dof
-    d = 1 .+ 2 .* ϵ .* λ[2:(end - 1)] .^ 2
-    du = -ϵ .* λ[2:(end - 2)] .^ 2
-    dl = -ϵ .* λ[3:(end - 1)] .^ 2
-    T = LinearAlgebra.Tridiagonal(dl, d, du)
-
-    # One cache per thread (solve! is not thread-safe on a shared cache)
-    nthreads = Threads.nthreads()
-    if hasmethod(Threads.nthreads, Tuple{Symbol})
-        nthreads = Threads.nthreads(:default) + Threads.nthreads(:interactive)
-    end
-    caches = map(1:nthreads) do _
-        b = zeros(eltype(x), length(d))
-        prob = LinearProblem(T, b)
-        init(
-            prob,
-            LUFactorization();
-            alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
-        )
-    end
+    Nx, Nt = size(x); xa = x[:, 1]; xb = x[:, end]; idxc = 2:(Nt - 1)
 
     Threads.@threads for dof in 1:Nx
-        cache = caches[Threads.threadid()]
-        rhs = cache.b
-
+        c = a_inv[dof]
+        d  = 1 .+ 2 .* ϵ .* λ[2:(end - 1)] .^ 2 .* c
+        du = -ϵ .* λ[2:(end - 2)] .^ 2 .* c
+        dl = -ϵ .* λ[3:(end - 1)] .^ 2 .* c
+        T = LinearAlgebra.Tridiagonal(dl, d, du)
+        rhs = Vector{eltype(x)}(undef, length(d))
         @inbounds for k in 1:length(rhs)
             i = k + 1
-            rhs[k] = x[dof, i] + ϵ * (λ[i] * p′[dof, i] + Hx[dof, i] - λ[i]^2 * x′′[dof, i])
+            rhs[k] = x[dof, i] + ϵ * (λ[i] * p′[dof, i] + Hx[dof, i] - c * λ[i]^2 * x′′[dof, i])
         end
-        rhs[1] += ϵ * λ[2]^2 * xa[dof]
-        rhs[end] += ϵ * λ[end - 1]^2 * xb[dof]
-
+        rhs[1]   += ϵ * c * λ[2]^2 * xa[dof]
+        rhs[end] += ϵ * c * λ[end - 1]^2 * xb[dof]
+        prob = LinearProblem(T, rhs)
+        cache = init(
+            prob, LUFactorization();
+            alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
+        )
         solve!(cache)
         x[dof, idxc] .= cache.u
     end
     return nothing
 end
 
-function update_p!(p, lambda, x, xdot, H_p)
-    # Alternative: Direct computation, only correct for quadratic Hamiltonian in p,
-    # where H_pp does not depend on p
-    b_ = H_p(x, 0 * x)
-    lambda .= sqrt.(sum(b_ .^ 2; dims = 1) ./ sum(xdot .^ 2; dims = 1))
+function _update_x!(
+        x, λ, p′, x′′, Hx,
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, DiagonalNoise}, ϵ,
+    ) where {IIP, D, Hx_t, Hp_t, AF}
+    Nx, Nt = size(x)
+    a_at = Matrix{eltype(x)}(undef, Nx, Nt)
+    for t in 1:Nt
+        a_at[:, t] .= LinearAlgebra.diag(sys.a(view(x, :, t)))
+    end
+
+    xa = x[:, 1]; xb = x[:, end]; idxc = 2:(Nt - 1)
+
+    Threads.@threads for dof in 1:Nx
+        α = [ϵ * λ[i]^2 / a_at[dof, i] for i in 2:(Nt - 1)]
+        d  = 1 .+ 2 .* α
+        du = -α[1:(end - 1)]
+        dl = -α[2:end]
+        T = LinearAlgebra.Tridiagonal(dl, d, du)
+        rhs = Vector{eltype(x)}(undef, length(d))
+        @inbounds for k in 1:length(rhs)
+            i = k + 1
+            rhs[k] = x[dof, i] + ϵ * (
+                λ[i] * p′[dof, i] + Hx[dof, i] - (λ[i]^2 / a_at[dof, i]) * x′′[dof, i]
+            )
+        end
+        rhs[1]   += α[1]   * xa[dof]
+        rhs[end] += α[end] * xb[dof]
+        prob = LinearProblem(T, rhs)
+        cache = init(
+            prob, LUFactorization();
+            alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
+        )
+        solve!(cache)
+        x[dof, idxc] .= cache.u
+    end
+    return nothing
+end
+
+function _update_x!(
+        x, λ, p′, x′′, Hx,
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, GeneralNoise}, ϵ,
+    ) where {IIP, D, Hx_t, Hp_t, AF}
+    Nx, Nt = size(x)
+    N_in   = Nt - 2
+    n      = N_in * Nx
+
+    A_blocks = [Matrix(sys.a(view(x, :, i_in + 1))) for i_in in 1:N_in]
+
+    Iv = Int[]; Jv = Int[]; Vv = Vector{eltype(x)}()
+    nnz_est = N_in * Nx * Nx + 2 * (N_in - 1) * Nx
+    sizehint!(Iv, nnz_est); sizehint!(Jv, nnz_est); sizehint!(Vv, nnz_est)
+
+    rhs = zeros(eltype(x), n)
+    xa = x[:, 1]; xb = x[:, end]
+
+    for i_in in 1:N_in
+        i = i_in + 1
+        rb  = (i_in - 1) * Nx
+        A_i = A_blocks[i_in]
+        λi2 = λ[i]^2
+
+        # Diagonal block: a(x_i) + 2 ϵ λ_i² I.
+        for k1 in 1:Nx, k2 in 1:Nx
+            v = A_i[k1, k2] + (k1 == k2 ? 2 * ϵ * λi2 : zero(eltype(x)))
+            push!(Iv, rb + k1); push!(Jv, rb + k2); push!(Vv, v)
+        end
+
+        # Left off-diagonal (row i, col i-1): -ϵ λ_i² I.
+        if i_in > 1
+            base_L = (i_in - 2) * Nx
+            for k in 1:Nx
+                push!(Iv, rb + k); push!(Jv, base_L + k); push!(Vv, -ϵ * λi2)
+            end
+        end
+
+        # Right off-diagonal (row i, col i+1): -ϵ λ_i² I.
+        if i_in < N_in
+            base_R = i_in * Nx
+            for k in 1:Nx
+                push!(Iv, rb + k); push!(Jv, base_R + k); push!(Vv, -ϵ * λi2)
+            end
+        end
+
+        # RHS: A_i (x_i + ϵ (λ_i p'_i + Hx_i)) - ϵ λ_i² x''_i + boundary contributions.
+        rhs_block = A_i * (x[:, i] .+ ϵ .* (λ[i] .* p′[:, i] .+ Hx[:, i])) .-
+            ϵ * λi2 .* x′′[:, i]
+        if i_in == 1
+            rhs_block .+= ϵ * λi2 .* xa
+        end
+        if i_in == N_in
+            rhs_block .+= ϵ * λi2 .* xb
+        end
+        @inbounds for k in 1:Nx
+            rhs[rb + k] = rhs_block[k]
+        end
+    end
+
+    M = SparseArrays.sparse(Iv, Jv, Vv, n, n)
+    prob = LinearProblem(M, rhs)
+    cache = init(prob, LUFactorization())
+    solve!(cache)
+    sol = cache.u
+    for i_in in 1:N_in
+        rb = (i_in - 1) * Nx
+        @inbounds for k in 1:Nx
+            x[k, i_in + 1] = sol[rb + k]
+        end
+    end
+    return nothing
+end
+
+function update_p!(p, lambda, x, xdot, sys::FreidlinWentzellHamiltonian)
+    _update_p!(p, lambda, x, xdot, sys)
+    return nothing
+end
+
+function _update_p!(
+        p, lambda, x, xdot,
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, AdditiveNoise},
+    ) where {IIP, D, Hx, Hp, AF}
+    b_ = sys.H_p(x, zero(x))
+    a_diag = LinearAlgebra.diag(sys.a(view(x, :, 1)))
+    a_inv  = inv.(a_diag)
+    num = sum(b_ .^ 2 .* a_inv; dims = 1)
+    den = sum(xdot .^ 2 .* a_inv; dims = 1)
+    lambda .= sqrt.(num ./ den)
     lambda[1] = 0
     lambda[end] = 0
-    p .= (lambda .* xdot .- b_)
+    p .= (lambda .* xdot .- b_) .* a_inv
+    return nothing
+end
+
+function _update_p!(
+        p, lambda, x, xdot,
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, DiagonalNoise},
+    ) where {IIP, D, Hx, Hp, AF}
+    b_ = sys.H_p(x, zero(x))
+    Nt = size(x, 2)
+    for t in 1:Nt
+        a_t   = sys.a(view(x, :, t))
+        diag_t = LinearAlgebra.diag(a_t)
+        inv_t  = inv.(diag_t)
+        num_t = sum(b_[:, t] .^ 2 .* inv_t)
+        den_t = sum(xdot[:, t] .^ 2 .* inv_t)
+        λ_t = den_t > 1e-28 ? sqrt(num_t / den_t) : zero(eltype(b_))
+        lambda[1, t] = isfinite(λ_t) ? λ_t : zero(eltype(b_))
+        @inbounds for i in 1:D
+            p[i, t] = (lambda[1, t] * xdot[i, t] - b_[i, t]) * inv_t[i]
+        end
+    end
+    lambda[1, 1] = 0
+    lambda[1, end] = 0
+    return nothing
+end
+
+function _update_p!(
+        p, lambda, x, xdot,
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, GeneralNoise},
+    ) where {IIP, D, Hx, Hp, AF}
+    b_ = sys.H_p(x, zero(x))
+    Nt = size(x, 2)
+    inv_b    = Vector{eltype(b_)}(undef, D)
+    inv_xdot = Vector{eltype(b_)}(undef, D)
+    rhs      = Vector{eltype(b_)}(undef, D)
+    for t in 1:Nt
+        a_t = sys.a(view(x, :, t))
+        inv_b    .= a_t \ Vector(view(b_, :, t))
+        inv_xdot .= a_t \ Vector(view(xdot, :, t))
+        num_t = dot(view(b_, :, t),   inv_b)
+        den_t = dot(view(xdot, :, t), inv_xdot)
+        λ_t = den_t > 1e-28 ? sqrt(num_t / den_t) : zero(eltype(b_))
+        lambda[1, t] = isfinite(λ_t) ? λ_t : zero(eltype(b_))
+        @inbounds for i in 1:D
+            rhs[i] = lambda[1, t] * xdot[i, t] - b_[i, t]
+        end
+        p[:, t] .= a_t \ rhs
+    end
+    lambda[1, 1] = 0
+    lambda[1, end] = 0
     return nothing
 end
 
@@ -466,9 +622,9 @@ function central_diff!(xdot, x)
     return nothing
 end
 
-function _sgmam_refresh!(xdot, p, lambda, x, H_p)
+function _sgmam_refresh!(xdot, p, lambda, x, sys)
     central_diff!(xdot, x)
-    update_p!(p, lambda, x, xdot, H_p)
+    update_p!(p, lambda, x, xdot, sys)
     return nothing
 end
 

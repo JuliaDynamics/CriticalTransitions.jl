@@ -159,7 +159,7 @@ end
     p = zeros(size(x0))
     λ = zeros(1, Nt)
     CT.central_diff!(xdot, x0)
-    CT.update_p!(p, λ, x0, xdot, sys.H_p)
+    CT.update_p!(p, λ, x0, xdot, sys)
     S0 = CT.FW_action(xdot, p)
     @test isfinite(S0)
 
@@ -345,7 +345,7 @@ end
     CT.interpolate_path!(x0, α, s)
     xdot = zeros(size(x0)); p = zeros(size(x0)); λ = zeros(1, Nt)
     CT.central_diff!(xdot, x0)
-    CT.update_p!(p, λ, x0, xdot, sys.H_p)
+    CT.update_p!(p, λ, x0, xdot, sys)
     S0 = CT.FW_action(xdot, p)
     @test isfinite(S0)
 
