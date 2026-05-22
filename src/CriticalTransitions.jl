@@ -35,7 +35,8 @@ using DynamicalSystemsBase:
     integrator,
     referenced_sciml_prob,
     covariance_matrix,
-    diffusion_matrix
+    diffusion_matrix,
+    diffusion_function
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
@@ -67,6 +68,7 @@ include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 
 include("largedeviations/utils.jl")
+include("largedeviations/noise_shape.jl")
 include("largedeviations/action.jl")
 include("largedeviations/methods.jl")
 include("largedeviations/MinimumActionPath.jl")
@@ -94,6 +96,7 @@ export drift, div_drift, solver, noise_strength
 export StateSpaceSet
 
 export minimize_simple_geometric_action, ExtendedPhaseSpace
+export NoiseShape, AdditiveNoise, DiagonalNoise, GeneralNoise
 export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method
 export MinimumActionPath

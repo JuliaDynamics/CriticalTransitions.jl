@@ -22,6 +22,7 @@ end
 #end
 
 @testset "Large Deviations" begin
+    include("largedeviations/noise_shape.jl")
     include("largedeviations/action_fhn.jl")
     include("largedeviations/action_canonicalization.jl")
     include("largedeviations/action_limit_cycle.jl")

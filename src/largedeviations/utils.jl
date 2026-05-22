@@ -80,6 +80,25 @@ function proper_MAM_system(ds::CoupledSDEs)
     return
 end
 
+"""
+    proper_FW_system(ds::CoupledSDEs)
+
+Validates that `ds` is a valid input for the Freidlin-Wentzell Hamiltonian path
+(gMAM or sgMAM via `FreidlinWentzellHamiltonian(ds)`). Only requires autonomous noise;
+rank-deficiency is detected by `_classify_noise_shape` (called at workspace
+construction). Returns `nothing` on success; throws `ArgumentError` otherwise.
+"""
+function proper_FW_system(ds::CoupledSDEs)
+    if !ds.noise_type[:autonomous]
+        throw(
+            ArgumentError(
+                "Freidlin-Wentzell methods are only applicable for autonomous noise.",
+            ),
+        )
+    end
+    return nothing
+end
+
 function path_velocity!(v, path, time; order = 4)
     if order == 2
         @views begin
