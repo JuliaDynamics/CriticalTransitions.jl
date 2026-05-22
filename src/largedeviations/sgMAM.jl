@@ -1,56 +1,133 @@
 """
-A structure representing a extanded phase space system where your dissipative vector field is embedded in a doubled dimensional phase space. Given old phase space coordinates `x` of a vector field `f(x)`, we can define the canonical momenta `p`, such that the new phase space coordinates are `(x, p)`. The dynamics in this extended phase space are then governed by the Hamtiltonian system:
+A structure representing an extended phase space system where your dissipative vector
+field is embedded in a doubled dimensional phase space. The struct stores the partial
+derivatives `H_x`, `H_p` of the Freidlin/Wentzell Hamiltonian
 
-``H = p^2 + x \\dot f(x)``
+``H(x, p) = ⟨b(x), p⟩ + (1/2) ⟨p, a(x)·p⟩,``
 
-Hence, this system operates in an extended phase space where the Hamiltonian is assumed to be quadratic in the extended momentum.
-
-The struct `ExtendedPhaseSpace` holds the Hamilton's functions `H_x` and `H_p`.
+a callable `a` for the diffusion tensor, and a `NoiseShape` type parameter `NS` that
+encodes how the inner algorithm loops dispatch.
 """
-struct ExtendedPhaseSpace{IIP, D, Hx, Hp}
+struct FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, NS <: NoiseShape}
     H_x::Hx
     H_p::Hp
+    a::AF
+end
 
-    function ExtendedPhaseSpace(ds::ContinuousTimeDynamicalSystem)
-        if ds isa CoupledSDEs
-            proper_sgMAM_system(ds)
+function FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)
+    D = dimension(ds)
+    if ds isa CoupledSDEs
+        proper_FW_system(ds)
+    end
+    NS = _classify_noise_shape(ds)
+
+    σ_fn = ds isa CoupledSDEs ? diffusion_function(ds) : nothing
+    ps   = current_parameters(ds)
+
+    # Decision for `a(x)`:
+    #  * No noise (CoupledODEs):                 a ≡ I, wrap in Returns.
+    #  * Additive (state-independent) SDE:       a is constant; wrap the (trace-
+    #    normalized) value in Returns regardless of diagonal-ness so update_p!/
+    #    update_x! do not repeatedly re-evaluate σ_fn for a constant tensor.
+    #  * State-dependent SDE:                    closure that evaluates σ(x)σ(x)ᵀ
+    #    per call, trace-normalized at u₀.
+    is_constant_a = (ds isa CoupledODEs) || (ds isa CoupledSDEs && ds.noise_type[:additive])
+
+    a_callable = if ds isa CoupledODEs
+        Returns(LinearAlgebra.Diagonal(ones(Float64, D)))
+    elseif is_constant_a
+        u₀ = current_state(ds)
+        σ0 = σ_fn(u₀, ps, 0.0)
+        σ_mat = σ0 isa AbstractMatrix ? σ0 : LinearAlgebra.Diagonal(σ0)
+        a0 = σ_mat * σ_mat'
+        s = LinearAlgebra.tr(a0) / D
+        a_const = LinearAlgebra.isdiag(a0) ?
+            LinearAlgebra.Diagonal(collect(LinearAlgebra.diag(a0)) ./ s) :
+            Matrix(a0 ./ s)
+        Returns(a_const)
+    else
+        u₀ = current_state(ds)
+        σ0 = σ_fn(u₀, ps, 0.0)
+        σ_mat0 = σ0 isa AbstractMatrix ? σ0 : LinearAlgebra.Diagonal(σ0)
+        a0 = σ_mat0 * σ_mat0'
+        s = LinearAlgebra.tr(a0) / D
+        let σ_fn = σ_fn, ps = ps, s = s
+            x -> begin
+                σx = σ_fn(x, ps, 0.0)
+                σ_mat = σx isa AbstractMatrix ? σx : LinearAlgebra.Diagonal(σx)
+                (σ_mat * σ_mat') / s
+            end
         end
+    end
 
-        f = dynamic_rule(ds)
-        jac = jacobian(ds)
-        param = current_parameters(ds)
+    f   = dynamic_rule(ds)
+    jac = jacobian(ds)
 
-        function H_x(x, p) # ℜ² → ℜ²
-            Hx = similar(x)
+    # Constant `a` (additive SDE or CoupledODEs) gives ∂ₓa ≡ 0, so skip the FD
+    # section entirely; this also handles the constant non-diagonal Σ case
+    # correctly even though it classifies as GeneralNoise.
+    skip_ax_fd = is_constant_a
 
-            for idx in 1:size(x, 2)
-                jax = jac(x[:, idx], param, 0.0)
-                for idc in 1:size(x, 1)
-                    Hx[idc, idx] = dot(jax[:, idc], p[:, idx])
+    function H_x(x, p)
+        Hx = similar(x)
+        Nt = size(x, 2); Dn = size(x, 1)
+        h_fd = max(sqrt(eps(eltype(x))), eltype(x)(1e-8))
+        for idx in 1:Nt
+            xi = x[:, idx]
+            pi_v = p[:, idx]
+            jax = jac(xi, ps, 0.0)
+            @inbounds for idc in 1:Dn
+                Hx[idc, idx] = dot(jax[:, idc], pi_v)
+            end
+            if !skip_ax_fd
+                e = zeros(eltype(xi), Dn)
+                sample = a_callable(xi)
+                is_diag = sample isa LinearAlgebra.Diagonal || LinearAlgebra.isdiag(sample)
+                @inbounds for l in 1:Dn
+                    fill!(e, 0); e[l] = h_fd
+                    ap = a_callable(xi .+ e)
+                    am = a_callable(xi .- e)
+                    if is_diag
+                        dla = (LinearAlgebra.diag(ap) .- LinearAlgebra.diag(am)) ./ (2 * h_fd)
+                        Hx[l, idx] += 0.5 * dot(pi_v .^ 2, dla)
+                    else
+                        Hx[l, idx] += 0.5 * dot(pi_v, ((ap .- am) ./ (2 * h_fd)) * pi_v)
+                    end
                 end
             end
-            return Hx
         end
-        function H_p(x, p) # ℜ² → ℜ²
-            Hp = similar(x)
+        return Hx
+    end
 
-            for idx in 1:size(x, 2)
-                Hp[:, idx] = p[:, idx] + f(x[:, idx], param, 0.0)
-            end
-            return Hp
+    function H_p(x, p)
+        Hp = similar(x)
+        for idx in 1:size(x, 2)
+            a_x = a_callable(x[:, idx])
+            Hp[:, idx] = a_x * p[:, idx] .+ f(x[:, idx], ps, 0.0)
         end
-        return new{isinplace(ds), dimension(ds), typeof(H_x), typeof(H_p)}(H_x, H_p)
+        return Hp
     end
-    function ExtendedPhaseSpace{IIP, D}(H_x::Function, H_p::Function) where {IIP, D}
-        return new{IIP, D, typeof(H_x), typeof(H_p)}(H_x, H_p)
-    end
+
+    return FreidlinWentzellHamiltonian{
+        isinplace(ds), D, typeof(H_x), typeof(H_p), typeof(a_callable), typeof(NS),
+    }(H_x, H_p, a_callable)
 end
 
-function prettyprint(mlp::ExtendedPhaseSpace{IIP, D}) where {IIP, D}
-    return "Doubled $D-dimensional phase space containing $(IIP ? "in-place" : "out-of-place") functions"
+function FreidlinWentzellHamiltonian{IIP, D}(
+        H_x::Function, H_p::Function;
+        a = Returns(LinearAlgebra.Diagonal(ones(Float64, D))),
+    ) where {IIP, D}
+    NS = _classify_user_a(a, D)
+    return FreidlinWentzellHamiltonian{IIP, D, typeof(H_x), typeof(H_p), typeof(a), typeof(NS)}(
+        H_x, H_p, a,
+    )
 end
 
-Base.show(io::IO, mlp::ExtendedPhaseSpace) = print(io, prettyprint(mlp))
+function prettyprint(mlp::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, NS}) where {IIP, D, Hx, Hp, AF, NS}
+    return "Freidlin-Wentzell Hamiltonian on $D-dimensional state space ($(NS)) with $(IIP ? "in-place" : "out-of-place") H_x and H_p"
+end
+
+Base.show(io::IO, mlp::FreidlinWentzellHamiltonian) = print(io, prettyprint(mlp))
 
 """
 $(TYPEDSIGNATURES)
@@ -90,7 +167,7 @@ sacrificing accuracy.
   - `reltol::Real=NaN`: relative tolerance for early stopping based on action change
 """
 function minimize_simple_geometric_action(
-        sys::ExtendedPhaseSpace,
+        sys::FreidlinWentzellHamiltonian,
         x_initial::Matrix{T},
         optimizer::GeometricGradient = GeometricGradient(; stepsize = 1.0e3);
         maxiters::Int = 1000,
@@ -162,7 +239,7 @@ function minimize_simple_geometric_action(
         kwargs...,
     )
     return minimize_simple_geometric_action(
-        ExtendedPhaseSpace(sys), Matrix(Matrix(x_initial)'), optimizer; kwargs...
+        FreidlinWentzellHamiltonian(sys), Matrix(Matrix(x_initial)'), optimizer; kwargs...
     )
 end
 
@@ -178,7 +255,7 @@ updates but advances the path by `probe_length` accepted iterations, so wall tim
 roughly twice that of a fixed-step run with the same `maxiters`.
 """
 function minimize_simple_geometric_action(
-        sys::ExtendedPhaseSpace,
+        sys::FreidlinWentzellHamiltonian,
         x_initial::Matrix{T},
         optimizer::AdaptiveGeometricGradient;
         maxiters::Int = 1000,
@@ -401,13 +478,3 @@ end
 # zero-energy shell `H = p·f + |p|²/2 = 0`, the identity `p · dϕ = (|p|²/2) dt`
 # holds along the instanton, so `∫ p · dϕ = ½ ∫ |p|² dt = S_FW`. No additional `/2`.
 FW_action(xdot, p) = dot(xdot, p)
-
-function proper_sgMAM_system(ds::CoupledSDEs)
-    proper_MAM_system(ds)
-    Σ = covariance_matrix(ds)
-    return LinearAlgebra.isdiag(Σ) || throw(
-        ArgumentError(
-            "Simple geometric action is only defined for diagonal noise. The noise covariance matrix is not diagonal.",
-        ),
-    )
-end

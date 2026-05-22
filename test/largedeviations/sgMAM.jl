@@ -2,8 +2,26 @@ using CriticalTransitions
 using ModelingToolkitBase
 using Test
 using LinearAlgebra
+using StaticArrays
 
-@testset "ExtendedPhaseSpace KPO" begin
+@testset "FreidlinWentzellHamiltonian carries NoiseShape" begin
+    f_lin(u, p, t) = SA[-u[1], -u[2]]
+    ds_ode = CoupledODEs(f_lin, SA[0.0, 0.0])
+    sys_ode = FreidlinWentzellHamiltonian(ds_ode)
+    @test sys_ode isa FreidlinWentzellHamiltonian{<:Any, 2, <:Any, <:Any, <:Any, AdditiveNoise}
+    @test sys_ode.a(zeros(2)) ≈ LinearAlgebra.Diagonal(ones(2))
+
+    ds_iso = CoupledSDEs(f_lin, SA[0.0, 0.0]; noise_strength = 1.0)
+    sys_iso = FreidlinWentzellHamiltonian(ds_iso)
+    @test sys_iso isa FreidlinWentzellHamiltonian{<:Any, 2, <:Any, <:Any, <:Any, AdditiveNoise}
+
+    H_x_user(x, p) = zeros(size(x))
+    H_p_user(x, p) = ones(size(x))
+    sys_user = FreidlinWentzellHamiltonian{false, 2}(H_x_user, H_p_user)
+    @test sys_user isa FreidlinWentzellHamiltonian{false, 2, <:Any, <:Any, <:Any, AdditiveNoise}
+end
+
+@testset "FreidlinWentzellHamiltonian KPO" begin
     λ = 3 / 1.21 * 2 / 295
     ω0 = 1.0
     ω = 1.0
@@ -51,8 +69,8 @@ using LinearAlgebra
     prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac = true)
     ds = CoupledODEs(prob)
 
-    sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
-    sys′ = ExtendedPhaseSpace(ds)
+    sys = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
+    sys′ = FreidlinWentzellHamiltonian(ds)
 
     Nt = 500  # number of discrete time steps
     p_r = rand(2, Nt)
@@ -62,7 +80,7 @@ using LinearAlgebra
     @test sys′.H_p(x_r, p_r) ≈ sys.H_p(x_r, p_r)
 end
 
-@testset "ExtendedPhaseSpace MTK" begin
+@testset "FreidlinWentzellHamiltonian MTK" begin
     @independent_variables t
     D = Differential(t)
     sts = @variables u(t) v(t)
@@ -80,7 +98,7 @@ end
     @mtkcompile sysMTK = System(eqs, t)
     prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac = true)
     ds = CoupledODEs(prob)
-    sys = ExtendedPhaseSpace(ds)
+    sys = FreidlinWentzellHamiltonian(ds)
 
     @test sys.H_x(zeros(2), zeros(2)) ≈ zeros(2)
     @test sys.H_p(zeros(2), zeros(2)) ≈ zeros(2)
@@ -89,7 +107,7 @@ end
 @testset "sgMAM GeometricGradient" begin
     H_x(x, p) = zeros(size(x))
     H_p(x, p) = ones(size(x))
-    sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
+    sys = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
 
     xx = collect(range(-1.0, 1.0; length = 20))
     yy = 0.3 .* (-xx .^ 2 .+ 1)
@@ -125,7 +143,7 @@ end
 
     σ = 0.25
     ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
-    sys = ExtendedPhaseSpace(ds)
+    sys = FreidlinWentzellHamiltonian(ds)
 
     xx = range(-1.0, 1.0; length = 60)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
@@ -191,7 +209,7 @@ end
     end
     σ = 0.25
     ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
-    sys = ExtendedPhaseSpace(ds)
+    sys = FreidlinWentzellHamiltonian(ds)
 
     xx = range(-1.0, 1.0; length = 60)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
@@ -218,7 +236,7 @@ end
     end
     σ = 0.25
     ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
-    sys = ExtendedPhaseSpace(ds)
+    sys = FreidlinWentzellHamiltonian(ds)
 
     xx = range(-1.0, 1.0; length = 60)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
@@ -249,7 +267,7 @@ end
     end
     σ = 0.25
     ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
-    sys = ExtendedPhaseSpace(ds)
+    sys = FreidlinWentzellHamiltonian(ds)
 
     xx = range(-1.0, 1.0; length = 60)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
@@ -286,7 +304,7 @@ function _maier_stein_setup(; Nt = 60)
         return SA[dx, dy]
     end
     ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = 0.25)
-    sys = ExtendedPhaseSpace(ds)
+    sys = FreidlinWentzellHamiltonian(ds)
     xx = range(-1.0, 1.0; length = Nt)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     return ds, sys, Matrix([xx yy]')
@@ -438,7 +456,7 @@ end
         H_pv = @. pv + fv(u, v)
         return Matrix([H_pu H_pv]')
     end
-    sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
+    sys = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
 
     κ = 2γ_val / λ_val
     r = sqrt(2λ_val * sqrt(1 - κ^2) / (3 * abs(α_val)))

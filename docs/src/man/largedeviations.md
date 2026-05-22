@@ -126,7 +126,7 @@ The simple gMAM reduces the complexity of the original gMAM by requiring only fi
 The implementation below performs a constrained gradient descent assuming an autonomous system with additive Gaussian noise.
 ```@docs
 minimize_simple_geometric_action
-ExtendedPhaseSpace
+FreidlinWentzellHamiltonian
 ```
 
 
@@ -136,8 +136,8 @@ sgMAM repeatedly evaluates `H_p(x, p)` and `H_x(x, p)` along a discretized path.
 
 Key reason for performance differences:
 
-- `ExtendedPhaseSpace(ds::CoupledSDEs)` typically relies on `jacobian(ds)` (often automatic differentiation unless you provide an analytic Jacobian) and evaluates it pointwise along the path.
-- A hardcoded `ExtendedPhaseSpace(H_x, H_p)` with analytic expressions operating on the full `D×Nt` path matrix usually allocates far less.
+- `FreidlinWentzellHamiltonian(ds::CoupledSDEs)` typically relies on `jacobian(ds)` (often automatic differentiation unless you provide an analytic Jacobian) and evaluates it pointwise along the path.
+- A hardcoded `FreidlinWentzellHamiltonian(H_x, H_p)` with analytic expressions operating on the full `D×Nt` path matrix usually allocates far less.
 
 Benchmark pattern:
 
@@ -145,17 +145,17 @@ Benchmark pattern:
 using CriticalTransitions
 using BenchmarkTools
 
-sys_fast = ExtendedPhaseSpace{false,2}(H_x, H_p)  # hardcoded analytic H_x/H_p
+sys_fast = FreidlinWentzellHamiltonian{false,2}(H_x, H_p)  # hardcoded analytic H_x/H_p
 
 ds = CoupledSDEs(KPO, zeros(2), ())
-sys_generic = ExtendedPhaseSpace(ds)              # uses jacobian(ds)
+sys_generic = FreidlinWentzellHamiltonian(ds)              # uses jacobian(ds)
 
 opt = GeometricGradient(; stepsize=0.5)
 @btime minimize_simple_geometric_action($sys_fast,    $x_initial, $opt; maxiters=100, show_progress=false)
 @btime minimize_simple_geometric_action($sys_generic, $x_initial, $opt; maxiters=100, show_progress=false)
 ```
 
-Aside: the same “vectorized + allocation-free inner loop” principle also tends to make [`string_method`](@ref) faster when used with `ExtendedPhaseSpace`.
+Aside: the same “vectorized + allocation-free inner loop” principle also tends to make [`string_method`](@ref) faster when used with `FreidlinWentzellHamiltonian`.
 
 ### `MinimumActionPath`
 [(gMAM)](@ref "Geometric minimum action method (gMAM)") and [(sgMAM)](@ref "Simple geometric minimum action method (sgMAM)") return their output as a `MinimumActionPath` type:

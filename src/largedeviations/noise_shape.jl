@@ -102,3 +102,27 @@ end
 
 # `CoupledODEs` has no noise; treat it as identity additive noise for the FW Hamiltonian.
 _classify_noise_shape(::CoupledODEs) = AdditiveNoise()
+
+"""
+    _classify_user_a(a_callable, D)
+
+Classify a user-supplied `a(x)` callable. Probes `a` around `zeros(D)`; detects
+constant-vs-state-dependent structurally (the callable is a `Base.Returns`) rather
+than by numerical comparison, which avoids false positives on barely-state-dependent
+functions.
+"""
+function _classify_user_a(a_callable, D::Int)
+    probes = _probe_points(zeros(Float64, D))
+    as = map(a_callable, probes)
+    if any(_is_rank_deficient, as)
+        throw(
+            ArgumentError(
+                "rank-deficient noise is not supported. Workarounds: add a small ε on the noiseless variable to make the covariance invertible, or supply a Hamiltonian directly via FreidlinWentzellHamiltonian{IIP, D}(H_x, H_p).",
+            ),
+        )
+    end
+    if a_callable isa Base.Returns
+        return LinearAlgebra.isdiag(as[1]) ? AdditiveNoise() : GeneralNoise()
+    end
+    return all(LinearAlgebra.isdiag, as) ? DiagonalNoise() : GeneralNoise()
+end

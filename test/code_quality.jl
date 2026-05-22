@@ -48,6 +48,7 @@ end
             ignore = (
                 :covariance_matrix,
                 :diffusion_matrix,
+                :diffusion_function,
                 :DEFAULT_DIFFEQ,
                 :_decompose_into_solver_and_remaining,
             ),

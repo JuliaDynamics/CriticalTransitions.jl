@@ -52,7 +52,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         return StateSpaceSet([H_pu H_pv])
     end
 
-    sys_sss = ExtendedPhaseSpace{false, 2}(H_x_sss, H_p_sss)
+    sys_sss = FreidlinWentzellHamiltonian{false, 2}(H_x_sss, H_p_sss)
 
     x_init_sss = StateSpaceSet([xx yy])
 
@@ -77,7 +77,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         return Matrix([H_pu H_pv]')
     end
 
-    sys_m = ExtendedPhaseSpace{false, 2}(H_x_m, H_p_m)
+    sys_m = FreidlinWentzellHamiltonian{false, 2}(H_x_m, H_p_m)
 
     x_init_m = Matrix([xx yy]')
 
@@ -145,7 +145,7 @@ end
     @test norm(vec(Matrix(string_default.path)) - vec(Matrix(string_tsit5.path))) > 1.0e-10
 end
 
-@testset "ExtendedPhaseSpace supports integrator" begin
+@testset "FreidlinWentzellHamiltonian supports integrator" begin
     D = 2
     Nt_small = 40
     s_small = range(0; stop = 1, length = Nt_small)
@@ -155,7 +155,7 @@ end
 
     H_x_m(x, p) = zeros(size(x))
     H_p_m(x, p) = -x
-    sys_m = ExtendedPhaseSpace{false, 2}(H_x_m, H_p_m)
+    sys_m = FreidlinWentzellHamiltonian{false, 2}(H_x_m, H_p_m)
 
     H_x_sss(x, p) = StateSpaceSet(zeros(length(x), D))
     function H_p_sss(x, p)
@@ -164,7 +164,7 @@ end
         # regardless of whether Matrix(StateSpaceSet) returns D×Nt or Nt×D.
         return size(m, 1) == length(x) ? StateSpaceSet(-m) : StateSpaceSet(-permutedims(m))
     end
-    sys_sss = ExtendedPhaseSpace{false, 2}(H_x_sss, H_p_sss)
+    sys_sss = FreidlinWentzellHamiltonian{false, 2}(H_x_sss, H_p_sss)
 
     string_euler_m = string_method(
         sys_m,

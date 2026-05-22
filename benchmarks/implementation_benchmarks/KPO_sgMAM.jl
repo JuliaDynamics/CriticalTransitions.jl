@@ -43,7 +43,7 @@ function H_p(x, p) # ℜ² → ℜ²
     return Matrix([H_pu H_pv]')
 end
 
-sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
+sys = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
 sgmam_opt = GeometricGradient(; max_backtracks = 0, stepsize = 10.0e2)
 
 # setup
