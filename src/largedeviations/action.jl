@@ -1,28 +1,48 @@
 """
+    _action_metric(sys::CoupledSDEs)
+
+Returns `x -> A(x)`, where `A(x)` is the inverse of the trace-normalized diffusion
+tensor `a(x)/s` with `s = tr(a(u₀))/D`. For additive `sys` the callable is `Returns(A)`
+(constant); for state-dependent it evaluates `σ(x)σ(x)ᵀ / s` per call. Throws
+`ArgumentError` (via `_classify_noise_shape`) on rank-deficient or non-autonomous noise.
+"""
+function _action_metric(sys::CoupledSDEs)
+    _classify_noise_shape(sys)
+    σ_fn = diffusion_function(sys)
+    u₀ = current_state(sys); ps = current_parameters(sys)
+    a_of(x) = let σx = σ_fn(x, ps, 0.0)
+        σ_mat = σx isa AbstractMatrix ? σx : LinearAlgebra.Diagonal(σx)
+        σ_mat * σ_mat'
+    end
+    a0 = a_of(u₀)
+    s  = LinearAlgebra.tr(a0) / size(a0, 1)
+    if sys.noise_type[:additive]
+        return Returns(inv(a0 / s))
+    else
+        return x -> inv(a_of(x) / s)
+    end
+end
+
+"""
 $(TYPEDSIGNATURES)
 
 Freidlin-Wentzell action of `path` (a `D × N` matrix with `D = dimension(sys)`) with time
 points `time` (length `N`) for the drift `b = dynamic_rule(sys)`:
 
 ```math
-S_T[\\phi] \\;=\\; \\tfrac{1}{2}\\int_0^T \\big\\| \\dot\\phi - \\mathbf{b}(\\phi)\\big\\|_\\mathbf{Q}^2 \\,\\mathrm{d}t
+S_T[\\phi] \\;=\\; \\tfrac{1}{2}\\int_0^T \\big\\| \\dot\\phi - \\mathbf{b}(\\phi)\\big\\|_{\\mathbf{Q}(\\phi)}^2 \\,\\mathrm{d}t
 ```
 
 where ``\\|a\\|_\\mathbf{Q}^2 = \\langle a, \\mathbf{Q}^{-1} a\\rangle`` (see `anorm`), ``T`` is the
-total time of the path, and ``\\mathbf{Q}`` is the trace-normalized `covariance_matrix(sys)`
-(see [`normalize_covariance!`](@ref)). The convention makes the returned value independent
-of the `noise_strength` keyword and invariant under orthogonal changes of basis. See
-[Large deviation theory](@ref) for the convention and the conversion to a user-supplied
-``\\mathbf{Q}_{\\mathrm{user}}``.
+total time of the path, and ``\\mathbf{Q}(x)`` is the trace-normalized diffusion tensor
+`a(x) / (tr a(u₀) / D)`. The convention makes the returned value independent of the
+`noise_strength` keyword and invariant under orthogonal changes of basis, and supports
+both state-independent (additive) and state-dependent noise.
 """
 function fw_action(sys::CoupledSDEs, path, time)
     @assert all(diff(time) .≈ diff(time[1:2])) "Freidlin-Wentzell action is only defined for equispaced time"
-    # Inverse of covariance matrix
-    A = inv(normalize_covariance!(covariance_matrix(sys)))
-
-    # Compute action integral
-    integrand = fw_integrand(sys, path, time, A)
-
+    A_at = _action_metric(sys)
+    integrand = fw_integrand(sys, path, time, A_at)
     S = 0
     for i in 1:(size(path, 2) - 1)
         S += (integrand[i + 1] + integrand[i]) / 2 * (time[i + 1] - time[i])
@@ -102,9 +122,9 @@ trace-normalized `covariance_matrix(sys)`. As with [`fw_action`](@ref), the retu
 is independent of the `noise_strength` keyword and rotation-invariant.
 """
 function geometric_action(sys::CoupledSDEs, path, arclength = 1.0)
-    A = inv(normalize_covariance!(covariance_matrix(sys)))
+    A_at = _action_metric(sys)
     b(x) = drift(sys, x)
-    return _geometric_action_from_drift(b, path, arclength, A)
+    return _geometric_action_from_drift(b, path, arclength, A_at)
 end
 
 """
@@ -128,14 +148,19 @@ function geometric_action(b::Function, path, arclength = 1.0; A = nothing)
     return _geometric_action_from_drift(b, path, arclength, A)
 end
 
+# `A` may be either a matrix (constant metric) or a callable `x -> A(x)` (state-dep).
+_eval_metric(A::AbstractMatrix, _) = A
+_eval_metric(A, x) = A(x)
+
 function _geometric_action_from_drift(b::Function, path, arclength::Real, A)
     N = size(path, 2)
     v = path_velocity(path, range(0, arclength; length = N); order = 4)
 
     integrand = zeros(eltype(path), N)
     for i in 1:N
-        drift = b(path[:, i])
-        integrand[i] = anorm(v[:, i], A) * anorm(drift, A) - dot(v[:, i], A, drift)
+        drift_i = b(path[:, i])
+        A_i = _eval_metric(A, path[:, i])
+        integrand[i] = anorm(v[:, i], A_i) * anorm(drift_i, A_i) - dot(v[:, i], A_i, drift_i)
     end
 
     S = zero(eltype(path))
@@ -157,8 +182,9 @@ function fw_integrand(sys::CoupledSDEs, path, time, A)
     b(x) = drift(sys, x)
     for i in axes(path, 2)
         # assumes the drift is time independent
-        drift = b(path[:, i])
-        sqnorm[i] = anorm(v[:, i] - drift, A; square = true)
+        drift_i = b(path[:, i])
+        A_i = _eval_metric(A, path[:, i])
+        sqnorm[i] = anorm(v[:, i] - drift_i, A_i; square = true)
     end
     return sqnorm
 end;
