@@ -103,7 +103,7 @@ The literature contains a number of extensions of MAM-type methods that may be r
 - **tMAM / optimal linear time scaling**: avoids explicit optimization over the transition time by introducing an optimal linear time scaling; can be combined with adaptivity in time discretization [wan_tmam_2015](@citet).
 - **Adaptive MAM**: uses a moving-mesh strategy to concentrate grid points in dynamically important portions of the path, improving efficiency and robustness [zhou_adaptive_mam_2008](@citet).
 - **Non-Gaussian (jump / Lévy) noise**: for systems driven by jump noise, the rate function and path optimization problem differ from the Freidlin--Wentzell diffusive setting; see e.g. an optimal-control-based approach in [wei_most_likely_jumps_2023](@citet).
-- **Multiplicative / state-dependent noise**: state-dependent diagonal and full-matrix multiplicative noise is supported by both `gMAM` (via `minimize_geometric_action(::CoupledSDEs, ...)`) and `sgMAM` (via `FreidlinWentzellHamiltonian(::CoupledSDEs)`). The diffusion tensor shape is detected once at construction via the [`NoiseShape`](@ref) type hierarchy and dispatched at compile time; see [grafke_small_random_2017](@citet) for the underlying Hamiltonian formulation. Rank-deficient (degenerate) noise is rejected at construction; see [grafke_small_random_2017](@citet) for the rank-deficient extension that would be needed to support it.
+- **Multiplicative / state-dependent noise**: state-dependent diagonal and full-matrix multiplicative noise is supported by both `gMAM` (via `minimize_geometric_action(::CoupledSDEs, ...)`) and `sgMAM` (via `FreidlinWentzellHamiltonian(::CoupledSDEs)`). The diffusion tensor `a(x)` is classified once when the sgMAM cache is built (constant vs state-dependent, diagonal vs coupled) and the resulting inner loop dispatches at compile time on the cache type; see [grafke_small_random_2017](@citet) for the underlying Hamiltonian formulation. Rank-deficient (degenerate) noise is rejected at cache build; see [grafke_small_random_2017](@citet) for the rank-deficient extension that would be needed to support it.
 
 ### Minimum action method (MAM)
 Minimization of the specified action functional using the optimization algorithm of `Optimization.jl`. See also [e_minimum_2004](@citet).
@@ -135,16 +135,12 @@ H(\varphi, p) = \langle b(\varphi), p \rangle + \tfrac{1}{2}\, \langle p,\, a(\v
 
 where ``a(x) = \sigma(x)\sigma(x)^{\top}``. The action along an instanton (where ``H \equiv 0``) reduces to ``S[\varphi] = \int_0^T \langle p, \mathrm{d}\varphi\rangle``, the form used by `minimize_geometric_action` when the input is a [`FreidlinWentzellHamiltonian`](@ref).
 
-The implementation classifies ``a(x)`` once at construction into one of three [`NoiseShape`](@ref) singletons: [`AdditiveNoise`](@ref) (constant diagonal ``a``), [`DiagonalNoise`](@ref) (state-dependent diagonal ``a``), or [`GeneralNoise`](@ref) (off-diagonal, state-independent or state-dependent). The tag is a type parameter, so the per-shape inner loops in `update_p!`, `update_x!`, and `geometric_gradient_step!` dispatch at compile time.
+Compile-time dispatch on the shape of ``a(x)`` is driven by the type of `sys.a` (a `Base.Returns` wrapper marks constant-in-`x` diffusion) together with the type of `a(x_ref)` (a `LinearAlgebra.Diagonal` marks diagonal coupling). Classification happens once when the per-path cache is built; the resulting cache type then selects the diagonal or coupled inner loops in `update_p!`, `update_x!`, and `geometric_gradient_step!`.
 
-Rank-deficient ``a(x)`` is rejected at construction; see issue #325 for the supporting design.
+Rank-deficient ``a(x)`` is rejected at cache build (it is probed at the path endpoints and a few interior samples).
 
 ```@docs
 FreidlinWentzellHamiltonian
-NoiseShape
-AdditiveNoise
-DiagonalNoise
-GeneralNoise
 ```
 
 
