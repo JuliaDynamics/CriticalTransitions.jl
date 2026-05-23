@@ -75,22 +75,23 @@ function _init_sgmam_state(sys, x_initial, cache)
     s = range(0; stop = 1, length = Nt)
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
     xdotdot = zeros(size(xdot))
-    interpolate_path!(x, alpha, s)
+    interp_scratch = similar(alpha)
+    interpolate_path!(x, alpha, s, interp_scratch)
     _sgmam_refresh!(xdot, p, lambda, x, sys, cache)
-    return x, p, pdot, xdot, xdotdot, lambda, alpha, s
+    return x, p, pdot, xdot, xdotdot, lambda, alpha, s, interp_scratch
 end
 
 function _minimize_geometric_action_inner(
         sys, x_initial, optimizer::GeometricGradient, cache;
         maxiters, show_progress, verbose, abstol, reltol,
     )
-    x, p, pdot, xdot, xdotdot, lambda, alpha, s = _init_sgmam_state(sys, x_initial, cache)
+    x, p, pdot, xdot, xdotdot, lambda, alpha, s, interp_scratch = _init_sgmam_state(sys, x_initial, cache)
     x_prev = similar(x)
     initial_action = FW_action(xdot, p)
 
     function try_step!(ϵ)
         update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ, cache)
-        interpolate_path!(x, alpha, s)
+        interpolate_path!(x, alpha, s, interp_scratch)
         _sgmam_refresh!(xdot, p, lambda, x, sys, cache)
         return FW_action(xdot, p)
     end
@@ -114,7 +115,7 @@ function _minimize_geometric_action_inner_adaptive(
         sys, x_initial, optimizer::AdaptiveGeometricGradient, cache;
         maxiters, show_progress, verbose, abstol, reltol,
     )
-    x, p, pdot, xdot, xdotdot, lambda, alpha, s = _init_sgmam_state(sys, x_initial, cache)
+    x, p, pdot, xdot, xdotdot, lambda, alpha, s, interp_scratch = _init_sgmam_state(sys, x_initial, cache)
     x_start = similar(x)
     x_big_result = similar(x)
     Tϵ = typeof(optimizer.stepsize)
@@ -124,7 +125,7 @@ function _minimize_geometric_action_inner_adaptive(
         S = oftype(ϵ, NaN)
         for _ in 1:n
             update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ, cache)
-            interpolate_path!(x, alpha, s)
+            interpolate_path!(x, alpha, s, interp_scratch)
             _sgmam_refresh!(xdot, p, lambda, x, sys, cache)
             S = oftype(ϵ, FW_action(xdot, p))
             isfinite(S) || return oftype(ϵ, Inf)

@@ -15,6 +15,7 @@ using StaticArrays: StaticArrays, SVector
 using Random: Random
 
 # Core
+using ForwardDiff: ForwardDiff
 using SciMLBase: SciMLBase, EnsembleThreads, DiscreteCallback, remake, terminate!, isinplace
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK, Euler
 using DynamicalSystemsBase:
@@ -43,7 +44,7 @@ using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq
 
-using Interpolations: linear_interpolation
+using FastInterpolations: linear_interp!
 using OptimizationBase: OptimizationBase
 using OptimizationOptimisers: Optimisers
 using LinearSolve: LinearSolve, LinearProblem, LUFactorization, init, solve, solve!

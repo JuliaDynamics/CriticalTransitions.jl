@@ -16,12 +16,27 @@ The function performs these steps:
 
 The interpolation is performed in-place, modifying both `path` and `α`.
 """
-function interpolate_path!(path::Matrix, α, s)
-    α[2:end] .= vec(sqrt.(sum(diff(path; dims = 2) .^ 2; dims = 1)))
-    α .= cumsum(α; dims = 1)
-    α .= α ./ last(α)
-    for dof in 1:size(path, 1)
-        path[dof, :] .= linear_interpolation(α, path[dof, :])(s)
+function interpolate_path!(path::Matrix, α, s, scratch::Vector = similar(α))
+    D, N = size(path)
+    @inbounds α[1] = zero(eltype(α))
+    @inbounds for i in 2:N
+        d2 = zero(eltype(α))
+        for k in 1:D
+            δ = path[k, i] - path[k, i - 1]
+            d2 += δ * δ
+        end
+        α[i] = α[i - 1] + sqrt(d2)
+    end
+    invL = inv(α[N])
+    @inbounds for i in 1:N
+        α[i] *= invL
+    end
+    @inbounds α[N] = one(eltype(α))  # force exact endpoint to avoid round-off out-of-domain
+    @inbounds for dof in 1:D
+        linear_interp!(scratch, α, view(path, dof, :), s)
+        for k in 1:N
+            path[dof, k] = scratch[k]
+        end
     end
     return nothing
 end
@@ -194,28 +209,31 @@ matrix the same size and shape as `path`.
 The velocity matrix `v` (same shape as `path`).
 """
 function path_velocity!(v, path, time; order = 4)
+    N = size(path, 2)
     if order == 2
-        @views begin
-            v[:, 1] .= (path[:, 2] .- path[:, 1]) / (time[2] - time[1])
-            v[:, end] .= (path[:, end] .- path[:, end - 1]) / (time[end] - time[end - 1])
-            for i in 2:(size(path, 2) - 1)
-                v[:, i] .= (path[:, i + 1] .- path[:, i - 1]) / (time[i + 1] - time[i - 1])
+        @inbounds @views begin
+            inv_h1 = 1 / (time[2] - time[1])
+            inv_hN = 1 / (time[end] - time[end - 1])
+            @. v[:, 1] = (path[:, 2] - path[:, 1]) * inv_h1
+            @. v[:, end] = (path[:, end] - path[:, end - 1]) * inv_hN
+            for i in 2:(N - 1)
+                inv_hi = 1 / (time[i + 1] - time[i - 1])
+                @. v[:, i] = (path[:, i + 1] - path[:, i - 1]) * inv_hi
             end
         end
     elseif order == 4
-        @views begin
-            v[:, 1] .= (path[:, 2] .- path[:, 1]) / (time[2] - time[1])
-            v[:, end] .= (path[:, end] .- path[:, end - 1]) / (time[end] - time[end - 1])
-            v[:, 2] .= (path[:, 3] .- path[:, 1]) / (time[3] - time[1])
-            v[:, end - 1] .=
-                (path[:, end] .- path[:, end - 2]) / (time[end] - time[end - 2])
-            for i in 3:(size(path, 2) - 2)
-                v[:, i] .= (
-                    (
-                        -path[:, i + 2] .+ 8 * path[:, i + 1] .- 8 * path[:, i - 1] .+
-                            path[:, i - 2]
-                    ) / (6 * (time[i + 1] - time[i - 1]))
-                )
+        @inbounds @views begin
+            inv_h1 = 1 / (time[2] - time[1])
+            inv_hN = 1 / (time[end] - time[end - 1])
+            inv_h2 = 1 / (time[3] - time[1])
+            inv_hM = 1 / (time[end] - time[end - 2])
+            @. v[:, 1] = (path[:, 2] - path[:, 1]) * inv_h1
+            @. v[:, end] = (path[:, end] - path[:, end - 1]) * inv_hN
+            @. v[:, 2] = (path[:, 3] - path[:, 1]) * inv_h2
+            @. v[:, end - 1] = (path[:, end] - path[:, end - 2]) * inv_hM
+            for i in 3:(N - 2)
+                inv6 = 1 / (6 * (time[i + 1] - time[i - 1]))
+                @. v[:, i] = (-path[:, i + 2] + 8 * path[:, i + 1] - 8 * path[:, i - 1] + path[:, i - 2]) * inv6
             end
         end
     end

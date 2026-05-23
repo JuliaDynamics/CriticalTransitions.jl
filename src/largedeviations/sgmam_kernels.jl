@@ -3,15 +3,20 @@ struct SgMAMDecoupledCache{T, LC}
     Ainv_b::Matrix{T}               # a⁻¹ · b stored elementwise
     Ainv_xd::Matrix{T}              # a⁻¹ · ẋ stored elementwise
     p_zero::Matrix{T}               # zero buffer reused as 2nd arg to sys.H_p
+    Hp_buf::Matrix{T}               # buffer for H_p output (Nx × Nt)
+    Hx_buf::Matrix{T}               # buffer for H_x output (Nx × Nt)
     linear_cache::LC
 end
 
-struct SgMAMCoupledCache{T, LC}
+struct SgMAMCoupledCache{T, LC, LU}
     M::SparseArrays.SparseMatrixCSC{T, Int}
     diag_idx::Array{Int, 3}
     off_idx::Matrix{Int}
     linear_cache::LC
-    a_at::Vector{Matrix{T}}
+    a_at::Vector{Matrix{T}}         # a(x_t) stored per t (only mutated for state-dep a)
+    a_const_lu::LU                  # LU(a) for constant a; `nothing` for state-dep
+    Hp_buf::Matrix{T}
+    Hx_buf::Matrix{T}
     rhs::Vector{T}
     Ainv_b::Vector{T}               # a(x_t)⁻¹ · b_t  (scratch, per t)
     Ainv_xd::Vector{T}              # a(x_t)⁻¹ · ẋ_t  (scratch, per t)
@@ -54,8 +59,10 @@ function _build_decoupled_cache(sys, ::Type{T}, Nx::Int, Nt::Int) where {T}
     p_zero = zeros(T, Nx, Nt)
     is_constant(sys.a) === Val(true) && _fill_constant_a_inv!(a_inv, sys.a, Nx, Nt)
     linear_cache = _init_tridiag_cache(T, Nt - 2)
+    Hp_buf = Matrix{T}(undef, Nx, Nt)
+    Hx_buf = Matrix{T}(undef, Nx, Nt)
     return SgMAMDecoupledCache{T, typeof(linear_cache)}(
-        a_inv, Ainv_b, Ainv_xd, p_zero, linear_cache,
+        a_inv, Ainv_b, Ainv_xd, p_zero, Hp_buf, Hx_buf, linear_cache,
     )
 end
 
@@ -68,7 +75,7 @@ function _find_nzval_idx(M::SparseArrays.SparseMatrixCSC, r::Int, c::Int)
     return error("entry ($r, $c) is not in the sparsity pattern")
 end
 
-function _build_coupled_cache(::Type{T}, Nx::Int, Nt::Int) where {T}
+function _build_coupled_cache(sys, ::Type{T}, Nx::Int, Nt::Int) where {T}
     N_in = Nt - 2
     n = N_in * Nx
     nnz_est = N_in * Nx^2 + 2 * (N_in - 1) * Nx
@@ -125,8 +132,21 @@ function _build_coupled_cache(::Type{T}, Nx::Int, Nt::Int) where {T}
     )
     a_at = [Matrix{T}(undef, Nx, Nx) for _ in 1:Nt]
     p_zero = zeros(T, Nx, Nt)
-    return SgMAMCoupledCache{T, typeof(lc)}(
-        M, diag_idx, off_idx, lc, a_at, rhs,
+    Hp_buf = Matrix{T}(undef, Nx, Nt)
+    Hx_buf = Matrix{T}(undef, Nx, Nt)
+    # Precompute LU(a) once for constant a (same for all t).
+    a_const_lu = if is_constant(sys.a) === Val(true)
+        a0 = sys.a(zeros(T, Nx))
+        a0M = a0 isa Matrix ? Matrix{T}(a0) : Matrix{T}(a0)
+        for t in 1:Nt
+            copyto!(a_at[t], a0M)
+        end
+        LinearAlgebra.lu(a0M)
+    else
+        nothing
+    end
+    return SgMAMCoupledCache{T, typeof(lc), typeof(a_const_lu)}(
+        M, diag_idx, off_idx, lc, a_at, a_const_lu, Hp_buf, Hx_buf, rhs,
         Vector{T}(undef, Nx), Vector{T}(undef, Nx), Vector{T}(undef, Nx),
         p_zero,
     )
@@ -142,13 +162,13 @@ function build_sgmam_cache(
 end
 
 _build_sgmam_cache(::Val{true}, sys, T, Nx, Nt) = _build_decoupled_cache(sys, T, Nx, Nt)
-_build_sgmam_cache(::Val{false}, sys, T, Nx, Nt) = _build_coupled_cache(T, Nx, Nt)
+_build_sgmam_cache(::Val{false}, sys, T, Nx, Nt) = _build_coupled_cache(sys, T, Nx, Nt)
 
 function update_p!(p, λ, x, xdot, sys, cache::SgMAMDecoupledCache)
     if is_constant(sys.a) === Val(false)
         _refill_state_dep_a_inv!(cache.a_inv, sys.a, x)
     end
-    b_ = sys.H_p(x, cache.p_zero)
+    b_ = _eval_Hp!(cache.Hp_buf, sys, x, cache.p_zero)
     @. cache.Ainv_b = b_ * cache.a_inv
     @. cache.Ainv_xd = xdot * cache.a_inv
     num = sum(b_ .* cache.Ainv_b; dims = 1)
@@ -160,11 +180,9 @@ function update_p!(p, λ, x, xdot, sys, cache::SgMAMDecoupledCache)
 end
 
 function update_p!(p, λ, x, xdot, sys, cache::SgMAMCoupledCache)
-    b_ = sys.H_p(x, cache.p_zero)
+    b_ = _eval_Hp!(cache.Hp_buf, sys, x, cache.p_zero)
     @inbounds for t in axes(x, 2)
-        a_t = sys.a(view(x, :, t))
-        copyto!(cache.a_at[t], a_t isa Matrix ? a_t : Matrix(a_t))
-        F = LinearAlgebra.lu(cache.a_at[t])
+        F = _coupled_lu_at_t!(cache, sys, view(x, :, t), t)
         bt = view(b_, :, t); xt = view(xdot, :, t)
         copyto!(cache.Ainv_b, bt); LinearAlgebra.ldiv!(F, cache.Ainv_b)
         copyto!(cache.Ainv_xd, xt); LinearAlgebra.ldiv!(F, cache.Ainv_xd)
@@ -183,6 +201,17 @@ function update_p!(p, λ, x, xdot, sys, cache::SgMAMCoupledCache)
     λ[1, 1] = λ[1, end] = 0
     return nothing
 end
+
+# Return LU(a(x_t)). For constant `a` reuse the prebuilt factorization stored in
+# `cache.a_const_lu`; otherwise refresh `cache.a_at[t]` from `sys.a(x_t)` and factor it.
+@inline _coupled_lu_at_t!(cache, sys, _xt, _t, F::LinearAlgebra.LU) = F
+@inline function _coupled_lu_at_t!(cache, sys, xt, t, ::Nothing)
+    a_t = sys.a(xt)
+    copyto!(cache.a_at[t], a_t isa Matrix ? a_t : Matrix(a_t))
+    return LinearAlgebra.lu(cache.a_at[t])
+end
+@inline _coupled_lu_at_t!(cache, sys, xt, t) =
+    _coupled_lu_at_t!(cache, sys, xt, t, cache.a_const_lu)
 
 # update_x! relies on update_p! (via _sgmam_refresh!) having populated cache.a_inv /
 # cache.a_at for the current x. No re-refill here.
@@ -249,15 +278,16 @@ function update_x!(
                 M.nzval[cache.off_idx[k, 2 * (i_in - 1) + 2]] = -ϵ * λi2
             end
         end
+        b_vec = cache.Ainv_b
+        for k2 in 1:Nx
+            b_vec[k2] = x[k2, i] + ϵ * (λ[i] * p′[k2, i] + Hx[k2, i])
+        end
+        rhs_view = view(rhs, (rb + 1):(rb + Nx))
+        LinearAlgebra.mul!(rhs_view, A_i, b_vec)
         for k in 1:Nx
-            acc = zero(eltype(x))
-            for k2 in 1:Nx
-                acc += A_i[k, k2] * (x[k2, i] + ϵ * (λ[i] * p′[k2, i] + Hx[k2, i]))
-            end
-            v = acc - ϵ * λi2 * x′′[k, i]
-            i_in == 1    && (v += ϵ * λi2 * xa[k])
-            i_in == N_in && (v += ϵ * λi2 * xb[k])
-            rhs[rb + k] = v
+            rhs_view[k] -= ϵ * λi2 * x′′[k, i]
+            i_in == 1    && (rhs_view[k] += ϵ * λi2 * xa[k])
+            i_in == N_in && (rhs_view[k] += ϵ * λi2 * xb[k])
         end
     end
     LinearSolve.reinit!(cache.linear_cache; A = M, b = rhs)
@@ -285,7 +315,7 @@ end
 
 function update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ, cache)
     central_diff!(pdot, p)
-    Hx = sys.H_x(x, p)
+    Hx = _eval_Hx!(cache.Hx_buf, sys, x, p)
     central_diff!(xdotdot, xdot)
     return update_x!(x, lambda, pdot, xdotdot, Hx, sys, ϵ, cache)
 end

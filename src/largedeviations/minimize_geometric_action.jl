@@ -36,14 +36,19 @@ function _gmam_setup(sys::CoupledSDEs, init)
     proper_FW_system(sys)
     _validate_and_classify_a(_trace_normalized_a(sys), collect(view(init, :, 1)))
     N = size(init, 2)
-    alpha = zeros(N)
+    T = eltype(init)
+    alpha = zeros(T, N)
     arc = range(0, 1.0; length = N)
     A_at = _action_metric(sys)
     b_fn = let sys = sys
         x -> drift(sys, x)
     end
     x_i = init[:, 1]; x_f = init[:, end]
-    S(x) = _geometric_action_from_drift(b_fn, fix_ends(x, x_i, x_f), 1.0, A_at)
+    v_buf = similar(init)
+    integrand_buf = zeros(T, N)
+    S = let b_fn = b_fn, x_i = x_i, x_f = x_f, A_at = A_at, v_buf = v_buf, integrand_buf = integrand_buf
+        x -> _geometric_action_from_drift!(b_fn, fix_ends(x, x_i, x_f), 1.0, A_at, v_buf, integrand_buf)
+    end
     return alpha, arc, S
 end
 
@@ -56,13 +61,14 @@ function minimize_geometric_action(
     path = deepcopy(init)
     ws = geometric_gradient_workspace(sys, path)
     path_prev = similar(path)
-    interpolate_path!(path, alpha, arc)
+    interp_scratch = similar(alpha)
+    interpolate_path!(path, alpha, arc, interp_scratch)
     initial_action = S(path)
 
     function try_step!(ϵ)
         geometric_gradient_step!(ws, sys, path; stepsize = ϵ)
         path .= ws.update
-        interpolate_path!(path, alpha, arc)
+        interpolate_path!(path, alpha, arc, interp_scratch)
         return S(path)
     end
     save!() = copyto!(path_prev, path)
@@ -82,11 +88,12 @@ function minimize_geometric_action(
         show_progress = true,
     )
     alpha, arc, S = _gmam_setup(sys, init)
+    interp_scratch = similar(alpha)
     optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)
     prob = SciMLBase.OptimizationProblem(optf, init, ())
     prog = Progress(maxiters; enabled = show_progress)
     function callback(state, _)
-        interpolate_path!(state.u, alpha, arc)
+        interpolate_path!(state.u, alpha, arc, interp_scratch)
         show_progress ? next!(prog) : nothing
         return false
     end
@@ -94,7 +101,7 @@ function minimize_geometric_action(
     return MinimumActionPath(StateSpaceSet(sol.u'), S(sol.u))
 end
 
-struct GeometricGradientWorkspace{T, A, J, LC}
+struct GeometricGradientWorkspace{T, A, F, JC, LC, LU}
     update::Matrix{T}
     x_prime::Matrix{T}
     lambdas::Vector{T}
@@ -104,7 +111,11 @@ struct GeometricGradientWorkspace{T, A, J, LC}
     rhs_explicit::Matrix{T}
     arc::StepRangeLen{T}
     a_func::A
-    jac::J
+    a_const_lu::LU            # LU(a) for constant non-diagonal a; `nothing` otherwise
+    jac_fn::F                # x -> f(x, p, 0.0)
+    jac_cfg::JC              # ForwardDiff.JacobianConfig (preallocated)
+    J_buf::Matrix{T}         # output Jacobian buffer, Nx×Nx
+    x_buf::Vector{T}         # input x buffer for jacobian!, Nx
     linear_cache::LC
     fd_probe::Vector{T}     # FD probe direction; size Nx
     Hphi::Vector{T}         # H_φ accumulator; size Nx
@@ -112,6 +123,8 @@ struct GeometricGradientWorkspace{T, A, J, LC}
     aHphi::Vector{T}        # a · H_φ; size Nx
     Ainv_b::Vector{T}       # a⁻¹·b scratch for _lambda_theta!; size Nx
     Ainv_φp::Vector{T}      # a⁻¹·φ' scratch for _lambda_theta!; size Nx
+    x_probe::Vector{T}      # x ± h·eₗ scratch for state-dep ∂a; size Nx
+    dla_buf::Matrix{T}      # ∂_l a(x) scratch; size Nx×Nx
 end
 
 function geometric_gradient_workspace(sys::CoupledSDEs, path)
@@ -121,18 +134,25 @@ function geometric_gradient_workspace(sys::CoupledSDEs, path)
     a_func = _trace_normalized_a(sys)
     _validate_and_classify_a(a_func, collect(view(path, :, 1)))
     params = current_parameters(sys)
-    jac_fun = jacobian(sys)
-    jac = let jac_fun = jac_fun, params = params
-        x -> jac_fun(x, params, 0.0)
+    f_rule = dynamic_rule(sys)
+    jac_fn = let f = f_rule, params = params
+        x -> f(x, params, 0.0)
     end
-    dl = zeros(T, N - 1); d = ones(T, N); du = zeros(T, N - 1)
-    Tmat = LinearAlgebra.Tridiagonal(dl, d, du)
-    rhs = zeros(T, N)
-    linear_cache = init(
-        LinearProblem(Tmat, rhs), LUFactorization();
-        alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
-    )
-    return GeometricGradientWorkspace{T, typeof(a_func), typeof(jac), typeof(linear_cache)}(
+    x_buf = collect(view(path, :, 1))
+    J_buf = zeros(T, Nx, Nx)
+    jac_cfg = ForwardDiff.JacobianConfig(jac_fn, x_buf)
+    linear_cache = _init_tridiag_cache(T, N)
+    # Precompute LU(a) for constant non-diagonal a. (Diagonal a uses the scalar fast path.)
+    a_const_lu = let a0 = a_func(view(path, :, 1))
+        if is_constant(a_func) === Val(true) && !(a0 isa LinearAlgebra.Diagonal)
+            LinearAlgebra.lu(a0 isa Matrix ? Matrix{T}(a0) : Matrix{T}(a0))
+        else
+            nothing
+        end
+    end
+    return GeometricGradientWorkspace{
+        T, typeof(a_func), typeof(jac_fn), typeof(jac_cfg), typeof(linear_cache), typeof(a_const_lu),
+    }(
         similar(path),
         zeros(T, Nx, N),
         zeros(T, N),
@@ -141,14 +161,16 @@ function geometric_gradient_workspace(sys::CoupledSDEs, path)
         zeros(T, Nx, N - 2),
         zeros(T, Nx, N - 2),
         range(zero(T), one(T); length = N),
-        a_func, jac, linear_cache,
+        a_func, a_const_lu, jac_fn, jac_cfg, J_buf, x_buf, linear_cache,
         zeros(T, Nx), zeros(T, Nx), zeros(T, Nx), zeros(T, Nx),
         zeros(T, Nx), zeros(T, Nx),
+        zeros(T, Nx), zeros(T, Nx, Nx),
     )
 end
 
 # Allocation-free λ, θ computation. Buffers `Ainv_b`, `Ainv_φp` live in the workspace.
-function _lambda_theta!(θ_out, a_i, b_i, φp, Ainv_b, Ainv_φp)
+# `F_cached` may be a precomputed LU (constant non-diagonal a) or `nothing`.
+function _lambda_theta!(θ_out, a_i, b_i, φp, Ainv_b, Ainv_φp, F_cached = nothing)
     if a_i isa LinearAlgebra.Diagonal
         d = a_i.diag
         @inbounds for k in eachindex(Ainv_b)
@@ -156,7 +178,9 @@ function _lambda_theta!(θ_out, a_i, b_i, φp, Ainv_b, Ainv_φp)
             Ainv_φp[k] = φp[k] / d[k]
         end
     else
-        F = LinearAlgebra.lu(a_i isa Matrix ? a_i : Matrix(a_i))
+        F = F_cached === nothing ?
+            LinearAlgebra.lu(a_i isa Matrix ? a_i : Matrix(a_i)) :
+            F_cached
         copyto!(Ainv_b, b_i); LinearAlgebra.ldiv!(F, Ainv_b)
         copyto!(Ainv_φp, φp);  LinearAlgebra.ldiv!(F, Ainv_φp)
     end
@@ -169,8 +193,14 @@ function _lambda_theta!(θ_out, a_i, b_i, φp, Ainv_b, Ainv_φp)
     return λ
 end
 
+function _ws_jacobian!(ws, xi)
+    copyto!(ws.x_buf, xi)
+    ForwardDiff.jacobian!(ws.J_buf, ws.jac_fn, ws.x_buf, ws.jac_cfg, Val{false}())
+    return ws.J_buf
+end
+
 function _assemble_explicit_rhs!(::Val{true}, ws, a_i, _θ, _b_i, φp, _xi, i)
-    J = ws.jac(_xi)
+    J = _ws_jacobian!(ws, _xi)
     LinearAlgebra.mul!(ws.Hpphi, J, φp)
     LinearAlgebra.mul!(ws.Hphi, J', _θ)
     LinearAlgebra.mul!(ws.aHphi, a_i, ws.Hphi)
@@ -181,21 +211,23 @@ function _assemble_explicit_rhs!(::Val{true}, ws, a_i, _θ, _b_i, φp, _xi, i)
 end
 
 function _assemble_explicit_rhs!(::Val{false}, ws, a_i, θ, _b_i, φp, xi, i)
-    J = ws.jac(xi)
+    J = _ws_jacobian!(ws, xi)
     LinearAlgebra.mul!(ws.Hpphi, J, φp)
     LinearAlgebra.mul!(ws.Hphi, J', θ)
     h = _fd_step(eltype(xi))
-    fill!(ws.fd_probe, 0)
-    @inbounds for l in eachindex(ws.Hphi)
-        ws.fd_probe[l] = h
-        dla = (ws.a_func(xi .+ ws.fd_probe) .- ws.a_func(xi .- ws.fd_probe)) ./ (2 * h)
+    inv_2h = 1 / (2 * h)
+    Nx = length(ws.Hphi)
+    xp = ws.x_probe; dla = ws.dla_buf
+    copyto!(xp, xi)
+    @inbounds for l in 1:Nx
+        xp[l] = xi[l] + h
+        a_xp = ws.a_func(xp)
+        xp[l] = xi[l] - h
+        a_xm = ws.a_func(xp)
+        xp[l] = xi[l]
+        @. dla = (a_xp - a_xm) * inv_2h
         ws.Hphi[l] += 0.5 * dot(θ, dla, θ)
-        for k in eachindex(ws.Hpphi)
-            for k2 in eachindex(θ)
-                ws.Hpphi[k] += dla[k, k2] * θ[k2] * φp[l]
-            end
-        end
-        ws.fd_probe[l] = 0
+        LinearAlgebra.mul!(ws.Hpphi, dla, θ, φp[l], one(eltype(ws.Hpphi)))
     end
     LinearAlgebra.mul!(ws.aHphi, a_i, ws.Hphi)
     @inbounds for k in eachindex(ws.aHphi)
@@ -229,7 +261,7 @@ function geometric_gradient_step!(
         b_i = ws.drift_cache[:, i - 1]
         φp = ws.x_prime[:, i]
         ws.lambdas[i] = _lambda_theta!(
-            view(ws.theta_cache, :, i - 1), a_i, b_i, φp, ws.Ainv_b, ws.Ainv_φp,
+            view(ws.theta_cache, :, i - 1), a_i, b_i, φp, ws.Ainv_b, ws.Ainv_φp, ws.a_const_lu,
         )
     end
     @views for i in 2:(N - 1)

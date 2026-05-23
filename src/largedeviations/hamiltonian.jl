@@ -43,6 +43,20 @@ end
 is_constant(::Base.Returns) = Val(true)
 is_constant(_) = Val(false)
 
+"""
+In-place evaluation of ``\\partial_p H``. For `IIP=true`, calls `sys.H_p(buf, x, p)`
+(user-supplied in-place form). For `IIP=false`, calls `sys.H_p(x, p)` and copies the
+returned matrix into `buf`.
+"""
+@inline _eval_Hp!(buf, sys::FreidlinWentzellHamiltonian{true}, x, p) = (sys.H_p(buf, x, p); buf)
+@inline _eval_Hp!(buf, sys::FreidlinWentzellHamiltonian{false}, x, p) = copyto!(buf, sys.H_p(x, p))
+
+"""
+In-place evaluation of ``\\partial_x H``. See [`_eval_Hp!`](@ref).
+"""
+@inline _eval_Hx!(buf, sys::FreidlinWentzellHamiltonian{true}, x, p) = (sys.H_x(buf, x, p); buf)
+@inline _eval_Hx!(buf, sys::FreidlinWentzellHamiltonian{false}, x, p) = copyto!(buf, sys.H_x(x, p))
+
 function FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)
     D = dimension(ds)
     ds isa CoupledSDEs && proper_FW_system(ds)
@@ -53,8 +67,9 @@ function FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)
     H_p = _make_H_p(a, f, ps)
     H_x = _make_H_x(a, jac, ps)
     x_ref = collect(current_state(ds))
+    # Auto-derived H_p/H_x are out-of-place regardless of `ds`'s isinplace.
     return FreidlinWentzellHamiltonian{
-        isinplace(ds), D, typeof(H_x), typeof(H_p), typeof(a), typeof(x_ref),
+        false, D, typeof(H_x), typeof(H_p), typeof(a), typeof(x_ref),
     }(H_x, H_p, a, x_ref)
 end
 

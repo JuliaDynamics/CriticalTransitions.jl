@@ -38,6 +38,8 @@ end
                 :diffusion_matrix,
                 :get_extension,
                 :register_error_hint,
+                :JacobianConfig,
+                :jacobian!,
             ),
         ),
     )
