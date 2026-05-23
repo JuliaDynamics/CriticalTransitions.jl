@@ -52,9 +52,9 @@ function FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)
 
     function H_p(x, p)
         Hp = similar(x)
-        for idx in 1:size(x, 2)
-            a_x = a_callable(x[:, idx])
-            Hp[:, idx] = a_x * p[:, idx] .+ f(x[:, idx], ps, 0.0)
+        @views @inbounds for idx in 1:size(x, 2)
+            xi = x[:, idx]; pi_v = p[:, idx]
+            Hp[:, idx] .= a_callable(xi) * pi_v .+ f(xi, ps, 0.0)
         end
         return Hp
     end
@@ -64,10 +64,6 @@ function FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)
     }(H_x, H_p, a_callable)
 end
 
-# `H_x = ∂_x ⟨b, p⟩ + ½ ∂_x ⟨p, a(x)·p⟩`. The second term vanishes when `a` is
-# constant and otherwise picks up a per-`l` finite-difference of `∂_l a(x)`. We
-# dispatch on `NS` and whether `a` is constant so each call avoids running the FD
-# section (and the diag/full branch picker) when it's not needed.
 function _build_H_x(NS, is_constant_a, jac, a_callable, ps)
     if is_constant_a
         return _hx_drift_only(jac, ps)
@@ -82,11 +78,10 @@ function _hx_drift_only(jac, ps)
     return function H_x_drift(x, p)
         Hx = similar(x)
         Nt = size(x, 2); Dn = size(x, 1)
-        for idx in 1:Nt
-            xi = x[:, idx]
-            pi_v = p[:, idx]
+        @views @inbounds for idx in 1:Nt
+            xi = x[:, idx]; pi_v = p[:, idx]
             jax = jac(xi, ps, 0.0)
-            @inbounds for idc in 1:Dn
+            for idc in 1:Dn
                 Hx[idc, idx] = dot(jax[:, idc], pi_v)
             end
         end
@@ -100,16 +95,19 @@ function _hx_diagonal(jac, ps, a_callable)
         Nt = size(x, 2); Dn = size(x, 1)
         h_fd = _fd_step(eltype(x))
         e = zeros(eltype(x), Dn)
-        for idx in 1:Nt
-            xi = x[:, idx]
-            pi_v = p[:, idx]
+        @views @inbounds for idx in 1:Nt
+            xi = x[:, idx]; pi_v = p[:, idx]
             jax = jac(xi, ps, 0.0)
-            @inbounds for idc in 1:Dn
+            for idc in 1:Dn
                 Hx[idc, idx] = dot(jax[:, idc], pi_v)
             end
-            @inbounds for l in 1:Dn
-                dla = _da_dx_l(a_callable, xi, l, h_fd, e)
-                Hx[l, idx] += 0.5 * dot(pi_v .^ 2, LinearAlgebra.diag(dla))
+            for l in 1:Dn
+                dla_diag = LinearAlgebra.diag(_da_dx_l(a_callable, xi, l, h_fd, e))
+                acc = zero(eltype(x))
+                for k in 1:Dn
+                    acc += pi_v[k]^2 * dla_diag[k]
+                end
+                Hx[l, idx] += 0.5 * acc
             end
         end
         return Hx
@@ -122,16 +120,19 @@ function _hx_general(jac, ps, a_callable)
         Nt = size(x, 2); Dn = size(x, 1)
         h_fd = _fd_step(eltype(x))
         e = zeros(eltype(x), Dn)
-        for idx in 1:Nt
-            xi = x[:, idx]
-            pi_v = p[:, idx]
+        @views @inbounds for idx in 1:Nt
+            xi = x[:, idx]; pi_v = p[:, idx]
             jax = jac(xi, ps, 0.0)
-            @inbounds for idc in 1:Dn
+            for idc in 1:Dn
                 Hx[idc, idx] = dot(jax[:, idc], pi_v)
             end
-            @inbounds for l in 1:Dn
+            for l in 1:Dn
                 dla = _da_dx_l(a_callable, xi, l, h_fd, e)
-                Hx[l, idx] += 0.5 * dot(pi_v, dla * pi_v)
+                acc = zero(eltype(x))
+                for k1 in 1:Dn, k2 in 1:Dn
+                    acc += pi_v[k1] * dla[k1, k2] * pi_v[k2]
+                end
+                Hx[l, idx] += 0.5 * acc
             end
         end
         return Hx

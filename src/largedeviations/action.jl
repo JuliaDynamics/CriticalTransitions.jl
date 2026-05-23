@@ -1,16 +1,25 @@
 """
     _action_metric(sys::CoupledSDEs)
+    _action_metric(sys::CoupledSDEs, ns::NoiseShape)
 
-Returns `x -> A(x)`, where `A(x)` is the inverse of the trace-normalized diffusion
-tensor `a(x)/s` with `s = tr(a(u₀))/D`. For additive `sys` the callable is `Returns(A)`
-(constant); for state-dependent it evaluates `σ(x)σ(x)ᵀ / s` per call. Throws
-`ArgumentError` (via `_classify_noise_shape`) on rank-deficient or non-autonomous noise.
+Returns the inverse of the trace-normalized diffusion tensor `a(x)/s`. The 2-arg
+method dispatches on a `NoiseShape` singleton: `AdditiveNoise` → constant
+`AbstractMatrix`, `DiagonalNoise` → closure, `GeneralNoise` → either depending
+on `sys.noise_type[:additive]`.
 """
-function _action_metric(sys::CoupledSDEs)
-    _classify_noise_shape(sys)
+_action_metric(sys::CoupledSDEs) = _action_metric(sys, _classify_noise_shape(sys))
+
+_action_metric(sys::CoupledSDEs, ::AdditiveNoise) =
+    inv(_trace_normalized_a(sys)(current_state(sys)))
+
+_action_metric(sys::CoupledSDEs, ::DiagonalNoise) = let a = _trace_normalized_a(sys)
+    x -> inv(a(x))
+end
+
+function _action_metric(sys::CoupledSDEs, ::GeneralNoise)
     a_callable = _trace_normalized_a(sys)
     if sys.noise_type[:additive]
-        return Returns(inv(a_callable(current_state(sys))))
+        return inv(a_callable(current_state(sys)))
     else
         return let a_callable = a_callable
             x -> inv(a_callable(x))
@@ -30,9 +39,8 @@ S_T[\\phi] \\;=\\; \\tfrac{1}{2}\\int_0^T \\big\\| \\dot\\phi - \\mathbf{b}(\\ph
 
 where ``\\|a\\|_\\mathbf{Q}^2 = \\langle a, \\mathbf{Q}^{-1} a\\rangle`` (see `anorm`), ``T`` is the
 total time of the path, and ``\\mathbf{Q}(x)`` is the trace-normalized diffusion tensor
-`a(x) / (tr a(u₀) / D)`. The convention makes the returned value independent of the
-`noise_strength` keyword and invariant under orthogonal changes of basis, and supports
-both state-independent (additive) and state-dependent noise.
+`a(x) / s` with `s = tr(a(u₀))/D` pinned at `current_state(ds)`; for state-dependent
+diffusions `s` depends on the chosen `u₀`.
 """
 function fw_action(sys::CoupledSDEs, path, time)
     @assert all(diff(time) .≈ diff(time[1:2])) "Freidlin-Wentzell action is only defined for equispaced time"

@@ -127,3 +127,8 @@ function path_velocity!(v, path, time; order = 4)
     end
     return v
 end
+
+_thread_count() =
+    hasmethod(Threads.nthreads, Tuple{Symbol}) ?
+    (Threads.nthreads(:default) + Threads.nthreads(:interactive)) :
+    Threads.nthreads()

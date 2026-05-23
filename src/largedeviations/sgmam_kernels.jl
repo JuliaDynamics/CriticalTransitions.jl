@@ -12,11 +12,6 @@ function update_x!(x, λ, p′, x′′, Hx, sys::FreidlinWentzellHamiltonian, �
     return nothing
 end
 
-_sgmam_nthreads() =
-    hasmethod(Threads.nthreads, Tuple{Symbol}) ?
-    (Threads.nthreads(:default) + Threads.nthreads(:interactive)) :
-    Threads.nthreads()
-
 # Allocate `nthreads` LinearSolve caches with placeholder Tridiagonal storage of
 # the right size. Each `_update_x!` call reuses these by mutating the aliased A
 # and b in place and calling `LinearSolve.reinit!`.
@@ -34,11 +29,8 @@ function _sgmam_init_tridiag_caches(::Type{T}, L::Int, nthreads::Int) where {T}
     end
 end
 
-# For both Additive and Diagonal noise the implicit step factors per DOF into a
-# tridiagonal solve `(I - ϵ λ_i² a_dof,i^{-1} ∂_s²) x_new[dof] = R[dof]`. The only
-# difference between the two is whether the coefficient `inv_a(dof, i)` varies in `i`.
-# We pass it in as a closure to keep the kernel a single function. `caches` is the
-# per-thread LinearSolve cache vector held on the cross-iteration cache struct.
+# Shared per-DOF tridiagonal solve for Additive/Diagonal; `inv_a(dof, i)` closes
+# over the (possibly per-`i`) inverse coefficient, `caches` is per-thread.
 function _update_x_tridiag!(x, λ, p′, x′′, Hx, ϵ, caches, inv_a)
     Nx, Nt = size(x); xa = view(x, :, 1); xb = view(x, :, Nt); idxc = 2:(Nt - 1)
     L = Nt - 2
@@ -70,8 +62,7 @@ function _update_x_tridiag!(x, λ, p′, x′′, Hx, ϵ, caches, inv_a)
 end
 
 """
-Cross-iteration cache for the AdditiveNoise sgMAM `_update_x!` path: holds per-thread
-LinearSolve caches and `a_inv` precomputed once (additive `a(x)` is constant).
+AdditiveNoise sgMAM cache: per-thread LinearSolve caches + precomputed `a_inv`.
 """
 struct _SgMAMAdditiveCache{T, LC}
     caches::Vector{LC}
@@ -79,9 +70,7 @@ struct _SgMAMAdditiveCache{T, LC}
 end
 
 """
-Cross-iteration cache for the DiagonalNoise sgMAM `_update_x!` path: holds per-thread
-LinearSolve caches and a reusable `a_at` buffer (refilled each call from the current
-path snapshot).
+DiagonalNoise sgMAM cache: per-thread LinearSolve caches + reusable `a_at` buffer.
 """
 struct _SgMAMDiagonalCache{T, LC}
     caches::Vector{LC}
@@ -136,21 +125,22 @@ function _update_x!(
 end
 
 """
-Cross-iteration cache for the GeneralNoise sgMAM `_update_x!` path: holds the sparse
-block-tridiagonal matrix `M`, an index map from logical (i_in, k1, k2) entries into
-`M.nzval`, an RHS buffer, a reusable `LinearSolve.LinearCache`, and an `a_at` buffer
-that `_update_p!` fills per iteration and `_update_x!` reads back. The sparsity
-pattern is fixed (depends only on `Nt`, `Nx`); only `nzval`, `rhs`, and `a_at` change
-per call.
+Cross-iteration cache for the GeneralNoise sgMAM `_update_x!` path: sparse
+block-tridiagonal `M` + nzval index maps + RHS buffer + reusable `LinearCache`.
+Also holds `a_at` (filled by `_update_p!`, read by `_update_x!`) and per-`t`
+scratch (`inv_b`, `inv_xdot`, `rhs_p`) used inside `_update_p!`.
 """
 struct _SgMAMGeneralCache{T, LC}
     M::SparseArrays.SparseMatrixCSC{T, Int}
-    diag_nzval_idx::Array{Int, 3}    # (Nx, Nx, N_in)
-    left_nzval_idx::Matrix{Int}      # (Nx, N_in - 1): for i_in in 2:N_in
-    right_nzval_idx::Matrix{Int}     # (Nx, N_in - 1): for i_in in 1:N_in-1
+    diag_nzval_idx::Array{Int, 3}
+    left_nzval_idx::Matrix{Int}
+    right_nzval_idx::Matrix{Int}
     rhs::Vector{T}
     linear_cache::LC
-    a_at::Vector{Matrix{T}}          # length Nt; filled by `_update_p!`
+    a_at::Vector{Matrix{T}}
+    inv_b::Vector{T}
+    inv_xdot::Vector{T}
+    rhs_p::Vector{T}
 end
 
 """
@@ -163,7 +153,7 @@ function _build_sgmam_cache(
         sys::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, AdditiveNoise},
         ::Type{T}, Nx::Int, Nt::Int,
     ) where {IIP, D, Hx, Hp, AF, T}
-    nthreads = _sgmam_nthreads()
+    nthreads = _thread_count()
     L = Nt - 2
     caches = _sgmam_init_tridiag_caches(T, L, nthreads)
     a_const = sys.a(zeros(T, Nx))
@@ -175,7 +165,7 @@ function _build_sgmam_cache(
         ::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, DiagonalNoise},
         ::Type{T}, Nx::Int, Nt::Int,
     ) where {IIP, D, Hx, Hp, AF, T}
-    nthreads = _sgmam_nthreads()
+    nthreads = _thread_count()
     L = Nt - 2
     caches = _sgmam_init_tridiag_caches(T, L, nthreads)
     a_at = Matrix{T}(undef, Nx, Nt)
@@ -253,13 +243,15 @@ function _build_sgmam_general_cache(::Type{T}, Nx::Int, Nt::Int) where {T}
     fill!(M.nzval, zero(T))
     lc = init(LinearProblem(M, rhs), LUFactorization())
     a_at = [Matrix{T}(undef, Nx, Nx) for _ in 1:Nt]
+    inv_b = Vector{T}(undef, Nx)
+    inv_xdot = Vector{T}(undef, Nx)
+    rhs_p = Vector{T}(undef, Nx)
     return _SgMAMGeneralCache{T, typeof(lc)}(
-        M, diag_idx, left_idx, right_idx, rhs, lc, a_at,
+        M, diag_idx, left_idx, right_idx, rhs, lc, a_at, inv_b, inv_xdot, rhs_p,
     )
 end
 
-# Fallback for direct `update_x!` calls (tests): build a one-shot cache, fill `a_at`,
-# then dispatch to the cached variant.
+# Fallback for direct `update_x!` calls (tests).
 function _update_x!(
         x, λ, p′, x′′, Hx,
         sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, GeneralNoise}, ϵ,
@@ -289,8 +281,6 @@ function _update_x!(
     @inbounds for i_in in 1:N_in
         i = i_in + 1
         rb = (i_in - 1) * Nx
-        # `cache.a_at[i]` was filled by the preceding `_update_p!` call on the same
-        # path snapshot, so we skip the closure call here.
         A_i = cache.a_at[i]
         λi2 = λ[i]^2
 
@@ -346,14 +336,26 @@ end
 function _update_p!(
         p, lambda, x, xdot,
         sys::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, AdditiveNoise},
-        _cache,
+        cache::_SgMAMAdditiveCache,
     ) where {IIP, D, Hx, Hp, AF}
+    return _update_p_additive!(p, lambda, x, xdot, sys, cache.a_inv)
+end
+
+function _update_p!(
+        p, lambda, x, xdot,
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, AdditiveNoise},
+        ::Nothing,
+    ) where {IIP, D, Hx, Hp, AF}
+    a_inv = inv.(LinearAlgebra.diag(sys.a(view(x, :, 1))))
+    return _update_p_additive!(p, lambda, x, xdot, sys, a_inv)
+end
+
+function _update_p_additive!(p, lambda, x, xdot, sys, a_inv)
     b_ = sys.H_p(x, zero(x))
-    a_diag = LinearAlgebra.diag(sys.a(view(x, :, 1)))
-    a_inv = inv.(a_diag)
     num = sum(b_ .^ 2 .* a_inv; dims = 1)
     den = sum(xdot .^ 2 .* a_inv; dims = 1)
     lambda .= sqrt.(num ./ den)
+    # `lambda` is shape `(1, Nt)`; linear indexing pins path endpoints.
     lambda[1] = 0
     lambda[end] = 0
     p .= (lambda .* xdot .- b_) .* a_inv
@@ -387,23 +389,37 @@ end
 function _update_p!(
         p, lambda, x, xdot,
         sys::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, GeneralNoise},
-        cache,
+        cache::_SgMAMGeneralCache,
     ) where {IIP, D, Hx, Hp, AF}
-    b_ = sys.H_p(x, zero(x))
-    Nt = size(x, 2)
-    T = eltype(b_)
+    return _update_p_general!(
+        p, lambda, x, xdot, sys,
+        cache.inv_b, cache.inv_xdot, cache.rhs_p, cache,
+    )
+end
+
+function _update_p!(
+        p, lambda, x, xdot,
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, GeneralNoise},
+        ::Nothing,
+    ) where {IIP, D, Hx, Hp, AF}
+    T = eltype(p)
     inv_b = Vector{T}(undef, D)
     inv_xdot = Vector{T}(undef, D)
     rhs = Vector{T}(undef, D)
+    return _update_p_general!(p, lambda, x, xdot, sys, inv_b, inv_xdot, rhs, nothing)
+end
+
+function _update_p_general!(p, lambda, x, xdot, sys, inv_b, inv_xdot, rhs, cache)
+    b_ = sys.H_p(x, zero(x))
+    Nt = size(x, 2)
+    T = eltype(b_)
+    D = size(b_, 1)
     for t in 1:Nt
-        # Evaluate `a_t` once and stash into the GeneralNoise cache so the
-        # following `_update_x!` call can skip the closure evaluation.
         a_t = sys.a(view(x, :, t))
         a_t_mat = a_t isa Matrix ? a_t : Matrix(a_t)
         if cache isa _SgMAMGeneralCache
             copyto!(cache.a_at[t], a_t_mat)
         end
-        # One LU factorization shared across the three a_t-solves below.
         F = LinearAlgebra.lu(a_t_mat)
         copyto!(inv_b, view(b_, :, t));     LinearAlgebra.ldiv!(F, inv_b)
         copyto!(inv_xdot, view(xdot, :, t)); LinearAlgebra.ldiv!(F, inv_xdot)

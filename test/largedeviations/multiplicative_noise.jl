@@ -79,13 +79,13 @@ end
     f_lin(u, p, t) = SA[-u[1], -u[2]]
     ds = CoupledSDEs(f_lin, SA[0.0, 0.0]; noise_strength = 2.0)
     metric = CT._action_metric(ds)
-    @test metric isa Base.Returns
-    @test metric(zeros(2)) ≈ inv(LinearAlgebra.Diagonal([1.0, 1.0]))
+    @test metric isa AbstractMatrix
+    @test metric ≈ inv(LinearAlgebra.Diagonal([1.0, 1.0]))
 end
 
 @testset "_action_metric: state-dependent evaluates per point" begin
     metric = CT._action_metric(_make_1d_ou(0.3))
-    @test !(metric isa Base.Returns)
+    @test !(metric isa AbstractMatrix)
     @test metric([1.0])[1, 1] ≈ 1.0
 end
 
@@ -163,4 +163,51 @@ end
         maxiters = 300, show_progress = false,
     )
     @test isfinite(res_g.action)
+end
+
+# Regression: the state-dependent gMAM/sgMAM branches must reduce to the additive
+# branch when `a(x) ≡ I`. We construct a state-dependent diffusion `σ(x) = R(x)`
+# whose product `σσᵀ = R Rᵀ ≡ I`, so classification routes it through the
+# DiagonalNoise / GeneralNoise paths while the resulting Hamiltonian is identical
+# to the constant-`a` case. The converged action should match an additive-`σ ≡ I`
+# system on the same drift.
+@testset "gMAM state-dep a ≡ I matches additive a ≡ I" begin
+    Random.seed!(0)
+    function ms_drift(u, p, t)
+        x, y = u
+        return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
+    end
+
+    # Reference: additive identity noise.
+    ds_add = CoupledSDEs(ms_drift, zeros(2); noise_strength = 1.0)
+    @test CT._classify_noise_shape(ds_add) === AdditiveNoise()
+
+    # State-dependent σ(x) = R(θ(x)) with θ(x) = 0.5 * x[1]; σσᵀ = R Rᵀ = I.
+    function g_rotation(u, p, t)
+        c = cos(0.5 * u[1]); s = sin(0.5 * u[1])
+        return @SMatrix [c -s; s c]
+    end
+    ds_sd = CoupledSDEs(
+        ms_drift, zeros(2); g = g_rotation,
+        noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
+    )
+    # σσᵀ has off-diagonal entries (sin·cos products) before they cancel
+    # analytically, so the probe-based classification lands on GeneralNoise.
+    @test CT._classify_noise_shape(ds_sd) === GeneralNoise()
+
+    Nt = 40
+    xx = range(-1.0, 1.0; length = Nt)
+    yy = 0.3 .* (-xx .^ 2 .+ 1)
+    x_initial = Matrix([xx yy]')
+
+    res_add = minimize_geometric_action(
+        ds_add, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 500, show_progress = false,
+    )
+    res_sd = minimize_geometric_action(
+        ds_sd, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 500, show_progress = false,
+    )
+
+    @test isapprox(res_add.action, res_sd.action; rtol = 1.0e-6)
 end

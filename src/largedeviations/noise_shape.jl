@@ -40,12 +40,11 @@ struct GeneralNoise <: NoiseShape end
 """
     _is_rank_deficient(M)
 
-Return `true` if the matrix `M` is numerically singular. Uses `cond(M)` against
-`1/sqrt(eps(eltype(M)))` as the tolerance.
+Return `true` if `M` is numerically singular: `cond(M) > 1/eps(eltype(M))`.
 """
 function _is_rank_deficient(M::AbstractMatrix)
     T = eltype(M)
-    tol = 1 / sqrt(eps(real(T)))
+    tol = 1 / eps(real(T))
     return LinearAlgebra.cond(Matrix(M)) > tol
 end
 
@@ -180,10 +179,10 @@ end
 """
     _classify_user_a(a_callable, D)
 
-Classify a user-supplied `a(x)` callable. Probes `a` around `zeros(D)`; detects
-constant-vs-state-dependent structurally (the callable is a `Base.Returns`) rather
-than by numerical comparison, which avoids false positives on barely-state-dependent
-functions.
+Classify a user-supplied `a(x)` callable. Detects constant vs state-dependent
+structurally by checking `a_callable isa Base.Returns` rather than by numerical
+comparison; wrap a constant `a` in `Base.Returns` to opt into the additive
+fast path.
 """
 function _classify_user_a(a_callable, D::Int)
     probes = _probe_points(zeros(Float64, D))

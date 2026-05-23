@@ -54,13 +54,19 @@ function minimize_geometric_action(
     return minimize_geometric_action(sys, path, optimizer; kwargs...)
 end
 
-function _gmam_setup(sys::CoupledSDEs, init, maxiters, show_progress)
-    proper_FW_system(sys)
+function _gmam_setup(
+        sys::CoupledSDEs, init, maxiters, show_progress, ns::NS,
+    ) where {NS <: NoiseShape}
     path = deepcopy(init)
     N = length(init[1, :])
     alpha = zeros(N)
     arc = range(0, 1.0; length = N)
-    S(x) = geometric_action(sys, fix_ends(x, init[:, 1], init[:, end]), 1.0)
+    A_at = _action_metric(sys, ns)
+    b_fn = let sys = sys
+        x -> drift(sys, x)
+    end
+    x_i = init[:, 1]; x_f = init[:, end]
+    S(x) = _geometric_action_from_drift(b_fn, fix_ends(x, x_i, x_f), 1.0, A_at)
     prog = Progress(maxiters; enabled = show_progress)
     return path, N, alpha, arc, S, prog
 end
@@ -94,7 +100,19 @@ function minimize_geometric_action(
         verbose = false,
         show_progress = true,
     )
-    path, _, alpha, arc, S, _ = _gmam_setup(sys, init, maxiters, false)
+    proper_FW_system(sys)
+    ns = _classify_noise_shape(sys)
+    return _minimize_geometric_action_gg(
+        sys, init, optimizer, ns;
+        maxiters, abstol, reltol, verbose, show_progress,
+    )
+end
+
+function _minimize_geometric_action_gg(
+        sys::CoupledSDEs, init, optimizer::GeometricGradient, ns::NS;
+        maxiters, abstol, reltol, verbose, show_progress,
+    ) where {NS <: NoiseShape}
+    path, _, alpha, arc, S, _ = _gmam_setup(sys, init, maxiters, false, ns)
 
     ws = geometric_gradient_workspace(sys, path)
     path_prev = similar(path)
@@ -137,7 +155,18 @@ function minimize_geometric_action(
         ad_type = OptimizationBase.AutoFiniteDiff(),
         show_progress = true,
     )
-    path, N, alpha, arc, S, prog = _gmam_setup(sys, init, maxiters, show_progress)
+    proper_FW_system(sys)
+    ns = _classify_noise_shape(sys)
+    return _minimize_geometric_action_opt(
+        sys, init, optimizer, ns; maxiters, abstol, reltol, ad_type, show_progress,
+    )
+end
+
+function _minimize_geometric_action_opt(
+        sys::CoupledSDEs, init, optimizer, ns::NS;
+        maxiters, abstol, reltol, ad_type, show_progress,
+    ) where {NS <: NoiseShape}
+    path, N, alpha, arc, S, prog = _gmam_setup(sys, init, maxiters, show_progress, ns)
 
     optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)
     prob = SciMLBase.OptimizationProblem(optf, init, ())
