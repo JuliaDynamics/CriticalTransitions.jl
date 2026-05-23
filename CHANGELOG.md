@@ -2,16 +2,42 @@
 
 ## Unreleased
 
+#### Added
+- State-dependent multiplicative noise support for gMAM, sgMAM, and the action
+  functionals (`fw_action`, `geometric_action`, `om_action`). Noise structure is
+  now tracked via a `NoiseShape` type parameter on `CoupledSDEs`, with automatic
+  classification (additive, diagonal, general) and a Hamiltonian-picture
+  formulation for FW paths.
+- `proper_FW_system` for constructing Freidlin-Wentzell path systems with
+  arbitrary noise covariance.
+- Type-stability and allocation regression tests; multiplicative-noise
+  benchmarks.
+- `verbose` option for `sgmam`.
+
 #### Changed
-- `GeometricGradient` now performs Armijo-style backtracking step-size control by default
-  (`max_backtracks=10`). Pass `GeometricGradient(; max_backtracks=0)` to recover the
-  previous fixed-step behavior.
-- Default `stepsize` for `minimize_simple_geometric_action` raised from `1e-1` to `1e3` to
-  match the new backtracking-on default. Callers that explicitly pass a `GeometricGradient`
-  optimizer are unaffected; callers that relied on the implicit default with
-  `max_backtracks=0` should pass `stepsize=1e-1` explicitly.
+- `GeometricGradient` now performs Armijo-style backtracking step-size control by
+  default (`max_backtracks=10`). Pass `GeometricGradient(; max_backtracks=0)` to
+  recover the previous fixed-step behavior.
+- Default `stepsize` for `minimize_geometric_action` raised from `1e-1` to `1e3`
+  to match the new backtracking-on default. Callers that explicitly pass a
+  `GeometricGradient` optimizer are unaffected; callers that relied on the
+  implicit default with `max_backtracks=0` should pass `stepsize=1e-1` explicitly.
+- `transitions` now forwards `sys.diffeq` and reseeds per call for reproducible
+  ensembles (#331).
+- LinearSolve handles are cached per-call (additive, diagonal noise) and
+  cross-iteration (general noise) for substantial allocation/performance gains.
+- Updated to the new `DynamicalSystemsBase` interface; `StochasticSystemsBase`
+  is no longer used (#335).
+- Switched code formatter to Runic.jl (#315).
+
+#### Fixed
+- Freidlin-Wentzell action conventions and stray `/2` factors (#329).
 
 #### Removed
+- `minimize_simple_geometric_action` (unified into `minimize_geometric_action`,
+  now tightened to `CoupledSDEs`).
+- `proper_sgMAM_system` (superseded by `NoiseShape` dispatch).
+- Legacy `StochSystem` alias from the public API (#321).
 - `DataStructures` dependency (was only used for a 2-element circular buffer).
 
 ## v0.7.0

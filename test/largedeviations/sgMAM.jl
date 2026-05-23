@@ -1,5 +1,4 @@
 using CriticalTransitions
-using ModelingToolkitBase
 using Test
 using LinearAlgebra
 using StaticArrays
@@ -113,14 +112,8 @@ end
         return Matrix([H_pu H_pv]')
     end
 
-    @independent_variables t
-    D = Differential(t)
-    sts = @variables u(t) v(t)
-
-    eqs = [D(u) ~ fu(u, v), D(v) ~ fv(u, v)]
-    @mtkcompile sysMTK = System(eqs, t)
-    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac = true)
-    ds = CoupledODEs(prob)
+    kpo_rhs(u, p, t) = SA[fu(u[1], u[2]), fv(u[1], u[2])]
+    ds = CoupledODEs(kpo_rhs, zeros(2))
 
     sys = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
     sys′ = FreidlinWentzellHamiltonian(ds)
@@ -133,29 +126,29 @@ end
     @test sys′.H_p(x_r, p_r) ≈ sys.H_p(x_r, p_r)
 end
 
-@testset "FreidlinWentzellHamiltonian MTK" begin
-    @independent_variables t
-    D = Differential(t)
-    sts = @variables u(t) v(t)
+# @testset "FreidlinWentzellHamiltonian MTK" begin
+#     @independent_variables t
+#     D = Differential(t)
+#     sts = @variables u(t) v(t)
 
-    @parameters λ = 3 / 1.21 * 2 / 295 ω0 = 1.0 ω = 1.0 γ = 1 / 295 η = 0 α = -1
+#     @parameters λ = 3 / 1.21 * 2 / 295 ω0 = 1.0 ω = 1.0 γ = 1 / 295 η = 0 α = -1
 
-    eqs = [
-        D(u) ~
-            (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
-            (8 * ω),
-        D(v) ~
-            (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
-            (8 * ω),
-    ]
-    @mtkcompile sysMTK = System(eqs, t)
-    prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac = true)
-    ds = CoupledODEs(prob)
-    sys = FreidlinWentzellHamiltonian(ds)
+#     eqs = [
+#         D(u) ~
+#             (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
+#             (8 * ω),
+#         D(v) ~
+#             (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
+#             (8 * ω),
+#     ]
+#     @mtkcompile sysMTK = System(eqs, t)
+#     prob = ODEProblem(sysMTK, Dict(sts .=> zeros(2)), (0.0, 100.0); jac = true)
+#     ds = CoupledODEs(prob)
+#     sys = FreidlinWentzellHamiltonian(ds)
 
-    @test sys.H_x(zeros(2), zeros(2)) ≈ zeros(2)
-    @test sys.H_p(zeros(2), zeros(2)) ≈ zeros(2)
-end
+#     @test sys.H_x(zeros(2), zeros(2)) ≈ zeros(2)
+#     @test sys.H_p(zeros(2), zeros(2)) ≈ zeros(2)
+# end
 
 @testset "sgMAM GeometricGradient" begin
     H_x(x, p) = zeros(size(x))

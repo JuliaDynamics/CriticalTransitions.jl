@@ -3,7 +3,7 @@ struct SgMAMDecoupledCache{T, LC}
     Ainv_b::Matrix{T}               # a⁻¹ · b stored elementwise
     Ainv_xd::Matrix{T}              # a⁻¹ · ẋ stored elementwise
     p_zero::Matrix{T}               # zero buffer reused as 2nd arg to sys.H_p
-    caches::Vector{LC}
+    linear_cache::LC
 end
 
 struct SgMAMCoupledCache{T, LC}
@@ -19,18 +19,14 @@ struct SgMAMCoupledCache{T, LC}
     p_zero::Matrix{T}               # zero buffer reused as 2nd arg to sys.H_p
 end
 
-function _init_tridiag_caches(::Type{T}, L::Int, nthreads::Int) where {T}
-    return [
-        begin
-                dl = zeros(T, L - 1); d = ones(T, L); du = zeros(T, L - 1)
-                Tmat = LinearAlgebra.Tridiagonal(dl, d, du)
-                rhs = zeros(T, L)
-                init(
-                    LinearProblem(Tmat, rhs), LUFactorization();
-                    alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
-                )
-            end for _ in 1:nthreads
-    ]
+function _init_tridiag_cache(::Type{T}, L::Int) where {T}
+    dl = zeros(T, L - 1); d = ones(T, L); du = zeros(T, L - 1)
+    Tmat = LinearAlgebra.Tridiagonal(dl, d, du)
+    rhs = zeros(T, L)
+    return init(
+        LinearProblem(Tmat, rhs), LUFactorization();
+        alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
+    )
 end
 
 function _fill_constant_a_inv!(a_inv::Matrix{T}, a, Nx, Nt) where {T}
@@ -57,8 +53,10 @@ function _build_decoupled_cache(sys, ::Type{T}, Nx::Int, Nt::Int) where {T}
     Ainv_xd = Matrix{T}(undef, Nx, Nt)
     p_zero = zeros(T, Nx, Nt)
     is_constant(sys.a) === Val(true) && _fill_constant_a_inv!(a_inv, sys.a, Nx, Nt)
-    caches = _init_tridiag_caches(T, Nt - 2, Threads.nthreads())
-    return SgMAMDecoupledCache{T, eltype(caches)}(a_inv, Ainv_b, Ainv_xd, p_zero, caches)
+    linear_cache = _init_tridiag_cache(T, Nt - 2)
+    return SgMAMDecoupledCache{T, typeof(linear_cache)}(
+        a_inv, Ainv_b, Ainv_xd, p_zero, linear_cache,
+    )
 end
 
 function _find_nzval_idx(M::SparseArrays.SparseMatrixCSC, r::Int, c::Int)
@@ -193,13 +191,12 @@ function update_x!(
         cache::SgMAMDecoupledCache,
     )
     a_inv = cache.a_inv
-    caches = cache.caches
+    lc = cache.linear_cache
     Nx, Nt = size(x); L = Nt - 2
     xa = view(x, :, 1); xb = view(x, :, Nt)
-    Threads.@threads :static for dof in 1:Nx
-        lc = caches[Threads.threadid()]
-        Tmat = lc.A
-        rhs = lc.b
+    Tmat = lc.A
+    rhs = lc.b
+    for dof in 1:Nx
         @inbounds for i in 1:L
             Tmat.d[i] = 1 + 2 * ϵ * λ[i + 1]^2 * a_inv[dof, i + 1]
         end

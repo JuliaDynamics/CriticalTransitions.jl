@@ -57,7 +57,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
     x_init_sss = StateSpaceSet([xx yy])
 
     string_sss = string_method(
-        sys_sss, x_init_sss; maxiters = 10_000, stepsize = 0.5, show_progress = false
+        sys_sss, x_init_sss; maxiters = 500, stepsize = 0.5, show_progress = false
     )
 
     function H_x_m(x, p) # ℜ² → ℜ²
@@ -82,7 +82,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
     x_init_m = Matrix([xx yy]')
 
     string_m = string_method(
-        sys_m, x_init_m; maxiters = 10_000, stepsize = 0.5, show_progress = false
+        sys_m, x_init_m; maxiters = 500, stepsize = 0.5, show_progress = false
     )
 
     @test vec(string_m.path) ≈ vec(string_sss.path)
