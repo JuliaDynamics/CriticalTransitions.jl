@@ -222,6 +222,7 @@ function geometric_gradient_step!(
     @views for i in 2:(N - 1)
         ws.drift_cache[:, i - 1] .= drift(sys, path[:, i])
     end
+    # Pass 1: compute λ_i, θ_i. a_func returns a Diagonal (no-op factorize) or Matrix (LU).
     @views for i in 2:(N - 1)
         xi  = path[:, i]
         a_i = ws.a_func(xi)
@@ -232,6 +233,9 @@ function geometric_gradient_step!(
     @views for i in 2:(N - 1)
         ws.lambdas_prime[i] = (ws.lambdas[i + 1] - ws.lambdas[i - 1]) / (2 * dx)
     end
+    # Pass 2: assemble RHS. a_func(xi) for constant a is a no-op (Returns); for state-dep
+    # it re-evaluates. Caching across passes would force a Matrix storage type and would
+    # erase the Diagonal fast path for additive baseline, so we accept the second eval.
     @views for i in 2:(N - 1)
         xi  = path[:, i]
         a_i = ws.a_func(xi)

@@ -1,7 +1,8 @@
 struct SgMAMDecoupledCache{T, LC}
-    a_inv::Matrix{T}
-    inv_b::Matrix{T}
-    inv_xd::Matrix{T}
+    a_inv::Matrix{T}                # diag(a⁻¹) per (k, t)
+    Ainv_b::Matrix{T}               # a⁻¹ · b stored elementwise
+    Ainv_xd::Matrix{T}              # a⁻¹ · ẋ stored elementwise
+    p_zero::Matrix{T}               # zero buffer reused as 2nd arg to sys.H_p
     caches::Vector{LC}
 end
 
@@ -12,9 +13,10 @@ struct SgMAMCoupledCache{T, LC}
     linear_cache::LC
     a_at::Vector{Matrix{T}}
     rhs::Vector{T}
-    inv_b::Vector{T}
-    inv_xd::Vector{T}
-    rhs_p::Vector{T}
+    Ainv_b::Vector{T}               # a(x_t)⁻¹ · b_t  (scratch, per t)
+    Ainv_xd::Vector{T}              # a(x_t)⁻¹ · ẋ_t  (scratch, per t)
+    rhs_p::Vector{T}                # scratch for p update
+    p_zero::Matrix{T}               # zero buffer reused as 2nd arg to sys.H_p
 end
 
 function _init_tridiag_caches(::Type{T}, L::Int, nthreads::Int) where {T}
@@ -50,12 +52,13 @@ function _refill_state_dep_a_inv!(a_inv::Matrix{T}, a, x) where {T}
 end
 
 function _build_decoupled_cache(sys, ::Type{T}, Nx::Int, Nt::Int) where {T}
-    a_inv  = Matrix{T}(undef, Nx, Nt)
-    inv_b  = Matrix{T}(undef, Nx, Nt)
-    inv_xd = Matrix{T}(undef, Nx, Nt)
+    a_inv   = Matrix{T}(undef, Nx, Nt)
+    Ainv_b  = Matrix{T}(undef, Nx, Nt)
+    Ainv_xd = Matrix{T}(undef, Nx, Nt)
+    p_zero  = zeros(T, Nx, Nt)
     is_constant(sys.a) === Val(true) && _fill_constant_a_inv!(a_inv, sys.a, Nx, Nt)
     caches = _init_tridiag_caches(T, Nt - 2, _thread_count())
-    return SgMAMDecoupledCache{T, eltype(caches)}(a_inv, inv_b, inv_xd, caches)
+    return SgMAMDecoupledCache{T, eltype(caches)}(a_inv, Ainv_b, Ainv_xd, p_zero, caches)
 end
 
 function _find_nzval_idx(M::SparseArrays.SparseMatrixCSC, r::Int, c::Int)
@@ -123,9 +126,11 @@ function _build_coupled_cache(::Type{T}, Nx::Int, Nt::Int) where {T}
         alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
     )
     a_at = [Matrix{T}(undef, Nx, Nx) for _ in 1:Nt]
+    p_zero = zeros(T, Nx, Nt)
     return SgMAMCoupledCache{T, typeof(lc)}(
         M, diag_idx, off_idx, lc, a_at, rhs,
         Vector{T}(undef, Nx), Vector{T}(undef, Nx), Vector{T}(undef, Nx),
+        p_zero,
     )
 end
 
@@ -151,11 +156,11 @@ function _update_p_decoupled!(p, λ, x, xdot, sys, cache::SgMAMDecoupledCache)
     if is_constant(sys.a) === Val(false)
         _refill_state_dep_a_inv!(cache.a_inv, sys.a, x)
     end
-    b_ = sys.H_p(x, zero(x))
-    @. cache.inv_b  = b_   * cache.a_inv
-    @. cache.inv_xd = xdot * cache.a_inv
-    num = sum(b_   .* cache.inv_b;  dims = 1)
-    den = sum(xdot .* cache.inv_xd; dims = 1)
+    b_ = sys.H_p(x, cache.p_zero)
+    @. cache.Ainv_b  = b_   * cache.a_inv
+    @. cache.Ainv_xd = xdot * cache.a_inv
+    num = sum(b_   .* cache.Ainv_b;  dims = 1)
+    den = sum(xdot .* cache.Ainv_xd; dims = 1)
     @. λ = ifelse(den > 1.0e-28, sqrt(num / den), zero(eltype(num)))
     λ[1, 1] = λ[1, end] = 0
     @. p = (λ * xdot - b_) * cache.a_inv
@@ -163,16 +168,16 @@ function _update_p_decoupled!(p, λ, x, xdot, sys, cache::SgMAMDecoupledCache)
 end
 
 function _update_p_coupled!(p, λ, x, xdot, sys, cache::SgMAMCoupledCache)
-    b_ = sys.H_p(x, zero(x))
+    b_ = sys.H_p(x, cache.p_zero)
     @inbounds for t in axes(x, 2)
         a_t = sys.a(view(x, :, t))
         copyto!(cache.a_at[t], a_t isa Matrix ? a_t : Matrix(a_t))
         F = LinearAlgebra.lu(cache.a_at[t])
         bt = view(b_, :, t); xt = view(xdot, :, t)
-        copyto!(cache.inv_b,  bt); LinearAlgebra.ldiv!(F, cache.inv_b)
-        copyto!(cache.inv_xd, xt); LinearAlgebra.ldiv!(F, cache.inv_xd)
-        num = dot(bt, cache.inv_b)
-        den = dot(xt, cache.inv_xd)
+        copyto!(cache.Ainv_b,  bt); LinearAlgebra.ldiv!(F, cache.Ainv_b)
+        copyto!(cache.Ainv_xd, xt); LinearAlgebra.ldiv!(F, cache.Ainv_xd)
+        num = dot(bt, cache.Ainv_b)
+        den = dot(xt, cache.Ainv_xd)
         λt = den > 1.0e-28 ? sqrt(num / den) : zero(eltype(b_))
         λ[1, t] = λt
         for k in axes(p, 1)
@@ -187,24 +192,13 @@ function _update_p_coupled!(p, λ, x, xdot, sys, cache::SgMAMCoupledCache)
     return nothing
 end
 
-function update_x!(
-        x, λ, p′, x′′, Hx, sys::FreidlinWentzellHamiltonian, ϵ, cache::SgMAMDecoupledCache,
-    )
-    if is_constant(sys.a) === Val(false)
-        _refill_state_dep_a_inv!(cache.a_inv, sys.a, x)
-    end
-    return _update_x_tridiag!(x, λ, p′, x′′, Hx, ϵ, cache.caches, cache.a_inv)
-end
+# update_x! relies on update_p! (called via _sgmam_refresh!) having already populated
+# cache.a_inv / cache.a_at for the current x. No re-refill here.
+update_x!(x, λ, p′, x′′, Hx, sys::FreidlinWentzellHamiltonian, ϵ, cache::SgMAMDecoupledCache) =
+    _update_x_tridiag!(x, λ, p′, x′′, Hx, ϵ, cache.caches, cache.a_inv)
 
-function update_x!(
-        x, λ, p′, x′′, Hx, sys::FreidlinWentzellHamiltonian, ϵ, cache::SgMAMCoupledCache,
-    )
-    @inbounds for t in axes(x, 2)
-        a_t = sys.a(view(x, :, t))
-        copyto!(cache.a_at[t], a_t isa Matrix ? a_t : Matrix(a_t))
-    end
-    return _update_x_block_tridiag!(x, λ, p′, x′′, Hx, ϵ, cache)
-end
+update_x!(x, λ, p′, x′′, Hx, sys::FreidlinWentzellHamiltonian, ϵ, cache::SgMAMCoupledCache) =
+    _update_x_block_tridiag!(x, λ, p′, x′′, Hx, ϵ, cache)
 
 function _update_x_tridiag!(x, λ, p′, x′′, Hx, ϵ, caches, a_inv)
     Nx, Nt = size(x); L = Nt - 2

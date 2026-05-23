@@ -1,8 +1,10 @@
 """
 $(TYPEDSIGNATURES)
 
-Performs the simplified geometric Minimal Action Method (sgMAM) on the given Hamiltonian
-system `sys`.
+Performs the simplified geometric Minimum Action Method (sgMAM) on the given Hamiltonian
+system `sys`. Supports constant `a`, state-dependent diagonal `a(x)`, and state-dependent
+off-diagonal `a(x)` via concrete-cache dispatch (`SgMAMDecoupledCache` for diagonal,
+`SgMAMCoupledCache` for off-diagonal). Rank-deficient `a` is rejected at cache build.
 
 The method computes the optimal instanton path that minimizes the Freidlin-Wentzell action
 in the doubled `(x, p)` phase space via constrained gradient descent. Returns a
