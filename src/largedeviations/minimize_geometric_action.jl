@@ -152,16 +152,16 @@ function _lambda_theta!(θ_out, a_i, b_i, φp, Ainv_b, Ainv_φp)
     if a_i isa LinearAlgebra.Diagonal
         d = a_i.diag
         @inbounds for k in eachindex(Ainv_b)
-            Ainv_b[k]  = b_i[k] / d[k]
-            Ainv_φp[k] = φp[k]  / d[k]
+            Ainv_b[k] = b_i[k] / d[k]
+            Ainv_φp[k] = φp[k] / d[k]
         end
     else
         F = LinearAlgebra.lu(a_i isa Matrix ? a_i : Matrix(a_i))
-        copyto!(Ainv_b,  b_i); LinearAlgebra.ldiv!(F, Ainv_b)
+        copyto!(Ainv_b, b_i); LinearAlgebra.ldiv!(F, Ainv_b)
         copyto!(Ainv_φp, φp);  LinearAlgebra.ldiv!(F, Ainv_φp)
     end
     num = dot(b_i, Ainv_b)
-    den = dot(φp,  Ainv_φp)
+    den = dot(φp, Ainv_φp)
     λ = den > 1.0e-28 ? sqrt(num / den) : zero(eltype(b_i))
     @inbounds for k in eachindex(θ_out)
         θ_out[k] = λ * Ainv_φp[k] - Ainv_b[k]
@@ -172,7 +172,7 @@ end
 function _assemble_explicit_rhs!(::Val{true}, ws, a_i, _θ, _b_i, φp, _xi, i)
     J = ws.jac(_xi)
     LinearAlgebra.mul!(ws.Hpphi, J, φp)
-    LinearAlgebra.mul!(ws.Hphi,  J', _θ)
+    LinearAlgebra.mul!(ws.Hphi, J', _θ)
     LinearAlgebra.mul!(ws.aHphi, a_i, ws.Hphi)
     @inbounds for k in eachindex(ws.aHphi)
         ws.rhs_explicit[k, i - 1] = -ws.lambdas[i] * ws.Hpphi[k] + ws.aHphi[k]
@@ -183,7 +183,7 @@ end
 function _assemble_explicit_rhs!(::Val{false}, ws, a_i, θ, _b_i, φp, xi, i)
     J = ws.jac(xi)
     LinearAlgebra.mul!(ws.Hpphi, J, φp)
-    LinearAlgebra.mul!(ws.Hphi,  J', θ)
+    LinearAlgebra.mul!(ws.Hphi, J', θ)
     h = _fd_step(eltype(xi))
     fill!(ws.fd_probe, 0)
     @inbounds for l in eachindex(ws.Hphi)
@@ -224,10 +224,10 @@ function geometric_gradient_step!(
         ws.drift_cache[:, i - 1] .= drift(sys, path[:, i])
     end
     @views for i in 2:(N - 1)
-        xi  = path[:, i]
+        xi = path[:, i]
         a_i = ws.a_func(xi)
         b_i = ws.drift_cache[:, i - 1]
-        φp  = ws.x_prime[:, i]
+        φp = ws.x_prime[:, i]
         ws.lambdas[i] = _lambda_theta!(
             view(ws.theta_cache, :, i - 1), a_i, b_i, φp, ws.Ainv_b, ws.Ainv_φp,
         )
@@ -236,11 +236,11 @@ function geometric_gradient_step!(
         ws.lambdas_prime[i] = (ws.lambdas[i + 1] - ws.lambdas[i - 1]) / (2 * dx)
     end
     @views for i in 2:(N - 1)
-        xi  = path[:, i]
+        xi = path[:, i]
         a_i = ws.a_func(xi)
         b_i = ws.drift_cache[:, i - 1]
-        φp  = ws.x_prime[:, i]
-        θ   = ws.theta_cache[:, i - 1]
+        φp = ws.x_prime[:, i]
+        θ = ws.theta_cache[:, i - 1]
         _assemble_explicit_rhs!(is_constant(ws.a_func), ws, a_i, θ, b_i, φp, xi, i)
         @inbounds for k in 1:Nx
             ws.rhs_explicit[k, i - 1] += ws.lambdas[i] * ws.lambdas_prime[i] * φp[k]
@@ -252,7 +252,7 @@ end
 
 function _gmam_implicit_shared!(ws::GeometricGradientWorkspace, path, N, stepsize, dx)
     Tmat = ws.linear_cache.A
-    rhs  = ws.linear_cache.b
+    rhs = ws.linear_cache.b
     fill!(Tmat.d, 1); fill!(Tmat.dl, 0); fill!(Tmat.du, 0)
     @inbounds for i in 2:(N - 1)
         α = stepsize * ws.lambdas[i]^2 / dx^2
@@ -263,7 +263,7 @@ function _gmam_implicit_shared!(ws::GeometricGradientWorkspace, path, N, stepsiz
         end
     end
     @inbounds for j in 1:size(path, 1)
-        rhs[1]   = path[j, 1]
+        rhs[1] = path[j, 1]
         rhs[end] = path[j, end]
         for i in 2:(N - 1)
             rhs_val = path[j, i] + stepsize * ws.rhs_explicit[j, i - 1]

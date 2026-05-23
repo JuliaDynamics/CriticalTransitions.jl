@@ -41,7 +41,7 @@ struct FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, A, R}
 end
 
 is_constant(::Base.Returns) = Val(true)
-is_constant(_)              = Val(false)
+is_constant(_) = Val(false)
 
 function FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)
     D = dimension(ds)
@@ -102,9 +102,9 @@ function _add_da_term!(::Val{false}, out, a, x, p, e)
 end
 
 _a_shape_label(::LinearAlgebra.Diagonal) = "Diagonal a"
-_a_shape_label(::AbstractMatrix)         = "a"
+_a_shape_label(::AbstractMatrix) = "a"
 
-_a_const_label(::Val{true})  = "constant"
+_a_const_label(::Val{true}) = "constant"
 _a_const_label(::Val{false}) = "state-dependent"
 
 function _show_a_label(a, x_ref::AbstractVector)

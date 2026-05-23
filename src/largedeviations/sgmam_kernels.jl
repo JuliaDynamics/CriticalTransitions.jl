@@ -22,14 +22,14 @@ end
 function _init_tridiag_caches(::Type{T}, L::Int, nthreads::Int) where {T}
     return [
         begin
-            dl = zeros(T, L - 1); d = ones(T, L); du = zeros(T, L - 1)
-            Tmat = LinearAlgebra.Tridiagonal(dl, d, du)
-            rhs  = zeros(T, L)
-            init(
-                LinearProblem(Tmat, rhs), LUFactorization();
-                alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
-            )
-        end for _ in 1:nthreads
+                dl = zeros(T, L - 1); d = ones(T, L); du = zeros(T, L - 1)
+                Tmat = LinearAlgebra.Tridiagonal(dl, d, du)
+                rhs = zeros(T, L)
+                init(
+                    LinearProblem(Tmat, rhs), LUFactorization();
+                    alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
+                )
+            end for _ in 1:nthreads
     ]
 end
 
@@ -52,10 +52,10 @@ function _refill_state_dep_a_inv!(a_inv::Matrix{T}, a, x) where {T}
 end
 
 function _build_decoupled_cache(sys, ::Type{T}, Nx::Int, Nt::Int) where {T}
-    a_inv   = Matrix{T}(undef, Nx, Nt)
-    Ainv_b  = Matrix{T}(undef, Nx, Nt)
+    a_inv = Matrix{T}(undef, Nx, Nt)
+    Ainv_b = Matrix{T}(undef, Nx, Nt)
     Ainv_xd = Matrix{T}(undef, Nx, Nt)
-    p_zero  = zeros(T, Nx, Nt)
+    p_zero = zeros(T, Nx, Nt)
     is_constant(sys.a) === Val(true) && _fill_constant_a_inv!(a_inv, sys.a, Nx, Nt)
     caches = _init_tridiag_caches(T, Nt - 2, Threads.nthreads())
     return SgMAMDecoupledCache{T, eltype(caches)}(a_inv, Ainv_b, Ainv_xd, p_zero, caches)
@@ -99,7 +99,7 @@ function _build_coupled_cache(::Type{T}, Nx::Int, Nt::Int) where {T}
     M = SparseArrays.sparse(Iv, Jv, Vv, n, n)
 
     diag_idx = Array{Int, 3}(undef, Nx, Nx, N_in)
-    off_idx  = Matrix{Int}(undef, Nx, 2 * (N_in - 1))
+    off_idx = Matrix{Int}(undef, Nx, 2 * (N_in - 1))
     @inbounds for i_in in 1:N_in
         rb = (i_in - 1) * Nx
         for k1 in 1:Nx, k2 in 1:Nx
@@ -143,7 +143,7 @@ function build_sgmam_cache(
     return _build_sgmam_cache(Val(is_diagonal), sys, T, Nx, Nt)
 end
 
-_build_sgmam_cache(::Val{true},  sys, T, Nx, Nt) = _build_decoupled_cache(sys, T, Nx, Nt)
+_build_sgmam_cache(::Val{true}, sys, T, Nx, Nt) = _build_decoupled_cache(sys, T, Nx, Nt)
 _build_sgmam_cache(::Val{false}, sys, T, Nx, Nt) = _build_coupled_cache(T, Nx, Nt)
 
 function update_p!(p, λ, x, xdot, sys, cache::SgMAMDecoupledCache)
@@ -151,9 +151,9 @@ function update_p!(p, λ, x, xdot, sys, cache::SgMAMDecoupledCache)
         _refill_state_dep_a_inv!(cache.a_inv, sys.a, x)
     end
     b_ = sys.H_p(x, cache.p_zero)
-    @. cache.Ainv_b  = b_   * cache.a_inv
+    @. cache.Ainv_b = b_ * cache.a_inv
     @. cache.Ainv_xd = xdot * cache.a_inv
-    num = sum(b_   .* cache.Ainv_b;  dims = 1)
+    num = sum(b_ .* cache.Ainv_b; dims = 1)
     den = sum(xdot .* cache.Ainv_xd; dims = 1)
     @. λ = ifelse(den > 1.0e-28, sqrt(num / den), zero(eltype(num)))
     λ[1, 1] = λ[1, end] = 0
@@ -168,7 +168,7 @@ function update_p!(p, λ, x, xdot, sys, cache::SgMAMCoupledCache)
         copyto!(cache.a_at[t], a_t isa Matrix ? a_t : Matrix(a_t))
         F = LinearAlgebra.lu(cache.a_at[t])
         bt = view(b_, :, t); xt = view(xdot, :, t)
-        copyto!(cache.Ainv_b,  bt); LinearAlgebra.ldiv!(F, cache.Ainv_b)
+        copyto!(cache.Ainv_b, bt); LinearAlgebra.ldiv!(F, cache.Ainv_b)
         copyto!(cache.Ainv_xd, xt); LinearAlgebra.ldiv!(F, cache.Ainv_xd)
         num = dot(bt, cache.Ainv_b)
         den = dot(xt, cache.Ainv_xd)
@@ -199,7 +199,7 @@ function update_x!(
     Threads.@threads :static for dof in 1:Nx
         lc = caches[Threads.threadid()]
         Tmat = lc.A
-        rhs  = lc.b
+        rhs = lc.b
         @inbounds for i in 1:L
             Tmat.d[i] = 1 + 2 * ϵ * λ[i + 1]^2 * a_inv[dof, i + 1]
         end
@@ -214,7 +214,7 @@ function update_x!(
                 λ[i] * p′[dof, i] + Hx[dof, i] - ia * λ[i]^2 * x′′[dof, i]
             )
         end
-        rhs[1]   += ϵ * a_inv[dof, 2]      * λ[2]^2     * xa[dof]
+        rhs[1] += ϵ * a_inv[dof, 2] * λ[2]^2 * xa[dof]
         rhs[end] += ϵ * a_inv[dof, Nt - 1] * λ[end - 1]^2 * xb[dof]
         LinearSolve.reinit!(lc; A = Tmat, b = rhs)
         solve!(lc)
