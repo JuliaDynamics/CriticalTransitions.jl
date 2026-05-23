@@ -25,48 +25,14 @@ function interpolate_path!(path::Matrix, α, s)
     end
     return nothing
 end
-function interpolate_path(path::StateSpaceSet{D}, α, s) where {D}
-    Matrix
-    α[2:end] .= vec(sqrt.(sum.(map(x -> x .^ 2, diff(path)))))
-    α .= cumsum(α; dims = 1)
-    α .= α ./ last(α)
-    return StateSpaceSet([linear_interpolation(α, path[:, dof])(s) for dof in 1:D]...)
-end
 
 """
-`stepEuler!(u, b, Δt)`: Perform an in place Euler step
+    proper_MAM_system(ds::CoupledSDEs)
 
-### Fields
-* `u` - Initial state
-* `b` - Gradient of energy
-* `Δt` - Time step
+Validates that `ds` is a valid input for the classical minimum action method (MAM). Throws
+`ArgumentError` if any of the required noise traits (`:additive`, `:invertible`,
+`:autonomous`) is not satisfied. Returns `nothing` on success.
 """
-function stepEuler!(u, b, Δt)
-    gradV = b(u)
-    @. u = u - Δt * gradV
-
-    return u
-end
-
-"""
-`stepRK4!(u, b, Δt)`: Perform an in place RK4 step
-
-### Fields
-* `u` - Initial state
-* `b` - Gradient of energy
-* `Δt` - Time step
-"""
-function stepRK4!(u, b, Δt)
-    gradV1 = b(u)
-    gradV2 = b(u - 0.5 * Δt * gradV1)
-    gradV3 = b(u - 0.5 * Δt * gradV2)
-    gradV4 = b(u - Δt * gradV3)
-
-    @. u = u - Δt / 6 * (gradV1 + 2 * gradV2 + 2 * gradV3 + gradV4)
-
-    return u
-end
-
 function proper_MAM_system(ds::CoupledSDEs)
     for trait in (:additive, :invertible, :autonomous)
         if !ds.noise_type[trait]
@@ -83,10 +49,15 @@ end
 """
     proper_FW_system(ds::CoupledSDEs)
 
-Validates that `ds` is a valid input for the Freidlin-Wentzell Hamiltonian path
-(gMAM or sgMAM via `FreidlinWentzellHamiltonian(ds)`). Only requires autonomous noise;
-rank-deficiency is detected by `_validate_and_classify_a` (called at workspace
-construction with the path's reference state). Returns `nothing` on success.
+Validates that `ds` is a valid input for the Freidlin-Wentzell Hamiltonian path methods
+(gMAM via [`minimize_geometric_action`](@ref), sgMAM via [`FreidlinWentzellHamiltonian`](@ref)
++ `minimize_geometric_action`). Only requires `:autonomous` noise; multiplicative and
+state-dependent diffusion are admissible. Rank-deficiency is detected separately by
+`_validate_and_classify_a` (called at workspace / cache construction with the path's
+reference state). Returns `nothing` on success; throws `ArgumentError` otherwise.
+
+This is intentionally weaker than [`proper_MAM_system`](@ref), which additionally requires
+`:additive` and `:invertible`.
 """
 function proper_FW_system(ds::CoupledSDEs)
     if !ds.noise_type[:autonomous]
@@ -127,9 +98,11 @@ end
 """
     _validate_and_classify_a(a, x_ref) -> is_diagonal::Bool
 
-Validates `a(x)` at `x_ref` and at `x_ref ± h·e_l` for each coordinate `l`. Throws
-`ArgumentError` if `a` is rank-deficient at any probe. Returns `true` if `a` is
-numerically diagonal at every probe; `false` otherwise.
+Validates `a(x)` at `x_ref` and at `x_ref ± h·eₗ` for each coordinate `l`, where `h` is a
+finite-difference step. Throws `ArgumentError` if `a` is rank-deficient at any probe.
+Returns `true` if `a` is numerically diagonal at every probe; `false` otherwise. The
+return value drives `Val{true}/Val{false}` dispatch on the decoupled-vs-coupled cache
+path in [`build_sgmam_cache`](@ref) and `geometric_gradient_workspace`.
 """
 function _validate_and_classify_a(a, x_ref::AbstractVector{T}) where {T}
     h = max(sqrt(eps(real(T))), real(T)(1.0e-6))
@@ -154,9 +127,18 @@ end
 """
     _trace_normalized_a(ds::ContinuousTimeDynamicalSystem)
 
-Returns a callable `x -> a(x)` where `a` is the trace-normalized diffusion tensor
-`σ(x)σ(x)' / s` with `s = tr(σ(u₀)σ(u₀)')/D`. For constant noise, returns
-`Base.Returns(a_const)` (constant). For `CoupledODEs`, returns `Returns(I)`.
+Returns a callable `x -> a(x)` where `a(x) = σ(x) σ(x)ᵀ / s` is the trace-normalized
+diffusion tensor and `s = tr(σ(u₀) σ(u₀)ᵀ) / D` is computed once at the current state `u₀
+= current_state(ds)`. The normalization makes the Freidlin-Wentzell action invariant to
+overall noise rescaling, so values returned by [`fw_action`](@ref), [`om_action`](@ref),
+and [`geometric_action`](@ref) do not depend on `noise_strength` under the FW limit.
+
+Return shape:
+* `CoupledODEs` → `Returns(Diagonal(ones(D)))` (identity metric).
+* Additive noise → `Returns(a_const)` with `a_const::Diagonal` if `σσᵀ` is diagonal,
+  else `a_const::Matrix`. The closure is a `Base.Returns`, so callers can dispatch on it.
+* State-dependent noise → a closure `x -> (σ(x) σ(x)ᵀ) / s` returning `Matrix` (or
+  `Diagonal` when `σ` is supplied as a vector).
 """
 function _trace_normalized_a(ds::ContinuousTimeDynamicalSystem)
     D = dimension(ds)
@@ -182,6 +164,35 @@ function _trace_normalized_a(ds::ContinuousTimeDynamicalSystem)
     end
 end
 
+"""
+    path_velocity!(v, path, time; order = 4) -> v
+    path_velocity(path, time; order = 4) -> v
+
+Compute the time derivative ``\\dot\\phi(t)`` of a discrete path by finite differences.
+`path_velocity!` writes into the preallocated buffer `v`; `path_velocity` allocates a new
+matrix the same size and shape as `path`.
+
+# Arguments
+* `path`: `D × N` matrix with the path points in columns (`D` is the state dimension,
+  `N` the number of time samples).
+* `time`: length-`N` vector of monotonically increasing time points. Spacing need not be
+  uniform; the stencils use the actual time differences. For the `order = 4` stencil to be
+  accurate the spacing should be (approximately) uniform; nonuniform `time` is still
+  handled but only with the formal accuracy of the corresponding uniform stencil.
+* `v` (in-place form only): `D × N` matrix; will be overwritten in place.
+
+# Keyword arguments
+* `order::Int = 4`: order of the central finite-difference stencil used for interior
+  points. Must be `2` or `4`. Other values are no-ops (the buffer is returned untouched).
+  - `order = 2`: 3-point central differences at interior points; 1st-order forward /
+    backward differences at the two endpoints.
+  - `order = 4`: 5-point central differences for `i ∈ 3:N-2`; 2nd-order central
+    differences at `i = 2` and `i = N-1`; 1st-order forward / backward differences at the
+    endpoints `i = 1` and `i = N`.
+
+# Returns
+The velocity matrix `v` (same shape as `path`).
+"""
 function path_velocity!(v, path, time; order = 4)
     if order == 2
         @views begin
@@ -211,7 +222,12 @@ function path_velocity!(v, path, time; order = 4)
     return v
 end
 
-_thread_count() =
-    hasmethod(Threads.nthreads, Tuple{Symbol}) ?
-    (Threads.nthreads(:default) + Threads.nthreads(:interactive)) :
-    Threads.nthreads()
+"""
+    path_velocity(path, time; order = 4) -> v
+
+Allocating variant of [`path_velocity!`](@ref). Returns a freshly allocated `D × N` matrix
+of velocities. See [`path_velocity!`](@ref) for argument semantics and the supported
+stencils.
+"""
+path_velocity(path, time; order = 4) =
+    path_velocity!(zeros(eltype(path), size(path)), path, time; order)

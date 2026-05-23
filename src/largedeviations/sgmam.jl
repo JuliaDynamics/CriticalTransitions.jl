@@ -1,35 +1,41 @@
 """
-$(TYPEDSIGNATURES)
+    minimize_geometric_action(sys::FreidlinWentzellHamiltonian, x_initial, optimizer = GeometricGradient(; stepsize = 1e3); kwargs...)
 
-Performs the simplified geometric Minimum Action Method (sgMAM) on the given Hamiltonian
-system `sys`. Supports constant `a`, state-dependent diagonal `a(x)`, and state-dependent
-off-diagonal `a(x)` via concrete-cache dispatch (`SgMAMDecoupledCache` for diagonal,
-`SgMAMCoupledCache` for off-diagonal). Rank-deficient `a` is rejected at cache build.
+Runs the simplified geometric Minimum Action Method (sgMAM, [grafke_long_2017](@cite)) on
+the [`FreidlinWentzellHamiltonian`](@ref) `sys`, returning the instanton (minimizer of the
+Freidlin-Wentzell action) that connects the two endpoints of `x_initial`.
 
-The method computes the optimal instanton path that minimizes the Freidlin-Wentzell action
-in the doubled `(x, p)` phase space via constrained gradient descent. Returns a
-[`MinimumActionPath`](@ref) containing the final path, action value, Lagrange multipliers
-(`.λ`), generalized momentum (`.generalized_momentum`), and path velocity (`.path_velocity`).
+sgMAM works directly in the doubled ``(x, p)`` phase space and minimizes the symplectic
+action ``\\int p \\cdot \\mathrm{d}x`` under the zero-energy constraint ``H(x, p) = 0``.
+Here ``p = a(x)^{-1}(\\dot x - b(x))`` is the conjugate momentum, i.e. the (dimensionless)
+**noise force** that the Wiener process must supply to drive the trajectory over the barrier.
 
-The optional positional argument `optimizer` controls step-size adaptation. It defaults to
-`GeometricGradient(; stepsize = 1e3)`. Pass `GeometricGradient(; max_backtracks = 0)` to use
-a fixed step size, or `AdaptiveGeometricGradient(...)` for the multi-phase variant.
+## Arguments
+* `sys::FreidlinWentzellHamiltonian`: the Hamiltonian, typically obtained from a
+  `CoupledSDEs` via `FreidlinWentzellHamiltonian(ds)`.
+* `x_initial::Matrix{T}` (or `StateSpaceSet`): initial guess for the instanton, shape
+  `D × Nt` with state points in columns. Endpoints `x_initial[:, 1]` and `x_initial[:, end]`
+  are held fixed; the interior is reparameterized to uniform arclength on the first iteration.
+* `optimizer`: step-size control, either
+  - [`GeometricGradient`](@ref) (default; backtracking projected gradient), or
+  - [`AdaptiveGeometricGradient`](@ref) (multi-phase probe variant; more robust on
+    underdamped systems at higher per-iteration cost).
 
 ## Keyword arguments
-  - `maxiters::Int = 1000`
-  - `show_progress::Bool = false`
-  - `verbose::Bool = false`
-  - `abstol::Real = NaN`, `reltol::Real = NaN`: action-change convergence criteria
+* `maxiters::Int = 1000`: maximum outer iterations.
+* `abstol::Real = NaN`, `reltol::Real = NaN`: convergence on the absolute / relative
+  action change between accepted iterations. `NaN` disables that criterion.
+* `verbose::Bool = false`: log convergence and backtracking events.
+* `show_progress::Bool = false`: show a `ProgressMeter` bar.
+
+Returns a [`MinimumActionPath`](@ref)
 """
 function minimize_geometric_action(
         sys::FreidlinWentzellHamiltonian,
         x_initial::Matrix{T},
         optimizer::GeometricGradient = GeometricGradient(; stepsize = 1.0e3);
-        maxiters::Int = 1000,
-        show_progress::Bool = false,
-        verbose::Bool = false,
-        abstol::Real = NaN,
-        reltol::Real = NaN,
+        maxiters::Int = 1000, show_progress::Bool = false, verbose::Bool = false,
+        abstol::Real = NaN, reltol::Real = NaN,
     ) where {T}
     Nt = size(x_initial, 2)
     cache = build_sgmam_cache(sys, x_initial, Nt)
@@ -52,11 +58,8 @@ function minimize_geometric_action(
         sys::FreidlinWentzellHamiltonian,
         x_initial::Matrix{T},
         optimizer::AdaptiveGeometricGradient;
-        maxiters::Int = 1000,
-        show_progress::Bool = false,
-        verbose::Bool = false,
-        abstol::Real = NaN,
-        reltol::Real = NaN,
+        maxiters::Int = 1000, show_progress::Bool = false, verbose::Bool = false,
+        abstol::Real = NaN, reltol::Real = NaN,
     ) where {T}
     Nt = size(x_initial, 2)
     cache = build_sgmam_cache(sys, x_initial, Nt)
@@ -66,18 +69,23 @@ function minimize_geometric_action(
     )
 end
 
-function _minimize_geometric_action_inner(
-        sys::FreidlinWentzellHamiltonian, x_initial::Matrix{T}, optimizer::GeometricGradient, cache;
-        maxiters, show_progress, verbose, abstol, reltol,
-    ) where {T}
+# Shared initialization: allocate buffers, arclength-reparameterize, refresh λ/p/xdot.
+function _init_sgmam_state(sys, x_initial, cache)
     Nt = size(x_initial, 2)
     s = range(0; stop = 1, length = Nt)
     x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
     xdotdot = zeros(size(xdot))
-    x_prev = similar(x)
-
     interpolate_path!(x, alpha, s)
     _sgmam_refresh!(xdot, p, lambda, x, sys, cache)
+    return x, p, pdot, xdot, xdotdot, lambda, alpha, s
+end
+
+function _minimize_geometric_action_inner(
+        sys, x_initial, optimizer::GeometricGradient, cache;
+        maxiters, show_progress, verbose, abstol, reltol,
+    )
+    x, p, pdot, xdot, xdotdot, lambda, alpha, s = _init_sgmam_state(sys, x_initial, cache)
+    x_prev = similar(x)
     initial_action = FW_action(xdot, p)
 
     function try_step!(ϵ)
@@ -103,20 +111,12 @@ function _minimize_geometric_action_inner(
 end
 
 function _minimize_geometric_action_inner_adaptive(
-        sys::FreidlinWentzellHamiltonian, x_initial::Matrix{T},
-        optimizer::AdaptiveGeometricGradient, cache;
+        sys, x_initial, optimizer::AdaptiveGeometricGradient, cache;
         maxiters, show_progress, verbose, abstol, reltol,
-    ) where {T}
-    Nt = size(x_initial, 2)
-    s = range(0; stop = 1, length = Nt)
-    x, p, pdot, xdot, lambda, alpha = init_allocation(x_initial, Nt)
-    xdotdot = zeros(size(xdot))
-
+    )
+    x, p, pdot, xdot, xdotdot, lambda, alpha, s = _init_sgmam_state(sys, x_initial, cache)
     x_start = similar(x)
     x_big_result = similar(x)
-
-    interpolate_path!(x, alpha, s)
-    _sgmam_refresh!(xdot, p, lambda, x, sys, cache)
     Tϵ = typeof(optimizer.stepsize)
     current_action = Tϵ(FW_action(xdot, p))
 
@@ -171,10 +171,7 @@ function _minimize_geometric_action_inner_adaptive(
             accepted = false
             verbose &&
                 @info "Probe rejected at iters_used=$iters_used (S_big=$S_big, S_small=$S_small, S_prev=$S_prev); shrinking stepsize to $stepsize."
-            if stepsize <= optimizer.stepsize_min
-                verbose && @info "stepsize hit stepsize_min; stopping."
-                break
-            end
+            stepsize <= optimizer.stepsize_min && break
         end
 
         iters_used += n
@@ -187,12 +184,10 @@ function _minimize_geometric_action_inner_adaptive(
         end
         if (isfinite(abstol) && abs_change < abstol) ||
                 (isfinite(reltol) && rel_change < reltol)
-            verbose && @info "Converged after $iters_used iterations: abs=$abs_change, rel=$rel_change"
             break
         end
         next!(
-            progress;
-            step = n,
+            progress; step = n,
             showvalues = [
                 ("iters_used", iters_used),
                 ("action", round(current_action; sigdigits = 6)),

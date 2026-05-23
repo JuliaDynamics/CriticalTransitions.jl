@@ -6,12 +6,14 @@ For constant `a`, returns the inverse matrix directly. For state-dependent `a`,
 returns a callable `x -> inv(a(x))`. Callers route through `_eval_metric`.
 """
 _action_metric(sys::CoupledSDEs) = _action_metric(_trace_normalized_a(sys), sys)
-
 _action_metric(a::Base.Returns, sys::CoupledSDEs) = inv(a(current_state(sys)))
-
 _action_metric(a, sys::CoupledSDEs) = let a = a
     x -> inv(a(x))
 end
+
+# `A` may be a matrix (constant metric) or callable `x -> A(x)` (state-dep).
+_eval_metric(A::AbstractMatrix, _) = A
+_eval_metric(A, x) = A(x)
 
 """
 $(TYPEDSIGNATURES)
@@ -37,7 +39,7 @@ function fw_action(sys::CoupledSDEs, path, time)
         S += (integrand[i + 1] + integrand[i]) / 2 * (time[i + 1] - time[i])
     end
     return S / 2
-end;
+end
 
 """
     om_action(sys::CoupledSDEs, path, time, noise_strength)
@@ -60,19 +62,16 @@ construction). As ``\\sigma \\to 0``, `om_action` → `fw_action`.
 """
 function om_action(sys::CoupledSDEs, path, time, noise_strength)
     @assert all(diff(time) .≈ diff(time[1:2])) "Onsager-Machlup action is only defined for equispaced time"
-
     σ = noise_strength
-    # Trapezoidal quadrature of (σ²/2) ∫ ∇·f dt
     S = 0.0
     for i in 1:(size(path, 2) - 1)
-        S +=
-            σ^2 / 2 * (
+        S += σ^2 / 2 * (
             (div_drift(sys, path[:, i + 1]) + div_drift(sys, path[:, i])) / 2 *
                 (time[i + 1] - time[i])
         )
     end
     return fw_action(sys, path, time) + S
-end;
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -84,14 +83,13 @@ Computes the action functional specified by `functional` for a given CoupledSDEs
 * `functional = "OM"`: Returns the Onsager-Machlup action ([`om_action`](@ref))
 """
 function action(sys::CoupledSDEs, path::Matrix, time, functional; noise_strength = nothing)
-    S = 0.0
     if functional == "FW"
-        S = fw_action(sys, path, time)
+        return fw_action(sys, path, time)
     elseif functional == "OM"
-        S = om_action(sys, path, time, noise_strength)
+        return om_action(sys, path, time, noise_strength)
     end
-    return S
-end;
+    return 0.0
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -137,21 +135,15 @@ function geometric_action(b::Function, path, arclength = 1.0; A = nothing)
     return _geometric_action_from_drift(b, path, arclength, A)
 end
 
-# `A` may be either a matrix (constant metric) or a callable `x -> A(x)` (state-dep).
-_eval_metric(A::AbstractMatrix, _) = A
-_eval_metric(A, x) = A(x)
-
 function _geometric_action_from_drift(b::Function, path, arclength::Real, A)
     N = size(path, 2)
     v = path_velocity(path, range(0, arclength; length = N); order = 4)
-
     integrand = zeros(eltype(path), N)
     for i in 1:N
         drift_i = b(path[:, i])
         A_i = _eval_metric(A, path[:, i])
         integrand[i] = anorm(v[:, i], A_i) * anorm(drift_i, A_i) - dot(v[:, i], A_i, drift_i)
     end
-
     S = zero(eltype(path))
     for i in 1:(N - 1)
         S += (integrand[i + 1] + integrand[i]) / 2
@@ -162,61 +154,17 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Computes the squared ``A``-norm ``|| \\dot \\phi_t - b ||^2_A`` (see `fw_action` for
-details). Returns a vector of length `N` containing the values of the above squared norm for each time point in the vector `time`.
+Computes the squared ``A``-norm ``\\|\\dot\\phi_t - b\\|^2_A`` (see [`fw_action`](@ref)).
+Returns a vector of length `N` with one value per time point.
 """
 function fw_integrand(sys::CoupledSDEs, path, time, A)
     v = path_velocity(path, time; order = 4)
     sqnorm = zeros(size(path, 2))
     b(x) = drift(sys, x)
     for i in axes(path, 2)
-        # assumes the drift is time independent
         drift_i = b(path[:, i])
         A_i = _eval_metric(A, path[:, i])
         sqnorm[i] = anorm(v[:, i] - drift_i, A_i; square = true)
     end
     return sqnorm
-end;
-
-"""
-$(TYPEDSIGNATURES)
-
-Returns the velocity along a given `path` with time points given by `time`.
-
-## Keyword arguments
-* `order = 4`: Accuracy of the finite difference approximation.
-  `4`th order corresponds to a five-point stencil, `2`nd order to a three-point stencil.
-  In both cases, central differences are used except at the end points, where a forward or
-  backward difference is used.
-"""
-function path_velocity(path, time; order = 4)
-    v = zeros(size(path))
-
-    if order == 2
-        # 1st order forward/backward differences for end points
-        v[:, 1] .= (path[:, 2] .- path[:, 1]) / (time[2] - time[1])
-        v[:, end] .= (path[:, end] .- path[:, end - 1]) / (time[end] - time[end - 1])
-        # 2nd order central differences for internal points
-        for i in 2:(size(path, 2) - 1)
-            v[:, i] .= (path[:, i + 1] .- path[:, i - 1]) / (time[i + 1] - time[i - 1])
-        end
-
-    elseif order == 4
-        # 1st order forward/backward differences for end points
-        v[:, 1] .= (path[:, 2] .- path[:, 1]) / (time[2] - time[1])
-        v[:, end] .= (path[:, end] .- path[:, end - 1]) / (time[end] - time[end - 1])
-        # 2nd order central differences for neighbors of end points
-        v[:, 2] .= (path[:, 3] .- path[:, 1]) / (time[3] - time[1])
-        v[:, end - 1] .= (path[:, end] .- path[:, end - 2]) / (time[end] - time[end - 2])
-        # 4th order central differences for internal points
-        for i in 3:(size(path, 2) - 2)
-            v[:, i] .= (
-                (
-                    -path[:, i + 2] .+ 8 * path[:, i + 1] .- 8 * path[:, i - 1] .+
-                        path[:, i - 2]
-                ) / (6 * (time[i + 1] - time[i - 1]))
-            )
-        end
-    end
-    return v
-end;
+end

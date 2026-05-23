@@ -1,15 +1,37 @@
 """
-A Freidlin-Wentzell Hamiltonian. Stores `H_x`, `H_p`, the trace-normalized diffusion
-tensor `a`, and an optional reference state `x_ref` (used by `Base.show`). The constructor
-does **not** sample `a` at any point; validation and structural inference happen at
-cache build (Section 5.1.2 / 5.3 of the redesign spec).
+    FreidlinWentzellHamiltonian{IIP, D, ...}
+
+Freidlin-Wentzell Hamiltonian for the small-noise SDE
+``\\mathrm{d}X_t = b(X_t)\\,\\mathrm{d}t + \\sigma\\,\\Sigma(X_t)\\,\\mathrm{d}W_t``,
+with diffusion tensor ``a(x) = \\Sigma(x)\\Sigma(x)^\\top``:
+
+```math
+H(x, p) \\;=\\; \\langle b(x),\\, p\\rangle \\;+\\; \\tfrac{1}{2}\\,\\langle p,\\, a(x)\\,p\\rangle.
+```
+
+`p` is the conjugate momentum (Legendre dual of ``\\dot x``); Hamilton's equations are
+``\\dot x = b(x) + a(x)\\,p`` and ``\\dot p = -\\partial_x b^\\top p - \\tfrac{1}{2}\\langle p,
+\\partial_x a\\,p\\rangle``. Freidlin-Wentzell instantons (action minimizers between
+invariant sets) live on the zero-energy shell ``H \\equiv 0``; the simplified geometric
+MAM ([grafke_long_2017](@cite)) minimizes the action directly in `(x, p)` space.
+
+The stored `a(x)` is trace-normalized (see [`_trace_normalized_a`](@ref)) so that the
+action is invariant to the overall scale of `noise_strength`.
+
+## Fields
+* `H_x`, `H_p`: callables `(x, p) -> ∂_x H`, `(x, p) -> ∂_p H`, returning `D × N` matrices.
+* `a`: trace-normalized diffusion callable; a `Base.Returns` for constant noise.
+* `x_ref`: reference state used by `Base.show`; `nothing` if not supplied.
 
 ## Constructors
-* `FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)` builds `H_x`, `H_p`,
-  and the trace-normalized `a` from the system's drift and diffusion. `x_ref` is set to
-  `current_state(ds)`.
-* `FreidlinWentzellHamiltonian{IIP, D}(H_x, H_p; a = Returns(Diagonal(ones(D))), x_ref = nothing)`
-  takes user-supplied Hamilton's equations and an optional `a`.
+* `FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)`: builds `H_x`, `H_p`,
+  `a` from `ds`. Central finite differences are used for ``\\partial_x a`` when `a` is
+  state-dependent. Validation and diagonal-vs-coupled classification happen at cache
+  build ([`build_sgmam_cache`](@ref)); rank-deficient `a` is rejected there.
+* `FreidlinWentzellHamiltonian{IIP, D}(H_x, H_p; a = Returns(Diagonal(ones(D))), x_ref = nothing)`:
+  for hand-rolled Hamiltonians; you are responsible for matching the convention above.
+
+See [freidlin_random_1998](@cite) for the underlying theory.
 """
 struct FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, A, R}
     H_x::Hx
