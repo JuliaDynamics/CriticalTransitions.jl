@@ -20,16 +20,17 @@ const CT = CriticalTransitions
     xpath = Matrix([xx yy]')
     xdot = zeros(size(xpath)); ppath = zeros(size(xpath)); λ = zeros(1, Nt)
     pdot = zeros(size(xpath)); xdotdot = zeros(size(xpath))
+    cache = CT.build_sgmam_cache(sys, xpath, Nt)
     CT.central_diff!(xdot, xpath)
-    CT.update_p!(ppath, λ, xpath, xdot, sys)
+    CT.update_p!(ppath, λ, xpath, xdot, sys, cache)
     Hx = sys.H_x(xpath, ppath)
     CT.central_diff!(pdot, ppath); CT.central_diff!(xdotdot, xdot)
 
-    @inferred CT.update_p!(ppath, λ, xpath, xdot, sys)
-    @inferred CT.update_x!(xpath, λ, pdot, xdotdot, Hx, sys, 1.0)
+    @inferred CT.update_p!(ppath, λ, xpath, xdot, sys, cache)
+    @inferred CT.update_x!(xpath, λ, pdot, xdotdot, Hx, sys, 1.0, cache)
 end
 
-@testset "AdditiveNoise update_x! no per-iteration sparse alloc" begin
+@testset "Constant-a update_x! no per-iteration sparse alloc" begin
     function meier_stein(u, p, t)
         x, y = u
         return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
@@ -53,21 +54,24 @@ end
     @test (bytes_after - bytes_before) < 5_000_000
 end
 
-@testset "FreidlinWentzellHamiltonian carries NoiseShape" begin
+@testset "FreidlinWentzellHamiltonian stores diffusion tensor" begin
     f_lin(u, p, t) = SA[-u[1], -u[2]]
     ds_ode = CoupledODEs(f_lin, SA[0.0, 0.0])
     sys_ode = FreidlinWentzellHamiltonian(ds_ode)
-    @test sys_ode isa FreidlinWentzellHamiltonian{<:Any, 2, <:Any, <:Any, <:Any, AdditiveNoise}
+    @test sys_ode isa FreidlinWentzellHamiltonian{<:Any, 2}
+    @test sys_ode.a isa Base.Returns
     @test sys_ode.a(zeros(2)) ≈ LinearAlgebra.Diagonal(ones(2))
 
     ds_iso = CoupledSDEs(f_lin, SA[0.0, 0.0]; noise_strength = 1.0)
     sys_iso = FreidlinWentzellHamiltonian(ds_iso)
-    @test sys_iso isa FreidlinWentzellHamiltonian{<:Any, 2, <:Any, <:Any, <:Any, AdditiveNoise}
+    @test sys_iso isa FreidlinWentzellHamiltonian{<:Any, 2}
+    @test sys_iso.a isa Base.Returns
 
     H_x_user(x, p) = zeros(size(x))
     H_p_user(x, p) = ones(size(x))
     sys_user = FreidlinWentzellHamiltonian{false, 2}(H_x_user, H_p_user)
-    @test sys_user isa FreidlinWentzellHamiltonian{false, 2, <:Any, <:Any, <:Any, AdditiveNoise}
+    @test sys_user isa FreidlinWentzellHamiltonian{false, 2}
+    @test sys_user.a isa Base.Returns
 end
 
 @testset "FreidlinWentzellHamiltonian KPO" begin
@@ -207,8 +211,9 @@ end
     xdot = zeros(size(x0))
     p = zeros(size(x0))
     λ = zeros(1, Nt)
+    cache0 = CT.build_sgmam_cache(sys, x0, Nt)
     CT.central_diff!(xdot, x0)
-    CT.update_p!(p, λ, x0, xdot, sys)
+    CT.update_p!(p, λ, x0, xdot, sys, cache0)
     S0 = CT.FW_action(xdot, p)
     @test isfinite(S0)
 
@@ -393,8 +398,9 @@ end
     α = zeros(Nt)
     CT.interpolate_path!(x0, α, s)
     xdot = zeros(size(x0)); p = zeros(size(x0)); λ = zeros(1, Nt)
+    cache_ad = CT.build_sgmam_cache(sys, x0, Nt)
     CT.central_diff!(xdot, x0)
-    CT.update_p!(p, λ, x0, xdot, sys)
+    CT.update_p!(p, λ, x0, xdot, sys, cache_ad)
     S0 = CT.FW_action(xdot, p)
     @test isfinite(S0)
 

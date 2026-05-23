@@ -14,20 +14,25 @@ const CT = CriticalTransitions
         noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
     )
 
-    err_h = try
-        FreidlinWentzellHamiltonian(ds); nothing
-    catch e
-        e
-    end
-    @test err_h isa ArgumentError
-    @test occursin("rank-deficient", err_h.msg)
-    # Workaround hint mentions the hand-rolled constructor.
-    @test occursin("FreidlinWentzellHamiltonian", err_h.msg)
+    # Constructor accepts the Hamiltonian (no a(x) sampling at construction).
+    sys = FreidlinWentzellHamiltonian(ds)
+    @test sys isa FreidlinWentzellHamiltonian
 
+    # Rejection happens at cache build (sgMAM) or workspace build (gMAM).
     Nt = 20
     xx = range(-1.0, 1.0; length = Nt)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     path = Matrix([xx yy]')
+
+    err_s = try
+        CT.build_sgmam_cache(sys, path, Nt); nothing
+    catch e
+        e
+    end
+    @test err_s isa ArgumentError
+    @test occursin("rank-deficient", err_s.msg)
+    @test occursin("FreidlinWentzellHamiltonian", err_s.msg)
+
     err_g = try
         minimize_geometric_action(ds, path); nothing
     catch e

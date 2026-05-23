@@ -1,30 +1,16 @@
 """
     _action_metric(sys::CoupledSDEs)
-    _action_metric(sys::CoupledSDEs, ns::NoiseShape)
 
-Returns the inverse of the trace-normalized diffusion tensor `a(x)/s`. The 2-arg
-method dispatches on a `NoiseShape` singleton: `AdditiveNoise` → constant
-`AbstractMatrix`, `DiagonalNoise` → closure, `GeneralNoise` → either depending
-on `sys.noise_type[:additive]`.
+Returns the inverse of the trace-normalized diffusion tensor.
+For constant `a`, returns the inverse matrix directly. For state-dependent `a`,
+returns a callable `x -> inv(a(x))`. Callers route through `_eval_metric`.
 """
-_action_metric(sys::CoupledSDEs) = _action_metric(sys, _classify_noise_shape(sys))
+_action_metric(sys::CoupledSDEs) = _action_metric(_trace_normalized_a(sys), sys)
 
-_action_metric(sys::CoupledSDEs, ::AdditiveNoise) =
-    inv(_trace_normalized_a(sys)(current_state(sys)))
+_action_metric(a::Base.Returns, sys::CoupledSDEs) = inv(a(current_state(sys)))
 
-_action_metric(sys::CoupledSDEs, ::DiagonalNoise) = let a = _trace_normalized_a(sys)
+_action_metric(a, sys::CoupledSDEs) = let a = a
     x -> inv(a(x))
-end
-
-function _action_metric(sys::CoupledSDEs, ::GeneralNoise)
-    a_callable = _trace_normalized_a(sys)
-    if sys.noise_type[:additive]
-        return inv(a_callable(current_state(sys)))
-    else
-        return let a_callable = a_callable
-            x -> inv(a_callable(x))
-        end
-    end
 end
 
 """

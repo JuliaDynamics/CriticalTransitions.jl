@@ -69,15 +69,14 @@ include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 
 include("largedeviations/utils.jl")
-include("largedeviations/noise_shape.jl")
+include("largedeviations/hamiltonian.jl")
 include("largedeviations/action.jl")
 include("largedeviations/methods.jl")
 include("largedeviations/MinimumActionPath.jl")
 include("largedeviations/minimize_action.jl")
-include("largedeviations/minimize_geometric_action.jl")
-include("largedeviations/freidlin_wentzell_hamiltonian.jl")
 include("largedeviations/sgmam_kernels.jl")
 include("largedeviations/sgmam.jl")
+include("largedeviations/minimize_geometric_action.jl")
 include("largedeviations/string_method.jl")
 
 include("r_tipping/RateSystem.jl")
@@ -99,7 +98,6 @@ export drift, div_drift, solver, noise_strength
 export StateSpaceSet
 
 export FreidlinWentzellHamiltonian
-export NoiseShape, AdditiveNoise, DiagonalNoise, GeneralNoise
 export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method
 export MinimumActionPath

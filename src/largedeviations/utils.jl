@@ -85,8 +85,8 @@ end
 
 Validates that `ds` is a valid input for the Freidlin-Wentzell Hamiltonian path
 (gMAM or sgMAM via `FreidlinWentzellHamiltonian(ds)`). Only requires autonomous noise;
-rank-deficiency is detected by `_classify_noise_shape` (called at workspace
-construction). Returns `nothing` on success; throws `ArgumentError` otherwise.
+rank-deficiency is detected by `_validate_and_classify_a` (called at workspace
+construction with the path's reference state). Returns `nothing` on success.
 """
 function proper_FW_system(ds::CoupledSDEs)
     if !ds.noise_type[:autonomous]
@@ -97,6 +97,89 @@ function proper_FW_system(ds::CoupledSDEs)
         )
     end
     return nothing
+end
+
+_fd_step(::Type{T}) where {T} = max(sqrt(eps(real(T))), real(T)(1.0e-8))
+
+_as_diffusion_matrix(σ::AbstractMatrix) = σ
+_as_diffusion_matrix(σ) = LinearAlgebra.Diagonal(σ)
+
+const _RANK_DEFICIENT_MSG =
+    "rank-deficient noise is not supported. Workarounds: add a small ε on the noiseless variable to make the covariance invertible, or supply a Hamiltonian directly via FreidlinWentzellHamiltonian{IIP, D}(H_x, H_p)."
+
+function _check_rank!(a)
+    M = a isa LinearAlgebra.Diagonal ? a : Matrix(a)
+    if LinearAlgebra.cond(M) > 1 / sqrt(eps(real(eltype(M))))
+        throw(ArgumentError(_RANK_DEFICIENT_MSG))
+    end
+    return nothing
+end
+
+_isdiag_numerical(::LinearAlgebra.Diagonal) = true
+function _isdiag_numerical(a::AbstractMatrix; atol = sqrt(eps(real(eltype(a)))))
+    @inbounds for j in axes(a, 2), i in axes(a, 1)
+        i == j && continue
+        abs(a[i, j]) > atol && return false
+    end
+    return true
+end
+
+"""
+    _validate_and_classify_a(a, x_ref) -> is_diagonal::Bool
+
+Validates `a(x)` at `x_ref` and at `x_ref ± h·e_l` for each coordinate `l`. Throws
+`ArgumentError` if `a` is rank-deficient at any probe. Returns `true` if `a` is
+numerically diagonal at every probe; `false` otherwise.
+"""
+function _validate_and_classify_a(a, x_ref::AbstractVector{T}) where {T}
+    h = max(sqrt(eps(real(T))), real(T)(1.0e-6))
+    D = length(x_ref)
+    e = zeros(T, D)
+    a0 = a(x_ref)
+    _check_rank!(a0)
+    is_diag = _isdiag_numerical(a0)
+    @inbounds for l in 1:D
+        e[l] = h
+        ap = a(x_ref .+ e)
+        _check_rank!(ap)
+        is_diag &= _isdiag_numerical(ap)
+        am = a(x_ref .- e)
+        _check_rank!(am)
+        is_diag &= _isdiag_numerical(am)
+        e[l] = 0
+    end
+    return is_diag
+end
+
+"""
+    _trace_normalized_a(ds::ContinuousTimeDynamicalSystem)
+
+Returns a callable `x -> a(x)` where `a` is the trace-normalized diffusion tensor
+`σ(x)σ(x)' / s` with `s = tr(σ(u₀)σ(u₀)')/D`. For constant noise, returns
+`Base.Returns(a_const)` (constant). For `CoupledODEs`, returns `Returns(I)`.
+"""
+function _trace_normalized_a(ds::ContinuousTimeDynamicalSystem)
+    D = dimension(ds)
+    if ds isa CoupledODEs
+        return Returns(LinearAlgebra.Diagonal(ones(Float64, D)))
+    end
+    σ_fn = diffusion_function(ds)
+    ps = current_parameters(ds)
+    σ0 = _as_diffusion_matrix(σ_fn(current_state(ds), ps, 0.0))
+    a0 = σ0 * σ0'
+    s = LinearAlgebra.tr(a0) / D
+    if ds.noise_type[:additive]
+        a_const = LinearAlgebra.isdiag(a0) ?
+            LinearAlgebra.Diagonal(collect(LinearAlgebra.diag(a0)) ./ s) :
+            Matrix(a0 ./ s)
+        return Returns(a_const)
+    end
+    return let σ_fn = σ_fn, ps = ps, s = s
+        x -> begin
+            σx = _as_diffusion_matrix(σ_fn(x, ps, 0.0))
+            (σx * σx') / s
+        end
+    end
 end
 
 function path_velocity!(v, path, time; order = 4)

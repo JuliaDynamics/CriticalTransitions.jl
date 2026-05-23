@@ -14,9 +14,11 @@
     N, T = 200, 2.0
     init = reduce(hcat, range(x_i, x_f; length = N))
 
+    # `minimize_action` (MAM) still requires additive + invertible + autonomous.
     for inst in [corr_alt, addit_non_autom, linear_multipli]
         @test_throws ArgumentError minimize_action(inst, init, T)
-        @test_throws ArgumentError minimize_geometric_action(inst, init)
-        @test_throws ArgumentError minimize_geometric_action(inst, init)
     end
+
+    # `minimize_geometric_action` (gMAM) only rejects non-autonomous noise.
+    @test_throws ArgumentError minimize_geometric_action(addit_non_autom, init)
 end

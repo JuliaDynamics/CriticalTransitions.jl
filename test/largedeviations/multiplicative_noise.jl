@@ -9,11 +9,12 @@ const CT = CriticalTransitions
 const _make_1d_ou = ou_multiplicative_1d
 const _make_2d_offdiag = linear_offdiag_2d_sde
 
-@testset "DiagonalNoise update_p!: 1D OU multiplicative" begin
+@testset "Diagonal state-dep update_p!: 1D OU multiplicative" begin
     ds = _make_1d_ou(0.3)
 
     sys = FreidlinWentzellHamiltonian(ds)
-    @test sys isa FreidlinWentzellHamiltonian{<:Any, 1, <:Any, <:Any, <:Any, DiagonalNoise}
+    @test sys isa FreidlinWentzellHamiltonian{<:Any, 1}
+    @test CT._isdiag_numerical(sys.a(zeros(1)))
 
     Nt = 40
     x0 = reshape(collect(range(1.0, -1.0; length = Nt)), 1, Nt)
@@ -23,16 +24,18 @@ const _make_2d_offdiag = linear_offdiag_2d_sde
     xdot = zeros(size(x0))
     p = zeros(size(x0))
     λ = zeros(1, Nt)
+    cache = CT.build_sgmam_cache(sys, x0, Nt)
+    @test cache isa CT.SgMAMDecoupledCache
     CT.central_diff!(xdot, x0)
-    CT.update_p!(p, λ, x0, xdot, sys)
+    CT.update_p!(p, λ, x0, xdot, sys, cache)
     @test all(isfinite, λ)
     @test all(isfinite, p)
 end
 
-@testset "GeneralNoise update_p!: 2D off-diagonal" begin
+@testset "Off-diagonal state-dep update_p!: 2D off-diagonal" begin
     ds = _make_2d_offdiag()
     sys = FreidlinWentzellHamiltonian(ds)
-    @test sys isa FreidlinWentzellHamiltonian{<:Any, 2, <:Any, <:Any, <:Any, GeneralNoise}
+    @test sys isa FreidlinWentzellHamiltonian{<:Any, 2}
 
     Nt = 40
     xx = collect(range(1.0, 0.0; length = Nt))
@@ -44,8 +47,10 @@ end
     xdot = zeros(size(x0))
     p = zeros(size(x0))
     λ = zeros(1, Nt)
+    cache = CT.build_sgmam_cache(sys, x0, Nt)
+    @test cache isa CT.SgMAMCoupledCache
     CT.central_diff!(xdot, x0)
-    CT.update_p!(p, λ, x0, xdot, sys)
+    CT.update_p!(p, λ, x0, xdot, sys, cache)
     @test all(isfinite, λ)
     @test all(isfinite, p)
 end
@@ -126,7 +131,7 @@ end
     @test isfinite(res_g.action)
 end
 
-@testset "Additive non-diagonal Σ goes through GeneralNoise" begin
+@testset "Additive non-diagonal Σ goes through coupled cache" begin
     function meier_stein(u, p, t)
         x, y = u
         return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
@@ -142,7 +147,9 @@ end
     Q_rot = R * D * R'
     ds_rot = CoupledSDEs(meier_stein, zeros(2); covariance = Q_rot)
     sys_rot = FreidlinWentzellHamiltonian(ds_rot)
-    @test sys_rot isa FreidlinWentzellHamiltonian{<:Any, 2, <:Any, <:Any, <:Any, GeneralNoise}
+    @test sys_rot isa FreidlinWentzellHamiltonian{<:Any, 2}
+    cache_rot = CT.build_sgmam_cache(sys_rot, x_initial, Nt)
+    @test cache_rot isa CT.SgMAMCoupledCache
 
     res = minimize_geometric_action(
         sys_rot, x_initial, GeometricGradient(; stepsize = 1.0);
@@ -180,7 +187,8 @@ end
 
     # Reference: additive identity noise.
     ds_add = CoupledSDEs(ms_drift, zeros(2); noise_strength = 1.0)
-    @test CT._classify_noise_shape(ds_add) === AdditiveNoise()
+    sys_add = FreidlinWentzellHamiltonian(ds_add)
+    @test sys_add.a isa Base.Returns
 
     # State-dependent σ(x) = R(θ(x)) with θ(x) = 0.5 * x[1]; σσᵀ = R Rᵀ = I.
     function g_rotation(u, p, t)
@@ -191,9 +199,8 @@ end
         ms_drift, zeros(2); g = g_rotation,
         noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
     )
-    # σσᵀ has off-diagonal entries (sin·cos products) before they cancel
-    # analytically, so the probe-based classification lands on GeneralNoise.
-    @test CT._classify_noise_shape(ds_sd) === GeneralNoise()
+    sys_sd = FreidlinWentzellHamiltonian(ds_sd)
+    @test !(sys_sd.a isa Base.Returns)
 
     Nt = 40
     xx = range(-1.0, 1.0; length = Nt)

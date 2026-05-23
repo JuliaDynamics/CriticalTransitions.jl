@@ -7,14 +7,15 @@ const CT = CriticalTransitions
 
 using CriticalTransitions.CTLibrary: fitzhugh_nagumo
 
-@testset "GeometricGradientWorkspace carries NoiseShape" begin
+@testset "GeometricGradientWorkspace constructs cleanly" begin
     f_lin(u, p, t) = SA[-u[1], -u[2]]
     ds_iso = CoupledSDEs(f_lin, SA[0.0, 0.0]; noise_strength = 1.0)
     xx = collect(range(-1.0, 1.0; length = 20))
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     path = Matrix([xx yy]')
     ws = CT.geometric_gradient_workspace(ds_iso, path)
-    @test ws isa CT.GeometricGradientWorkspace{<:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, AdditiveNoise}
+    @test ws isa CT.GeometricGradientWorkspace
+    @test ws.a_func isa Base.Returns
 end
 
 @testset "GeometricGradientWorkspace + step! type-stable" begin
