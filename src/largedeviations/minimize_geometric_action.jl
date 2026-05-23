@@ -177,7 +177,7 @@ function geometric_gradient_step(
 end
 
 struct GeometricGradientWorkspace{
-        Tupdate, Tprime, Tvec, Tmat, Ttmp, Tarc, TA, Tjac, AF, NS <: NoiseShape,
+        Tupdate, Tprime, Tvec, Tmat, Ttmp, Tarc, TA, Tjac, AF, LC, NS <: NoiseShape,
     }
     update::Tupdate
     x_prime::Tprime
@@ -199,6 +199,12 @@ struct GeometricGradientWorkspace{
     A::TA
     jac::Tjac
     a_func::AF
+    linear_cache::LC
+    # State-dep FD scratch (Diagonal/General branches). Empty for Additive.
+    fd_probe::Ttmp
+    Hphi::Ttmp
+    Hpphi::Ttmp
+    aHphi::Ttmp
 end
 
 function geometric_gradient_workspace(sys::CoupledSDEs, path)
@@ -218,11 +224,15 @@ function geometric_gradient_workspace(sys::CoupledSDEs, path)
     x_prime = zeros(size(path))
     lambdas = zeros(N)
     lambdas_prime = zeros(N)
-    prod1 = zeros(size(path, 1), N - 2)
-    prod2 = zeros(size(path, 1), N - 2)
+    # prod1/prod2 are only consumed by the Additive branch; theta_cache/rhs_explicit
+    # are only consumed by Diagonal/General. Use empty placeholders for the unused
+    # side to skip the matching allocation.
+    is_additive = NS isa AdditiveNoise
+    prod1 = is_additive ? zeros(size(path, 1), N - 2) : zeros(size(path, 1), 0)
+    prod2 = is_additive ? zeros(size(path, 1), N - 2) : zeros(size(path, 1), 0)
     drift_cache = zeros(size(path, 1), N - 2)
-    theta_cache = zeros(size(path, 1), N - 2)
-    rhs_explicit = zeros(size(path, 1), N - 2)
+    theta_cache = is_additive ? zeros(size(path, 1), 0) : zeros(size(path, 1), N - 2)
+    rhs_explicit = is_additive ? zeros(size(path, 1), 0) : zeros(size(path, 1), N - 2)
     temp1 = zeros(size(path, 1))
     temp2 = zeros(size(path, 1))
     alpha_cache = zeros(N)
@@ -232,9 +242,24 @@ function geometric_gradient_workspace(sys::CoupledSDEs, path)
     v = zeros(N)
     arc = range(0, 1.0; length = N)
 
+    T_implicit = LinearAlgebra.Tridiagonal(dl, d, du)
+    linear_cache = init(
+        LinearProblem(T_implicit, v), LUFactorization();
+        alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
+    )
+
+    # FD/H accumulator buffers used only by the state-dependent step. Empty for
+    # Additive so we don't pay the allocation on the constant-`a` path.
+    state_dep_size = is_additive ? 0 : size(path, 1)
+    fd_probe = zeros(eltype(path), state_dep_size)
+    Hphi  = zeros(eltype(path), state_dep_size)
+    Hpphi = zeros(eltype(path), state_dep_size)
+    aHphi = zeros(eltype(path), state_dep_size)
+
     return GeometricGradientWorkspace{
         typeof(update), typeof(x_prime), typeof(lambdas), typeof(prod1),
-        typeof(temp1), typeof(arc), typeof(A), typeof(jac), typeof(a_func), typeof(NS),
+        typeof(temp1), typeof(arc), typeof(A), typeof(jac), typeof(a_func),
+        typeof(linear_cache), typeof(NS),
     }(
         update,
         x_prime,
@@ -256,14 +281,21 @@ function geometric_gradient_workspace(sys::CoupledSDEs, path)
         A,
         jac,
         a_func,
+        linear_cache,
+        fd_probe,
+        Hphi,
+        Hpphi,
+        aHphi,
     )
 end
 
 function geometric_gradient_step!(
-        ws::GeometricGradientWorkspace{Tupdate, Tprime, Tvec, Tmat, Ttmp, Tarc, TA, Tjac, AF, NS},
+        ws::GeometricGradientWorkspace{
+            Tupdate, Tprime, Tvec, Tmat, Ttmp, Tarc, TA, Tjac, AF, LC, NS,
+        },
         sys, path;
         stepsize = 0.1, diff_order = 4,
-    ) where {Tupdate, Tprime, Tvec, Tmat, Ttmp, Tarc, TA, Tjac, AF, NS <: NoiseShape}
+    ) where {Tupdate, Tprime, Tvec, Tmat, Ttmp, Tarc, TA, Tjac, AF, LC, NS <: NoiseShape}
     _geometric_gradient_step!(ws, sys, path, NS(); stepsize, diff_order)
     return ws.update
 end
@@ -379,10 +411,10 @@ function _geometric_gradient_step!(
         ws.lambdas_prime[i] = (ws.lambdas[i + 1] - ws.lambdas[i - 1]) / (2 * dx)
     end
 
-    e = zeros(eltype(path), Nx)
-    Hphi  = zeros(eltype(path), Nx)
-    Hpphi = zeros(eltype(path), Nx)
-    aHphi = zeros(eltype(path), Nx)
+    e = ws.fd_probe
+    Hphi = ws.Hphi
+    Hpphi = ws.Hpphi
+    aHphi = ws.aHphi
     @views for i in 2:(N - 1)
         xi = path[:, i]
         φp = ws.x_prime[:, i]
@@ -425,12 +457,8 @@ function _gmam_implicit_shared!(ws, path, N, stepsize, dx; is_state_dep)
         end
     end
 
-    T = LinearAlgebra.Tridiagonal(ws.dl, ws.d, ws.du)
-    prob = LinearProblem(T, ws.v)
-    cache = init(
-        prob, LUFactorization();
-        alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
-    )
+    Tmat = LinearAlgebra.Tridiagonal(ws.dl, ws.d, ws.du)
+    cache = ws.linear_cache
     rhs = cache.b
 
     @inbounds for j in 1:size(path, 1)
@@ -451,6 +479,7 @@ function _gmam_implicit_shared!(ws, path, N, stepsize, dx; is_state_dep)
             end
             rhs[i] = isfinite(rhs_val) ? rhs_val : path[j, i]
         end
+        LinearSolve.reinit!(cache; A = Tmat, b = rhs)
         solve!(cache)
         ws.update[j, :] .= cache.u
     end

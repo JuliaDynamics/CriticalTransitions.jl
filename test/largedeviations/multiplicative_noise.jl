@@ -1,26 +1,13 @@
 using CriticalTransitions, StaticArrays
+using CriticalTransitions.CTLibrary: ou_multiplicative_1d, linear_offdiag_2d_sde
 using Test
 using LinearAlgebra
 using Random
 
 const CT = CriticalTransitions
 
-# Canonical 1D OU with multiplicative diagonal noise σ(x) = √(1 + α x²).
-_b1d(u, p, t) = SA[-u[1]]
-_make_1d_ou(α) = let
-    g(u, p, t) = SA[sqrt(1 + α * u[1]^2);;]
-    CoupledSDEs(_b1d, SA[1.0]; g = g, noise_prototype = SMatrix{1, 1}(0.0))
-end
-
-# Canonical 2D linear drift with full off-diagonal multiplicative noise.
-_b2(u, p, t) = SA[-u[1], -u[2]]
-function _g2(u, p, t)
-    s11 = 1 + 0.2 * u[1]; s22 = 1 + 0.2 * u[2]
-    s12 = 0.3 * u[2];     s21 = 0.3 * u[1]
-    return @SMatrix [s11 s12; s21 s22]
-end
-_make_2d_offdiag() =
-    CoupledSDEs(_b2, SA[1.0, 0.0]; g = _g2, noise_prototype = SMatrix{2, 2}(zeros(2, 2)))
+const _make_1d_ou = ou_multiplicative_1d
+const _make_2d_offdiag = linear_offdiag_2d_sde
 
 @testset "DiagonalNoise update_p!: 1D OU multiplicative" begin
     ds = _make_1d_ou(0.3)

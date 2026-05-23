@@ -77,7 +77,7 @@ include("largedeviations/minimize_action.jl")
 include("largedeviations/minimize_geometric_action.jl")
 include("largedeviations/freidlin_wentzell_hamiltonian.jl")
 include("largedeviations/sgmam_kernels.jl")
-include("largedeviations/sgMAM.jl")
+include("largedeviations/sgmam.jl")
 include("largedeviations/string_method.jl")
 
 include("r_tipping/RateSystem.jl")

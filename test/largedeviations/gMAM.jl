@@ -14,7 +14,7 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     path = Matrix([xx yy]')
     ws = CT.geometric_gradient_workspace(ds_iso, path)
-    @test ws isa CT.GeometricGradientWorkspace{<:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, AdditiveNoise}
+    @test ws isa CT.GeometricGradientWorkspace{<:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, <:Any, AdditiveNoise}
 end
 
 @testset "GeometricGradientWorkspace + step! type-stable" begin

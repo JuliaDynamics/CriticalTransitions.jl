@@ -56,19 +56,19 @@ function minimize_geometric_action(
 
     # Ensure a consistent starting path for action comparisons
     interpolate_path!(x, alpha, s)
-    _sgmam_refresh!(xdot, p, lambda, x, sys)
+    _sgmam_refresh!(xdot, p, lambda, x, sys; cache)
     initial_action = FW_action(xdot, p)
 
     function try_step!(ϵ)
         update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ; cache)
         interpolate_path!(x, alpha, s)
-        _sgmam_refresh!(xdot, p, lambda, x, sys)
+        _sgmam_refresh!(xdot, p, lambda, x, sys; cache)
         return FW_action(xdot, p)
     end
     save!() = copyto!(x_prev, x)
     function restore!()
         copyto!(x, x_prev)
-        return _sgmam_refresh!(xdot, p, lambda, x, sys)
+        return _sgmam_refresh!(xdot, p, lambda, x, sys; cache)
     end
 
     current_action, _ = backtracking_optimize!(
@@ -135,7 +135,7 @@ function minimize_geometric_action(
     x_big_result = similar(x)   # store big-probe result while running small probe
 
     interpolate_path!(x, alpha, s)
-    _sgmam_refresh!(xdot, p, lambda, x, sys)
+    _sgmam_refresh!(xdot, p, lambda, x, sys; cache)
     Tϵ = typeof(optimizer.stepsize)
     current_action = Tϵ(FW_action(xdot, p))
 
@@ -146,7 +146,7 @@ function minimize_geometric_action(
         for _ in 1:n
             update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ; cache)
             interpolate_path!(x, alpha, s)
-            _sgmam_refresh!(xdot, p, lambda, x, sys)
+            _sgmam_refresh!(xdot, p, lambda, x, sys; cache)
             S = oftype(ϵ, FW_action(xdot, p))
             isfinite(S) || return oftype(ϵ, Inf)
         end
@@ -169,7 +169,7 @@ function minimize_geometric_action(
         copyto!(x_big_result, x)
 
         copyto!(x, x_start)
-        _sgmam_refresh!(xdot, p, lambda, x, sys)
+        _sgmam_refresh!(xdot, p, lambda, x, sys; cache)
         ϵ_small = clamp(
             stepsize * optimizer.shrink, optimizer.stepsize_min, optimizer.stepsize_max
         )
@@ -186,12 +186,12 @@ function minimize_geometric_action(
             stepsize = max(optimizer.stepsize_min, stepsize * optimizer.shrink)
         elseif big_ok
             copyto!(x, x_big_result)
-            _sgmam_refresh!(xdot, p, lambda, x, sys)
+            _sgmam_refresh!(xdot, p, lambda, x, sys; cache)
             current_action = S_big
             stepsize = min(optimizer.stepsize_max, stepsize * optimizer.grow)
         else
             copyto!(x, x_start)
-            _sgmam_refresh!(xdot, p, lambda, x, sys)
+            _sgmam_refresh!(xdot, p, lambda, x, sys; cache)
             stepsize = max(optimizer.stepsize_min, stepsize * optimizer.shrink^2)
             accepted = false
             verbose &&

@@ -37,13 +37,11 @@ end
 # For both Additive and Diagonal noise the implicit step factors per DOF into a
 # tridiagonal solve `(I - ϵ λ_i² a_dof,i^{-1} ∂_s²) x_new[dof] = R[dof]`. The only
 # difference between the two is whether the coefficient `inv_a(dof, i)` varies in `i`.
-# We pass it in as a closure to keep the kernel a single function.
-function _update_x_tridiag!(x, λ, p′, x′′, Hx, ϵ, inv_a)
+# We pass it in as a closure to keep the kernel a single function. `caches` is the
+# per-thread LinearSolve cache vector held on the cross-iteration cache struct.
+function _update_x_tridiag!(x, λ, p′, x′′, Hx, ϵ, caches, inv_a)
     Nx, Nt = size(x); xa = view(x, :, 1); xb = view(x, :, Nt); idxc = 2:(Nt - 1)
     L = Nt - 2
-
-    nthreads = _sgmam_nthreads()
-    caches = _sgmam_init_tridiag_caches(eltype(x), L, nthreads)
 
     Threads.@threads :static for dof in 1:Nx
         cache = caches[Threads.threadid()]
@@ -71,33 +69,79 @@ function _update_x_tridiag!(x, λ, p′, x′′, Hx, ϵ, inv_a)
     return nothing
 end
 
+"""
+Cross-iteration cache for the AdditiveNoise sgMAM `_update_x!` path: holds per-thread
+LinearSolve caches and `a_inv` precomputed once (additive `a(x)` is constant).
+"""
+struct _SgMAMAdditiveCache{T, LC}
+    caches::Vector{LC}
+    a_inv::Vector{T}
+end
+
+"""
+Cross-iteration cache for the DiagonalNoise sgMAM `_update_x!` path: holds per-thread
+LinearSolve caches and a reusable `a_at` buffer (refilled each call from the current
+path snapshot).
+"""
+struct _SgMAMDiagonalCache{T, LC}
+    caches::Vector{LC}
+    a_at::Matrix{T}
+end
+
 function _update_x!(
         x, λ, p′, x′′, Hx,
         sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, AdditiveNoise}, ϵ,
-        _cache = nothing,
+        cache::_SgMAMAdditiveCache,
     ) where {IIP, D, Hx_t, Hp_t, AF}
-    a_inv = inv.(LinearAlgebra.diag(sys.a(view(x, :, 1))))
-    return _update_x_tridiag!(x, λ, p′, x′′, Hx, ϵ, (dof, _i) -> a_inv[dof])
+    a_inv = cache.a_inv
+    return _update_x_tridiag!(
+        x, λ, p′, x′′, Hx, ϵ, cache.caches, (dof, _i) -> a_inv[dof],
+    )
 end
 
 function _update_x!(
         x, λ, p′, x′′, Hx,
         sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, DiagonalNoise}, ϵ,
-        _cache = nothing,
+        cache::_SgMAMDiagonalCache,
     ) where {IIP, D, Hx_t, Hp_t, AF}
-    Nx, Nt = size(x)
-    a_at = Matrix{eltype(x)}(undef, Nx, Nt)
+    Nt = size(x, 2)
+    a_at = cache.a_at
     for t in 1:Nt
         a_at[:, t] .= LinearAlgebra.diag(sys.a(view(x, :, t)))
     end
-    return _update_x_tridiag!(x, λ, p′, x′′, Hx, ϵ, (dof, i) -> 1 / a_at[dof, i])
+    return _update_x_tridiag!(
+        x, λ, p′, x′′, Hx, ϵ, cache.caches, (dof, i) -> 1 / a_at[dof, i],
+    )
+end
+
+# Fallbacks for direct `update_x!` calls (tests): build a one-shot cache and use it.
+function _update_x!(
+        x, λ, p′, x′′, Hx,
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, AdditiveNoise}, ϵ,
+        ::Nothing,
+    ) where {IIP, D, Hx_t, Hp_t, AF}
+    Nx, Nt = size(x)
+    cache = _build_sgmam_cache(sys, eltype(x), Nx, Nt)
+    return _update_x!(x, λ, p′, x′′, Hx, sys, ϵ, cache)
+end
+
+function _update_x!(
+        x, λ, p′, x′′, Hx,
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, DiagonalNoise}, ϵ,
+        ::Nothing,
+    ) where {IIP, D, Hx_t, Hp_t, AF}
+    Nx, Nt = size(x)
+    cache = _build_sgmam_cache(sys, eltype(x), Nx, Nt)
+    return _update_x!(x, λ, p′, x′′, Hx, sys, ϵ, cache)
 end
 
 """
 Cross-iteration cache for the GeneralNoise sgMAM `_update_x!` path: holds the sparse
 block-tridiagonal matrix `M`, an index map from logical (i_in, k1, k2) entries into
-`M.nzval`, an RHS buffer, and a reusable `LinearSolve.LinearCache`. The sparsity
-pattern is fixed (depends only on `Nt`, `Nx`); only `nzval` and `rhs` change per call.
+`M.nzval`, an RHS buffer, a reusable `LinearSolve.LinearCache`, and an `a_at` buffer
+that `_update_p!` fills per iteration and `_update_x!` reads back. The sparsity
+pattern is fixed (depends only on `Nt`, `Nx`); only `nzval`, `rhs`, and `a_at` change
+per call.
 """
 struct _SgMAMGeneralCache{T, LC}
     M::SparseArrays.SparseMatrixCSC{T, Int}
@@ -106,14 +150,38 @@ struct _SgMAMGeneralCache{T, LC}
     right_nzval_idx::Matrix{Int}     # (Nx, N_in - 1): for i_in in 1:N_in-1
     rhs::Vector{T}
     linear_cache::LC
+    a_at::Vector{Matrix{T}}          # length Nt; filled by `_update_p!`
 end
 
 """
 Dispatcher that builds a cross-iteration cache for the inner `_update_x!` linear
-solve when the noise shape benefits from one. Currently only `GeneralNoise` uses a
-cache; other shapes return `nothing` (per-call buffers in their `_update_x!`).
+solve. Each `NoiseShape` gets its own concrete cache so that the `_update_x!`
+implementation can avoid rebuilding LinearSolve caches and per-DOF/per-`t` arrays on
+every outer iteration.
 """
-_build_sgmam_cache(::FreidlinWentzellHamiltonian, ::Type, ::Int, ::Int) = nothing
+function _build_sgmam_cache(
+        sys::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, AdditiveNoise},
+        ::Type{T}, Nx::Int, Nt::Int,
+    ) where {IIP, D, Hx, Hp, AF, T}
+    nthreads = _sgmam_nthreads()
+    L = Nt - 2
+    caches = _sgmam_init_tridiag_caches(T, L, nthreads)
+    a_const = sys.a(zeros(T, Nx))
+    a_inv = T.(inv.(LinearAlgebra.diag(a_const)))
+    return _SgMAMAdditiveCache{T, eltype(caches)}(caches, a_inv)
+end
+
+function _build_sgmam_cache(
+        ::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, DiagonalNoise},
+        ::Type{T}, Nx::Int, Nt::Int,
+    ) where {IIP, D, Hx, Hp, AF, T}
+    nthreads = _sgmam_nthreads()
+    L = Nt - 2
+    caches = _sgmam_init_tridiag_caches(T, L, nthreads)
+    a_at = Matrix{T}(undef, Nx, Nt)
+    return _SgMAMDiagonalCache{T, eltype(caches)}(caches, a_at)
+end
+
 function _build_sgmam_cache(
         ::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, GeneralNoise},
         ::Type{T}, Nx::Int, Nt::Int,
@@ -184,10 +252,14 @@ function _build_sgmam_general_cache(::Type{T}, Nx::Int, Nt::Int) where {T}
     rhs = zeros(T, n)
     fill!(M.nzval, zero(T))
     lc = init(LinearProblem(M, rhs), LUFactorization())
-    return _SgMAMGeneralCache{T, typeof(lc)}(M, diag_idx, left_idx, right_idx, rhs, lc)
+    a_at = [Matrix{T}(undef, Nx, Nx) for _ in 1:Nt]
+    return _SgMAMGeneralCache{T, typeof(lc)}(
+        M, diag_idx, left_idx, right_idx, rhs, lc, a_at,
+    )
 end
 
-# Fallback for direct `update_x!` calls (tests): build a one-shot cache and use it.
+# Fallback for direct `update_x!` calls (tests): build a one-shot cache, fill `a_at`,
+# then dispatch to the cached variant.
 function _update_x!(
         x, λ, p′, x′′, Hx,
         sys::FreidlinWentzellHamiltonian{IIP, D, Hx_t, Hp_t, AF, GeneralNoise}, ϵ,
@@ -195,6 +267,10 @@ function _update_x!(
     ) where {IIP, D, Hx_t, Hp_t, AF}
     Nx, Nt = size(x)
     cache = _build_sgmam_general_cache(eltype(x), Nx, Nt)
+    @inbounds for t in 1:Nt
+        a_t = sys.a(view(x, :, t))
+        copyto!(cache.a_at[t], a_t isa Matrix ? a_t : Matrix(a_t))
+    end
     return _update_x!(x, λ, p′, x′′, Hx, sys, ϵ, cache)
 end
 
@@ -213,7 +289,9 @@ function _update_x!(
     @inbounds for i_in in 1:N_in
         i = i_in + 1
         rb = (i_in - 1) * Nx
-        A_i = sys.a(view(x, :, i))
+        # `cache.a_at[i]` was filled by the preceding `_update_p!` call on the same
+        # path snapshot, so we skip the closure call here.
+        A_i = cache.a_at[i]
         λi2 = λ[i]^2
 
         for k1 in 1:Nx, k2 in 1:Nx
@@ -260,14 +338,15 @@ function _update_x!(
     return nothing
 end
 
-function update_p!(p, lambda, x, xdot, sys::FreidlinWentzellHamiltonian)
-    _update_p!(p, lambda, x, xdot, sys)
+function update_p!(p, lambda, x, xdot, sys::FreidlinWentzellHamiltonian; cache = nothing)
+    _update_p!(p, lambda, x, xdot, sys, cache)
     return nothing
 end
 
 function _update_p!(
         p, lambda, x, xdot,
         sys::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, AdditiveNoise},
+        _cache,
     ) where {IIP, D, Hx, Hp, AF}
     b_ = sys.H_p(x, zero(x))
     a_diag = LinearAlgebra.diag(sys.a(view(x, :, 1)))
@@ -284,6 +363,7 @@ end
 function _update_p!(
         p, lambda, x, xdot,
         sys::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, DiagonalNoise},
+        _cache,
     ) where {IIP, D, Hx, Hp, AF}
     b_ = sys.H_p(x, zero(x))
     Nt = size(x, 2)
@@ -307,21 +387,29 @@ end
 function _update_p!(
         p, lambda, x, xdot,
         sys::FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, AF, GeneralNoise},
+        cache,
     ) where {IIP, D, Hx, Hp, AF}
     b_ = sys.H_p(x, zero(x))
     Nt = size(x, 2)
-    inv_b = Vector{eltype(b_)}(undef, D)
-    inv_xdot = Vector{eltype(b_)}(undef, D)
-    rhs = Vector{eltype(b_)}(undef, D)
+    T = eltype(b_)
+    inv_b = Vector{T}(undef, D)
+    inv_xdot = Vector{T}(undef, D)
+    rhs = Vector{T}(undef, D)
     for t in 1:Nt
-        # One LU factorization shared across the three a_t-solves below.
+        # Evaluate `a_t` once and stash into the GeneralNoise cache so the
+        # following `_update_x!` call can skip the closure evaluation.
         a_t = sys.a(view(x, :, t))
-        F = LinearAlgebra.lu(a_t isa Matrix ? a_t : Matrix(a_t))
+        a_t_mat = a_t isa Matrix ? a_t : Matrix(a_t)
+        if cache isa _SgMAMGeneralCache
+            copyto!(cache.a_at[t], a_t_mat)
+        end
+        # One LU factorization shared across the three a_t-solves below.
+        F = LinearAlgebra.lu(a_t_mat)
         copyto!(inv_b, view(b_, :, t));     LinearAlgebra.ldiv!(F, inv_b)
         copyto!(inv_xdot, view(xdot, :, t)); LinearAlgebra.ldiv!(F, inv_xdot)
         num_t = dot(view(b_, :, t), inv_b)
         den_t = dot(view(xdot, :, t), inv_xdot)
-        λ_t = den_t > 1.0e-28 ? sqrt(num_t / den_t) : zero(eltype(b_))
+        λ_t = den_t > 1.0e-28 ? sqrt(num_t / den_t) : zero(T)
         lambda[1, t] = λ_t
         @inbounds for i in 1:D
             rhs[i] = λ_t * xdot[i, t] - b_[i, t]
@@ -342,9 +430,9 @@ function central_diff!(xdot, x)
     return nothing
 end
 
-function _sgmam_refresh!(xdot, p, lambda, x, sys)
+function _sgmam_refresh!(xdot, p, lambda, x, sys; cache = nothing)
     central_diff!(xdot, x)
-    update_p!(p, lambda, x, xdot, sys)
+    update_p!(p, lambda, x, xdot, sys; cache)
     return nothing
 end
 
