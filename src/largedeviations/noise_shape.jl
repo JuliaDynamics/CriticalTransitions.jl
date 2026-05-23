@@ -159,10 +159,10 @@ function _trace_normalized_a(ds::ContinuousTimeDynamicalSystem)
         return Returns(LinearAlgebra.Diagonal(ones(Float64, D)))
     end
     σ_fn = diffusion_function(ds)
-    ps   = current_parameters(ds)
-    σ0   = _as_diffusion_matrix(σ_fn(current_state(ds), ps, 0.0))
-    a0   = σ0 * σ0'
-    s    = LinearAlgebra.tr(a0) / D
+    ps = current_parameters(ds)
+    σ0 = _as_diffusion_matrix(σ_fn(current_state(ds), ps, 0.0))
+    a0 = σ0 * σ0'
+    s = LinearAlgebra.tr(a0) / D
     if ds.noise_type[:additive]
         a_const = LinearAlgebra.isdiag(a0) ?
             LinearAlgebra.Diagonal(collect(LinearAlgebra.diag(a0)) ./ s) :

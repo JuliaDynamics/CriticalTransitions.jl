@@ -252,7 +252,7 @@ function geometric_gradient_workspace(sys::CoupledSDEs, path)
     # Additive so we don't pay the allocation on the constant-`a` path.
     state_dep_size = is_additive ? 0 : size(path, 1)
     fd_probe = zeros(eltype(path), state_dep_size)
-    Hphi  = zeros(eltype(path), state_dep_size)
+    Hphi = zeros(eltype(path), state_dep_size)
     Hpphi = zeros(eltype(path), state_dep_size)
     aHphi = zeros(eltype(path), state_dep_size)
 
@@ -371,7 +371,7 @@ end
 # For DiagonalNoise the (k1, k2) cross-terms vanish, so we walk only the diagonal.
 function _accumulate_fd_term!(::DiagonalNoise, Hphi, Hpphi, dla, θ, φp, l)
     dla_diag = LinearAlgebra.diag(dla)
-    @inbounds for k in eachindex(Hphi)
+    return @inbounds for k in eachindex(Hphi)
         Hphi[l] += 0.5 * dla_diag[k] * θ[k]^2
         Hpphi[k] += dla_diag[k] * θ[k] * φp[l]
     end
@@ -379,7 +379,7 @@ end
 
 function _accumulate_fd_term!(::GeneralNoise, Hphi, Hpphi, dla, θ, φp, l)
     Nx = length(Hphi)
-    @inbounds for k1 in 1:Nx, k2 in 1:Nx
+    return @inbounds for k1 in 1:Nx, k2 in 1:Nx
         Hphi[l] += 0.5 * dla[k1, k2] * θ[k1] * θ[k2]
         Hpphi[k1] += dla[k1, k2] * θ[k2] * φp[l]
     end
@@ -404,7 +404,7 @@ function _geometric_gradient_step!(
         xi = path[:, i]
         a_i = ws.a_func(xi)
         b_i = ws.drift_cache[:, i - 1]
-        φp  = ws.x_prime[:, i]
+        φp = ws.x_prime[:, i]
         ws.lambdas[i] = _gmam_lambda_theta!(NS, ws.theta_cache[:, i - 1], a_i, b_i, φp)
     end
     @views for i in 2:(N - 1)
@@ -418,12 +418,12 @@ function _geometric_gradient_step!(
     @views for i in 2:(N - 1)
         xi = path[:, i]
         φp = ws.x_prime[:, i]
-        θ  = ws.theta_cache[:, i - 1]
-        J  = ws.jac(xi)
+        θ = ws.theta_cache[:, i - 1]
+        J = ws.jac(xi)
         a_i = ws.a_func(xi)
         fill!(Hphi, 0); fill!(Hpphi, 0)
         LinearAlgebra.mul!(Hpphi, J, φp)
-        LinearAlgebra.mul!(Hphi,  J', θ)
+        LinearAlgebra.mul!(Hphi, J', θ)
         @inbounds for l in 1:Nx
             dla = _da_dx_l(ws.a_func, xi, l, h_fd, e)
             _accumulate_fd_term!(NS, Hphi, Hpphi, dla, θ, φp, l)

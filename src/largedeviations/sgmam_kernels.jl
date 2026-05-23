@@ -60,7 +60,7 @@ function _update_x_tridiag!(x, λ, p′, x′′, Hx, ϵ, caches, inv_a)
             ia = inv_a(dof, i)
             rhs[k] = x[dof, i] + ϵ * (λ[i] * p′[dof, i] + Hx[dof, i] - ia * λ[i]^2 * x′′[dof, i])
         end
-        rhs[1]   += ϵ * inv_a(dof, 2) * λ[2]^2 * xa[dof]
+        rhs[1] += ϵ * inv_a(dof, 2) * λ[2]^2 * xa[dof]
         rhs[end] += ϵ * inv_a(dof, Nt - 1) * λ[end - 1]^2 * xb[dof]
         LinearSolve.reinit!(cache; A = Tmat, b = rhs)
         solve!(cache)
