@@ -90,12 +90,13 @@ To summarize, the following methods are available:
 - Simple geometric minimum action method [(sgMAM)](@ref "Simple geometric minimum action method (sgMAM)")
 - [String method](@ref)
 
-| Method | Use when | Requirements (this package) | Not suitable when |
-|---|---|---|---|
-| **MAM** | You want a **minimum action path** for a specified travel time $T$ (FW/OM action minimization). | `CoupledSDEs` with **additive**, **invertible**, **autonomous** noise (constant covariance); discretized path uses **equispaced time**. | **Multiplicative/state-dependent noise**, **degenerate/non-invertible** noise, **non-autonomous** noise; when the transition time is unknown and you want a time-reparameterization-invariant formulation (prefer gMAM/sgMAM). |
-| **gMAM** | You want a **time-reparameterization-invariant** minimum action path (no explicit optimization over $T$). | Same as MAM for `CoupledSDEs`: **additive**, **invertible**, **autonomous** noise (constant covariance). | **Multiplicative/state-dependent**, **degenerate**, or **non-autonomous** noise; if you need the Onsager--Machlup functional (only FW has a geometric formulation). |
-| **sgMAM** | You want a **Hamiltonian/simple gMAM** formulation that can be efficient in practice. | Same as MAM **and** **diagonal** noise covariance (implementation restriction); assumes **additive** noise. | **Non-diagonal** covariance; **multiplicative/state-dependent** or **degenerate** noise; models where the required derivatives/Jacobian are not available or are too expensive. |
-| **String method** | You want a **minimum energy path / heteroclinic orbit** driven by the deterministic drift (typical use: **gradient** systems). | Deterministic drift field (works for `ContinuousTimeDynamicalSystem`; does not rely on an SDE noise model). | In **non-gradient** systems if you need the *most probable* noise-induced transition path (string gives the deterministic heteroclinic orbit, which generally differs from the instanton). |
+All three action-minimizers (MAM, gMAM, sgMAM) require only **autonomous** noise and reject **rank-deficient** diffusion; they all support additive, diagonal-multiplicative, and general-matrix multiplicative diffusion. The Onsager-Machlup functional (selectable in MAM via `functional = "OM"`) is the one exception: it is implemented only for additive noise and throws otherwise. Pick by what you want out of the result:
+
+| Method | Use when |
+|---|---|
+| **MAM** | The transition time $T$ is fixed and you want the action at that $T$ (or you specifically need the Onsager-Machlup functional, which only has a time-parameterized form). |
+| **gMAM / sgMAM** | $T$ is unknown and you want a time-reparameterization-invariant instanton. Prefer **sgMAM** (Hamiltonian picture) when an analytic `FreidlinWentzellHamiltonian(H_x, H_p)` is available or when AD-based `jacobian(ds)` evaluations are cheap; prefer **gMAM** for the closer-to-textbook geometric-action formulation. |
+| **String method** | You want the deterministic heteroclinic orbit (typical use: **gradient** systems, where it coincides with the instanton). In non-gradient systems it generally differs from the most probable transition path. |
 
 #### Variants and extensions
 The literature contains a number of extensions of MAM-type methods that may be relevant depending on the model class and numerical difficulties. These variants are not currently implemented in `CriticalTransitions.jl`, but serve as useful pointers:
@@ -137,7 +138,7 @@ where ``a(x) = \sigma(x)\sigma(x)^{\top}``. The action along an instanton (where
 
 Compile-time dispatch on the shape of ``a(x)`` is driven by the type of `sys.a` (a `Base.Returns` wrapper marks constant-in-`x` diffusion) together with the type of `a(x_ref)` (a `LinearAlgebra.Diagonal` marks diagonal coupling). Classification happens once when the per-path cache is built; the resulting cache type then selects the diagonal or coupled inner loops in `update_p!`, `update_x!`, and `geometric_gradient_step!`.
 
-Rank-deficient ``a(x)`` is rejected at cache build (it is probed at the path endpoints and a few interior samples).
+Rank-deficient ``a(x)`` is rejected at cache build (`a` is probed at a reference state `x_ref` (the first path point) and at the ``2D`` neighbors `x_ref ± h·eₗ`).
 
 ```@docs
 FreidlinWentzellHamiltonian

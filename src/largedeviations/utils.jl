@@ -27,6 +27,13 @@ function interpolate_path!(path::Matrix, α, s, scratch::Vector = similar(α))
         end
         α[i] = α[i - 1] + sqrt(d2)
     end
+    if α[N] <= eps(real(eltype(α)))
+        throw(
+            ArgumentError(
+                "interpolate_path!: path has zero arclength (all points coincide); cannot normalize.",
+            ),
+        )
+    end
     invL = inv(α[N])
     @inbounds for i in 1:N
         α[i] *= invL
@@ -42,37 +49,15 @@ function interpolate_path!(path::Matrix, α, s, scratch::Vector = similar(α))
 end
 
 """
-    proper_MAM_system(ds::CoupledSDEs)
-
-Validates that `ds` is a valid input for the classical minimum action method (MAM). Throws
-`ArgumentError` if any of the required noise traits (`:additive`, `:invertible`,
-`:autonomous`) is not satisfied. Returns `nothing` on success.
-"""
-function proper_MAM_system(ds::CoupledSDEs)
-    for trait in (:additive, :invertible, :autonomous)
-        if !ds.noise_type[trait]
-            throw(
-                ArgumentError(
-                    "The minimal action method is only applicable for autonomous invertible additive noise. The noise type of the system is not $trait.",
-                ),
-            )
-        end
-    end
-    return
-end
-
-"""
     proper_FW_system(ds::CoupledSDEs)
 
-Validates that `ds` is a valid input for the Freidlin-Wentzell Hamiltonian path methods
-(gMAM via [`minimize_geometric_action`](@ref), sgMAM via [`FreidlinWentzellHamiltonian`](@ref)
-+ `minimize_geometric_action`). Only requires `:autonomous` noise; multiplicative and
-state-dependent diffusion are admissible. Rank-deficiency is detected separately by
-`_validate_and_classify_a` (called at workspace / cache construction with the path's
-reference state). Returns `nothing` on success; throws `ArgumentError` otherwise.
-
-This is intentionally weaker than [`proper_MAM_system`](@ref), which additionally requires
-`:additive` and `:invertible`.
+Validates that `ds` is a valid input for the Freidlin-Wentzell path methods (MAM via
+[`minimize_action`](@ref), gMAM via [`minimize_geometric_action`](@ref), sgMAM via
+[`FreidlinWentzellHamiltonian`](@ref) + `minimize_geometric_action`). Only requires
+`:autonomous` noise; multiplicative and state-dependent diffusion are admissible.
+Rank-deficiency of `a(x) = σ(x)σ(x)ᵀ` is detected separately by `_validate_and_classify_a`
+(called at workspace / cache construction with the path's reference state). Returns
+`nothing` on success; throws `ArgumentError` otherwise.
 """
 function proper_FW_system(ds::CoupledSDEs)
     if !ds.noise_type[:autonomous]
@@ -84,6 +69,7 @@ function proper_FW_system(ds::CoupledSDEs)
     end
     return nothing
 end
+
 
 _fd_step(::Type{T}) where {T} = max(sqrt(eps(real(T))), real(T)(1.0e-8))
 
@@ -158,7 +144,8 @@ Return shape:
 function _trace_normalized_a(ds::ContinuousTimeDynamicalSystem)
     D = dimension(ds)
     if ds isa CoupledODEs
-        return Returns(LinearAlgebra.Diagonal(ones(Float64, D)))
+        T = eltype(current_state(ds))
+        return Returns(LinearAlgebra.Diagonal(ones(T, D)))
     end
     σ_fn = diffusion_function(ds)
     ps = current_parameters(ds)

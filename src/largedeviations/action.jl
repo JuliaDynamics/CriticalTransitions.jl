@@ -62,6 +62,13 @@ construction). As ``\\sigma \\to 0``, `om_action` → `fw_action`.
 """
 function om_action(sys::CoupledSDEs, path, time, noise_strength)
     @assert all(diff(time) .≈ diff(time[1:2])) "Onsager-Machlup action is only defined for equispaced time"
+    if !sys.noise_type[:additive]
+        throw(
+            ArgumentError(
+                "om_action currently implements the constant-diffusion Onsager-Machlup correction term and is only defined for additive noise. Use fw_action for the leading-order rate function under state-dependent / multiplicative noise.",
+            ),
+        )
+    end
     σ = noise_strength
     S = zero(eltype(path))
     @views @inbounds for i in 1:(size(path, 2) - 1)
@@ -90,7 +97,13 @@ action(sys::CoupledSDEs, path::Matrix, time, ::Val{:FW}; noise_strength = nothin
     fw_action(sys, path, time)
 action(sys::CoupledSDEs, path::Matrix, time, ::Val{:OM}; noise_strength = nothing) =
     om_action(sys, path, time, noise_strength)
-action(sys::CoupledSDEs, path::Matrix, time, ::Val{S}; noise_strength = nothing) where {S} = 0.0
+function action(sys::CoupledSDEs, path::Matrix, time, ::Val{S}; noise_strength = nothing) where {S}
+    throw(
+        ArgumentError(
+            "Unknown action functional `$(S)`. Supported values are \"FW\" and \"OM\".",
+        ),
+    )
+end
 
 """
 $(TYPEDSIGNATURES)

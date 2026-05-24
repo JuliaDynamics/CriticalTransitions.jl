@@ -3,11 +3,15 @@
 ## Unreleased
 
 #### Added
-- State-dependent multiplicative noise support for gMAM, sgMAM, and the action
-  functionals (`fw_action`, `geometric_action`, `om_action`). Noise structure is
-  now tracked via a `NoiseShape` type parameter on `CoupledSDEs`, with automatic
-  classification (additive, diagonal, general) and a Hamiltonian-picture
-  formulation for FW paths.
+- State-dependent multiplicative noise support for gMAM, sgMAM, and the
+  Freidlin-Wentzell action functionals (`fw_action`, `geometric_action`). The
+  trace-normalized diffusion tensor `a(x)` is classified once at workspace /
+  cache build (constant-vs-state-dependent from `typeof(a)`, diagonal-vs-coupled
+  from `typeof(a(x_ref))`); the resulting concrete cache type drives
+  compile-time dispatch into the inner loops. A new `FreidlinWentzellHamiltonian`
+  type exposes the Hamiltonian-picture formulation. `om_action` remains
+  restricted to additive noise (the implemented Onsager-Machlup correction term
+  assumes constant diffusion); it now throws on non-additive systems.
 - `proper_FW_system` for constructing Freidlin-Wentzell path systems with
   arbitrary noise covariance.
 - Type-stability and allocation regression tests; multiplicative-noise
