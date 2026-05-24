@@ -63,10 +63,10 @@ function H_p(x, p) # ℜ² → ℜ²
     return Matrix([H_pu H_pv]')
 end
 
-sys = ExtendedPhaseSpace{false,2}(H_x, H_p)
+sys = FreidlinWentzellHamiltonian{false,2}(H_x, H_p)
 ````
 
-We saved this function in the `ExtendedPhaseSpace` struct. We want to find the optimal path between two attractors in the phase space. We define the initial trajectory as `wiggle` between the two attractors.
+We saved this function in the `FreidlinWentzellHamiltonian` struct. We want to find the optimal path between two attractors in the phase space. We define the initial trajectory as `wiggle` between the two attractors.
 
 ````@example sgMAM_KPO
 Nt = 500  # number of discrete time steps
@@ -85,11 +85,11 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
 x_initial = Matrix([xx yy]')
 ````
 
-The optimisation is the performed by the `minimize_simple_geometric_action` function:
+The optimisation is the performed by the `minimize_geometric_action` function:
 
 ````@example sgMAM_KPO
 optimizer = GeometricGradient(; stepsize=1e3)
-MLP = minimize_simple_geometric_action(
+MLP = minimize_geometric_action(
     sys, x_initial, optimizer; maxiters=1_000, show_progress=false
 )
 x_min = MLP.path;

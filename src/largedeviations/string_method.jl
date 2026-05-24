@@ -28,7 +28,7 @@ action via [`geometric_action`](@ref). For drift-only systems (e.g. `sys::Functi
 same geometric action is computed assuming an identity noise covariance.
 """
 function string_method(
-        sys::Union{ExtendedPhaseSpace, Function},
+        sys::Union{FreidlinWentzellHamiltonian, Function},
         x_initial::Matrix;
         stepsize::Real = 1.0e-1,
         integrator = Euler(),
@@ -38,6 +38,7 @@ function string_method(
     Nx, Nt = size(x_initial)
     s = range(0; stop = 1, length = Nt)
     x, alpha = init_allocation_string(x_initial, Nt)
+    interp_scratch = similar(alpha)
 
     integ = _init_string_integrator(sys, x; ϵ = stepsize, alg = integrator)
 
@@ -50,13 +51,13 @@ function string_method(
         x[:, end] = x_initial[:, end]
 
         # reparameterize to arclength
-        interpolate_path!(x, alpha, s)
+        interpolate_path!(x, alpha, s, interp_scratch)
 
         next!(progress; showvalues = [("iterations", i)])
     end
 
     path_sss = StateSpaceSet(x')
-    S = if sys isa ExtendedPhaseSpace
+    S = if sys isa FreidlinWentzellHamiltonian
         NaN
     elseif sys isa Function
         geometric_action(sys, x, 1.0)
@@ -108,7 +109,7 @@ function string_method(sys::CoupledSDEs, init; kwargs...)
 end
 
 function string_method(
-        b::Union{ExtendedPhaseSpace, Function},
+        b::Union{FreidlinWentzellHamiltonian, Function},
         x_initial::StateSpaceSet{D};
         stepsize::Real = 1.0e-1,
         integrator = Euler(),
@@ -119,6 +120,7 @@ function string_method(
     s = range(0; stop = 1, length = Nt)
 
     x, alpha = init_allocation_string(x_initial_m, Nt)
+    interp_scratch = similar(alpha)
     integ = _init_string_integrator(b, x; ϵ = stepsize, alg = integrator)
 
     progress = Progress(maxiters; dt = 0.5, enabled = show_progress)
@@ -131,13 +133,13 @@ function string_method(
         x[:, end] = x_initial_m[:, end]
 
         # reparameterize to arclength
-        interpolate_path!(x, alpha, s)
+        interpolate_path!(x, alpha, s, interp_scratch)
 
         next!(progress; showvalues = [("iterations", i)])
     end
 
     path_sss = StateSpaceSet(x')
-    S = if b isa ExtendedPhaseSpace
+    S = if b isa FreidlinWentzellHamiltonian
         NaN
     elseif b isa Function
         geometric_action(b, x, 1.0)
@@ -182,7 +184,7 @@ function _string_matrix(y::StateSpaceSet{D}, ::Val{D}, Nt::Int) where {D}
     return _string_matrix(m, D, Nt)
 end
 
-function _hp_mode(sys::ExtendedPhaseSpace, x::Matrix)
+function _hp_mode(sys::FreidlinWentzellHamiltonian, x::Matrix)
     D, Nt = size(x)
 
     y_m = sys.H_p(x, zeros(size(x)))
@@ -202,68 +204,64 @@ function _hp_mode(sys::ExtendedPhaseSpace, x::Matrix)
 
     throw(
         ArgumentError(
-            "`ExtendedPhaseSpace.H_p` must return either a $(D)×$(Nt) Matrix when given a Matrix state, or a $(Nt)×$(D) StateSpaceSet when given a StateSpaceSet state.",
+            "`FreidlinWentzellHamiltonian.H_p` must return either a $(D)×$(Nt) Matrix when given a Matrix state, or a $(Nt)×$(D) StateSpaceSet when given a StateSpaceSet state.",
         ),
+    )
+end
+
+function _build_string_integrator(f!, x::Matrix, ϵ::Real, alg)
+    prob = SciMLBase.ODEProblem{true}(f!, x, (0.0, float(ϵ)))
+    return SciMLBase.init(
+        prob, alg; adaptive = false, dt = float(ϵ),
+        save_everystep = false, save_start = false, save_end = false, dense = false,
     )
 end
 
 function _init_string_integrator(sys::Function, x::Matrix; ϵ::Real, alg)
     _, Nt = size(x)
-    function f!(du, u, p, t)
+    f! = function (du, u, p, t)
         fill!(du, 0)
         @inbounds @views for j in 2:(Nt - 1)
             du[:, j] .= sys(u[:, j])
         end
         return nothing
     end
-
-    prob = SciMLBase.ODEProblem{true}(f!, x, (0.0, float(ϵ)))
-    return SciMLBase.init(
-        prob,
-        alg;
-        adaptive = false,
-        dt = float(ϵ),
-        save_everystep = false,
-        save_start = false,
-        save_end = false,
-        dense = false,
-    )
+    return _build_string_integrator(f!, x, ϵ, alg)
 end
 
-function _init_string_integrator(sys::ExtendedPhaseSpace, x::Matrix; ϵ::Real, alg)
-    D, Nt = size(x)
-    mode = _hp_mode(sys, x)
-
+function _init_string_integrator(
+        sys::FreidlinWentzellHamiltonian{true}, x::Matrix; ϵ::Real, alg,
+    )
     p0_m = zeros(size(x))
-    x_sss = StateSpaceSet(x')
-    p0_sss = StateSpaceSet(zeros(Nt, D))
-
-    function f!(du, u, p, t)
-        if mode === :matrix
-            du .= sys.H_p(u, p0_m)
-        else
-            x_sss = StateSpaceSet(u')
-            du .= _string_matrix(sys.H_p(x_sss, p0_sss), Val(D), Nt)
-        end
-
+    f! = function (du, u, p, t)
+        _eval_Hp!(du, sys, u, p0_m)
         @views begin
-            du[:, 1] .= 0
-            du[:, end] .= 0
+            du[:, 1] .= 0; du[:, end] .= 0
         end
         return nothing
     end
+    return _build_string_integrator(f!, x, ϵ, alg)
+end
 
-    prob = SciMLBase.ODEProblem{true}(f!, x, (0.0, float(ϵ)))
-    return SciMLBase.init(
-        prob,
-        alg;
-        adaptive = false,
-        dt = float(ϵ),
-        save_everystep = false,
-        save_start = false,
-        save_end = false,
-        dense = false,
+function _init_string_integrator(
+        sys::FreidlinWentzellHamiltonian{false}, x::Matrix; ϵ::Real, alg,
     )
+    D, Nt = size(x)
+    mode = _hp_mode(sys, x)
+    p0_m = zeros(size(x))
+    p0_sss = StateSpaceSet(zeros(Nt, D))
+    f! = function (du, u, p, t)
+        if mode === :matrix
+            du .= sys.H_p(u, p0_m)
+        else
+            du .= _string_matrix(sys.H_p(StateSpaceSet(u'), p0_sss), Val(D), Nt)
+        end
+        @views begin
+            du[:, 1] .= 0; du[:, end] .= 0
+        end
+        return nothing
+    end
+    return _build_string_integrator(f!, x, ϵ, alg)
 end
 
 function _sciml_step!(x::Matrix, integ, ϵ::Real)

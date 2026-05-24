@@ -19,3 +19,4 @@ benchmarks_output.json
 benchmarks/Manifest.toml
 Manifest.toml
 .claude/*
+docs/superpowers/

@@ -22,12 +22,16 @@ end
 #end
 
 @testset "Large Deviations" begin
+    include("largedeviations/noise_shape.jl")
     include("largedeviations/action_fhn.jl")
     include("largedeviations/action_canonicalization.jl")
     include("largedeviations/action_limit_cycle.jl")
     include("largedeviations/MAM.jl")
     include("largedeviations/gMAM.jl")
     include("largedeviations/sgMAM.jl")
+    include("largedeviations/multiplicative_noise.jl")
+    include("largedeviations/unified_api.jl")
+    include("largedeviations/rank_deficient_rejection.jl")
     include("largedeviations/string_method.jl")
     include("largedeviations/Maier_stein.jl")
     include("largedeviations/interpolate.jl")
