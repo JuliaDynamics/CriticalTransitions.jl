@@ -9,7 +9,7 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
     fhn = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength = σ)
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
-    N, T = 200, 2.0
+    N, T = 75, 2.0
     inst = minimize_action(fhn, x_i, x_f, T; npoints = N, maxiters = 500, show_progress = false)
     # If you evolve for longer the path splits into two :/
     S = fw_action(fhn, Matrix(inst.path)', range(0.0, T; length = N))

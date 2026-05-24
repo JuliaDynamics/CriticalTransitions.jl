@@ -2,7 +2,7 @@ module DistMesh2D
 
 using CriticalTransitions
 using DelaunayTriangulation
-using Interpolations
+using FastInterpolations: linear_interp!
 using LinearAlgebra
 
 using CriticalTransitions: Mesh
@@ -269,10 +269,11 @@ function CriticalTransitions.reparameterization(path, h)
     lp ./= total_len
     npath = round(Int, total_len / h)
     g1 = range(0, 1; length = npath)
-    itp_x = linear_interpolation(lp, path[:, 1])
-    itp_y = linear_interpolation(lp, path[:, 2])
-    path_x = itp_x.(g1)
-    path_y = itp_y.(g1)
+    path_x = Vector{Float64}(undef, npath)
+    path_y = Vector{Float64}(undef, npath)
+    g1v = collect(g1)
+    linear_interp!(path_x, lp, path[:, 1], g1v)
+    linear_interp!(path_y, lp, path[:, 2], g1v)
     return [path_x path_y]
 end
 

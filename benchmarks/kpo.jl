@@ -22,24 +22,26 @@ function benchmark_KPO!(SUITE)
     dfvdu(u, v) = (-2 * λ + 4 * (ω0 - ω^2) + 9 * α * u^2 + 3 * α * v^2) / (8 * ω)
     dfudv(u, v) = (-2 * λ - 4 * (ω0 - ω^2) - 3 * α * u^2 - 9 * α * v^2) / (8 * ω)
 
-    function H_x(x, p) # ℜ² → ℜ²
-        u, v = eachrow(x)
-        pu, pv = eachrow(p)
-
-        H_u = @. pu * dfudu(u, v) + pv * dfvdu(u, v)
-        H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
-        return Matrix([H_u H_v]')
+    function H_x!(out, x, p) # in-place ℜ² → ℜ²
+        @inbounds @views begin
+            u = x[1, :]; v = x[2, :]
+            pu = p[1, :]; pv = p[2, :]
+            @. out[1, :] = pu * dfudu(u, v) + pv * dfvdu(u, v)
+            @. out[2, :] = pu * dfudv(u, v) + pv * dfvdv(u, v)
+        end
+        return nothing
     end
-    function H_p(x, p) # ℜ² → ℜ²
-        u, v = eachrow(x)
-        pu, pv = eachrow(p)
-
-        H_pu = @. pu + fu(u, v)
-        H_pv = @. pv + fv(u, v)
-        return Matrix([H_pu H_pv]')
+    function H_p!(out, x, p) # in-place ℜ² → ℜ²
+        @inbounds @views begin
+            u = x[1, :]; v = x[2, :]
+            pu = p[1, :]; pv = p[2, :]
+            @. out[1, :] = pu + fu(u, v)
+            @. out[2, :] = pv + fv(u, v)
+        end
+        return nothing
     end
 
-    sys = ExtendedPhaseSpace{false, 2}(H_x, H_p)
+    sys = FreidlinWentzellHamiltonian{true, 2}(H_x!, H_p!)
 
     Nt = 100  # number of discrete time steps
     s = collect(range(0; stop = 1, length = Nt))
@@ -53,7 +55,7 @@ function benchmark_KPO!(SUITE)
     x_initial = Matrix([xx yy]')
 
     sgmam_opt = GeometricGradient(; max_backtracks = 0, stepsize = 10.0e2)
-    SUITE["Large deviation"]["Simple geometric minimal action"]["KPO"] = @benchmarkable minimize_simple_geometric_action(
+    SUITE["Large deviation"]["Simple geometric minimal action"]["KPO"] = @benchmarkable minimize_geometric_action(
         $sys, $x_initial, $sgmam_opt; maxiters = 10_000, show_progress = false
     ) seconds = 10
 

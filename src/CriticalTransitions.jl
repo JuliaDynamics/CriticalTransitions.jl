@@ -11,10 +11,12 @@ end CriticalTransitions
 using Statistics: Statistics, mean
 using LinearAlgebra:
     LinearAlgebra, norm, dot, tr, det, diag, eigen, normalize!, I
+using SparseArrays: SparseArrays
 using StaticArrays: StaticArrays, SVector
 using Random: Random
 
 # Core
+using ForwardDiff: ForwardDiff
 using SciMLBase: SciMLBase, EnsembleThreads, DiscreteCallback, remake, terminate!, isinplace
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK, Euler
 using DynamicalSystemsBase:
@@ -36,7 +38,8 @@ using DynamicalSystemsBase:
     integrator,
     referenced_sciml_prob,
     covariance_matrix,
-    diffusion_matrix
+    diffusion_matrix,
+    diffusion_function
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
@@ -45,13 +48,12 @@ using StochasticDiffEq: StochasticDiffEq
 using SparseArrays:
     SparseArrays, sparse, SparseMatrixCSC, rowvals, nonzeros, nzrange
 
-using Interpolations: linear_interpolation
 using OptimizationBase: OptimizationBase
 using OptimizationOptimisers: Optimisers
-using LinearSolve:
-    LinearProblem, LUFactorization, UMFPACKFactorization, init, solve, solve!
 using KrylovKit: KrylovKit
 using ExponentialUtilities: expv_timestep
+using FastInterpolations: linear_interp!
+using LinearSolve: LinearSolve, LinearProblem, LUFactorization, UMFPACKFactorization, init, solve, solve!
 
 # io and documentation
 using Format: Format
@@ -74,12 +76,14 @@ include("trajectories/simulation.jl")
 include("trajectories/transition.jl")
 
 include("largedeviations/utils.jl")
+include("largedeviations/hamiltonian.jl")
 include("largedeviations/action.jl")
 include("largedeviations/methods.jl")
 include("largedeviations/MinimumActionPath.jl")
 include("largedeviations/minimize_action.jl")
+include("largedeviations/sgmam_kernels.jl")
+include("largedeviations/sgmam.jl")
 include("largedeviations/minimize_geometric_action.jl")
-include("largedeviations/sgMAM.jl")
 include("largedeviations/string_method.jl")
 
 include("r_tipping/RateSystem.jl")
@@ -109,7 +113,7 @@ export CoupledSDEs, CoupledODEs, noise_process, covariance_matrix, diffusion_mat
 export drift, div_drift, solver, noise_strength
 export StateSpaceSet
 
-export minimize_simple_geometric_action, ExtendedPhaseSpace
+export FreidlinWentzellHamiltonian
 export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method
 export MinimumActionPath
