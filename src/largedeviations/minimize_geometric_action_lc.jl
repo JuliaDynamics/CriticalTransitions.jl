@@ -27,7 +27,8 @@ Build the straight-line initial guess for gMAM-LQA: first node at `γ(τ_start) 
 h·Ẽ(τ_start)·ẑ` where `τ_start` is the orbit grid point closest to `x_f` and `ẑ` is
 the smallest-eigenvalue eigenvector of `G(τ_start)`; last node is `x_f`.
 """
-function _gmam_lqa_initial_path(lc::LimitCycleFrame, G::Array{Tf, 3}, x_f;
+function _gmam_lqa_initial_path(
+        lc::LimitCycleFrame, G::Array{Tf, 3}, x_f;
         tube_radius::Real, npoints::Int,
     ) where {Tf}
     γs = _γ_vectors(lc)
@@ -77,8 +78,10 @@ Projected-gradient step on `(k0, ẑ)` for the augmented objective
 Searches over `k0 ∈ {k0, k0±1}` and along the spherical-tangent gradient for `ẑ`
 with backtracking step sizes `(1.0, 0.5, 0.1)`. Uses `bws` for scratch.
 """
-function _gmam_lqa_boundary_step(state, lc::LimitCycleFrame, G_sym::Vector{<:Symmetric},
-        γs::Vector{Vector{Tf}}, sys, path, x_f, h, bws::_BoundaryWorkspace{Tf}) where {Tf}
+function _gmam_lqa_boundary_step(
+        state, lc::LimitCycleFrame, G_sym::Vector{<:Symmetric},
+        γs::Vector{Vector{Tf}}, sys, path, x_f, h, bws::_BoundaryWorkspace{Tf}
+    ) where {Tf}
     Nτ = length(γs)
     k0, ẑ = state
     candidates_k = (k0, mod1(k0 + 1, Nτ), mod1(k0 - 1, Nτ))

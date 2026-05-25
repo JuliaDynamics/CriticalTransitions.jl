@@ -64,7 +64,8 @@ end
 Solve the periodic Riccati equation `Ġ = -M̃ᵀG - GM̃ - GÃG` for its T-periodic
 positive-definite solution `G(τ)`. Returns `G::Array{T, 3}` of shape `(d-1) × (d-1) × Nτ`.
 """
-function local_quasipotential(lc::LimitCycleFrame{D, Tf};
+function local_quasipotential(
+        lc::LimitCycleFrame{D, Tf};
         G0_scale::Real = 1.0e3, maxiters::Int = 200, tol::Real = 1.0e-8, alg = BS5(),
     ) where {D, Tf}
     m = D - 1

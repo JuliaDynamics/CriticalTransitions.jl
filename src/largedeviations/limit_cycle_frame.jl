@@ -40,7 +40,8 @@ struct LimitCycleFrame{D, T}
     Ã::Array{T, 3}
 end
 
-function LimitCycleFrame(points::StateSpaceSet{D, T}, period::Real, sys::CoupledSDEs;
+function LimitCycleFrame(
+        points::StateSpaceSet{D, T}, period::Real, sys::CoupledSDEs;
         tol_periodic::Real = 1.0e-3,
     ) where {D, T}
     period_t = T(period)
@@ -92,10 +93,12 @@ function _build_frame(sys, points, period, Φs; tol_periodic)
         v_0 = E[:, j + 1, 1]
         rel = min(norm(v_T - v_0), norm(v_T + v_0))
         if rel > tol_periodic
-            throw(ArgumentError(
-                "LimitCycleFrame: vector j=$(j) is not T-periodic after transport " *
-                "(residual = $(rel)). Anti-periodic or non-orientable frames are not supported.",
-            ))
+            throw(
+                ArgumentError(
+                    "LimitCycleFrame: vector j=$(j) is not T-periodic after transport " *
+                        "(residual = $(rel)). Anti-periodic or non-orientable frames are not supported.",
+                )
+            )
         end
     end
     return E
@@ -117,7 +120,7 @@ function _real_basis(Vs::AbstractMatrix, λs::AbstractVector)
         else
             j = findfirst(k -> !used[k] && k != i && isapprox(λs[k], conj(λs[i])), 1:m)
             j === nothing && error("Unpaired complex eigenvalue in monodromy basis.")
-            out[:, col]     = real.(Vs[:, i])
+            out[:, col] = real.(Vs[:, i])
             out[:, col + 1] = imag.(Vs[:, i])
             used[i] = true
             used[j] = true

@@ -57,8 +57,10 @@ end
     @test isapprox(lc.E[2, 2, 1], 0.0; atol = 1.0e-5)
     # Periodicity (sign-permissive: orientable bundle, |e_j(T) - e_j(0)| within one Δτ step).
     Δθ = 2π / 200
-    @test min(norm(lc.E[:, 2, 1] - lc.E[:, 2, end]),
-              norm(lc.E[:, 2, 1] + lc.E[:, 2, end])) < 2 * Δθ
+    @test min(
+        norm(lc.E[:, 2, 1] - lc.E[:, 2, end]),
+        norm(lc.E[:, 2, 1] + lc.E[:, 2, end])
+    ) < 2 * Δθ
 end
 
 @testset "Stuart-Landau M̃ ≈ -2μ and Ã ≈ 1 analytically" begin

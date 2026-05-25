@@ -28,7 +28,8 @@ sys_det = CoupledODEs(vdp, [2.0, 0.0])
 # Find the limit cycle with `AttractorsViaRecurrences`. We only need one point on `Γ`; the recurrent set returned by the mapper is too coarse to discretize the periodic Riccati equation, so we use it just as a seed.
 
 grid = (range(-3, 3; length = 81), range(-4, 4; length = 81))
-mapper = AttractorsViaRecurrences(sys_det, grid;
+mapper = AttractorsViaRecurrences(
+    sys_det, grid;
     sparse = true, consecutive_recurrences = 400,
 )
 sampler, _ = statespace_sampler(HRectangle([-2.5, -3.5], [2.5, 3.5]), 42)
@@ -89,33 +90,40 @@ set_theme!(theme_light(); fontsize = 13, fonts = (regular = "TeX Gyre Heros", it
 
 fig = Figure(; size = (1000, 460))
 
-ax1 = Axis(fig[1, 1];
+ax1 = Axis(
+    fig[1, 1];
     xlabel = "x", ylabel = "y",
     title = "Optimal escape path  Γ → saddle",
     aspect = DataAspect(),
 )
-streamplot!(ax1, odeSol, (x_lo, x_hi), (y_lo, y_hi);
+streamplot!(
+    ax1, odeSol, (x_lo, x_hi), (y_lo, y_hi);
     gridsize = (22, 22), arrow_size = 7, stepsize = 0.01,
     colormap = [(:gray60, 0.5), (:gray60, 0.5)],
 )
-lines!(ax1, γ_mat[1, :], γ_mat[2, :];
+lines!(
+    ax1, γ_mat[1, :], γ_mat[2, :];
     color = :crimson, linewidth = 3, label = "limit cycle Γ",
 )
-lines!(ax1, map_pts[1, :], map_pts[2, :];
+lines!(
+    ax1, map_pts[1, :], map_pts[2, :];
     color = :darkorange, linewidth = 3, label = "MAP",
 )
-scatter!(ax1, [γ_mat[1, launch_idx]], [γ_mat[2, launch_idx]];
+scatter!(
+    ax1, [γ_mat[1, launch_idx]], [γ_mat[2, launch_idx]];
     marker = :star5, color = :gold, strokecolor = :black, strokewidth = 1.2,
     markersize = 18, label = "launch point",
 )
-scatter!(ax1, [x_saddle[1]], [x_saddle[2]];
+scatter!(
+    ax1, [x_saddle[1]], [x_saddle[2]];
     color = :white, strokecolor = :black, strokewidth = 1.4, markersize = 14,
     label = "saddle",
 )
 axislegend(ax1; position = :rb, framevisible = true, padding = 6, rowgap = 1)
 limits!(ax1, x_lo, x_hi, y_lo, y_hi)
 
-ax2 = Axis(fig[1, 2];
+ax2 = Axis(
+    fig[1, 2];
     xlabel = "τ / T",
     ylabel = "transverse Hessian  G(τ)",
     title = "Quasi-potential coefficient along Γ",
@@ -123,7 +131,8 @@ ax2 = Axis(fig[1, 2];
 τ_norm = range(0, 1; length = Nτ)
 band!(ax2, τ_norm, zero(τ_norm), G_scalar; color = (:indigo, 0.15))
 lines!(ax2, τ_norm, G_scalar; color = :indigo, linewidth = 2.5)
-vlines!(ax2, [launch_idx / Nτ]; color = :gold, linewidth = 2, linestyle = :dash,
+vlines!(
+    ax2, [launch_idx / Nτ]; color = :gold, linewidth = 2, linestyle = :dash,
     label = "τ_start / T",
 )
 axislegend(ax2; position = :rt, framevisible = false)
@@ -138,25 +147,30 @@ fig
 # A second view of the same information, with `Γ` colored by `G(τ)`:
 
 fig2 = Figure(; size = (620, 480))
-ax = Axis(fig2[1, 1];
+ax = Axis(
+    fig2[1, 1];
     xlabel = "x", ylabel = "y",
     title = "Local quasi-potential stiffness G(τ) on Γ",
     aspect = DataAspect(),
 )
-streamplot!(ax, odeSol, (x_lo, x_hi), (y_lo, y_hi);
+streamplot!(
+    ax, odeSol, (x_lo, x_hi), (y_lo, y_hi);
     gridsize = (22, 22), arrow_size = 7, stepsize = 0.01,
     colormap = [(:gray70, 0.5), (:gray70, 0.5)],
 )
-sc = scatter!(ax, γ_mat[1, :], γ_mat[2, :];
+sc = scatter!(
+    ax, γ_mat[1, :], γ_mat[2, :];
     color = G_scalar, colormap = :viridis, markersize = 8,
 )
 Colorbar(fig2[1, 2], sc; label = "G(τ)")
 lines!(ax, map_pts[1, :], map_pts[2, :]; color = :darkorange, linewidth = 3)
-scatter!(ax, [γ_mat[1, launch_idx]], [γ_mat[2, launch_idx]];
+scatter!(
+    ax, [γ_mat[1, launch_idx]], [γ_mat[2, launch_idx]];
     marker = :star5, color = :gold, strokecolor = :black, strokewidth = 1.2,
     markersize = 18,
 )
-scatter!(ax, [x_saddle[1]], [x_saddle[2]];
+scatter!(
+    ax, [x_saddle[1]], [x_saddle[2]];
     color = :white, strokecolor = :black, strokewidth = 1.4, markersize = 14,
 )
 limits!(ax, x_lo, x_hi, y_lo, y_hi)
