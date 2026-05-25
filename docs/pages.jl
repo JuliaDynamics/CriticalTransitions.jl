@@ -21,6 +21,7 @@ pages = [
         "Sampling transitions" => "man/sampling.md",
         "Large deviation theory" => "man/largedeviations.md",
         "Rate-induced transitions" => "man/r-tipping.md",
+        "Diffusion operator" => "man/diffusion_operator.md",
         "Transition path theory" => "man/transition_path_theory.md",
         "Utilities" => "man/utils.md",
         "Bibliography" => "man/bibliography.md",
