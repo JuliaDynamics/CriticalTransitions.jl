@@ -131,6 +131,49 @@ end
     @test isfinite(res_g.action)
 end
 
+@testset "MAM (FW) on multiplicative noise agrees with gMAM at large T" begin
+    # Cross-algorithm correctness check: MAM (time-parameterized FW) and gMAM
+    # (geometric / time-eliminated FW) compute the same physical instanton
+    # action up to discretization. The continuous identity
+    # `inf_T S_T^{FW}[φ] = S_geo[φ]` is exact, but the discrete trapezoid is
+    # only reparameterization-invariant up to `O(1/N²)` curvature terms, so
+    # we expect a few-percent gap at moderate `N`, not bitwise agreement.
+    Random.seed!(0)
+    ds = _make_1d_ou(0.3)
+    Nt = 80
+
+    xinit_g = reshape(collect(range(1.0, -1.0; length = Nt)), 1, Nt)
+    res_g = minimize_geometric_action(
+        ds, xinit_g, GeometricGradient(; stepsize = 1.0);
+        maxiters = 2000, show_progress = false,
+    )
+    S_g = res_g.action
+
+    # Run MAM (FW) over a range of T. At small T the uniform-Δt constraint is
+    # restrictive (action is dominated by the kinetic `|φ̇|²/T` term); as T
+    # grows the optimizer can cluster path points to simulate the
+    # FW-natural non-uniform speed profile, and the action drops toward the
+    # gMAM value.
+    init = reduce(hcat, range([1.0], [-1.0]; length = Nt))
+    Ts = [0.5, 1.0, 4.0, 16.0]
+    S_mam = map(Ts) do T
+        res = minimize_action(ds, init, T; maxiters = 2000, show_progress = false)
+        return res.action
+    end
+
+    @test issorted(S_mam; rev = true)
+    @test S_mam[1] > 3 * S_g
+    @test S_mam[end] ≈ S_g rtol = 0.05
+
+    # `functional = "OM"` is rejected for multiplicative noise (the OM
+    # correction term is only implemented for additive diffusion).
+    @test_throws ArgumentError minimize_action(
+        ds, init, 1.0;
+        functional = "OM", noise_strength = 0.1,
+        maxiters = 5, show_progress = false,
+    )
+end
+
 @testset "Additive non-diagonal Σ goes through coupled cache" begin
     function meier_stein(u, p, t)
         x, y = u
