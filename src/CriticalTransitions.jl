@@ -96,6 +96,9 @@ include("diffusion_operator/generator_analyses.jl")
 include("diffusion_operator/propagator.jl")
 include("diffusion_operator/grid_helpers.jl")
 
+# Transition path theory on the discrete diffusion generator
+include("transition_path_theory/committor.jl")
+
 include("../systems/CTLibrary.jl")
 using .CTLibrary
 
