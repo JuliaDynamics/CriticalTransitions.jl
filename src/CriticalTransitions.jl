@@ -98,6 +98,7 @@ include("diffusion_operator/grid_helpers.jl")
 
 # Transition path theory on the discrete diffusion generator
 include("transition_path_theory/committor.jl")
+include("transition_path_theory/reactive_transition.jl")
 
 include("../systems/CTLibrary.jl")
 using .CTLibrary
@@ -130,5 +131,12 @@ export mean_first_passage_time, first_passage_variance
 export eigenmodes
 export propagate_density
 export DenseEigen, KrylovKitSolver
+
+# Transition path theory
+export ReactiveTransition
+export forward_committor, backward_committor
+export reactive_rate, reactive_density, reactive_current
+export reactive_current_reversible, reactive_current_irreversible
+export probability_reactive, probability_last_A
 
 end # module CriticalTransitions
