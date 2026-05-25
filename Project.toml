@@ -33,16 +33,18 @@ StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
 [weakdeps]
 DelaunayTriangulation = "927a84f5-c5f4-47a5-9785-b46e178433df"
 NonlinearSolveBase = "be0214bd-f91f-a760-ac4e-3421ce2b2da0"
+PeriodicOrbits = "41be5fce-5647-450b-ae37-a6739b881a1c"
 
 [extensions]
 DistMesh2D = ["DelaunayTriangulation"]
+PeriodicOrbitsExt = ["PeriodicOrbits"]
 
 [compat]
 ConstructionBase = "1.6.0"
 DelaunayTriangulation = "1.6"
 DocStringExtensions = "0.9.3"
-ExponentialUtilities = "1.30"
 DynamicalSystemsBase = "3.18.0"
+ExponentialUtilities = "1.30"
 FastInterpolations = "0.4"
 Format = "1"
 ForwardDiff = "0.10, 1"
@@ -54,6 +56,7 @@ NonlinearSolveBase = "2"
 OptimizationBase = "5"
 OptimizationOptimisers = "0.3"
 OrdinaryDiffEqLowOrderRK = "2"
+PeriodicOrbits = "0.1, 1"
 Printf = "1.10"
 ProgressMeter = "1.10.0"
 Random = "1.10"
