@@ -67,7 +67,6 @@ using Reexport: @reexport
 @reexport using StaticArrays
 @reexport using DynamicalSystemsBase
 
-include("extension_functions.jl")
 include("utils.jl")
 include("sde_utils.jl")
 
@@ -96,14 +95,6 @@ include("diffusion_operator/spectral.jl")
 include("diffusion_operator/generator_analyses.jl")
 include("diffusion_operator/propagator.jl")
 include("diffusion_operator/grid_helpers.jl")
-
-# Experimental features
-include("experimental/transition_path_theory/TransitionPathMesh.jl")
-include("experimental/transition_path_theory/langevin.jl")
-include("experimental/transition_path_theory/committor.jl")
-include("experimental/transition_path_theory/invariant_pdf.jl")
-include("experimental/transition_path_theory/reactive_current.jl")
-include("experimental/transition_path_theory/probability.jl")
 
 include("../systems/CTLibrary.jl")
 using .CTLibrary
