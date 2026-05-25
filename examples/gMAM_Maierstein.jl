@@ -54,7 +54,9 @@ v_min = -0.4;
 v_max = 0.4;
 bmin = [u_min, v_min];
 bmax = [u_max, v_max];
-fp, eig, stab = fixedpoints(sys, bmin, bmax)
+
+ode = CoupledODEs(sys)
+fp, eig, stab = fixedpoints(ode, bmin, bmax)
 stable_fp = fp[stab]
 
 #

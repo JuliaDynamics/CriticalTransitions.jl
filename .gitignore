@@ -20,3 +20,16 @@ benchmarks/Manifest.toml
 Manifest.toml
 .claude/*
 docs/superpowers/
+docs/juliadynamics-dark.scss
+docs/juliadynamics-darkdefs.scss
+docs/juliadynamics-light.scss
+docs/juliadynamics-lightdefs.scss
+docs/juliadynamics-style.scss
+docs/src/assets/themes/documenter-dark.css
+docs/src/assets/themes/documenter-light.css
+docs/style.jl
+# Literate.jl-generated example pages (built by docs/make_md_examples.jl).
+# Manual example pages are explicitly un-ignored below.
+docs/src/examples/*.md
+!docs/src/examples/RateSystem.md
+!docs/src/examples/stochastic-dynamics.md

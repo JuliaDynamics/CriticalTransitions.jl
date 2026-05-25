@@ -103,7 +103,7 @@ Validates `a(x)` at `x_ref` and at `x_ref ± h·eₗ` for each coordinate `l`, w
 finite-difference step. Throws `ArgumentError` if `a` is rank-deficient at any probe.
 Returns `true` if `a` is numerically diagonal at every probe; `false` otherwise. The
 return value drives `Val{true}/Val{false}` dispatch on the decoupled-vs-coupled cache
-path in [`build_sgmam_cache`](@ref) and `geometric_gradient_workspace`.
+path in `build_sgmam_cache` and `geometric_gradient_workspace`.
 """
 function _validate_and_classify_a(a, x_ref::AbstractVector{T}) where {T}
     h = max(sqrt(eps(real(T))), real(T)(1.0e-6))

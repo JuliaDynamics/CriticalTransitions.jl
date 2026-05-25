@@ -4,7 +4,7 @@ To use the following functionalities, you need to load `ChoasTools.jl` and `Attr
 
 ## Fixed points
 ```@docs
-fixedpoints
+ChaosTools.fixedpoints
 ```
 
 ## Edge tracking

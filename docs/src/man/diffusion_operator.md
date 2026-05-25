@@ -97,7 +97,7 @@ which lets the compiler specialize the assembly and analysis code to the
 specific BC.
 
 ```@docs
-BoundaryCondition
+CriticalTransitions.BoundaryCondition
 Reflecting
 Periodic
 Absorbing
