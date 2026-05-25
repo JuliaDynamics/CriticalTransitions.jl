@@ -10,7 +10,7 @@ end CriticalTransitions
 # Base
 using Statistics: Statistics, mean
 using LinearAlgebra:
-    LinearAlgebra, norm, dot, tr, det, diag, eigen, normalize!, I
+    LinearAlgebra, norm, dot, tr, diag, eigen, normalize!, I
 using SparseArrays: SparseArrays
 using StaticArrays: StaticArrays, SVector
 using Random: Random
