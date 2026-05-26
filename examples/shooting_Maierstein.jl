@@ -5,7 +5,7 @@ using Logging
 # Maier-Stein β = 10: drift is a 2D vector field with three fixed points,
 # attractors at (±1, 0) and a saddle at (0, 0). The instanton path from
 # attractor → attractor crosses the saddle, so it cannot be solved as a
-# single shooting BVP (the arclength reparametrization develops a singularity
+# single shooting BVP (the arclength reparameterization develops a singularity
 # wherever H_p = 0, which on the H = 0 shell forces (x, p) = (x*, 0) at any
 # drift fixed point). The user must split into two `attractor → saddle` legs.
 function maier_stein(u, p, t)
@@ -26,8 +26,10 @@ res_gmam = minimize_geometric_action(
     H, x_initial_full, GeometricGradient(; stepsize = 1.0);
     maxiters = 500, show_progress = false,
 )
-println("gMAM action (full path, deterministic return makes second half free):  ",
-        res_gmam.action)
+println(
+    "gMAM action (full path, deterministic return makes second half free):  ",
+    res_gmam.action
+)
 
 # Shooting: left half (-1, 0) → (0, 0).
 xs_left = collect(range(-1.0, 0.0; length = Nt))
@@ -61,5 +63,7 @@ println("Shooting action (+1, 0) → (0, 0):  ", res_right.action)
 # deterministic drift and contributes zero action. The full transition
 # action is therefore the maximum of the two halves (in the symmetric case
 # they are equal). gMAM's full-path action above should match either half.
-println("Symmetry check: |left - right| / max = ",
-        abs(res_left.action - res_right.action) / max(res_left.action, res_right.action))
+println(
+    "Symmetry check: |left - right| / max = ",
+    abs(res_left.action - res_right.action) / max(res_left.action, res_right.action)
+)

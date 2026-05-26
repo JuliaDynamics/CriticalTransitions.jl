@@ -2,7 +2,7 @@
 $(TYPEDEF)
 
 Multiple-shooting BVP optimizer for the Freidlin-Wentzell instanton on a
-[`FreidlinWentzellHamiltonian`](@ref). Integrates the arclength-reparametrized Hamilton
+[`FreidlinWentzellHamiltonian`](@ref). Integrates the arclength-reparameterized Hamilton
 equations
 ```math
 \\frac{\\mathrm{d}\\varphi}{\\mathrm{d}s} = \\alpha\\,H_p,\\qquad
@@ -81,21 +81,25 @@ function _assert_fixed_point(H::FreidlinWentzellHamiltonian, x::AbstractVector, 
     b = _drift(H, x)
     tol = sqrt(eps(real(eltype(x))))
     if LinearAlgebra.norm(b) > tol
-        throw(ArgumentError(
-            "MultipleShooting: $side endpoint x = $(collect(x)) is not a " *
-            "fixed-point endpoint of the drift (‖b(x)‖ = $(LinearAlgebra.norm(b)) > √eps). " *
-            "MultipleShooting requires both endpoints to be hyperbolic fixed points; " *
-            "use GeometricGradient (gMAM/sgMAM) for free endpoints."
-        ))
+        throw(
+            ArgumentError(
+                "MultipleShooting: $side endpoint x = $(collect(x)) is not a " *
+                    "fixed-point endpoint of the drift (‖b(x)‖ = $(LinearAlgebra.norm(b)) > √eps). " *
+                    "MultipleShooting requires both endpoints to be hyperbolic fixed points; " *
+                    "use GeometricGradient (gMAM/sgMAM) for free endpoints."
+            )
+        )
     end
     J = _drift_jacobian(H, x)
     ev = LinearAlgebra.eigvals(J)
     if any(abs(real(λ)) < tol for λ in ev)
-        throw(ArgumentError(
-            "MultipleShooting: $side endpoint x = $(collect(x)) is non-hyperbolic " *
-            "(drift Jacobian has eigenvalue with |Re| ≈ 0; eigenvalues = $ev). " *
-            "Either perturb the endpoint slightly off the bifurcation or use GeometricGradient."
-        ))
+        throw(
+            ArgumentError(
+                "MultipleShooting: $side endpoint x = $(collect(x)) is non-hyperbolic " *
+                    "(drift Jacobian has eigenvalue with |Re| ≈ 0; eigenvalues = $ev). " *
+                    "Either perturb the endpoint slightly off the bifurcation or use GeometricGradient."
+            )
+        )
     end
     return nothing
 end
@@ -239,6 +243,7 @@ function _build_jac_sparsity(D::Int, nseg::Int)
         for r in rrange, c in crange
             push!(rows, r); push!(cols, c)
         end
+        return
     end
 
     for i in 1:nseg
@@ -265,9 +270,11 @@ function _build_workspace(
         x_init::AbstractMatrix,
         opt::MultipleShooting,
     ) where {IIP, D}
-    size(x_init, 1) == D || throw(ArgumentError(
-        "x_init has $(size(x_init, 1)) rows; expected D = $D for this FreidlinWentzellHamiltonian."
-    ))
+    size(x_init, 1) == D || throw(
+        ArgumentError(
+            "x_init has $(size(x_init, 1)) rows; expected D = $D for this FreidlinWentzellHamiltonian."
+        )
+    )
     xa = x_init[:, 1]
     xb = x_init[:, end]
     _assert_fixed_point(H, xa, :outgoing)
@@ -394,22 +401,24 @@ function minimize_geometric_action(
     z0 = _initial_guess_unknowns(ws, x_init)
     z_sol, resnorm, niter, retcode = _solve_shooting(ws, z0)
     if retcode != SciMLBase.ReturnCode.Success
-        throw(ErrorException(
-            "MultipleShooting: NonlinearSolve did not converge (retcode = $retcode, " *
-            "residual = $resnorm, iterations = $niter). Try increasing nshoots, " *
-            "warm-starting from a GeometricGradient solve, or tightening abstol."
-        ))
+        throw(
+            ErrorException(
+                "MultipleShooting: NonlinearSolve did not converge (retcode = $retcode, " *
+                    "residual = $resnorm, iterations = $niter). Try increasing nshoots, " *
+                    "warm-starting from a GeometricGradient solve, or tightening abstol."
+            )
+        )
     end
     path_mat, p_mat, arclength, L, H_inv_max = _sample_path(ws, z_sol, N)
     if H_inv_max > ws.invariant_tol
-        @warn "MultipleShooting: H=0 invariant violated" H_invariant_max=H_inv_max threshold=ws.invariant_tol
+        @warn "MultipleShooting: H=0 invariant violated" H_invariant_max = H_inv_max threshold = ws.invariant_tol
     end
     b_fn = x -> _drift(sys, x)
     A_at = x -> inv(collect(sys.a(x)))
     v_buf = similar(path_mat)
     integrand_buf = zeros(eltype(path_mat), N)
     action = _geometric_action_from_drift!(b_fn, path_mat, one(eltype(path_mat)), A_at, v_buf, integrand_buf)
-    show_progress && @info "MultipleShooting converged" residual=resnorm iterations=niter path_length=L action=action
+    show_progress && @info "MultipleShooting converged" residual = resnorm iterations = niter path_length = L action = action
     return MinimumActionPath(
         StateSpaceSet(Matrix(path_mat')), action;
         λ = L, generalized_momentum = Matrix(p_mat'),
@@ -419,11 +428,13 @@ end
 function minimize_geometric_action(
         ::CoupledSDEs, ::Matrix, ::MultipleShooting; kwargs...,
     )
-    throw(ArgumentError(
-        "MultipleShooting acts on FreidlinWentzellHamiltonian, not CoupledSDEs. " *
-        "The shooting method operates on the LDT-derived deterministic Hamiltonian system, " *
-        "not the original stochastic system. Convert explicitly:\n\n" *
-        "    H = FreidlinWentzellHamiltonian(sys)\n" *
-        "    minimize_geometric_action(H, x_init, MultipleShooting(...))\n"
-    ))
+    throw(
+        ArgumentError(
+            "MultipleShooting acts on FreidlinWentzellHamiltonian, not CoupledSDEs. " *
+                "The shooting method operates on the LDT-derived deterministic Hamiltonian system, " *
+                "not the original stochastic system. Convert explicitly:\n\n" *
+                "    H = FreidlinWentzellHamiltonian(sys)\n" *
+                "    minimize_geometric_action(H, x_init, MultipleShooting(...))\n"
+        )
+    )
 end

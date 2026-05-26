@@ -29,7 +29,7 @@ end
 H_invariant_max(H, res) = let D = size(res.generalized_momentum, 2), N = length(res.path)
     maximum(
         abs(CT._hamiltonian_value(H, [res.path[i][k] for k in 1:D], [res.generalized_momentum[i, k] for k in 1:D]))
-        for i in 1:N
+            for i in 1:N
     )
 end
 

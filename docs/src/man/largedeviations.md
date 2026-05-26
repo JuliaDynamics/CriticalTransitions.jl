@@ -174,7 +174,7 @@ Aside: the same “vectorized + allocation-free inner loop” principle also ten
 
 ### Multiple shooting
 
-The [`MultipleShooting`](@ref) optimizer treats the instanton as a boundary value problem on arclength-reparametrized Hamilton equations
+The [`MultipleShooting`](@ref) optimizer treats the instanton as a boundary value problem on arclength-reparameterized Hamilton equations
 ```math
 \frac{\mathrm{d}\varphi}{\mathrm{d}s} = \alpha\,H_p(\varphi, p),\qquad
 \frac{\mathrm{d}p}{\mathrm{d}s} = -\alpha\,H_x(\varphi, p),\qquad
@@ -191,7 +191,7 @@ res = minimize_geometric_action(H, x_initial, MultipleShooting(; nshoots = 10))
 
 **Endpoint constraints.** Both endpoints must be *hyperbolic* fixed points of the drift (`‖b(x*)‖ ≈ 0`, `∂b(x*)` has no purely-imaginary eigenvalues). Non-fixed-point endpoints and non-hyperbolic fixed points are rejected with an `ArgumentError`. Use [`GeometricGradient`](@ref) (gMAM/sgMAM) in either regime.
 
-**No interior fixed-point crossings.** The arclength reparametrization develops a singularity at any `(φ, p)` where `H_p = 0`, which on the `H = 0` shell is exactly `(x*, 0)` for `x*` a drift fixed point. The BVP-integrated portion of the path therefore must not pass through such a fixed point. The classical 1D bistable transition `xa = −1 → xb = +1` (which crosses the saddle `x = 0`) does not work as a single BVP; the user must split it into two `attractor → saddle` legs and sum the actions:
+**No interior fixed-point crossings.** The arclength reparameterization develops a singularity at any `(φ, p)` where `H_p = 0`, which on the `H = 0` shell is exactly `(x*, 0)` for `x*` a drift fixed point. The BVP-integrated portion of the path therefore must not pass through such a fixed point. The classical 1D bistable transition `xa = −1 → xb = +1` (which crosses the saddle `x = 0`) does not work as a single BVP; the user must split it into two `attractor → saddle` legs and sum the actions:
 
 ```julia
 res_left  = minimize_geometric_action(H, x_init_left,  MultipleShooting())  # -1 → 0
