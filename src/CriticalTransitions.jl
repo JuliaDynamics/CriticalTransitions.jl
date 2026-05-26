@@ -18,9 +18,9 @@ using Random: Random
 # Core
 using ForwardDiff: ForwardDiff
 using SciMLBase: SciMLBase, EnsembleThreads, DiscreteCallback, remake, terminate!, isinplace
-using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK, Euler, BS3
+using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK, Euler
 using NonlinearSolveFirstOrder: NonlinearSolveFirstOrder
-using ADTypes: ADTypes, AutoSparse, AutoForwardDiff
+using ADTypes: ADTypes, AutoForwardDiff
 using SparseMatrixColorings: SparseMatrixColorings, GreedyColoringAlgorithm
 using DynamicalSystemsBase:
     DynamicalSystemsBase,

@@ -400,7 +400,7 @@ function minimize_geometric_action(
     ws = _build_workspace(sys, x_init, opt)
     z0 = _initial_guess_unknowns(ws, x_init)
     z_sol, resnorm, niter, retcode = _solve_shooting(ws, z0)
-    if retcode != SciMLBase.ReturnCode.Success
+    if !SciMLBase.successful_retcode(retcode)
         throw(
             ErrorException(
                 "MultipleShooting: NonlinearSolve did not converge (retcode = $retcode, " *
