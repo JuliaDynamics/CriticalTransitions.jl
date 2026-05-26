@@ -16,12 +16,12 @@ function benchmark_quasipotential!(SUITE)
     # 3D gradient well: exercises the triangle simplex pass with its FD Newton loop.
     quad3(u, p, t) = SA[-u[1], -u[2], -u[3]]
     sys_3d = CoupledSDEs(quad3, [0.0, 0.0, 0.0]; noise_strength = 1.0)
-    SUITE["Large deviation"]["Quasipotential"]["OLIM, 3D quadratic 41x41x41"] =
+    SUITE["Large deviation"]["Quasipotential"]["OLIM, 3D quadratic 7x7x7"] =
         @benchmarkable quasipotential(
         $sys_3d,
-        CartesianGrid((-1.0, 1.0, 41), (-1.0, 1.0, 41), (-1.0, 1.0, 41)),
+        CartesianGrid((-1.0, 1.0, 7), (-1.0, 1.0, 7), (-1.0, 1.0, 7)),
         [0.0, 0.0, 0.0]; show_progress = false,
-    ) seconds = 60
+    ) seconds = 10
 
     # 2D multiplicative noise: exercises the `_QInvDynamic` callable and the
     # fallback `_line_integral` method (Qinv recomputed per Simpson node).
