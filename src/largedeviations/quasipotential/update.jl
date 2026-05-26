@@ -267,6 +267,11 @@ function _add_simplex_candidates(
         U0 = state.U[y0]
         isfinite(U0) || continue
         c_y0 = cell_center(grid, y0)
+        Φ0 = U0 + _line_integral(L, c_y0, c_x - c_y0)
+        if Φ0 < best
+            best = Φ0
+            best_ref = BackRef{3}(y0, y0, NaN32)
+        end
         for δch1 in cheb
             y1 = _shift_in_bounds(y0, δch1, nbox)
             y1 === nothing && continue

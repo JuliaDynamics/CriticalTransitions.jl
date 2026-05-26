@@ -1,11 +1,21 @@
 """
-    default_K(grid::CartesianGrid) -> Int
+    default_K(grid::CartesianGrid{D}) -> Int
 
-Heuristic accepted-band radius (in grid cells):
-`max(5, round(Int, sqrt(minimum(grid.nbox))))`, capped at `32`.
+Heuristic accepted-band radius in grid cells, dimension-aware. Per-cell sweep
+work scales as `(2K+1)^D`, so the floor and cap depend on `D`:
+
+| `D`   | floor | cap |
+|-------|-------|-----|
+| 1, 2  |   5   |  32 |
+| 3     |   2   |   8 |
+| ≥ 4   |   2   |   4 |
+
+Within these bounds the radius is `round(Int, sqrt(minimum(grid.nbox)))`.
 """
-@inline default_K(grid::CartesianGrid) =
-    clamp(round(Int, sqrt(minimum(grid.nbox))), 5, 32)
+@inline function default_K(grid::CartesianGrid{D}) where {D}
+    floor_K, cap_K = D <= 2 ? (5, 32) : D == 3 ? (2, 8) : (2, 4)
+    return clamp(round(Int, sqrt(minimum(grid.nbox))), floor_K, cap_K)
+end
 
 function _source_cell(
         grid::CartesianGrid{D, T}, attractor::SVector{D, T}

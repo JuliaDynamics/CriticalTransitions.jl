@@ -74,10 +74,33 @@ const CT_ = CriticalTransitions
     end
 
     @testset "default_K" begin
-        g1 = CartesianGrid((-1.0, 1.0, 10), (-1.0, 1.0, 10))
-        g2 = CartesianGrid((-1.0, 1.0, 200), (-1.0, 1.0, 200))
-        @test CT_.default_K(g1) == clamp(round(Int, sqrt(10)), 5, 32)
-        @test CT_.default_K(g2) == clamp(round(Int, sqrt(200)), 5, 32)
+        g2_small = CartesianGrid((-1.0, 1.0, 10), (-1.0, 1.0, 10))
+        g2_large = CartesianGrid((-1.0, 1.0, 200), (-1.0, 1.0, 200))
+        @test CT_.default_K(g2_small) == 5            # 2D floor
+        @test CT_.default_K(g2_large) == 14           # sqrt(200) ≈ 14, < cap 32
+        g3_small = CartesianGrid((-1.0, 1.0, 5), (-1.0, 1.0, 5), (-1.0, 1.0, 5))
+        g3_mid   = CartesianGrid((-1.0, 1.0, 9), (-1.0, 1.0, 9), (-1.0, 1.0, 9))
+        g3_large = CartesianGrid((-1.0, 1.0, 200), (-1.0, 1.0, 200), (-1.0, 1.0, 200))
+        @test CT_.default_K(g3_small) == 2            # 3D floor
+        @test CT_.default_K(g3_mid)   == 3            # sqrt(9) = 3
+        @test CT_.default_K(g3_large) == 8            # 3D cap
+        g4 = CartesianGrid((-1.0, 1.0, 5), (-1.0, 1.0, 5), (-1.0, 1.0, 5), (-1.0, 1.0, 5))
+        @test CT_.default_K(g4) == 2                  # 4D+ floor
+    end
+
+    @testset "3D K_seed=0 bootstrap" begin
+        # Regression: pre-fix, K_seed=0 in 3D left every non-source cell at Inf
+        # because the 3D simplex pass never produced a standalone Φ0 vertex.
+        f(x, p, t) = SA[-x[1], -x[2], -x[3]]
+        sys = CoupledSDEs(f, [0.0, 0.0, 0.0]; noise_strength = 1.0)
+        grid = CartesianGrid((-1.0, 1.0, 9), (-1.0, 1.0, 9), (-1.0, 1.0, 9))
+        qp = quasipotential(
+            sys, grid, [0.0, 0.0, 0.0];
+            show_progress = false, near_source_layers = 0, band_radius = 2,
+        )
+        @test all(isfinite, qp.U)
+        @test qp.U[5, 5, 5] == 0.0
+        @test all(>=(0), qp.U)
     end
 
     @testset "2D quadratic well end-to-end" begin
