@@ -16,10 +16,10 @@ function _source_cell(
         hi = c[end] + grid.h[d] / 2
         (lo <= attractor[d] <= hi) ||
             throw(
-                ArgumentError(
-                    "attractor[$d] = $(attractor[d]) outside grid axis $d ($lo, $hi)",
-                ),
-            )
+            ArgumentError(
+                "attractor[$d] = $(attractor[d]) outside grid axis $d ($lo, $hi)",
+            ),
+        )
         i = round(Int, (attractor[d] - c[1]) / grid.h[d]) + 1
         clamp(i, 1, length(c))
     end
@@ -48,9 +48,9 @@ function quasipotential(
         sys::CoupledSDEs{IIP, D, I, P},
         grid::CartesianGrid{D, T},
         attractor::AbstractVector{<:Real};
-        band_radius::Int    = default_K(grid),
+        band_radius::Int = default_K(grid),
         near_source_layers::Int = 3,
-        verbose::Bool       = false,
+        verbose::Bool = false,
         show_progress::Bool = true,
     ) where {IIP, D, I, P, T}
     length(attractor) == D || throw(
@@ -59,7 +59,7 @@ function quasipotential(
         ),
     )
     proper_FW_system(sys)
-    D > 4 && @warn "quasipotential in D=$D: per-axis grid resolution will be coarse" maxlog=1
+    D > 4 && @warn "quasipotential in D=$D: per-axis grid resolution will be coarse" maxlog = 1
     x_A = SVector{D, T}(attractor)
     return _quasipotential_impl(
         sys, grid, x_A,

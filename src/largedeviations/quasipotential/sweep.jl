@@ -5,8 +5,10 @@ invariant subspace.
 """
 function _care(A::AbstractMatrix{T}, Q::AbstractMatrix{T}) where {T}
     D = LinearAlgebra.checksquare(A)
-    H = [Matrix(-A)        Matrix(-2 * Q);
-         zeros(T, D, D)     Matrix(A')]
+    H = [
+        Matrix(-A)        Matrix(-2 * Q);
+        zeros(T, D, D)     Matrix(A')
+    ]
     F = eigen(H)
     stable = findall(λ -> real(λ) < -sqrt(eps(real(T))), F.values)
     length(stable) == D || throw(
@@ -85,7 +87,7 @@ function _sweep!(
     _seed_near_source!(state, grid, source, sys, L, Val(K_seed); verbose = verbose)
 
     nbox = state.nbox
-    N    = prod(nbox)
+    N = prod(nbox)
     cheb = _chebyshev_neighbors(Val(D))
 
     @inbounds for x in CartesianIndices(state.U)
@@ -97,7 +99,7 @@ function _sweep!(
         end
         if touches_unknown
             state.status[x] = _FRONT
-            state.front[x]  = true
+            state.front[x] = true
         end
     end
 
@@ -121,8 +123,10 @@ function _sweep!(
     end
 
     if show_progress
-        return _sweep_loop!(state, grid, L, Val(K), Val(D),
-                            Progress(N; desc = "OLIM sweep"))
+        return _sweep_loop!(
+            state, grid, L, Val(K), Val(D),
+            Progress(N; desc = "OLIM sweep")
+        )
     else
         return _sweep_loop!(state, grid, L, Val(K), Val(D), nothing)
     end
@@ -143,7 +147,7 @@ function _sweep_loop!(
         c = CartesianIndices(nbox)[lin_c]
         state.handles[lin_c] = 0
         state.status[c] = _FRONT
-        state.front[c]  = true
+        state.front[c] = true
         _maybe_tick(prog)
 
         for δ in _stencil_offsets(Val(K), Val(D))
@@ -173,7 +177,7 @@ function _sweep_loop!(
         end
         if prune
             state.status[c] = _ACCEPTED
-            state.front[c]  = false
+            state.front[c] = false
         end
     end
     return state

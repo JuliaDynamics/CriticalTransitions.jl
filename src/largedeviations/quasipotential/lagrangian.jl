@@ -27,10 +27,10 @@ interior root.
     for j in 0:(maxiter - 1)
         xf = (faₖ * bₖ - fbₖ * aₖ) / (faₖ - fbₖ)
         xh = (aₖ + bₖ) / 2
-        σ  = sign(xh - xf)
-        δ  = k1 * (bₖ - aₖ)^k2
+        σ = sign(xh - xf)
+        δ = k1 * (bₖ - aₖ)^k2
         xt = δ <= abs(xh - xf) ? xf + σ * δ : xh
-        r  = ε * T(2)^(T(nmax) - T(j)) - (bₖ - aₖ) / 2
+        r = ε * T(2)^(T(nmax) - T(j)) - (bₖ - aₖ) / 2
         xp = abs(xt - xh) <= r ? xt : xh - σ * r
         fp = f(xp)
         if iszero(fp)
@@ -66,7 +66,7 @@ _GeometricLagrangian{D, T}(b::B, Q_inv::A, eps_b::T) where {D, T, B, A} =
 @inline function (L::_GeometricLagrangian{D, T})(
         x::SVector{D, S}, v::SVector{D, S}
     ) where {D, T, S}
-    bx   = L.b(x)
+    bx = L.b(x)
     Qinv = _Q_inv_at(L.Q_inv, x)
     bnQ2 = dot(bx, Qinv * bx)
     if bnQ2 < S(L.eps_b) * S(L.eps_b)
@@ -134,7 +134,7 @@ end
         x::SVector{D, S}, Qinv_x::SMatrix{D, D},
         Qv::SVector{D}, vQv::S, sqrt_vQv::S,
     ) where {D, T, S}
-    bx   = L.b(x)
+    bx = L.b(x)
     bnQ2 = dot(bx, Qinv_x * bx)
     if bnQ2 < S(L.eps_b) * S(L.eps_b)
         return S(0.5) * vQv - dot(Qv, bx)
@@ -150,12 +150,12 @@ end
     ) where {D, T, B, A <: SMatrix, S}
     half = S(0.5)
     Qinv = L.Q_inv
-    Qv   = Qinv * v
-    vQv  = dot(v, Qv)
-    sv   = sqrt(vQv)
-    L0 = _Lg_at(L, y,           Qinv, Qv, vQv, sv)
+    Qv = Qinv * v
+    vQv = dot(v, Qv)
+    sv = sqrt(vQv)
+    L0 = _Lg_at(L, y, Qinv, Qv, vQv, sv)
     Lh = _Lg_at(L, y + half * v, Qinv, Qv, vQv, sv)
-    L1 = _Lg_at(L, y + v,       Qinv, Qv, vQv, sv)
+    L1 = _Lg_at(L, y + v, Qinv, Qv, vQv, sv)
     return (L0 + S(4) * Lh + L1) / S(6)
 end
 

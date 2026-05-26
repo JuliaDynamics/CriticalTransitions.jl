@@ -39,8 +39,10 @@ const CT_ = CriticalTransitions
         L = CT_._GeometricLagrangian{2, Float64}(x -> -x, Qinv, 1.0e-10)
         # L_g(x, v) = |v||x| + v·x along y + s v with y=(1,0), v=(0.1,0), x(s) = (1+0.1s, 0)
         # gives 0.2*(1 + 0.1 s), exact integral 0.21 (Simpson is exact on linear integrands).
-        @test isapprox(CT_._line_integral(L, SVector(1.0, 0.0), SVector(0.1, 0.0)),
-                       0.21; atol = 1.0e-14)
+        @test isapprox(
+            CT_._line_integral(L, SVector(1.0, 0.0), SVector(0.1, 0.0)),
+            0.21; atol = 1.0e-14
+        )
 
         @test isapprox(CT_._hermite_U(0.0, 1.0, 0.0, 0.0, 0.5), 0.5; atol = 1.0e-12)
         @test isapprox(
@@ -88,7 +90,7 @@ const CT_ = CriticalTransitions
         # Check at several cells along the diagonal and on-axis.
         for I in (CartesianIndex(20, 16), CartesianIndex(24, 24), CartesianIndex(12, 20))
             x = cell_center(grid, I)
-            @test isapprox(qp.U[I], dot(x, x); rtol = 0.10)
+            @test isapprox(qp.U[I], dot(x, x); rtol = 0.1)
         end
         # U(x) ≥ 0 by definition; -ε is a real bug, not just an interpolation artefact.
         @test all(>=(0), filter(isfinite, qp.U))

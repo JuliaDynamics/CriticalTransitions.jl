@@ -53,7 +53,7 @@ end
         L::_GeometricLagrangian{D, T},
         cutoff::T = T(Inf),
         Φ0::T = _edge_phi(c_x, c_y0, c_y1, U0, U1, m0, m1, zero(T), L),
-        Φ1::T = _edge_phi(c_x, c_y0, c_y1, U0, U1, m0, m1, one(T),  L),
+        Φ1::T = _edge_phi(c_x, c_y0, c_y1, U0, U1, m0, m1, one(T), L),
     ) where {D, T}
     best, λstar = (Φ0 <= Φ1) ? (Φ0, zero(T)) : (Φ1, one(T))
     # Skip ITP if both endpoints already exceed the caller's running best.
@@ -78,7 +78,7 @@ end
     dir = y1 - y0
     nbox = state.nbox
     y0m = _shift_in_bounds(y0, -dir, nbox)
-    y1p = _shift_in_bounds(y1,  dir, nbox)
+    y1p = _shift_in_bounds(y1, dir, nbox)
     m0 = (y0m !== nothing && isfinite(state.U[y0m])) ?
         (state.U[y1] - state.U[y0m]) / 2 : T(NaN)
     m1 = (y1p !== nothing && isfinite(state.U[y1p])) ?
@@ -127,7 +127,7 @@ end
         best = Φe12; bλ1 = one(T) - λs12; bλ2 = λs12
     end
 
-    h  = sqrt(eps(T))
+    h = sqrt(eps(T))
     λ1 = one(T) / 3; λ2 = one(T) / 3
     @inline P(a, b) = _tri_phi(c_x, c_y0, c_y1, c_y2, U0, U1, U2, L, a, b)
     for _ in 1:8

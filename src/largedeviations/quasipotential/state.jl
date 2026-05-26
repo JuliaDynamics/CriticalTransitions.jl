@@ -50,7 +50,7 @@ end
 
 function _OLIMState(grid::CartesianGrid{D, T}, ::Type{T}) where {D, T}
     nbox = grid.nbox
-    U  = fill(T(Inf), nbox)
+    U = fill(T(Inf), nbox)
     bp = fill(BackRef{D}(), nbox)
     status = fill(_UNKNOWN, nbox)
     front = fill(false, nbox)
