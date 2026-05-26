@@ -121,7 +121,7 @@ export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method
 export MinimumActionPath
 export GeometricGradient, AdaptiveGeometricGradient
-export LimitCycleFrame, local_quasipotential
+export LimitCycleFrame, local_quasipotential, G_at
 
 export deterministic_orbit
 export transition, transitions

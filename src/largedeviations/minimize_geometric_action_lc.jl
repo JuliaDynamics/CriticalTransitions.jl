@@ -19,7 +19,8 @@ end
 """
 Build the straight-line initial guess for gMAM-LQA: first node at `γ(τ_start) +
 h·Ẽ(τ_start)·ẑ` where `τ_start` is the orbit grid point closest to `x_f` and `ẑ` is
-the smallest-eigenvalue eigenvector of `G(τ_start)`; last node is `x_f`.
+the smallest-eigenvalue eigenvector of `G(τ_start)`. Eigenvectors are determined up
+to sign; we pick the sign that places the tube point closer to `x_f`. Last node is `x_f`.
 """
 function _gmam_lqa_initial_path(
         lc::LimitCycleFrame, G::Array{Tf, 3}, x_f;
@@ -31,7 +32,9 @@ function _gmam_lqa_initial_path(
     F = eigen(Symmetric((G[:, :, k0] + G[:, :, k0]') / 2))
     ẑ = F.vectors[:, 1]
     h = Tf(tube_radius)
-    x1 = γs[k0] + h * (lc.Ẽ[:, :, k0] * ẑ)
+    x1_plus = γs[k0] + h * (lc.Ẽ[:, :, k0] * ẑ)
+    x1_minus = γs[k0] - h * (lc.Ẽ[:, :, k0] * ẑ)
+    x1 = norm(x1_plus - x_f_v) ≤ norm(x1_minus - x_f_v) ? x1_plus : x1_minus
     d = length(x1)
     path = zeros(Tf, d, npoints)
     for k in 1:npoints
