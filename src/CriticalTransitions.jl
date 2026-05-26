@@ -55,7 +55,6 @@ using ExponentialUtilities: expv_timestep
 using FastInterpolations: linear_interp!
 using LinearSolve: LinearSolve, LinearProblem, LUFactorization, UMFPACKFactorization, init, solve, solve!
 using DataStructures: DataStructures, MutableBinaryHeap, FasterForward
-using MatrixEquations: arec
 
 # io and documentation
 using Format: Format

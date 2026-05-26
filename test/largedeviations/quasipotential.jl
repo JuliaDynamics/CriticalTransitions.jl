@@ -126,6 +126,75 @@ const CT_ = CriticalTransitions
         @test all(diff(Us) .<= 1.0e-10)
     end
 
+    @testset "3D gradient well end-to-end" begin
+        # D=3 exercises `_add_simplex_candidates{3}` (triangle Newton) and
+        # `_triangle_minimum`. Analytic: b = -∇V with V = |x|²/2, so U = 2V = |x|².
+        f(x, p, t) = SVector(-x[1], -x[2], -x[3])
+        sys = CoupledSDEs(f, [0.0, 0.0, 0.0]; noise_strength = 1.0)
+        grid = CartesianGrid((-1.0, 1.0, 11), (-1.0, 1.0, 11), (-1.0, 1.0, 11))
+        qp = quasipotential(sys, grid, [0.0, 0.0, 0.0];
+                            show_progress = false, band_radius = 3)
+        @test qp.U[6, 6, 6] == 0.0  # source cell at origin
+        for I in (CartesianIndex(9, 6, 6),
+                  CartesianIndex(9, 9, 6),
+                  CartesianIndex(9, 9, 9))
+            x = cell_center(grid, I)
+            @test isapprox(qp.U[I], dot(x, x); rtol = 0.10)
+        end
+        @test all(>=(0), filter(isfinite, qp.U))
+    end
+
+    @testset "Multiplicative noise: Lagrangian and line integral" begin
+        # `_QInvDynamic` callable path: build a Lagrangian whose Qinv is a state-
+        # dependent SMatrix, then check that values agree with the closed form.
+        b = x -> SVector(-x[1], -x[2])
+        Qinv_fn = x -> SMatrix{2, 2, Float64}((1 + 0.5 * x[1]^2) * I)
+        L_mult = CT_._GeometricLagrangian{2, Float64}(b, Qinv_fn, 1.0e-10)
+        x = SVector(0.7, -0.3); v = SVector(0.2, 0.1)
+        Qinv = Qinv_fn(x); bx = b(x)
+        @test isapprox(
+            L_mult(x, v),
+            sqrt(dot(v, Qinv * v)) * sqrt(dot(bx, Qinv * bx)) - dot(v, Qinv * bx);
+            atol = 1.0e-14,
+        )
+
+        # Multiplicative `_line_integral` reduces to Simpson on L(y + s v, v).
+        y = SVector(0.5, 0.1)
+        v2 = SVector(0.05, -0.02)
+        Φ = CT_._line_integral(L_mult, y, v2)
+        Φ_simpson = (L_mult(y, v2) + 4 * L_mult(y + 0.5 * v2, v2) + L_mult(y + v2, v2)) / 6
+        @test isapprox(Φ, Φ_simpson; atol = 1.0e-14)
+
+        # Consistency: a callable Qinv that returns a *constant* SMatrix must give
+        # the same line integral as the additive (SMatrix) path with the same value.
+        Qinv_const = SMatrix{2, 2, Float64}(I)
+        L_add = CT_._GeometricLagrangian{2, Float64}(b, Qinv_const, 1.0e-10)
+        L_dyn = CT_._GeometricLagrangian{2, Float64}(b, _ -> Qinv_const, 1.0e-10)
+        @test isapprox(
+            CT_._line_integral(L_add, y, v2),
+            CT_._line_integral(L_dyn, y, v2);
+            atol = 1.0e-14,
+        )
+    end
+
+    @testset "Multiplicative noise end-to-end (constant Q)" begin
+        # With a *callable* Q(x) that is constant, the result must match the
+        # additive solver up to (zero) discretisation difference: it forces the
+        # `_QInvDynamic` + multiplicative `_line_integral` code path through the
+        # whole sweep, then compares to the analytic U(x) = |x|².
+        b(u, p, t) = SA[-u[1], -u[2]]
+        g(u, p, t) = @SMatrix [1.0 0.0; 0.0 1.0]
+        sys = CoupledSDEs(b, SA[0.0, 0.0]; g = g,
+                          noise_prototype = SMatrix{2, 2}(zeros(2, 2)))
+        grid = CartesianGrid((-1.0, 1.0, 31), (-1.0, 1.0, 31))
+        qp = quasipotential(sys, grid, [0.0, 0.0]; show_progress = false)
+        @test qp.U[16, 16] == 0.0
+        for I in (CartesianIndex(20, 16), CartesianIndex(24, 24), CartesianIndex(12, 20))
+            x = cell_center(grid, I)
+            @test isapprox(qp.U[I], dot(x, x); rtol = 0.10)
+        end
+    end
+
     @testset "Maier-Stein non-gradient" begin
         f(x, p, t) = SVector(
             x[1] - x[1]^3 - 5 * x[1] * x[2]^2,

@@ -40,6 +40,7 @@ end
                 :register_error_hint,
                 :JacobianConfig,
                 :jacobian!,
+                :jacobian,
             ),
         ),
     )
@@ -53,6 +54,7 @@ end
                 :diffusion_function,
                 :DEFAULT_DIFFEQ,
                 :_decompose_into_solver_and_remaining,
+                :FasterForward,
             ),
         ),
     )
