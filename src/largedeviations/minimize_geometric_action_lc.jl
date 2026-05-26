@@ -2,9 +2,6 @@
 
 using LinearAlgebra: eigen, dot, norm, Symmetric
 
-# Convert lc.γ (StateSpaceSet of SVectors) to a Vector{Vector{Tf}} once. Used by both the
-# initial-guess closest-point search and the outer loop's argmin, avoiding repeated
-# `collect(lc.γ[k])` inside hot scans.
 function _γ_vectors(lc::LimitCycleFrame{D, Tf}) where {D, Tf}
     Nτ = length(lc.γ)
     out = Vector{Vector{Tf}}(undef, Nτ)
@@ -14,15 +11,12 @@ function _γ_vectors(lc::LimitCycleFrame{D, Tf}) where {D, Tf}
     return out
 end
 
-# Symmetrize each G(τ_k) once; downstream code reads many times.
 function _symmetrize_G(G::Array{Tf, 3}) where {Tf}
     Nτ = size(G, 3)
     return [Symmetric((G[:, :, k] + G[:, :, k]') / 2) for k in 1:Nτ]
 end
 
 """
-    _gmam_lqa_initial_path(lc, G, x_f; tube_radius, npoints)
-
 Build the straight-line initial guess for gMAM-LQA: first node at `γ(τ_start) +
 h·Ẽ(τ_start)·ẑ` where `τ_start` is the orbit grid point closest to `x_f` and `ẑ` is
 the smallest-eigenvalue eigenvector of `G(τ_start)`; last node is `x_f`.
@@ -48,8 +42,6 @@ function _gmam_lqa_initial_path(
 end
 
 """
-    _BoundaryWorkspace{Tf}
-
 Preallocated buffers used by `_gmam_lqa_boundary_step` across its 9-candidate inner loop
 to avoid per-iteration allocation churn.
 """
@@ -71,8 +63,6 @@ function _BoundaryWorkspace(path::Matrix{Tf}) where {Tf}
 end
 
 """
-    _gmam_lqa_boundary_step(state, lc, G_sym, γs, sys, path, x_f, h, bws)
-
 Projected-gradient step on `(k0, ẑ)` for the augmented objective
 `S(k0, ẑ) = ½ h² ẑᵀ G(τ_{k0}) ẑ + geometric_action(sys, path_with_new_first_node)`.
 Searches over `k0 ∈ {k0, k0±1}` and along the spherical-tangent gradient for `ẑ`
@@ -110,14 +100,11 @@ function _gmam_lqa_boundary_step(
     return (best_k, best_ẑ), best_path
 end
 
-# Convenience overload: builds helper caches on the fly. Used by tests / one-off callers.
 function _gmam_lqa_boundary_step(state, lc::LimitCycleFrame, G::Array{Tf, 3}, sys, path, x_f, h) where {Tf}
     return _gmam_lqa_boundary_step(state, lc, _symmetrize_G(G), _γ_vectors(lc), sys, path, x_f, h, _BoundaryWorkspace(path))
 end
 
 """
-    _gmam_lqa_inner_sweep!(path, ws, sys; N_inner, stepsize)
-
 Run `N_inner` `geometric_gradient_step!` updates on `path`, keeping the first and last
 columns fixed via arclength reinterpolation. Mutates `path` in place.
 """

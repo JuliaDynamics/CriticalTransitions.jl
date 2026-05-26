@@ -74,9 +74,33 @@ end
     @test all(isapprox.(lc.Ã[1, 1, :], 1.0; atol = 1.0e-9))
 end
 
-@testset "LimitCycleFrame anti-periodic detection" begin
-    μ, ω = 1.0, 1.0
-    sys = CoupledSDEs(stuart_landau_drift, zeros(2), (μ, ω); noise_strength = 0.1)
-    pts, T = stuart_landau_orbit(μ, ω; Nτ = 50)
-    @test_throws ArgumentError LimitCycleFrame(pts, T, sys; tol_periodic = 1.0e-16)
+@testset "LimitCycleFrame rejects non-orientable transverse bundle" begin
+    # 4D flow: Stuart-Landau cycle in (x, y) plus a skew (z₁, z₂) block whose monodromy
+    # is exp(-αT) · R(π) = -exp(-αT) · I. The transverse Floquet multipliers are
+    # double-degenerate negative real, so the eigenvector transport satisfies v_T = -v_0
+    # → anti-periodic → must be rejected.
+    function skew_flow(u, p, t)
+        x, y, z1, z2 = u
+        μ, ω, α = p
+        r2 = x^2 + y^2
+        return SA[
+            (μ - r2) * x - ω * y,
+            (μ - r2) * y + ω * x,
+            -α * z1 - (ω / 2) * z2,
+            (ω / 2) * z1 - α * z2,
+        ]
+    end
+    μ, ω, α = 1.0, 1.0, 0.5
+    sys = CoupledSDEs(
+        skew_flow, [sqrt(μ), 0.0, 0.0, 0.0], (μ, ω, α); noise_strength = 0.1,
+    )
+    T = 2π / ω
+    Nτ = 200
+    τ_grid = range(0.0, T; length = Nτ + 1)[1:Nτ]
+    pts = StateSpaceSet(
+        [
+            SA[sqrt(μ) * cos(ω * t), sqrt(μ) * sin(ω * t), 0.0, 0.0] for t in τ_grid
+        ]
+    )
+    @test_throws "anti-periodic" LimitCycleFrame(pts, T, sys)
 end

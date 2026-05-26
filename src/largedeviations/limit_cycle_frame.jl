@@ -5,8 +5,6 @@ using LinearAlgebra: I, eigen, norm
 using StateSpaceSets: StateSpaceSet
 
 """
-    _state_transition_matrices(sys::CoupledSDEs, points::StateSpaceSet, period::Real)
-
 Return `Φ::Array{T,3}` of size `d × d × Nτ` with `Φ[:, :, k]` equal to the state
 transition matrix `Φ(τ_k, 0)` of the variational equation `Φ̇ = ∂ₓb(γ(τ))·Φ` along the
 periodic orbit, with `Φ(0,0) = I`.
@@ -69,8 +67,7 @@ function _build_frame(sys, points, period, Φs; tol_periodic)
     trivial = argmin(abs.(λs .- 1))
     nontrivial = [i for i in 1:d if i != trivial]
     e_initial = _real_basis(V[:, nontrivial], λs[nontrivial])
-    # Sign-continue each transported vector against its predecessor; otherwise successive
-    # `\` solves can produce arbitrary sign flips that look like anti-periodicity.
+    # Sign-continue against the predecessor; `\` solves can otherwise flip sign arbitrarily.
     for j in 1:(d - 1)
         v0 = e_initial[:, j] / norm(e_initial[:, j])
         E[:, j + 1, 1] .= v0
@@ -85,18 +82,25 @@ function _build_frame(sys, points, period, Φs; tol_periodic)
             prev = v
         end
     end
-    # Per-vector orientability at τ = T. `rel = min(‖v_T - v_0‖, ‖v_T + v_0‖)` collapses
-    # sign, so both anti-periodic (`v_T ≈ -v_0`) and non-orientable cases trip one threshold.
     for j in 1:(d - 1)
         v_T = transpose(Φ_M) \ e_initial[:, j]
         v_T ./= norm(v_T)
         v_0 = E[:, j + 1, 1]
-        rel = min(norm(v_T - v_0), norm(v_T + v_0))
-        if rel > tol_periodic
+        res_periodic = norm(v_T - v_0)
+        res_antiperiodic = norm(v_T + v_0)
+        if res_antiperiodic < res_periodic
+            throw(
+                ArgumentError(
+                    "LimitCycleFrame: vector j=$(j) is anti-periodic after transport " *
+                        "(‖v_T + v_0‖ = $(res_antiperiodic)). Non-orientable frames are not supported.",
+                )
+            )
+        end
+        if res_periodic > tol_periodic
             throw(
                 ArgumentError(
                     "LimitCycleFrame: vector j=$(j) is not T-periodic after transport " *
-                        "(residual = $(rel)). Anti-periodic or non-orientable frames are not supported.",
+                        "(residual = $(res_periodic)).",
                 )
             )
         end
@@ -104,7 +108,6 @@ function _build_frame(sys, points, period, Φs; tol_periodic)
     return E
 end
 
-# Real (d-1)-column basis from complex eigenvectors; conjugate pairs → 2D real blocks.
 function _real_basis(Vs::AbstractMatrix, λs::AbstractVector)
     d = size(Vs, 1)
     m = length(λs)
@@ -140,6 +143,7 @@ function _assemble_M_A(sys, points, period, E, Ẽ)
     end
     M̃ = zeros(d - 1, d - 1, Nτ)
     Ã = zeros(d - 1, d - 1, Nτ)
+    # E is sign-continued, not orthogonalized, so the dual basis is inv(E), not transpose(E).
     Erecip = zeros(d, d, Nτ)
     for k in 1:Nτ
         Erecip[:, :, k] = inv(E[:, :, k])

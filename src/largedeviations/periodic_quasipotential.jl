@@ -3,59 +3,58 @@
 using FastInterpolations: cardinal_interp, PeriodicBC
 using LinearAlgebra: Symmetric, mul!, isposdef
 using OrdinaryDiffEqLowOrderRK: BS5
-using SciMLBase: ODEProblem, solve
+using SciMLBase: ODEProblem, remake, solve
 
-"""
-    _PRDECache{T}
-
-Caches the τ-grid and `PeriodicBC` reused by every RHS evaluation inside `local_quasipotential`.
-Avoids per-step `collect(range(...))` and `PeriodicBC` reconstruction.
-"""
-struct _PRDECache{T}
+struct _PRDECache{T, ITP}
     τ_grid::Vector{T}
-    bc::PeriodicBC{:exclusive, T, true}
+    M_itps::Matrix{ITP}
+    A_itps::Matrix{ITP}
+    M_buf::Matrix{T}
+    A_buf::Matrix{T}
+    GA_buf::Matrix{T}
 end
 
-function _PRDECache(period::T, Nτ::Int) where {T}
+function _PRDECache(lc::LimitCycleFrame{D, T}) where {D, T}
+    Nτ = length(lc.γ)
+    m = D - 1
+    period = lc.period
     τ_grid = collect(range(zero(T), period; length = Nτ + 1))[1:Nτ]
     bc = PeriodicBC(endpoint = :exclusive, period = period)
-    return _PRDECache{T}(τ_grid, bc)
+    sample_itp = cardinal_interp(τ_grid, view(lc.M̃, 1, 1, :); bc)
+    ITP = typeof(sample_itp)
+    M_itps = Matrix{ITP}(undef, m, m)
+    A_itps = Matrix{ITP}(undef, m, m)
+    for i in 1:m, j in 1:m
+        M_itps[i, j] = cardinal_interp(τ_grid, view(lc.M̃, i, j, :); bc)
+        A_itps[i, j] = cardinal_interp(τ_grid, view(lc.Ã, i, j, :); bc)
+    end
+    return _PRDECache{T, ITP}(
+        τ_grid, M_itps, A_itps,
+        Matrix{T}(undef, m, m), Matrix{T}(undef, m, m), Matrix{T}(undef, m, m),
+    )
 end
 
-"""
-    _prde_rhs!(dG, G, lc::LimitCycleFrame, τ, cache::_PRDECache)
+function _eval_itps!(out::Matrix{T}, itps::Matrix, τw::T) where {T}
+    m = size(out, 1)
+    @inbounds for i in 1:m, j in 1:m
+        out[i, j] = itps[i, j](τw)
+    end
+    return out
+end
 
-In-place RHS of the periodic Riccati ODE
-``\\dot G = -\\tilde M(τ)^\\mathsf{T} G - G \\tilde M(τ) - G \\tilde A(τ) G``.
-"""
 function _prde_rhs!(dG, G, lc::LimitCycleFrame, τ, cache::_PRDECache)
-    period = lc.period
-    τw = mod(τ, period)
-    M = _interp_matrix(lc.M̃, τw, cache)
-    A = _interp_matrix(lc.Ã, τw, cache)
-    GA = G * A
-    GAG = GA * G
-    mul!(dG, transpose(M), G, -1.0, 0.0)
-    mul!(dG, G, M, -1.0, 1.0)
-    dG .-= GAG
+    τw = mod(τ, lc.period)
+    M = _eval_itps!(cache.M_buf, cache.M_itps, τw)
+    A = _eval_itps!(cache.A_buf, cache.A_itps, τw)
+    mul!(cache.GA_buf, G, A)
+    mul!(dG, transpose(M), G, -1, 0)
+    mul!(dG, G, M, -1, 1)
+    mul!(dG, cache.GA_buf, G, -1, 1)
     return dG
 end
 
-# Fallback signature without cache (used by single-shot tests / RHS sanity checks).
 function _prde_rhs!(dG, G, lc::LimitCycleFrame, τ)
-    cache = _PRDECache(lc.period, length(lc.γ))
-    return _prde_rhs!(dG, G, lc, τ, cache)
-end
-
-# Periodic cubic interpolation of an `m × m × Nτ` array on the precomputed grid.
-function _interp_matrix(A3::Array{T, 3}, τw, cache::_PRDECache{T}) where {T}
-    m, _, _ = size(A3)
-    out = Matrix{T}(undef, m, m)
-    for i in 1:m, j in 1:m
-        vals = cardinal_interp(cache.τ_grid, view(A3, i, j, :), [τw]; bc = cache.bc)
-        out[i, j] = vals[1]
-    end
-    return out
+    return _prde_rhs!(dG, G, lc, τ, _PRDECache(lc))
 end
 
 """
@@ -72,11 +71,11 @@ function local_quasipotential(
     Nτ = length(lc.γ)
     period = lc.period
     G_curr = Matrix(Tf(G0_scale) * I, m, m)
-    cache = _PRDECache(Tf(period), Nτ)
+    cache = _PRDECache(lc)
     f! = (du, u, p, t) -> _prde_rhs!(du, u, lc, t, cache)
+    prob = ODEProblem(f!, G_curr, (zero(Tf), Tf(period)))
     for _ in 1:maxiters
-        prob = ODEProblem(f!, G_curr, (zero(Tf), Tf(period)))
-        sol = solve(prob, alg; saveat = cache.τ_grid, reltol = 1.0e-9, abstol = 1.0e-12)
+        sol = solve(remake(prob; u0 = G_curr), alg; saveat = cache.τ_grid, reltol = 1.0e-9, abstol = 1.0e-12)
         G_next = sol.u[end]
         rel = norm(G_next - G_curr) / max(norm(G_curr), eps(Tf))
         if rel < tol
