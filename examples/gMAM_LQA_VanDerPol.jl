@@ -65,14 +65,13 @@ G = local_quasipotential(lc)
 
 x_saddle = SA[-0.9, 0.6942]
 mp = minimize_geometric_action(
-    sys, lc, x_saddle;
+    sys, lc, x_saddle, GeometricGradient(; stepsize = 0.005);
     G = G,
     tube_radius = 0.05,
     npoints = 160,
-    N_inner = 300,
+    inner_maxiters = 300,
     maxiters = 200,
     reltol = 1.0e-7,
-    stepsize = 0.005,
 )
 
 # Below we plot the optimal escape path together with `G(τ)`, the transverse Hessian of `V` along `Γ`. The launch point on `Γ` is marked with a gold star, the saddle with a white circle.

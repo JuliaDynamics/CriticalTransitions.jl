@@ -238,3 +238,114 @@ function backtracking_optimize!(
     end
     return current_action, stepsize
 end
+
+"""
+    adaptive_optimize!(optimizer, step!, save_start!, restore_start!, save_result!,
+                       restore_result!, initial_action; kwargs...)
+
+Generic adaptive probe-based iteration loop for [`AdaptiveGeometricGradient`](@ref). Peer
+of [`backtracking_optimize!`](@ref).
+
+## Arguments
+  - `optimizer::AdaptiveGeometricGradient`: probe and step-size control parameters.
+  - `step!(ϵ) -> action`: perform one in-place update at step size `ϵ` and return the resulting action.
+  - `save_start!()` / `restore_start!()`: snapshot / restore the pre-probe state.
+  - `save_result!()` / `restore_result!()`: snapshot / restore the post-big-probe state.
+  - `initial_action`: action value at the starting state.
+
+Returns `(final_action, final_stepsize)`.
+"""
+function adaptive_optimize!(
+        optimizer::AdaptiveGeometricGradient,
+        step!,
+        save_start!,
+        restore_start!,
+        save_result!,
+        restore_result!,
+        initial_action::Real;
+        maxiters::Int = 1000,
+        abstol::Real = NaN,
+        reltol::Real = NaN,
+        verbose::Bool = false,
+        show_progress::Bool = false,
+    )
+    stepsize = optimizer.stepsize
+    Tϵ = typeof(stepsize)
+    current_action = Tϵ(initial_action)
+    probe_len = optimizer.probe_length
+
+    iters_used = 0
+    progress = Progress(maxiters; dt = 0.5, enabled = show_progress)
+
+    function _run_probe!(ϵ, n)
+        S = oftype(ϵ, NaN)
+        for _ in 1:n
+            S = oftype(ϵ, step!(ϵ))
+            isfinite(S) || return oftype(ϵ, Inf)
+        end
+        return S
+    end
+
+    while iters_used < maxiters
+        S_prev = current_action
+        n = min(probe_len, maxiters - iters_used)
+
+        save_start!()
+        ϵ_big = clamp(stepsize, optimizer.stepsize_min, optimizer.stepsize_max)
+        S_big = _run_probe!(ϵ_big, n)
+        isfinite(S_big) && save_result!()
+
+        restore_start!()
+        ϵ_small = clamp(
+            stepsize * optimizer.shrink, optimizer.stepsize_min, optimizer.stepsize_max,
+        )
+        S_small = _run_probe!(ϵ_small, n)
+
+        big_ok = isfinite(S_big) && S_big <= S_prev
+        small_ok = isfinite(S_small) && S_small <= S_prev
+        accepted = true
+        if small_ok && (!big_ok || S_small < S_big)
+            current_action = S_small
+            stepsize = max(optimizer.stepsize_min, stepsize * optimizer.shrink)
+        elseif big_ok
+            restore_result!()
+            current_action = S_big
+            stepsize = min(optimizer.stepsize_max, stepsize * optimizer.grow)
+        else
+            restore_start!()
+            stepsize = max(optimizer.stepsize_min, stepsize * optimizer.shrink^2)
+            accepted = false
+            verbose &&
+                @info "Probe rejected at iters_used=$iters_used (S_big=$S_big, S_small=$S_small, S_prev=$S_prev); shrinking stepsize to $stepsize."
+            stepsize <= optimizer.stepsize_min && break
+        end
+
+        iters_used += n
+
+        abs_change = accepted ? abs(current_action - S_prev) : oftype(current_action, Inf)
+        rel_change = if accepted
+            current_action == 0 ? abs_change : abs_change / abs(current_action)
+        else
+            oftype(current_action, Inf)
+        end
+        if accepted && (
+                (isfinite(abstol) && abs_change < abstol) ||
+                    (isfinite(reltol) && rel_change < reltol)
+            )
+            verbose &&
+                @info "Converged after $iters_used iterations with abs=$abs_change, rel=$rel_change"
+            break
+        end
+        next!(
+            progress;
+            step = n,
+            showvalues = [
+                ("iters_used", iters_used),
+                ("action", round(current_action; sigdigits = 6)),
+                ("stepsize", round(stepsize; sigdigits = 3)),
+                ("Stol", round(rel_change; sigdigits = 3)),
+            ],
+        )
+    end
+    return current_action, stepsize
+end

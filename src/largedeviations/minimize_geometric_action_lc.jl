@@ -107,46 +107,102 @@ function _gmam_lqa_boundary_step(state, lc::LimitCycleFrame, G::Array{Tf, 3}, sy
     return _gmam_lqa_boundary_step(state, lc, _symmetrize_G(G), _γ_vectors(lc), sys, path, x_f, h, _BoundaryWorkspace(path))
 end
 
-"""
-Run `N_inner` `geometric_gradient_step!` updates on `path`, keeping the first and last
-columns fixed via arclength reinterpolation. Mutates `path` in place.
-"""
-function _gmam_lqa_inner_sweep!(path, ws, sys; N_inner::Int = 50, stepsize::Real = 1.0)
+struct _InnerSweepWS{Tf, R}
+    alpha::Vector{Tf}
+    arc::R
+    scratch::Vector{Tf}
+    path_start::Matrix{Tf}
+    path_result::Matrix{Tf}
+end
+
+function _InnerSweepWS(path::Matrix{Tf}) where {Tf}
     Nt = size(path, 2)
-    Tf = eltype(path)
-    alpha = zeros(Tf, Nt)
     arc = range(zero(Tf), one(Tf); length = Nt)
-    scratch = similar(alpha)
-    for _ in 1:N_inner
-        geometric_gradient_step!(ws, sys, path; stepsize)
+    return _InnerSweepWS{Tf, typeof(arc)}(
+        zeros(Tf, Nt), arc, zeros(Tf, Nt), similar(path), similar(path),
+    )
+end
+
+function _make_path_stepper(path, ws, sys, sweep_ws::_InnerSweepWS)
+    return function (ϵ)
+        geometric_gradient_step!(ws, sys, path; stepsize = ϵ)
         path .= ws.update
-        interpolate_path!(path, alpha, arc, scratch)
+        interpolate_path!(path, sweep_ws.alpha, sweep_ws.arc, sweep_ws.scratch)
+        return geometric_action(sys, path)
     end
+end
+
+"""
+Run up to `maxiters` `geometric_gradient_step!` updates on `path` with step-size control
+governed by `optimizer`. First and last columns stay fixed via arclength reinterpolation.
+Mutates `path` in place.
+"""
+function _gmam_lqa_inner_sweep!(
+        path, ws, sys, sweep_ws::_InnerSweepWS, optimizer::GeometricGradient;
+        maxiters::Int = 50,
+    )
+    step! = _make_path_stepper(path, ws, sys, sweep_ws)
+    save!() = copyto!(sweep_ws.path_start, path)
+    restore!() = copyto!(path, sweep_ws.path_start)
+    backtracking_optimize!(
+        optimizer, step!, save!, restore!, geometric_action(sys, path);
+        maxiters = maxiters,
+    )
+    return path
+end
+
+function _gmam_lqa_inner_sweep!(
+        path, ws, sys, sweep_ws::_InnerSweepWS, optimizer::AdaptiveGeometricGradient;
+        maxiters::Int = 50,
+    )
+    step! = _make_path_stepper(path, ws, sys, sweep_ws)
+    save_start!() = copyto!(sweep_ws.path_start, path)
+    restore_start!() = copyto!(path, sweep_ws.path_start)
+    save_result!() = copyto!(sweep_ws.path_result, path)
+    restore_result!() = copyto!(path, sweep_ws.path_result)
+    adaptive_optimize!(
+        optimizer, step!, save_start!, restore_start!,
+        save_result!, restore_result!, geometric_action(sys, path);
+        maxiters = maxiters,
+    )
     return path
 end
 
 """
-    minimize_geometric_action(sys::CoupledSDEs, lc::LimitCycleFrame, x_f;
-        G = local_quasipotential(lc), tube_radius = 0.05, npoints = 100,
-        N_inner = 50, maxiters = 50, reltol = 1e-4, stepsize = 0.01, verbose = false)
+    minimize_geometric_action(sys::CoupledSDEs, lc::LimitCycleFrame, x_f,
+        optimizer::GMAMOptimizer = GeometricGradient(; stepsize = 0.01); kwargs...)
 
 gMAM-LQA: minimum action path from limit cycle Γ (encoded by `lc`) to `x_f`, using the
 local quadratic approximation of the quasi-potential inside a tube of radius `tube_radius`
 around Γ. Returns a [`MinimumActionPath`](@ref) with the augmented action
 `Ŝ[φ] + ½ h² ẑᵀ G(τ_start) ẑ`.
 
-Pass `G` explicitly when calling repeatedly to avoid re-running `local_quasipotential` each call.
+The inner projected-gradient sweep is driven by `optimizer`. Pass `GeometricGradient(...)`
+for backtracking step-size control, or `AdaptiveGeometricGradient(...)` for probe-based
+adaptation (more robust on underdamped systems). Pass `G` explicitly when calling
+repeatedly to avoid re-running `local_quasipotential` each call.
+
+## Keyword arguments
+  - `G`: precomputed local-quasipotential array (default: `local_quasipotential(lc)`).
+  - `tube_radius::Real = 0.05`: tube radius `h` around `Γ`.
+  - `npoints::Int = 100`: number of path discretization points.
+  - `maxiters::Int = 50`: outer LC iterations (alternating inner sweep + boundary step).
+  - `inner_maxiters::Int = 50`: iterations per inner sweep.
+  - `abstol::Real = NaN`, `reltol::Real = 1e-4`: outer convergence on the augmented action.
+  - `verbose::Bool = false`, `show_progress::Bool = false`.
 """
 function minimize_geometric_action(
-        sys::CoupledSDEs, lc::LimitCycleFrame{D, Tf}, x_f;
+        sys::CoupledSDEs, lc::LimitCycleFrame{D, Tf}, x_f,
+        optimizer::GMAMOptimizer = GeometricGradient(; stepsize = 0.01);
         G::Array{Tf, 3} = local_quasipotential(lc),
         tube_radius::Real = 0.05,
         npoints::Int = 100,
-        N_inner::Int = 50,
         maxiters::Int = 50,
+        inner_maxiters::Int = 50,
+        abstol::Real = NaN,
         reltol::Real = 1.0e-4,
-        stepsize::Real = 0.01,
         verbose::Bool = false,
+        show_progress::Bool = false,
     ) where {D, Tf}
     h = Tf(tube_radius)
     path = _gmam_lqa_initial_path(lc, G, x_f; tube_radius = h, npoints = npoints)
@@ -154,19 +210,33 @@ function minimize_geometric_action(
     γs = _γ_vectors(lc)
     G_sym = _symmetrize_G(G)
     bws = _BoundaryWorkspace(path)
+    sweep_ws = _InnerSweepWS(path)
     k0 = argmin(k -> norm(γs[k] - path[:, 1]), eachindex(γs))
     z_raw = lc.Ẽ[:, :, k0]' * (path[:, 1] - γs[k0])
     ẑ = z_raw / norm(z_raw)
     state = (k0, ẑ)
     S = Tf(0.5) * h^2 * dot(ẑ, G_sym[k0] * ẑ) + geometric_action(sys, path)
+    progress = Progress(maxiters; dt = 0.5, enabled = show_progress)
     for it in 1:maxiters
-        _gmam_lqa_inner_sweep!(path, ws, sys; N_inner = N_inner, stepsize = stepsize)
+        _gmam_lqa_inner_sweep!(path, ws, sys, sweep_ws, optimizer; maxiters = inner_maxiters)
         state, path = _gmam_lqa_boundary_step(state, lc, G_sym, γs, sys, path, x_f, h, bws)
         S_new = Tf(0.5) * h^2 * dot(state[2], G_sym[state[1]] * state[2]) + geometric_action(sys, path)
-        rel = abs(S_new - S) / max(abs(S_new), eps(Tf))
-        verbose && @info "gMAM-LQA iter $(it): S=$(S_new), rel=$(rel)"
+        abs_change = abs(S_new - S)
+        rel_change = abs_change / max(abs(S_new), eps(Tf))
+        verbose && @info "gMAM-LQA iter $(it): S=$(S_new), abs=$(abs_change), rel=$(rel_change)"
         S = S_new
-        rel < reltol && break
+        if (isfinite(abstol) && abs_change < abstol) ||
+                (isfinite(reltol) && rel_change < reltol)
+            break
+        end
+        next!(
+            progress;
+            showvalues = [
+                ("iter", it),
+                ("S", round(S; sigdigits = 6)),
+                ("rel", round(rel_change; sigdigits = 3)),
+            ],
+        )
     end
     return MinimumActionPath(StateSpaceSet(Matrix(path')), S)
 end

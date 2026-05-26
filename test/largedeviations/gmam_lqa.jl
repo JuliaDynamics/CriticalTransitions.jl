@@ -59,7 +59,10 @@ end
     path = CriticalTransitions._gmam_lqa_initial_path(lc, G, x_f; tube_radius = 0.05, npoints = 80)
     ws = CriticalTransitions.geometric_gradient_workspace(sys, path)
     S0 = geometric_action(sys, path)
-    CriticalTransitions._gmam_lqa_inner_sweep!(path, ws, sys; N_inner = 50, stepsize = 0.01)
+    sweep_ws = CriticalTransitions._InnerSweepWS(path)
+    CriticalTransitions._gmam_lqa_inner_sweep!(
+        path, ws, sys, sweep_ws, GeometricGradient(; stepsize = 0.01); maxiters = 50,
+    )
     S1 = geometric_action(sys, path)
     # Observed drop is ~27% on this fixture; assert at least 20% as a guardrail against regressions.
     @test S1 < 0.8 * S0
@@ -117,9 +120,9 @@ end
     x_f = SA[sqrt(μ) + R, 0.0]
     V_exact = ((sqrt(μ) + R)^2 - μ)^2 / 2
     mp = minimize_geometric_action(
-        sys, lc, x_f;
+        sys, lc, x_f, GeometricGradient(; stepsize = 0.002);
         G = G, tube_radius = 0.02, npoints = 300,
-        N_inner = 500, maxiters = 400, reltol = 1.0e-9, stepsize = 0.002,
+        inner_maxiters = 500, maxiters = 400, reltol = 1.0e-9,
     )
     # gMAM-LQA computes the full nonlinear quasi-potential, not just the leading-order LQA.
     # Observed precision at these settings is ~0.6%; assert 1.5% as the regression guardrail.
@@ -136,10 +139,31 @@ end
     G = local_quasipotential(lc)
     x_saddle = SA[-0.9, 0.6942]
     mp = minimize_geometric_action(
-        sys, lc, x_saddle;
+        sys, lc, x_saddle, GeometricGradient(; stepsize = 0.005);
         G = G, tube_radius = 0.05, npoints = 160,
-        N_inner = 300, maxiters = 200, reltol = 1.0e-7, stepsize = 0.005,
+        inner_maxiters = 300, maxiters = 200, reltol = 1.0e-7,
     )
     # Observed: 0.1558 (relerr 0.6%). Tightened guardrail at 1.5%.
     @test isapprox(mp.action, 0.1567; rtol = 0.015)
+end
+
+@testset "gMAM-LQA with AdaptiveGeometricGradient matches GeometricGradient" begin
+    σ = 1.0
+    pts, T = vdp_orbit(; Nτ = 400)
+    sys = CoupledSDEs(vdp_drift, collect(pts[1]); noise_strength = σ)
+    lc = LimitCycleFrame(pts, T, sys)
+    G = local_quasipotential(lc)
+    x_saddle = SA[-0.9, 0.6942]
+    mp_geom = minimize_geometric_action(
+        sys, lc, x_saddle, GeometricGradient(; stepsize = 0.005);
+        G = G, tube_radius = 0.05, npoints = 160,
+        inner_maxiters = 300, maxiters = 200, reltol = 1.0e-7,
+    )
+    mp_adapt = minimize_geometric_action(
+        sys, lc, x_saddle,
+        AdaptiveGeometricGradient(; stepsize = 0.05, probe_length = 50);
+        G = G, tube_radius = 0.05, npoints = 160,
+        inner_maxiters = 300, maxiters = 200, reltol = 1.0e-7,
+    )
+    @test isapprox(mp_adapt.action, mp_geom.action; rtol = 0.02)
 end
