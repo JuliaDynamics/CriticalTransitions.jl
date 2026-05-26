@@ -18,7 +18,10 @@ using Random: Random
 # Core
 using ForwardDiff: ForwardDiff
 using SciMLBase: SciMLBase, EnsembleThreads, DiscreteCallback, remake, terminate!, isinplace
-using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK, Euler
+using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK, Euler, BS3
+using NonlinearSolveFirstOrder: NonlinearSolveFirstOrder
+using ADTypes: ADTypes, AutoSparse, AutoForwardDiff
+using SparseMatrixColorings: SparseMatrixColorings, GreedyColoringAlgorithm
 using DynamicalSystemsBase:
     DynamicalSystemsBase,
     CoupledSDEs,
@@ -84,6 +87,7 @@ include("largedeviations/minimize_action.jl")
 include("largedeviations/sgmam_kernels.jl")
 include("largedeviations/sgmam.jl")
 include("largedeviations/minimize_geometric_action.jl")
+include("largedeviations/multiple_shooting.jl")
 include("largedeviations/string_method.jl")
 
 include("r_tipping/RateSystem.jl")
@@ -117,7 +121,7 @@ export FreidlinWentzellHamiltonian
 export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method
 export MinimumActionPath
-export GeometricGradient, AdaptiveGeometricGradient
+export GeometricGradient, AdaptiveGeometricGradient, MultipleShooting
 
 export deterministic_orbit
 export transition, transitions
