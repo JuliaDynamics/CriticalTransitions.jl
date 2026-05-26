@@ -132,14 +132,18 @@ const CT_ = CriticalTransitions
         f(x, p, t) = SVector(-x[1], -x[2], -x[3])
         sys = CoupledSDEs(f, [0.0, 0.0, 0.0]; noise_strength = 1.0)
         grid = CartesianGrid((-1.0, 1.0, 11), (-1.0, 1.0, 11), (-1.0, 1.0, 11))
-        qp = quasipotential(sys, grid, [0.0, 0.0, 0.0];
-                            show_progress = false, band_radius = 3)
+        qp = quasipotential(
+            sys, grid, [0.0, 0.0, 0.0];
+            show_progress = false, band_radius = 3
+        )
         @test qp.U[6, 6, 6] == 0.0  # source cell at origin
-        for I in (CartesianIndex(9, 6, 6),
-                  CartesianIndex(9, 9, 6),
-                  CartesianIndex(9, 9, 9))
+        for I in (
+                CartesianIndex(9, 6, 6),
+                CartesianIndex(9, 9, 6),
+                CartesianIndex(9, 9, 9),
+            )
             x = cell_center(grid, I)
-            @test isapprox(qp.U[I], dot(x, x); rtol = 0.10)
+            @test isapprox(qp.U[I], dot(x, x); rtol = 0.1)
         end
         @test all(>=(0), filter(isfinite, qp.U))
     end
@@ -184,14 +188,16 @@ const CT_ = CriticalTransitions
         # whole sweep, then compares to the analytic U(x) = |x|².
         b(u, p, t) = SA[-u[1], -u[2]]
         g(u, p, t) = @SMatrix [1.0 0.0; 0.0 1.0]
-        sys = CoupledSDEs(b, SA[0.0, 0.0]; g = g,
-                          noise_prototype = SMatrix{2, 2}(zeros(2, 2)))
+        sys = CoupledSDEs(
+            b, SA[0.0, 0.0]; g = g,
+            noise_prototype = SMatrix{2, 2}(zeros(2, 2))
+        )
         grid = CartesianGrid((-1.0, 1.0, 31), (-1.0, 1.0, 31))
         qp = quasipotential(sys, grid, [0.0, 0.0]; show_progress = false)
         @test qp.U[16, 16] == 0.0
         for I in (CartesianIndex(20, 16), CartesianIndex(24, 24), CartesianIndex(12, 20))
             x = cell_center(grid, I)
-            @test isapprox(qp.U[I], dot(x, x); rtol = 0.10)
+            @test isapprox(qp.U[I], dot(x, x); rtol = 0.1)
         end
     end
 

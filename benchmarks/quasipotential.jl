@@ -8,20 +8,20 @@ function benchmark_quasipotential!(SUITE)
     sys_ms = CoupledSDEs(maier_stein, [-1.0, 0.0]; noise_strength = 0.3)
     SUITE["Large deviation"]["Quasipotential"]["OLIM, Maier-Stein 121x81"] =
         @benchmarkable quasipotential(
-            $sys_ms,
-            CartesianGrid((-1.5, 1.5, 121), (-1.0, 1.0, 81)),
-            [-1.0, 0.0]; show_progress = false,
-        ) seconds = 30
+        $sys_ms,
+        CartesianGrid((-1.5, 1.5, 121), (-1.0, 1.0, 81)),
+        [-1.0, 0.0]; show_progress = false,
+    ) seconds = 30
 
     # 3D gradient well: exercises the triangle simplex pass with its FD Newton loop.
     quad3(u, p, t) = SA[-u[1], -u[2], -u[3]]
     sys_3d = CoupledSDEs(quad3, [0.0, 0.0, 0.0]; noise_strength = 1.0)
     SUITE["Large deviation"]["Quasipotential"]["OLIM, 3D quadratic 41x41x41"] =
         @benchmarkable quasipotential(
-            $sys_3d,
-            CartesianGrid((-1.0, 1.0, 41), (-1.0, 1.0, 41), (-1.0, 1.0, 41)),
-            [0.0, 0.0, 0.0]; show_progress = false,
-        ) seconds = 60
+        $sys_3d,
+        CartesianGrid((-1.0, 1.0, 41), (-1.0, 1.0, 41), (-1.0, 1.0, 41)),
+        [0.0, 0.0, 0.0]; show_progress = false,
+    ) seconds = 60
 
     # 2D multiplicative noise: exercises the `_QInvDynamic` callable and the
     # fallback `_line_integral` method (Qinv recomputed per Simpson node).
@@ -34,9 +34,9 @@ function benchmark_quasipotential!(SUITE)
     sys_mult = CoupledSDEs(b2, SA[0.0, 0.0]; g = g2, noise_prototype = SMatrix{2, 2}(zeros(2, 2)))
     SUITE["Large deviation"]["Quasipotential"]["OLIM, 2D multiplicative 81x81"] =
         @benchmarkable quasipotential(
-            $sys_mult,
-            CartesianGrid((-1.0, 1.0, 81), (-1.0, 1.0, 81)),
-            [0.0, 0.0]; show_progress = false,
-        ) seconds = 30
+        $sys_mult,
+        CartesianGrid((-1.0, 1.0, 81), (-1.0, 1.0, 81)),
+        [0.0, 0.0]; show_progress = false,
+    ) seconds = 30
     return nothing
 end
