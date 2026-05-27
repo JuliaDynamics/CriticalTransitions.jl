@@ -41,6 +41,7 @@ end
                 :JacobianConfig,
                 :jacobian!,
                 :jacobian,
+                :maxthreadid
             ),
         ),
     )

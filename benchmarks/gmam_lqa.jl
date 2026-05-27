@@ -21,10 +21,10 @@ function benchmark_gmam_lqa!(SUITE)
 
     SUITE["Large deviation"]["Geometric minimal action"]["gMAM-LQA VdP (GeometricGradient)"] =
         @benchmarkable minimize_geometric_action(
-            $sys, $lc, $x_saddle, GeometricGradient(; stepsize = 0.005);
-            G = $G, tube_radius = 0.05, npoints = 160,
-            inner_maxiters = 300, maxiters = 200, reltol = 1.0e-7,
-        ) seconds = 60
+        $sys, $lc, $x_saddle, GeometricGradient(; stepsize = 0.005);
+        G = $G, tube_radius = 0.05, npoints = 160,
+        inner_maxiters = 300, maxiters = 200, reltol = 1.0e-7,
+    ) seconds = 60
 
     return nothing
 end
