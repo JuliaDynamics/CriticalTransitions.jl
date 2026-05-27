@@ -79,10 +79,10 @@ const CT_ = CriticalTransitions
         @test CT_.default_K(g2_small) == 5            # 2D floor
         @test CT_.default_K(g2_large) == 14           # sqrt(200) ≈ 14, < cap 32
         g3_small = CartesianGrid((-1.0, 1.0, 5), (-1.0, 1.0, 5), (-1.0, 1.0, 5))
-        g3_mid   = CartesianGrid((-1.0, 1.0, 9), (-1.0, 1.0, 9), (-1.0, 1.0, 9))
+        g3_mid = CartesianGrid((-1.0, 1.0, 9), (-1.0, 1.0, 9), (-1.0, 1.0, 9))
         g3_large = CartesianGrid((-1.0, 1.0, 200), (-1.0, 1.0, 200), (-1.0, 1.0, 200))
         @test CT_.default_K(g3_small) == 2            # 3D floor
-        @test CT_.default_K(g3_mid)   == 3            # sqrt(9) = 3
+        @test CT_.default_K(g3_mid) == 3            # sqrt(9) = 3
         @test CT_.default_K(g3_large) == 8            # 3D cap
         g4 = CartesianGrid((-1.0, 1.0, 5), (-1.0, 1.0, 5), (-1.0, 1.0, 5), (-1.0, 1.0, 5))
         @test CT_.default_K(g4) == 2                  # 4D+ floor
