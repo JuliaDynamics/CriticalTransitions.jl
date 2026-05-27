@@ -10,7 +10,7 @@ end CriticalTransitions
 # Base
 using Statistics: Statistics, mean
 using LinearAlgebra:
-    LinearAlgebra, norm, dot, tr, det, diag, eigen, normalize!, I
+    LinearAlgebra, norm, dot, tr, det, diag, eigen, normalize!, I, Symmetric
 using SparseArrays: SparseArrays
 using StaticArrays: StaticArrays, SVector
 using Random: Random
@@ -85,6 +85,9 @@ include("largedeviations/sgmam_kernels.jl")
 include("largedeviations/sgmam.jl")
 include("largedeviations/minimize_geometric_action.jl")
 include("largedeviations/string_method.jl")
+include("largedeviations/limit_cycle_frame.jl")
+include("largedeviations/periodic_quasipotential.jl")
+include("largedeviations/minimize_geometric_action_lc.jl")
 
 include("r_tipping/RateSystem.jl")
 
@@ -118,6 +121,7 @@ export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method
 export MinimumActionPath
 export GeometricGradient, AdaptiveGeometricGradient
+export LimitCycleFrame, local_quasipotential, G_at
 
 export deterministic_orbit
 export transition, transitions

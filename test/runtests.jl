@@ -35,6 +35,9 @@ end
     include("largedeviations/string_method.jl")
     include("largedeviations/Maier_stein.jl")
     include("largedeviations/interpolate.jl")
+    include("largedeviations/limit_cycle_frame.jl")
+    include("largedeviations/periodic_quasipotential.jl")
+    include("largedeviations/gmam_lqa.jl")
 end
 
 @testset "Diffusion operator" begin
@@ -62,6 +65,9 @@ end
 @testset "Extensions" begin
     @testset "DistMesh2D" begin
         include("ext/DistMesh2D.jl")
+    end
+    @testset "PeriodicOrbits" begin
+        include("ext/PeriodicOrbitsExt.jl")
     end
 end
 

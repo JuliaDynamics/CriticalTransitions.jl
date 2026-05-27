@@ -40,6 +40,8 @@ end
                 :register_error_hint,
                 :JacobianConfig,
                 :jacobian!,
+                :jacobian,
+                :maxthreadid,
             ),
         ),
     )

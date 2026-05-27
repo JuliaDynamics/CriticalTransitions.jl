@@ -120,6 +120,25 @@ Minimization of the geometric action following [heymann_pathways_2008, heymann_g
 minimize_geometric_action
 ```
 
+#### Escape from a limit cycle: gMAM-LC and gMAM-LQA
+
+When the starting set is a stable limit cycle ``\Gamma`` rather than a fixed point, the standard fixed-endpoint gMAM does not apply directly: the true minimum action path from ``\Gamma`` to a target ``x_f`` has **infinite arclength**. As ``t \to -\infty`` the deterministic drift pulls the path back toward ``\Gamma``, so the optimal path spirals infinitely close to ``\Gamma`` before peeling off. Any finite-node discretization must therefore truncate.
+
+[lin_quasi_2018](@citet) propose two variants:
+
+  - **gMAM-LC** (limit-cycle endpoint). One endpoint is constrained to lie on ``\Gamma`` and is allowed to slide during the optimization. This recovers the cleanest geometric statement (launch anywhere on ``\Gamma``, end at ``x_f``) but pays a discretization tax: the optimizer parks many nodes hugging ``\Gamma`` where the geometric-action integrand ``\lVert \dot\varphi\rVert_a \lVert b\rVert_a - \langle \dot\varphi, b\rangle_a`` is near zero (it vanishes exactly when ``\dot\varphi \parallel b``, which holds on ``\Gamma``). Resolution is wasted on the near-``\Gamma`` segment that contributes essentially nothing to the action, and the optimizer is prone to local minima.
+  - **gMAM-LQA** (local quadratic approximation). Cut off the spiral at a tube of small radius ``h > 0`` around ``\Gamma`` and approximate the quasi-potential inside the tube by its leading-order quadratic form ``V(x) \approx \tfrac12\, \hat z^\top G(\tau)\, \hat z``, where ``\hat z`` is the transverse offset and ``G(\tau)`` is the positive-definite ``(d-1) \times (d-1)`` solution of the periodic Riccati equation along ``\Gamma`` (see [`local_quasipotential`](@ref)). The path optimization then runs on the *outside* of the tube with one endpoint constrained to the tube surface, and the action picks up the analytic boundary correction:
+
+```math
+V(x_f) \approx \min_{\tau,\, \hat z,\, \varphi} \Big\{ \hat S[\varphi] + \tfrac{1}{2} h^2\, \hat z^\top G(\tau)\, \hat z \Big\} \quad \text{s.t.}\ \varphi(0) = \gamma(\tau) + h\, \tilde E(\tau)\, \hat z,\ \varphi(1) = x_f,\ \lVert \hat z\rVert = 1.
+```
+
+The bulk path now has finite length and bounded curvature, so the same number of nodes resolves it much better. gMAM-LC is the ``h = 0`` limit of gMAM-LQA.
+
+Empirically (Sec. 6.2 of [lin_quasi_2018](@citet), forced Van der Pol): gMAM-LQA shows second-order convergence in the number of path nodes ``N``, while gMAM-LC stalls in a local minimum. At ``N = 160`` on the published fixture, gMAM-LQA returns the quasi-potential to ~0.6 % (0.1599 versus the 0.1567 reference from [cameron_finding_2012](@citet)).
+
+The implementation uses [`LimitCycleFrame`](@ref) for the moving orthonormal frame ``\tilde E(\tau)`` along ``\Gamma`` (with anti-periodic handling when ``\Gamma`` carries Möbius-eigendirection Floquet multipliers, i.e. negative real multipliers), [`local_quasipotential`](@ref) for the Riccati solution ``G(\tau)``, and the same [`minimize_geometric_action`](@ref) entry point with the `(sys, lc, x_f)` signature for the joint optimization on ``(\tau, \hat z, \varphi)``. The continuous-``\tau`` launch end is refined off the LC sampling grid via a projected gradient on ``S^1 \times S^{d-2}``; a global scan over launch-grid candidates picks the basin before refinement (necessary because ``S(\tau)`` can be multi-modal).
+
 ### Simple geometric minimum action method (sgMAM)
 Simplified minimization of the geometric action following [grafke_long_2017](@citet).
 The simple gMAM reduces the complexity of the original gMAM by requiring only first-order derivatives of the underlying Hamiltonian optimization formulation. This simplifies the numerical treatment and computational complexity.
