@@ -112,7 +112,7 @@ function RateSystem(
     # preserve CoupledSDEs properties
     if ds isa CoupledSDEs
         IIP = SciMLBase.isinplace(ds)
-        prob = referrenced_sciml_prob(ds)
+        prob = referenced_sciml_prob(ds)
         new_prob = SDEProblem{IIP}(
             rss, prob.g, current_state(ds), (t0, prob.tspan[2]), p0;
             noise_rate_prototype = prob.noise_rate_prototype,
@@ -262,7 +262,7 @@ function frozen_system(rs::RateSystem, t)
     # preserve CoupledSDEs properties
     if rs isa CoupledSDEs
         IIP = SciMLBase.isinplace(rs)
-        prob = referrenced_sciml_prob(rs)
+        prob = referenced_sciml_prob(rs)
         new_prob = SDEProblem{IIP}(
             dynamic_rule(rs.specs.unforced_system), prob.g, current_state(rs),
             (t0, prob.tspan[2]), p;
