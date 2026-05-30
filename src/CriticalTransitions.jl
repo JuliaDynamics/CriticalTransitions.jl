@@ -86,6 +86,7 @@ include("largedeviations/sgmam.jl")
 include("largedeviations/minimize_geometric_action.jl")
 include("largedeviations/string_method.jl")
 
+include("r_tipping/ForcingProfile.jl")
 include("r_tipping/RateSystem.jl")
 
 # Diffusion operator (general SDE machinery: discrete generator + analyses)

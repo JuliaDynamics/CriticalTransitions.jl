@@ -5,7 +5,7 @@ A mutable data structure storing information needed to construct and modify a
 [`RateSystem`](@ref).
 
 ## Fields
-$(FIELDS)
+$(TYPEDFIELDS)
 
 Call signature: `(::RateSystemSpecs)(u, p, t)` for out-of-place and
 `(::RateSystemSpecs)(du, u, p, t)` for in-place dynamical systems.
