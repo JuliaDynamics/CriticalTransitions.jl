@@ -61,7 +61,7 @@ function sss()
         return StateSpaceSet(permutedims(Matrix([H_pu H_pv]')))
     end
 
-    sys_sss = ExtendedPhaseSpace{false, 2}(H_x, H_p)
+    sys_sss = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
 
     x_init_sss = StateSpaceSet([xx yy])
     return sys_sss, x_init_sss
@@ -85,7 +85,7 @@ function m()
         return Matrix([H_pu H_pv]')
     end
 
-    sys_m = ExtendedPhaseSpace{false, 2}(H_x, H_p)
+    sys_m = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
 
     x_init_m = Matrix([xx yy]')
     return sys_m, x_init_m

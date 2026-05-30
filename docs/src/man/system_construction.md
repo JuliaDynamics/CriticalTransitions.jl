@@ -41,6 +41,7 @@ div_drift
 covariance_matrix
 diffusion_matrix
 noise_process
+noise_strength
 ```
 
 ## Non-autonomous: `RateSystem`

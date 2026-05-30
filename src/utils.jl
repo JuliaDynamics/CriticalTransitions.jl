@@ -44,14 +44,22 @@ end;
 """
 $(TYPEDSIGNATURES)
 
-Normalizes the covariance matrix ``Q`` (in-place) by dividing it by
-``L_1(Q)/\\text{dim}(Q)``, where ``L_1(Q)`` is the L1 matrix norm of ``Q`` and
-``\\text{dim}(Q)`` is the dimension of ``Q``.
+Returns ``\\mathbf{Q}\\cdot D/\\mathrm{tr}(\\mathbf{Q})``, the trace-normalized covariance
+(``\\mathrm{tr} = D``, average eigenvalue 1).
+
+For an SDE built as ``\\mathrm{d}\\mathbf{x} = \\mathbf{b}\\,\\mathrm{d}t + \\sigma\\sqrt{\\mathbf{Q}}\\,\\mathrm{d}\\mathbf{W}``
+the SDE only fixes the product ``\\sigma^2\\mathbf{Q} = `` `covariance_matrix(sys)`; this
+function picks the canonical pair ``(\\sigma_{\\mathrm{eff}}, \\mathbf{Q}_{\\mathrm{can}})``
+defined by ``\\mathrm{tr}(\\mathbf{Q}_{\\mathrm{can}}) = D`` (see [`noise_strength`](@ref) for the
+matching ``\\sigma_{\\mathrm{eff}}``). Used internally by [`fw_action`](@ref),
+[`om_action`](@ref), and [`geometric_action`](@ref). For diagonal positive ``\\mathbf{Q}``
+this coincides numerically with dividing by ``L_1(\\mathbf{Q})/D``.
+
+See [Large deviation theory](@ref) for the rotation-invariance and conversion factors.
 """
 function normalize_covariance!(covariance)
-    l1norm = norm(covariance, 1)
-    dim = size(covariance)[1]
-    return covariance * dim / l1norm
+    D = size(covariance, 1)
+    return covariance * D / tr(covariance)
 end
 
 # Central finite difference, second derivative

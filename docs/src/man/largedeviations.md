@@ -11,6 +11,66 @@ This section applies results of large deviation theory (LDT), particularly actio
 
     This is a special case of the broader class of noise types supported by [`CoupledSDEs`](@ref).
 
+!!! note "Noise convention used by the action functionals"
+    **Starting point.** A [`CoupledSDEs`](@ref) exposes its noise via the diffusion
+    function ``g`` and, for additive invertible noise, the noise rate covariance
+    ```math
+    \mathbf{\Sigma} \;=\; \texttt{covariance\_matrix(sys)} \;=\; g\,g^\top.
+    ```
+    For an SDE built as ``\mathrm{d}\mathbf{x} = \mathbf{b}\,\mathrm{d}t + \sigma\,\mathbf{\Sigma}_0\,\mathrm{d}\mathbf{W}_t``
+    with ``\mathbf{\Sigma}_0\mathbf{\Sigma}_0^\top = \mathbf{Q}``, this gives ``\mathbf{\Sigma} = \sigma^2\,\mathbf{Q}``.
+    The Freidlin–Wentzell rate function only depends on the *product* ``\sigma^2\mathbf{Q}``;
+    the individual ``(\sigma, \mathbf{Q})`` split is not determined by the SDE alone
+    (``(\sigma, \mathbf{Q}) \leftrightarrow (c\sigma, \mathbf{Q}/c^2)`` is the same physical system).
+
+    **Convention.** The package picks a unique ``(\sigma, \mathbf{Q})`` pair from ``\mathbf{\Sigma}``
+    by adopting the **trace convention** ``\mathrm{tr}(\mathbf{Q}) = D``:
+    ```math
+    \sigma_{\mathrm{eff}}^2 \;=\; \frac{\mathrm{tr}(\mathbf{\Sigma})}{D},
+    \qquad
+    \mathbf{Q}_{\mathrm{can}} \;=\; \frac{D}{\mathrm{tr}(\mathbf{\Sigma})}\,\mathbf{\Sigma}.
+    ```
+    The accessor [`noise_strength`](@ref)`(sys)` returns ``\sigma_{\mathrm{eff}}``. The trace is
+    invariant under orthogonal changes of basis and reduces to the per-direction average
+    noise variance, making this the natural choice among rotation-invariant normalizations.
+
+    **Action functionals use the canonical covariance.** All action functionals in this
+    section evaluate the FW integrand in the ``\mathbf{Q}_{\mathrm{can}}^{-1}`` metric:
+    ```math
+    \texttt{fw\_action(sys, path, time)} \;=\; \Phi_{FW}^{\mathbf{Q}_{\mathrm{can}}}[\phi] \;=\;
+        \tfrac{1}{2}\!\int (\dot\phi - \mathbf{b})^\top \mathbf{Q}_{\mathrm{can}}^{-1}(\dot\phi - \mathbf{b})\,\mathrm{d}t.
+    ```
+    Two consequences:
+
+    - The returned action is **independent of the `noise_strength` keyword** chosen at
+      construction (both ``\sigma`` and the magnitude of ``\mathbf{Q}`` are absorbed into
+      ``\sigma_{\mathrm{eff}}``).
+    - The returned action is **invariant under orthogonal changes of basis**, matching
+      the coordinate-independence of the FW action as a geometric quantity.
+
+    **Converting to the user's parameterization.** If you built your system as
+    ``\mathrm{d}\mathbf{x} = \mathbf{b}\,\mathrm{d}t + \sigma_{\mathrm{user}}\,\mathbf{\Sigma}_0\,\mathrm{d}\mathbf{W}_t``
+    with ``\mathbf{Q}_{\mathrm{user}} = \mathbf{\Sigma}_0\mathbf{\Sigma}_0^\top`` and want the FW action in
+    *your* metric ``\mathbf{Q}_{\mathrm{user}}^{-1}``, multiply the returned action by
+    ``\mathrm{tr}(\mathbf{Q}_{\mathrm{user}})/D``:
+    ```math
+    \Phi_{FW}^{\mathbf{Q}_{\mathrm{user}}}[\phi] \;=\; \frac{\mathrm{tr}(\mathbf{Q}_{\mathrm{user}})}{D}\cdot
+        \texttt{fw\_action(sys, path, time)}.
+    ```
+    The factor is ``1`` whenever ``\mathbf{Q}_{\mathrm{user}}`` is isotropic (``c\,\mathbf{I}`` for any
+    ``c>0``) or already trace-normalized (``\mathrm{tr}(\mathbf{Q}_{\mathrm{user}}) = D``), in which
+    case `fw_action` returns ``\Phi_{FW}^{\mathbf{Q}_{\mathrm{user}}}`` directly. All examples and
+    tests in the package fall in this case.
+
+    **`fw_action` vs `om_action`.** [`fw_action`](@ref) and [`geometric_action`](@ref) are
+    fully ``\sigma``-independent under this convention. [`om_action`](@ref) takes
+    `noise_strength` as an explicit positional argument because the Onsager–Machlup
+    correction ``(\sigma^2/2)\int \nabla\cdot \mathbf{b}\,\mathrm{d}t`` is a *finite-noise*
+    correction that scales with ``\sigma^2``; only the FW part of OM is ``\sigma``-independent.
+    Pass the ``\sigma`` at which you want ``-\log P[\phi]`` evaluated (typically the same
+    `noise_strength` you used at construction). As ``\sigma \to 0`` the OM correction
+    vanishes and OM ``\to`` FW, recovering the leading-order LDP rate function.
+
 ## Action minimizers
 Several methods have been proposed to calculate transition paths that minimize a given [action functional](@ref "Action functionals"). In the weak-noise limit, this minimum action path (or instanton) corresponds to the most probable transition path. While the minimum action method (MAM) is the most basic version, it is often beneficial to minimize the [geometric action](@ref "Geometric Freidlin-Wentzell action") via a time-independent version called gMAM. The problem can also be cast in a Hamiltonian form, implemented as simple gMAM (sgMAM), which can have numerical advantages.
 
@@ -30,12 +90,13 @@ To summarize, the following methods are available:
 - Simple geometric minimum action method [(sgMAM)](@ref "Simple geometric minimum action method (sgMAM)")
 - [String method](@ref)
 
-| Method | Use when | Requirements (this package) | Not suitable when |
-|---|---|---|---|
-| **MAM** | You want a **minimum action path** for a specified travel time $T$ (FW/OM action minimization). | `CoupledSDEs` with **additive**, **invertible**, **autonomous** noise (constant covariance); discretized path uses **equispaced time**. | **Multiplicative/state-dependent noise**, **degenerate/non-invertible** noise, **non-autonomous** noise; when the transition time is unknown and you want a time-reparameterization-invariant formulation (prefer gMAM/sgMAM). |
-| **gMAM** | You want a **time-reparameterization-invariant** minimum action path (no explicit optimization over $T$). | Same as MAM for `CoupledSDEs`: **additive**, **invertible**, **autonomous** noise (constant covariance). | **Multiplicative/state-dependent**, **degenerate**, or **non-autonomous** noise; if you need the Onsager--Machlup functional (only FW has a geometric formulation). |
-| **sgMAM** | You want a **Hamiltonian/simple gMAM** formulation that can be efficient in practice. | Same as MAM **and** **diagonal** noise covariance (implementation restriction); assumes **additive** noise. | **Non-diagonal** covariance; **multiplicative/state-dependent** or **degenerate** noise; models where the required derivatives/Jacobian are not available or are too expensive. |
-| **String method** | You want a **minimum energy path / heteroclinic orbit** driven by the deterministic drift (typical use: **gradient** systems). | Deterministic drift field (works for `ContinuousTimeDynamicalSystem`; does not rely on an SDE noise model). | In **non-gradient** systems if you need the *most probable* noise-induced transition path (string gives the deterministic heteroclinic orbit, which generally differs from the instanton). |
+All three action-minimizers (MAM, gMAM, sgMAM) require only **autonomous** noise and reject **rank-deficient** diffusion; they all support additive, diagonal-multiplicative, and general-matrix multiplicative diffusion. The Onsager-Machlup functional (selectable in MAM via `functional = "OM"`) is the one exception: it is implemented only for additive noise and throws otherwise. Pick by what you want out of the result:
+
+| Method | Use when |
+|---|---|
+| **MAM** | The transition time $T$ is fixed and you want the action at that $T$ (or you specifically need the Onsager-Machlup functional, which only has a time-parameterized form). |
+| **gMAM / sgMAM** | $T$ is unknown and you want a time-reparameterization-invariant instanton. Prefer **sgMAM** (Hamiltonian picture) when an analytic `FreidlinWentzellHamiltonian(H_x, H_p)` is available or when AD-based `jacobian(ds)` evaluations are cheap; prefer **gMAM** for the closer-to-textbook geometric-action formulation. |
+| **String method** | You want the deterministic heteroclinic orbit (typical use: **gradient** systems, where it coincides with the instanton). In non-gradient systems it generally differs from the most probable transition path. |
 
 #### Variants and extensions
 The literature contains a number of extensions of MAM-type methods that may be relevant depending on the model class and numerical difficulties. These variants are not currently implemented in `CriticalTransitions.jl`, but serve as useful pointers:
@@ -43,7 +104,7 @@ The literature contains a number of extensions of MAM-type methods that may be r
 - **tMAM / optimal linear time scaling**: avoids explicit optimization over the transition time by introducing an optimal linear time scaling; can be combined with adaptivity in time discretization [wan_tmam_2015](@citet).
 - **Adaptive MAM**: uses a moving-mesh strategy to concentrate grid points in dynamically important portions of the path, improving efficiency and robustness [zhou_adaptive_mam_2008](@citet).
 - **Non-Gaussian (jump / Lévy) noise**: for systems driven by jump noise, the rate function and path optimization problem differ from the Freidlin--Wentzell diffusive setting; see e.g. an optimal-control-based approach in [wei_most_likely_jumps_2023](@citet).
-- **Multiplicative / state-dependent noise**: extensions of geometric action minimization to degenerate or multiplicative noise are discussed in [grafke_small_random_2017](@citet); the current `sgMAM` implementation assumes additive noise.
+- **Multiplicative / state-dependent noise**: state-dependent diagonal and full-matrix multiplicative noise is supported by both `gMAM` (via `minimize_geometric_action(::CoupledSDEs, ...)`) and `sgMAM` (via `FreidlinWentzellHamiltonian(::CoupledSDEs)`). The diffusion tensor `a(x)` is classified once when the sgMAM cache is built (constant vs state-dependent, diagonal vs coupled) and the resulting inner loop dispatches at compile time on the cache type; see [grafke_small_random_2017](@citet) for the underlying Hamiltonian formulation. Rank-deficient (degenerate) noise is rejected at cache build; see [grafke_small_random_2017](@citet) for the rank-deficient extension that would be needed to support it.
 
 ### Minimum action method (MAM)
 Minimization of the specified action functional using the optimization algorithm of `Optimization.jl`. See also [e_minimum_2004](@citet).
@@ -63,10 +124,24 @@ minimize_geometric_action
 Simplified minimization of the geometric action following [grafke_long_2017](@citet).
 The simple gMAM reduces the complexity of the original gMAM by requiring only first-order derivatives of the underlying Hamiltonian optimization formulation. This simplifies the numerical treatment and computational complexity.
 
-The implementation below performs a constrained gradient descent assuming an autonomous system with additive Gaussian noise.
+The implementation below performs a constrained gradient descent on the Hamiltonian system, supporting autonomous diffusions with additive, diagonal-multiplicative, or general-matrix multiplicative noise.
+
+#### Hamiltonian picture
+
+The Freidlin-Wentzell rate function admits an equivalent Hamiltonian formulation with conjugate momentum ``p``:
+
+```math
+H(\varphi, p) = \langle b(\varphi), p \rangle + \tfrac{1}{2}\, \langle p,\, a(\varphi)\, p \rangle,
+```
+
+where ``a(x) = \sigma(x)\sigma(x)^{\top}``. The action along an instanton (where ``H \equiv 0``) reduces to ``S[\varphi] = \int_0^T \langle p, \mathrm{d}\varphi\rangle``, the form used by `minimize_geometric_action` when the input is a [`FreidlinWentzellHamiltonian`](@ref).
+
+Compile-time dispatch on the shape of ``a(x)`` is driven by the type of `sys.a` (a `Base.Returns` wrapper marks constant-in-`x` diffusion) together with the type of `a(x_ref)` (a `LinearAlgebra.Diagonal` marks diagonal coupling). Classification happens once when the per-path cache is built; the resulting cache type then selects the diagonal or coupled inner loops in `update_p!`, `update_x!`, and `geometric_gradient_step!`.
+
+Rank-deficient ``a(x)`` is rejected at cache build (`a` is probed at a reference state `x_ref` (the first path point) and at the ``2D`` neighbors `x_ref ± h·eₗ`).
+
 ```@docs
-minimize_simple_geometric_action
-ExtendedPhaseSpace
+FreidlinWentzellHamiltonian
 ```
 
 
@@ -76,8 +151,8 @@ sgMAM repeatedly evaluates `H_p(x, p)` and `H_x(x, p)` along a discretized path.
 
 Key reason for performance differences:
 
-- `ExtendedPhaseSpace(ds::CoupledSDEs)` typically relies on `jacobian(ds)` (often automatic differentiation unless you provide an analytic Jacobian) and evaluates it pointwise along the path.
-- A hardcoded `ExtendedPhaseSpace(H_x, H_p)` with analytic expressions operating on the full `D×Nt` path matrix usually allocates far less.
+- `FreidlinWentzellHamiltonian(ds::CoupledSDEs)` typically relies on `jacobian(ds)` (often automatic differentiation unless you provide an analytic Jacobian) and evaluates it pointwise along the path.
+- A hardcoded `FreidlinWentzellHamiltonian(H_x, H_p)` with analytic expressions operating on the full `D×Nt` path matrix usually allocates far less.
 
 Benchmark pattern:
 
@@ -85,17 +160,17 @@ Benchmark pattern:
 using CriticalTransitions
 using BenchmarkTools
 
-sys_fast = ExtendedPhaseSpace{false,2}(H_x, H_p)  # hardcoded analytic H_x/H_p
+sys_fast = FreidlinWentzellHamiltonian{false,2}(H_x, H_p)  # hardcoded analytic H_x/H_p
 
 ds = CoupledSDEs(KPO, zeros(2), ())
-sys_generic = ExtendedPhaseSpace(ds)              # uses jacobian(ds)
+sys_generic = FreidlinWentzellHamiltonian(ds)              # uses jacobian(ds)
 
 opt = GeometricGradient(; stepsize=0.5)
-@btime minimize_simple_geometric_action($sys_fast,    $x_initial, $opt; maxiters=100, show_progress=false)
-@btime minimize_simple_geometric_action($sys_generic, $x_initial, $opt; maxiters=100, show_progress=false)
+@btime minimize_geometric_action($sys_fast,    $x_initial, $opt; maxiters=100, show_progress=false)
+@btime minimize_geometric_action($sys_generic, $x_initial, $opt; maxiters=100, show_progress=false)
 ```
 
-Aside: the same “vectorized + allocation-free inner loop” principle also tends to make [`string_method`](@ref) faster when used with `ExtendedPhaseSpace`.
+Aside: the same “vectorized + allocation-free inner loop” principle also tends to make [`string_method`](@ref) faster when used with `FreidlinWentzellHamiltonian`.
 
 ### `MinimumActionPath`
 [(gMAM)](@ref "Geometric minimum action method (gMAM)") and [(sgMAM)](@ref "Simple geometric minimum action method (sgMAM)") return their output as a `MinimumActionPath` type:

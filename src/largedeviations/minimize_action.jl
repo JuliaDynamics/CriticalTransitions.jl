@@ -76,7 +76,7 @@ function minimize_action(
         show_progress::Bool = true,
     )
     if sys isa CoupledSDEs
-        proper_MAM_system(sys)
+        proper_FW_system(sys)
     end
     times = range(0.0, T; length = size(init, 2))
     S(x) = action(
