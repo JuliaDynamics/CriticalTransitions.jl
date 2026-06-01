@@ -13,7 +13,7 @@ Here ``p = a(x)^{-1}(\\dot x - b(x))`` is the conjugate momentum, i.e. the (dime
 ## Arguments
 * `sys::FreidlinWentzellHamiltonian`: the Hamiltonian, typically obtained from a
   `CoupledSDEs` via `FreidlinWentzellHamiltonian(ds)`.
-* `x_initial::Matrix{T}` (or `StateSpaceSet`): initial guess for the instanton, shape
+* `x_initial::AbstractMatrix{T}` (or `StateSpaceSet`): initial guess for the instanton, shape
   `D × Nt` with state points in columns. Endpoints `x_initial[:, 1]` and `x_initial[:, end]`
   are held fixed; the interior is reparameterized to uniform arclength on the first iteration.
 * `optimizer`: step-size control, either
@@ -32,11 +32,12 @@ Returns a [`MinimumActionPath`](@ref)
 """
 function minimize_geometric_action(
         sys::FreidlinWentzellHamiltonian,
-        x_initial::Matrix{T},
+        x_initial::AbstractMatrix{T},
         optimizer::GeometricGradient = GeometricGradient(; stepsize = 1.0e3);
         maxiters::Int = 1000, show_progress::Bool = false, verbose::Bool = false,
         abstol::Real = NaN, reltol::Real = NaN,
     ) where {T}
+    x_initial = Matrix(x_initial)
     Nt = size(x_initial, 2)
     cache = build_sgmam_cache(sys, x_initial, Nt)
     return _minimize_geometric_action_inner(
@@ -56,11 +57,12 @@ end
 
 function minimize_geometric_action(
         sys::FreidlinWentzellHamiltonian,
-        x_initial::Matrix{T},
+        x_initial::AbstractMatrix{T},
         optimizer::AdaptiveGeometricGradient;
         maxiters::Int = 1000, show_progress::Bool = false, verbose::Bool = false,
         abstol::Real = NaN, reltol::Real = NaN,
     ) where {T}
+    x_initial = Matrix(x_initial)
     Nt = size(x_initial, 2)
     cache = build_sgmam_cache(sys, x_initial, Nt)
     return _minimize_geometric_action_inner_adaptive(
