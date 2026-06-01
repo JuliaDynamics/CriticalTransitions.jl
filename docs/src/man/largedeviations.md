@@ -202,6 +202,33 @@ For convenience, a general [`action`](@ref) function is available where the type
 action
 ```
 
+## Grid-based quasipotential (OLIM)
+
+The Ordered Line Integral Method [Dahiya2018OLIM](@cite) computes the entire
+Freidlin-Wentzell quasipotential field ``U_A(x)`` on a Cartesian grid in a
+single Dijkstra-style sweep, given a stable attractor ``x_A``. The dimension
+``D`` is taken from the `CoupledSDEs` type parameter; the method is most
+accurate for ``D = 2, 3``.
+
+```julia
+using CriticalTransitions, StaticArrays
+f(x, p, t) = SVector(x[1] - x[1]^3 - 5 * x[1] * x[2]^2,
+                      -(1 + x[1]^2) * x[2])
+sys  = CoupledSDEs(f, [-1.0, 0.0]; noise_strength = 0.3)
+grid = CartesianGrid((-1.5, 1.5, 121), (-1.0, 1.0, 81))
+qp   = quasipotential(sys, grid, [-1.0, 0.0])
+qp.U[CartesianIndex(61, 41)]   # U at the saddle (0, 0)
+```
+
+See `examples/quasipotential_maierstein.jl` for a worked example with
+contour plot.
+
+```@docs
+quasipotential
+QuasiPotential
+BackRef
+```
+
 ## String method
 The string method is a technique for finding transition paths between two states in a dynamical system [e_string_2007](@citet). The method represents the path as a "string" of points that connects the states and evolves it to minimize the drift along the path. The resulting tangent path is parallel to the drift of the system, i.e., the string method computes the heteroclinic orbit. For non-gradient systems (detailed -balance is broken), the heteroclinic orbit differs from the transition path, it does correctly predict, it correctly captures the deterministic dynamics from the saddle point onward ("downhill" portion of the path).
 ```@docs
