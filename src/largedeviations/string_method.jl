@@ -29,12 +29,13 @@ same geometric action is computed assuming an identity noise covariance.
 """
 function string_method(
         sys::Union{FreidlinWentzellHamiltonian, Function},
-        x_initial::Matrix;
+        x_initial::AbstractMatrix;
         stepsize::Real = 1.0e-1,
         integrator = Euler(),
         maxiters::Int = 1000,
         show_progress::Bool = false,
     )
+    x_initial = Matrix(x_initial)
     Nx, Nt = size(x_initial)
     s = range(0; stop = 1, length = Nt)
     x, alpha = init_allocation_string(x_initial, Nt)
