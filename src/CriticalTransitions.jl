@@ -12,7 +12,7 @@ using Statistics: Statistics, mean
 using LinearAlgebra:
     LinearAlgebra, norm, dot, tr, det, diag, eigen, normalize!, I
 using SparseArrays: SparseArrays
-using StaticArrays: StaticArrays, SVector
+using StaticArrays: StaticArrays, SVector, SMatrix, MVector
 using Random: Random
 
 # Core
@@ -57,6 +57,7 @@ using KrylovKit: KrylovKit
 using ExponentialUtilities: expv_timestep
 using FastInterpolations: linear_interp!
 using LinearSolve: LinearSolve, LinearProblem, LUFactorization, UMFPACKFactorization, init, solve, solve!
+using DataStructures: DataStructures, MutableBinaryHeap, FasterForward
 
 # io and documentation
 using Format: Format
@@ -101,6 +102,13 @@ include("diffusion_operator/generator_analyses.jl")
 include("diffusion_operator/propagator.jl")
 include("diffusion_operator/grid_helpers.jl")
 
+include("largedeviations/quasipotential/state.jl")
+include("largedeviations/quasipotential/stencil.jl")
+include("largedeviations/quasipotential/lagrangian.jl")
+include("largedeviations/quasipotential/update.jl")
+include("largedeviations/quasipotential/sweep.jl")
+include("largedeviations/quasipotential/quasipotential.jl")
+
 # Experimental features
 include("experimental/transition_path_theory/TransitionPathMesh.jl")
 include("experimental/transition_path_theory/langevin.jl")
@@ -122,6 +130,7 @@ export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method
 export MinimumActionPath
 export GeometricGradient, AdaptiveGeometricGradient, MultipleShooting
+export quasipotential
 
 export deterministic_orbit
 export transition, transitions

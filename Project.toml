@@ -7,6 +7,7 @@ repo = "https://github.com/juliadynamics/CriticalTransitions.jl.git"
 [deps]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 ConstructionBase = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 DynamicalSystemsBase = "6e36e845-645a-534a-86f2-f5d4aa5a06b4"
 ExponentialUtilities = "d4d017d3-3776-5f7e-afef-a10c40355c18"
@@ -43,6 +44,7 @@ DistMesh2D = ["DelaunayTriangulation"]
 [compat]
 ADTypes = "1"
 ConstructionBase = "1.6.0"
+DataStructures = "0.18, 0.19"
 DelaunayTriangulation = "1.6"
 DocStringExtensions = "0.9.3"
 DynamicalSystemsBase = "3.18.0"
