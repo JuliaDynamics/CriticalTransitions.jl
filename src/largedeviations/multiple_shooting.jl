@@ -404,8 +404,8 @@ function minimize_geometric_action(
         throw(
             ErrorException(
                 "MultipleShooting: NonlinearSolve did not converge (retcode = $retcode, " *
-                    "residual = $resnorm, iterations = $niter). Try increasing nshoots, " *
-                    "warm-starting from a GeometricGradient solve, or tightening abstol."
+                    "residual = $resnorm, iterations = $niter). Try increasing maxiters or nshoots, " *
+                    "warm-starting from a GeometricGradient solve, or loosening abstol."
             )
         )
     end
@@ -426,7 +426,7 @@ function minimize_geometric_action(
 end
 
 function minimize_geometric_action(
-        ::CoupledSDEs, ::Matrix, ::MultipleShooting; kwargs...,
+        ::CoupledSDEs, ::AbstractMatrix, ::MultipleShooting; kwargs...,
     )
     throw(
         ArgumentError(
