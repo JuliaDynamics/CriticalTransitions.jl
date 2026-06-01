@@ -9,6 +9,7 @@ pages = [
             "Nonautonomous system" => "examples/RateSystem.md",],
         "System analysis" => Any[
             "Large deviations: Maier-Stein system" => "examples/gMAM_Maierstein.md",
+            "Quasipotential: Maier-Stein system" => "examples/quasipotential_maierstein.md",
             "Simple gMAM: Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
             "Adaptive step-size control for sgMAM" => "examples/backtracking_KPO.md",
             "String method: Muller-Brown potential" => "examples/potential_string.md",
