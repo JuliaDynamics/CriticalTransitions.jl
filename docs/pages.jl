@@ -13,8 +13,8 @@ pages = [
             "Simple gMAM: Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
             "Adaptive step-size control for sgMAM" => "examples/backtracking_KPO.md",
             "Transition path theory: Finite element method" => "examples/transition_path_theory_double_well.md",],
-            "Multiple shooting method" => "examples/shooting_Maierstein.md",
-            "String method: Muller-Brown potential" => "examples/potential_string.md",],
+        "Multiple shooting method" => "examples/shooting_Maierstein.md",
+        "String method: Muller-Brown potential" => "examples/potential_string.md",
     ],
     "Manual" => Any[
         "Define your system" => "man/system_construction.md",
