@@ -1,6 +1,6 @@
 """
     minimize_geometric_action(sys::CoupledSDEs, x_i, x_f, optimizer=GeometricGradient(); kwargs...)
-    minimize_geometric_action(sys::CoupledSDEs, init::Matrix, optimizer=GeometricGradient(); kwargs...)
+    minimize_geometric_action(sys::CoupledSDEs, init::AbstractMatrix, optimizer=GeometricGradient(); kwargs...)
 
 Computes the minimizer of the geometric Freidlin-Wentzell action based on the geometric
 minimum action method (gMAM), using optimizers of Optimization.jl or the original
@@ -9,7 +9,7 @@ backtracking).
 
 The minimizer is computed for system `sys` over all paths from `x_i` to `x_f`. To set an
 initial path different from a straight line, see the multiple-dispatch method
-`minimize_geometric_action(sys::CoupledSDEs, init::Matrix, optimizer; kwargs...)`.
+`minimize_geometric_action(sys::CoupledSDEs, init::AbstractMatrix, optimizer; kwargs...)`.
 
 Returns a [`MinimumActionPath`](@ref).
 
@@ -28,7 +28,7 @@ function minimize_geometric_action(
     return minimize_geometric_action(sys, path, optimizer; kwargs...)
 end
 
-minimize_geometric_action(sys::CoupledSDEs, init::Matrix; kwargs...) =
+minimize_geometric_action(sys::CoupledSDEs, init::AbstractMatrix; kwargs...) =
     minimize_geometric_action(sys, init, GeometricGradient(); kwargs...)
 
 # Shared setup for both backtracking and Optimization.jl paths.
@@ -53,12 +53,12 @@ function _gmam_setup(sys::CoupledSDEs, init)
 end
 
 function minimize_geometric_action(
-        sys::CoupledSDEs, init::Matrix, optimizer::GeometricGradient;
+        sys::CoupledSDEs, init::AbstractMatrix, optimizer::GeometricGradient;
         maxiters::Int = 100, abstol::Real = NaN, reltol::Real = NaN,
         verbose = false, show_progress = true,
     )
     alpha, arc, S = _gmam_setup(sys, init)
-    path = deepcopy(init)
+    path = Matrix(init)
     ws = geometric_gradient_workspace(sys, path)
     path_prev = similar(path)
     interp_scratch = similar(alpha)
@@ -82,11 +82,12 @@ function minimize_geometric_action(
 end
 
 function minimize_geometric_action(
-        sys::CoupledSDEs, init::Matrix, optimizer;
+        sys::CoupledSDEs, init::AbstractMatrix, optimizer;
         maxiters::Int = 100, abstol::Real = NaN, reltol::Real = NaN,
         ad_type = OptimizationBase.AutoFiniteDiff(),
         show_progress = true,
     )
+    init = Matrix(init)
     alpha, arc, S = _gmam_setup(sys, init)
     interp_scratch = similar(alpha)
     optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)

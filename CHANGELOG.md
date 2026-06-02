@@ -3,6 +3,12 @@
 ## Unreleased
 
 #### Added
+- `quasipotential(sys, grid, attractor)` computes the Freidlin-Wentzell
+  quasipotential field on a Cartesian grid via the Ordered Line Integral
+  Method (Dahiya and Cameron 2018), with the trace-normalized geometric
+  Lagrangian matching `fw_action`. Multiplicative noise is supported. Most
+  accurate for D = 2, 3 (emits a warning for D > 4). New exports:
+  `quasipotential`, `QuasiPotential`, `BackRef`. New dep: `DataStructures`.
 - State-dependent multiplicative noise support for gMAM, sgMAM, and the
   Freidlin-Wentzell action functionals (`fw_action`, `geometric_action`). The
   trace-normalized diffusion tensor `a(x)` is classified once at workspace /

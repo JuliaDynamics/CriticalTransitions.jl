@@ -172,6 +172,45 @@ opt = GeometricGradient(; stepsize=0.5)
 
 Aside: the same “vectorized + allocation-free inner loop” principle also tends to make [`string_method`](@ref) faster when used with `FreidlinWentzellHamiltonian`.
 
+### Multiple shooting
+
+The [`MultipleShooting`](@ref) optimizer treats the instanton as a boundary value problem on arclength-reparameterized Hamilton equations
+```math
+\frac{\mathrm{d}\varphi}{\mathrm{d}s} = \alpha\,H_p(\varphi, p),\qquad
+\frac{\mathrm{d}p}{\mathrm{d}s} = -\alpha\,H_x(\varphi, p),\qquad
+\alpha = L\,/\,\|H_p\|
+```
+on `s ∈ [0, 1]`, with the total path length `L` a Newton unknown so that `‖dφ/ds‖ ≡ L` pointwise. The boundary states `y_0, y_{N_seg}` are parameterized by the unstable / stable eigenvectors of the Hamiltonian Jacobian `M = [J A; 0 -Jᵀ]` at each fixed-point endpoint. The BVP is segmented into `nshoots` shooting segments stitched by Newton-iterated continuity, solved by `NonlinearSolveFirstOrder.NewtonRaphson` with a sparse `ForwardDiff` Jacobian (block-bidiagonal sparsity contracted by `SparseMatrixColorings.GreedyColoringAlgorithm`) and `LinearSolve.UMFPACKFactorization()`.
+
+`MultipleShooting` dispatches on [`FreidlinWentzellHamiltonian`](@ref), not `CoupledSDEs`, because the shooting method operates on the LDT-derived deterministic Hamiltonian system rather than the original stochastic system. Passing a `CoupledSDEs` raises an `ArgumentError` pointing at the explicit construction:
+
+```julia
+H = FreidlinWentzellHamiltonian(sys)
+res = minimize_geometric_action(H, x_initial, MultipleShooting(; nshoots = 10))
+```
+
+**Endpoint constraints.** Both endpoints must be *hyperbolic* fixed points of the drift (`‖b(x*)‖ ≈ 0`, `∂b(x*)` has no purely-imaginary eigenvalues). Non-fixed-point endpoints and non-hyperbolic fixed points are rejected with an `ArgumentError`. Use [`GeometricGradient`](@ref) (gMAM/sgMAM) in either regime.
+
+**No interior fixed-point crossings.** The arclength reparameterization develops a singularity at any `(φ, p)` where `H_p = 0`, which on the `H = 0` shell is exactly `(x*, 0)` for `x*` a drift fixed point. The BVP-integrated portion of the path therefore must not pass through such a fixed point. The classical 1D bistable transition `xa = −1 → xb = +1` (which crosses the saddle `x = 0`) does not work as a single BVP; the user must split it into the noise-driven `attractor → saddle` leg and the deterministic `saddle → attractor` leg. Only the uphill `attractor → saddle` leg carries action; the downhill `saddle → attractor` leg follows the deterministic drift and contributes zero Freidlin-Wentzell action. The transition action is therefore the action of the single uphill leg (and, when several competing barrier legs exist, the *maximum* over them), not the sum of both `attractor → saddle` solves:
+
+```julia
+res_left  = minimize_geometric_action(H, x_init_left,  MultipleShooting())  # -1 → 0 (uphill)
+res_right = minimize_geometric_action(H, x_init_right, MultipleShooting())  # +1 → 0 (uphill)
+# -1 → +1 transition: uphill -1 → 0, then deterministic 0 → +1 (zero action).
+S_transition = res_left.action
+# Symmetric case: res_left.action ≈ res_right.action.
+```
+
+There is no runtime guard (cheap interior-fixed-point detection requires integrating, which the residual function does each Newton iteration anyway). If a user passes a through-saddle path, the BVP typically converges to a degenerate point with near-zero action; the symptom is `res.action` close to 0 when a nontrivial transition was expected.
+
+**Warm-starting.** The BVP Newton iteration has a finite basin of attraction. Warm-starting from a `GeometricGradient` (gMAM/sgMAM) solve helps on nontrivial problems; `x_initial` follows the same `D × N` matrix convention as gMAM, so the swap is a one-line change.
+
+The output `MinimumActionPath` carries the BVP-integrated path in `path`, the conjugate momentum in `generalized_momentum`, and the converged path length in `λ`.
+
+```@docs
+MultipleShooting
+```
+
 ### `MinimumActionPath`
 [(gMAM)](@ref "Geometric minimum action method (gMAM)") and [(sgMAM)](@ref "Simple geometric minimum action method (sgMAM)") return their output as a `MinimumActionPath` type:
 
@@ -200,6 +239,33 @@ For convenience, a general [`action`](@ref) function is available where the type
 
 ```@docs
 action
+```
+
+## Grid-based quasipotential (OLIM)
+
+The Ordered Line Integral Method [Dahiya2018OLIM](@cite) computes the entire
+Freidlin-Wentzell quasipotential field ``U_A(x)`` on a Cartesian grid in a
+single Dijkstra-style sweep, given a stable attractor ``x_A``. The dimension
+``D`` is taken from the `CoupledSDEs` type parameter; the method is most
+accurate for ``D = 2, 3``.
+
+```julia
+using CriticalTransitions, StaticArrays
+f(x, p, t) = SVector(x[1] - x[1]^3 - 5 * x[1] * x[2]^2,
+                      -(1 + x[1]^2) * x[2])
+sys  = CoupledSDEs(f, [-1.0, 0.0]; noise_strength = 0.3)
+grid = CartesianGrid((-1.5, 1.5, 121), (-1.0, 1.0, 81))
+qp   = quasipotential(sys, grid, [-1.0, 0.0])
+qp.U[CartesianIndex(61, 41)]   # U at the saddle (0, 0)
+```
+
+See `examples/quasipotential_maierstein.jl` for a worked example with
+contour plot.
+
+```@docs
+quasipotential
+QuasiPotential
+BackRef
 ```
 
 ## String method

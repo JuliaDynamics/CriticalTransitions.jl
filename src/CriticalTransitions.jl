@@ -10,15 +10,18 @@ end CriticalTransitions
 # Base
 using Statistics: Statistics, mean
 using LinearAlgebra:
-    LinearAlgebra, norm, dot, tr, det, diag, eigen, normalize!, I
+    LinearAlgebra, norm, dot, tr, diag, eigen, normalize!, I
 using SparseArrays: SparseArrays
-using StaticArrays: StaticArrays, SVector
+using StaticArrays: StaticArrays, SVector, SMatrix, MVector
 using Random: Random
 
 # Core
 using ForwardDiff: ForwardDiff
 using SciMLBase: SciMLBase, EnsembleThreads, DiscreteCallback, remake, terminate!, isinplace
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK, Euler
+using NonlinearSolveFirstOrder: NonlinearSolveFirstOrder
+using ADTypes: ADTypes, AutoForwardDiff
+using SparseMatrixColorings: SparseMatrixColorings, GreedyColoringAlgorithm
 using DynamicalSystemsBase:
     DynamicalSystemsBase,
     CoupledSDEs,
@@ -54,6 +57,7 @@ using KrylovKit: KrylovKit
 using ExponentialUtilities: expv_timestep
 using FastInterpolations: linear_interp!
 using LinearSolve: LinearSolve, LinearProblem, LUFactorization, UMFPACKFactorization, init, solve, solve!
+using DataStructures: DataStructures, MutableBinaryHeap, FasterForward
 
 # io and documentation
 using Format: Format
@@ -67,7 +71,6 @@ using Reexport: @reexport
 @reexport using StaticArrays
 @reexport using DynamicalSystemsBase
 
-include("extension_functions.jl")
 include("utils.jl")
 include("sde_utils.jl")
 
@@ -84,6 +87,7 @@ include("largedeviations/minimize_action.jl")
 include("largedeviations/sgmam_kernels.jl")
 include("largedeviations/sgmam.jl")
 include("largedeviations/minimize_geometric_action.jl")
+include("largedeviations/multiple_shooting.jl")
 include("largedeviations/string_method.jl")
 
 include("r_tipping/RateSystem.jl")
@@ -97,13 +101,15 @@ include("diffusion_operator/generator_analyses.jl")
 include("diffusion_operator/propagator.jl")
 include("diffusion_operator/grid_helpers.jl")
 
-# Experimental features
-include("experimental/transition_path_theory/TransitionPathMesh.jl")
-include("experimental/transition_path_theory/langevin.jl")
-include("experimental/transition_path_theory/committor.jl")
-include("experimental/transition_path_theory/invariant_pdf.jl")
-include("experimental/transition_path_theory/reactive_current.jl")
-include("experimental/transition_path_theory/probability.jl")
+# Transition path theory on the discrete diffusion generator
+include("transition_path_theory/committor.jl")
+include("transition_path_theory/reactive_transition.jl")
+include("largedeviations/quasipotential/state.jl")
+include("largedeviations/quasipotential/stencil.jl")
+include("largedeviations/quasipotential/lagrangian.jl")
+include("largedeviations/quasipotential/update.jl")
+include("largedeviations/quasipotential/sweep.jl")
+include("largedeviations/quasipotential/quasipotential.jl")
 
 include("../systems/CTLibrary.jl")
 using .CTLibrary
@@ -117,7 +123,8 @@ export FreidlinWentzellHamiltonian
 export fw_action, om_action, action, geometric_action
 export minimize_action, action_minimizer, minimize_geometric_action, string_method
 export MinimumActionPath
-export GeometricGradient, AdaptiveGeometricGradient
+export GeometricGradient, AdaptiveGeometricGradient, MultipleShooting
+export quasipotential
 
 export deterministic_orbit
 export transition, transitions
@@ -136,5 +143,12 @@ export mean_first_passage_time, first_passage_variance
 export eigenmodes
 export propagate_density
 export DenseEigen, KrylovKitSolver
+
+# Transition path theory
+export ReactiveTransition
+export forward_committor, backward_committor
+export reactive_rate, reactive_density, reactive_current
+export reactive_current_reversible, reactive_current_irreversible
+export probability_reactive, probability_last_A
 
 end # module CriticalTransitions

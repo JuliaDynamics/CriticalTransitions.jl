@@ -14,7 +14,7 @@ time via `N` equidistant points and total time `T`. Thus, the time step between
 discretized path points is ``\\Delta t = T/N``.
 To set an initial path different from a straight line, see the multiple dispatch method
 
-> `minimize_action(sys::ContinuousTimeDynamicalSystem, init::Matrix, T::Real, optimizer=Optimisers.Adam(); kwargs...)`.
+> `minimize_action(sys::ContinuousTimeDynamicalSystem, init::AbstractMatrix, T::Real, optimizer=Optimisers.Adam(); kwargs...)`.
 
 Returns a [`MinimumActionPath`](@ref) object containing the optimized path and the action
 value.
@@ -49,7 +49,7 @@ function minimize_action(
 end;
 
 """
-    minimize_action(sys::ContinuousTimeDynamicalSystem, init::Matrix, T::Real, optimizer=Optimisers.Adam(); kwargs...)
+    minimize_action(sys::ContinuousTimeDynamicalSystem, init::AbstractMatrix, T::Real, optimizer=Optimisers.Adam(); kwargs...)
 
 Minimizes the specified action functional to obtain a minimum action path (instanton)
 between fixed end points given a system `sys` and total path time `T`.
@@ -63,7 +63,7 @@ The optional positional argument `optimizer` selects the Optimization.jl solver.
 """
 function minimize_action(
         sys::ContinuousTimeDynamicalSystem,
-        init::Matrix{<:Real},
+        init::AbstractMatrix{<:Real},
         T::Real,
         optimizer = Optimisers.Adam();
         functional = "FW",
@@ -75,6 +75,7 @@ function minimize_action(
         verbose::Bool = false,
         show_progress::Bool = true,
     )
+    init = Matrix(init)
     if sys isa CoupledSDEs
         proper_FW_system(sys)
     end
