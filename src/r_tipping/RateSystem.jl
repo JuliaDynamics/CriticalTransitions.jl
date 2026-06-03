@@ -150,9 +150,7 @@ function (rss::RateSystemSpecs)(du, u, p, t)
 end
 
 function update_parameters!(rss::RateSystemSpecs, t::Real)
-    p_dummy = rss.pdummy
     ds_dummy = rss.unforced_system
-
     for (pkey, profile) in rss.forcing_profile
         p_old = current_parameter(ds_dummy, pkey)
         f = profile.profile
@@ -172,10 +170,8 @@ function update_parameters!(rss::RateSystemSpecs, t::Real)
         else
             p_new = p_old
         end
-        p_dummy[pkey] = p_new # TODO: use `set_parameter!`. we don't need final call to plural
-
+        set_parameter!(ds_dummy, pkey, p_new, rss.pdummy)
     end
-    set_parameters!(ds_dummy, p_dummy, rss.pdummy)
     return nothing
 end
 
@@ -188,7 +184,7 @@ state of `rs` to be on time `t`.
 """
 function parameters(rs::RateSystem, t)
     update_parameters!(rs.specs, t)
-    return copy(rs.specs.pdummy)
+    return deepcopy(rs.specs.pdummy)
 end
 
 """
