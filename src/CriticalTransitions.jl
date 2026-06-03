@@ -90,6 +90,7 @@ include("largedeviations/minimize_geometric_action.jl")
 include("largedeviations/multiple_shooting.jl")
 include("largedeviations/string_method.jl")
 
+include("r_tipping/ForcingProfile.jl")
 include("r_tipping/RateSystem.jl")
 
 # Diffusion operator (general SDE machinery: discrete generator + analyses)
@@ -131,7 +132,7 @@ export transition, transitions
 
 export ForcingProfile, RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
-export frozen_system, parameters
+export frozen_system, parameters, parameter
 
 # Diffusion operator
 export CartesianGrid, DiffusionGenerator

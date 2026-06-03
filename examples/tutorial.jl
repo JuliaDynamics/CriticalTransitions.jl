@@ -4,7 +4,9 @@
 #     CriticalTransitions.jl is an advanced software for the analysis of critical transitions
 #     in dynamical systems. Due to its advanced nature it is recommended that you have basic
 #     familiarity with the DynamicalSystems.jl and Attractors.jl packages, by going through
-#     their main tutorials.
+#     their main tutorials. Attractors.jl knowledge is not strictly required, but interplays
+#     with various functionalities used in the package, such as displaying basins of attraction,
+#     or using the output of global continuation to define additional rate tipping functionality.
 
 # The general workflow of CriticalTransitions.jl consists of two steps, similar to DynamicalSystems.jl:
 
@@ -33,22 +35,35 @@
 # \end{aligned}
 # ```
 
+# which we will create now as a basic `DynamicalSystem` with named parameters
+
 using CriticalTransitions # re-exports `DynamicalSystemsBase`
-using CairoMakie
-using Random: Random # hide
+import Random # hide
 Random.seed!(1) # hide
 
-function fitzhugh_nagumo(u, p, t)
-    u, v = u
-    ϵ, β, α, γ, κ, I = p
-    du = (-α * u^3 + γ * u - κ * v + I) / ϵ
-    dv = -β * v + u
-    return SVector(du, dv)
+function fitzhugh_nagumo(u,p,t)
+    x, y = u
+    (; ε, β, I) = p
+    dx = (x - x^3 - y + I)/ε
+    dy = -β*y + x
+    return SVector(dx, dy)
 end
+mutable struct FitzhughNagumoParameters
+    ε::Float64; β::Float64; I::Float64;
+end
+p = FitzhughNagumoParameters(0.1, 3.0, 0.0)
+u0 = [0.1, 0.1]
+ds = CoupledODEs(fitzhugh_nagumo, u0, p)
 
-p = [1, 3, 1, 1, 1, 0.0] # Parameters (ϵ, β, α, γ, κ, I)
-u = [0.1, 0.1]
-ds = CoupledODEs(fitzhugh_nagumo, u, p)
+# to put the rest of the analysis into context, let's quickly visualize
+# the basins of attraction
+using Attractors # for finding attractors and basins
+using CairoMakie # for plotting
+
+grid = (range(-1.5, 1.5; length = 100), range(-2, 2; length = 100),)
+mapper = AttractorsViaRecurrences(ds, grid)
+boa = basins_of_attraction(mapper, grid)
+figboa = heatmap_basins_attractors(boa)
 
 # ## RateSystem: creation
 
@@ -63,8 +78,12 @@ fp = ForcingProfile(:linear)
 # of the time variability.
 # The remaining information is encoded when creating the `RateSystem`:
 
-pidx = 6 # which parameter changes
-rs = RateSystem(ds, fp, pidx; forcing_start_time = 10, forcing_duration = 10, forcing_scale = 5)
+pidx = :I # which parameter changes
+rs = RateSystem(ds, fp, pidx;
+    forcing_start_time = 10,
+    forcing_duration = 10,
+    forcing_scale = 5
+)
 
 # In the above example the current `I` will linearly ramp from 0 to 5 in the time window 10 to 20.
 # Being explicit, this is what's going on, given time `t`:
@@ -80,23 +99,24 @@ rs = RateSystem(ds, fp, pidx; forcing_start_time = 10, forcing_duration = 10, fo
 # Let's simulate both the autonomous and non-autonomous systems to see the difference:
 
 T = 50.0 # Total time
-traj_ds, = trajectory(ds, T; Δt = 0.01)
-traj_rs, = trajectory(rs, T; Δt = 0.01)
+traj_ds, tvec = trajectory(ds, T, u0; Δt = 0.01)
+traj_rs, tvec = trajectory(rs, T, u0; Δt = 0.01)
 fig = Figure()
-tvec = 0:0.01:T
-ax = Axis(fig[1, 1]; ylabel = "u")
+ax = Axis(fig[1, 1]; ylabel="u")
 lines!(ax, tvec, traj_ds[:, 1]; label = "autonomous")
 lines!(ax, tvec, traj_rs[:, 1]; label = "rate-forced")
 axislegend(ax)
 fig
 
-# The function [`current_parameters`](@ref) is overloaded for `RateSystem` and can be
+# The function `current_parameters` is not particularly useful for `RateSystem`
+# as the value of (some of) the parameters depends on time.
+# Instead, we provide a new function called simply `parameters` (or `parameter`) which is
 # called with a second input `t` to provide the parameters at time `t`. This way we can
 # plot the forcing parameter as well:
 
-ps_of_t = current_parameters.(rs, tvec)
-I_of_t = getindex.(ps_of_t, pidx)
-ax = Axis(fig[2, 1]; xlabel = "time", ylabel = "I(t)")
+ps_of_t = parameters.(rs, tvec)
+I_of_t = parameter.(rs, tvec, pidx)
+ax = Axis(fig[2, 1]; xlabel="time", ylabel="I(t)")
 lines!(ax, tvec, I_of_t)
 fig
 
@@ -105,23 +125,41 @@ fig
 # index to the corresponding forcing profile! For example:
 
 profiles = Dict(
-    6 => ForcingProfile(:linear), # as before
-    2 => ForcingProfile(x -> x^2, (0.0, 2.0)), # quadratic!
+    :I => ForcingProfile(:linear), # as before
+    :β => ForcingProfile(sin, (-pi, pi)), # oscillation
 )
 
-# Note that all profiles start and stop at the same system time, although nothing
-# stops you from making a piecewise profile function that has 0s at some of its starting or
-# ending portion(s). In any case, we now make a rate system by giving the profiles:
+# and you can provide same type of dictionaries for the forcing start, duration, and scale:
 
-# ```julia
-# rs = RateSystem(ds, profiles;
-#     forcing_start_time = 10,
-#     forcing_duration = 10,
-#     forcing_scale = 5
-# )
-# ```
+rs2 = RateSystem(ds, profiles;
+    forcing_start_time = Dict(:I => 10.0, :β => 15.0),
+    forcing_duration   = Dict(:I => 10.0, :β => 20.0),
+    forcing_scale      = Dict(:I => 5.0, :β => 3.0),
+    t0 = 0.0,
+)
 
-# TODO: Remains to be done.
+# CriticalTransitions.jl is entirely agnostic to whether you force one or multiple,
+# so everything else in this tutorial remains identical, e.g.:
+
+T = 50.0 # Total time
+traj_ds, tvec = trajectory(ds, T, u0; Δt = 0.01)
+traj_rs, tvec = trajectory(rs2, T, u0; Δt = 0.01)
+fig = Figure()
+ax = Axis(fig[1, 1]; ylabel="u")
+lines!(ax, tvec, traj_ds[:, 1]; label = "autonomous")
+lines!(ax, tvec, traj_rs[:, 1]; label = "rate-forced")
+axislegend(ax)
+
+I_of_t = parameter.(rs2, tvec, :I)
+β_of_t = parameter.(rs2, tvec, :β)
+lines(fig[2,1], tvec, I_of_t; axis = (ylabel = "I(t)",))
+lines(fig[3,1], tvec, β_of_t; axis = (ylabel = "β(t)", xlabel = "t"))
+
+fig
+
+# ## RateSystem: example application
+
+# TODO: finish my function.
 
 # ## RandomSystem: creation
 
@@ -134,20 +172,18 @@ profiles = Dict(
 # Here we will keep things simple and add additive white noise of given strength
 # to all variables:
 
-using StochasticDiffEq # required for `CoupledSDEs`
 sds = CoupledSDEs(ds, p; noise_strength = 0.2)
 
 # Now that have our stochastic system let's visualize a couple of
 # trajectories (as this is a stochastic system each one will have different noise
-# by default)
+# by default) on top of the basins of attraction
 
-fig = Figure()
-ax = Axis(fig[1, 1]; xlabel = "time", ylabel = "u")
+ax = content(figboa[1,1])
 for _ in 1:3
     traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
-    lines!(ax, 0:0.1:T, traj_sds[:, 1])
+    lines!(ax, traj_sds)
 end
-fig
+figboa
 
 # To define more complicated noise processes than simple additive white noise,
 # you can specify a custom *noise function* and *covariance matrix* in the
@@ -158,51 +194,20 @@ fig
 function g(u, p, t)
     return @. p[6] .* u ./ (1 + t)
 end
-p2 = [1.0, 3.0, 1.0, 1.0, 1.0, 1.5] # Parameters (ϵ, β, α, γ, κ, I)
+p2 = [1., 3., 1., 1., 1., 1.5] # Parameters (ϵ, β, α, γ, κ, I)
 sds_advanced = CoupledSDEs(fitzhugh_nagumo, u, p2; g = g)
 
 #
 
 fig = Figure()
-ax = Axis(fig[1, 1]; xlabel = "time", ylabel = "u", title = "advanced SDE")
+ax = Axis(fig[1, 1]; xlabel="time", ylabel="u", title = "advanced SDE")
 for _ in 1:3
     traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
     lines!(ax, 0:0.1:T, traj_sds[:, 1])
 end
 fig
 
-# ## Usage with the broader DynamicalSystems.jl.
-
-# Both random and rate systems can easily access the rest of DynamicalSystems.jl.
-# The way to achieve this is to cast the systems back to their deterministic autonomous forms
-# (as this is the type of systems the rest of DynamicalSystems.jl covers).
-# For example, we may be interested in finding the basins of attraction of the deterministic system
-
-using Attractors
-
-grid = (range(-2, 2; length = 100), range(-2, 2; length = 100))
-mapper = AttractorsViaRecurrences(ds, grid)
-boa = basins_of_attraction(mapper, grid)
-fig = heatmap_basins_attractors(boa)
-
-# We can visualize a couple of stochastic trajectories on top of the basins of attraction:
-
-ax = content(fig[1, 1])
-for _ in 1:4
-    traj_sds, = trajectory(sds, 400, [0.5, 0]; Δt = 0.1)
-    lines!(ax, traj_sds; color = (:green, 0.25))
-    scatter!(ax, traj_sds[1]; color = :green)
-end
-fig
-
-# We can see that for the stochastic system, even though all trajectories start
-# in the basin of the right attractor, over time they will deviate and visit
-# the alternative attractor (and then come back and forth forever).
-
-# This is a well known result, for white noise, called "XXX" TODO: .
-# And indeed one can study it with CriticalTransitions.jl as we show below!
-
-# ## RandomSystem: example applications
+# ## RandomSystem: example application
 
 # Compute minimum action path using gMAM algorithm:
 
@@ -210,8 +215,8 @@ instanton = minimize_geometric_action(sys, initial_state, current_state(sys))
 
 # TODO: probable escale path something something.
 
-# ## RateSystem: example applications
+# ## Usage with the broader DynamicalSystems.jl.
 
-# TODO: Remains to be done.
-
-#
+# Both random and rate systems can easily access the rest of DynamicalSystems.jl.
+# The way to achieve this is to cast the systems back to their deterministic autonomous forms
+# (as this is the type of systems the rest of DynamicalSystems.jl covers).

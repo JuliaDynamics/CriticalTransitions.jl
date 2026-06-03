@@ -22,7 +22,7 @@ function benchmark_rate_system!(SUITE)
     forcing_scale = 1.0
     t0 = forcing_start_time
 
-    rs = RateSystem(ds, fp, pidx; forcing_start_time, forcing_duration, forcing_scale, t0)
+    rs = RateSystem(ds, Dict(pidx => fp); forcing_start_time = forcing_start_time, forcing_duration = forcing_duration, forcing_scale = forcing_scale, t0 = t0)
 
     T = forcing_duration + 40.0
     trajectory(rs, T, x0)
