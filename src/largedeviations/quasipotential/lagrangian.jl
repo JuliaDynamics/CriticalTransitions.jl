@@ -45,6 +45,46 @@ interior root.
     return ((aₖ + bₖ) / 2, true)
 end
 
+const _OLIM_MULTI_NOISELESS_MSG =
+    "OLIM supports at most one noiseless coordinate (|Z| = 1). This diffusion has " *
+    "two or more zero coordinates (a sub-Riemannian problem), which is not supported. " *
+    _RANK_DEFICIENT_MSG
+
+const _OLIM_ROTATED_NULL_MSG =
+    "OLIM requires either an invertible diffusion or a single coordinate-aligned " *
+    "noiseless coordinate. This diffusion is singular with a non-coordinate-aligned " *
+    "null space, which is not supported. " * _RANK_DEFICIENT_MSG
+
+"""
+    _degenerate_split(a0; atol) -> (is_degenerate, z, R_idx)
+
+Classify the trace-normalized diffusion `a0`. Returns `(false, 0, 1:D)` for full rank,
+`(true, z, R_idx)` when exactly one coordinate `z` is noiseless (its row and column are
+numerically zero) and the remaining block `a0[R, R]` is positive-definite. Throws for two
+or more noiseless coordinates or a singular `a0` with a non-coordinate-aligned null space.
+"""
+function _degenerate_split(a0::AbstractMatrix{T}; atol::T = sqrt(eps(real(T)))) where {T}
+    D = LinearAlgebra.checksquare(a0)
+    is_zero_rowcol(i) = all(j -> abs(a0[i, j]) <= atol, 1:D) &&
+        all(j -> abs(a0[j, i]) <= atol, 1:D)
+    Z = findall(is_zero_rowcol, 1:D)
+    if isempty(Z)
+        if LinearAlgebra.cond(Matrix(a0)) > 1 / sqrt(eps(real(T)))
+            throw(ArgumentError(_OLIM_ROTATED_NULL_MSG))
+        end
+        return (false, 0, SVector{D, Int}(ntuple(identity, D)))
+    elseif length(Z) == 1
+        z = Z[1]
+        Ridx = SVector{D - 1, Int}(ntuple(k -> k < z ? k : k + 1, D - 1))
+        A_RR = Matrix(a0[Ridx, Ridx])
+        LinearAlgebra.isposdef(LinearAlgebra.Symmetric(A_RR)) ||
+            throw(ArgumentError(_OLIM_ROTATED_NULL_MSG))
+        return (true, z, Ridx)
+    else
+        throw(ArgumentError(_OLIM_MULTI_NOISELESS_MSG))
+    end
+end
+
 """
 Internal wrapper bundling drift, trace-normalized inverse metric, and the
 near-zero-drift threshold for `L_g(x, v) = |v|_Q |b|_Q - <v, b>_Q`.
@@ -104,15 +144,42 @@ end
 _make_Q_inv(a_fn, ::Val{D}, ::Type{T}) where {D, T} =
     _QInvDynamic{D, T, typeof(a_fn)}(a_fn)
 
+@inline _onehot_diag(::Val{D}, z::Int, ::Type{T}) where {D, T} =
+    SMatrix{D, D, T}(LinearAlgebra.Diagonal(SVector{D, T}(ntuple(i -> T(i == z), D))))
+
+# Multiplicative-noise inverse metric with the noiseless coordinate `z` regularized by
+# `delta`, so the otherwise-singular trace-normalized diffusion is invertible. The
+# `delta * e_z e_z'` regularizer is constant, so it is precomputed once into `reg`.
+struct _QInvRegDynamic{D, T, F, L}
+    a_fn::F
+    reg::SMatrix{D, D, T, L}
+end
+@inline function (q::_QInvRegDynamic{D, T})(x::SVector{D}) where {D, T}
+    a = SMatrix{D, D, T}(q.a_fn(x))
+    return inv(a + q.reg)
+end
+_make_Q_inv_reg(a_fn, z::Int, delta::T, ::Val{D}, ::Type{T}) where {D, T} =
+    _QInvRegDynamic{D, T, typeof(a_fn), D * D}(a_fn, delta * _onehot_diag(Val(D), z, T))
+
+# Diffusion tensor `a(x)` for the analytic CARE seed: invert the stored `Q_inv`.
+@inline _diffusion_at(L::_GeometricLagrangian, x) = inv(_Q_inv_at(L.Q_inv, x))
+
 """
-Build a `_GeometricLagrangian` from `sys`. Drift via `dynamic_rule(sys)`,
-wrapped to return `SVector{D, T}` regardless of `IIP`. `Q_inv` via
-`_trace_normalized_a(sys)`, inverted to an `SMatrix` (additive) or wrapped
-as `x -> inv(SMatrix(...))` (multiplicative).
+Build the per-segment Lagrangian from `sys`. Drift via `dynamic_rule(sys)`, wrapped to
+return `SVector{D, T}` regardless of `IIP`. The trace-normalized diffusion is classified
+by `_degenerate_split`: full rank builds a `_GeometricLagrangian` directly; a single
+noiseless coordinate is regularized (`a + regularization * e_z e_z'`, leaving the noisy
+block exact) and then builds a `_GeometricLagrangian`; unsupported degeneracy throws.
+
+The degeneracy structure is classified once at `current_state(sys)` and assumed constant
+over the domain. For multiplicative noise the regularized coordinate `z` is fixed from
+that single sample; the rank-1 use cases (e.g. momentum-only noise) have a constant null
+coordinate, so this holds, but a diffusion whose null coordinate moves with `x` is not
+detected here.
 """
 function _geometric_lagrangian(
         sys::CoupledSDEs{IIP, D}, ::Type{T};
-        eps_b::T = T(1.0e-10),
+        eps_b::T = T(1.0e-10), regularization::Real = zero(T),
     ) where {IIP, D, T}
     raw = dynamic_rule(sys); p = current_parameters(sys)
     b = if IIP
@@ -121,11 +188,21 @@ function _geometric_lagrangian(
         _make_b_oop(raw, p, Val(D))
     end
     a_fn = _trace_normalized_a(sys)
-    Q_inv = if a_fn isa Base.Returns
-        inv(SMatrix{D, D, T}(a_fn(current_state(sys))))
-    else
-        _make_Q_inv(a_fn, Val(D), T)
+    a0 = SMatrix{D, D, T}(a_fn(current_state(sys)))
+    is_deg, z, _ = _degenerate_split(a0)
+    if !is_deg
+        Q_inv = a_fn isa Base.Returns ? inv(a0) : _make_Q_inv(a_fn, Val(D), T)
+        return _GeometricLagrangian{D, T}(b, Q_inv, eps_b)
     end
+    δ = T(regularization)
+    δ > zero(T) || throw(
+        ArgumentError(
+            "rank-1 diffusion needs regularization > 0 to invert the metric; got $δ",
+        ),
+    )
+    Q_inv = a_fn isa Base.Returns ?
+        inv(a0 + δ * _onehot_diag(Val(D), z, T)) :
+        _make_Q_inv_reg(a_fn, z, δ, Val(D), T)
     return _GeometricLagrangian{D, T}(b, Q_inv, eps_b)
 end
 
@@ -141,6 +218,31 @@ end
     end
     return sqrt_vQv * sqrt(bnQ2) - dot(Qv, bx)
 end
+
+# Precomputed drift data at a cell center: `b = b(c)`, `q = |b|²_Q`, `sq = |b|_Q`.
+# Lets the additive line integral reuse the s=0/s=1 Simpson nodes that always land
+# on a cell center, skipping a drift eval, a matvec, and a sqrt per cached node.
+struct _NodeData{D, T}
+    b::SVector{D, T}
+    q::T
+    sq::T
+end
+
+@inline function _Lg_cached(
+        eps_b::T, nd::_NodeData{D, T},
+        Qv::SVector{D}, vQv::S, sqrt_vQv::S,
+    ) where {D, T, S}
+    if nd.q < S(eps_b) * S(eps_b)
+        return S(0.5) * vQv - dot(Qv, nd.b)
+    end
+    return sqrt_vQv * nd.sq - dot(Qv, nd.b)
+end
+
+# A Simpson node is either cached (`_NodeData`) or evaluated live (`nothing`).
+@inline _node_Lg(L::_GeometricLagrangian, x, ::Nothing, Qinv, Qv, vQv, sqrt_vQv) =
+    _Lg_at(L, x, Qinv, Qv, vQv, sqrt_vQv)
+@inline _node_Lg(L::_GeometricLagrangian, _x, nd::_NodeData, _Qinv, Qv, vQv, sqrt_vQv) =
+    _Lg_cached(L.eps_b, nd, Qv, vQv, sqrt_vQv)
 
 # Additive noise: Qinv is a constant SMatrix; hoist Qv, vQv, sqrt(vQv) out
 # of the three Simpson evaluations.
@@ -166,6 +268,29 @@ end
     half = S(0.5)
     return (L(y, v) + S(4) * L(y + half * v, v) + L(y + v, v)) / S(6)
 end
+
+# Additive noise with cached endpoint nodes. `nd0`/`nd1` are the s=0/s=1 Simpson
+# nodes: a `_NodeData` (cell-center lookup) or `nothing` (evaluate live). The
+# midpoint is always live. Bitwise-identical to the uncached path.
+@inline function _line_integral(
+        L::_GeometricLagrangian{D, T, B, A},
+        y::SVector{D, S}, v::SVector{D, S}, nd0, nd1,
+    ) where {D, T, B, A <: SMatrix, S}
+    half = S(0.5)
+    Qinv = L.Q_inv
+    Qv = Qinv * v
+    vQv = dot(v, Qv)
+    sv = sqrt(vQv)
+    L0 = _node_Lg(L, y, nd0, Qinv, Qv, vQv, sv)
+    Lh = _node_Lg(L, y + half * v, nothing, Qinv, Qv, vQv, sv)
+    L1 = _node_Lg(L, y + v, nd1, Qinv, Qv, vQv, sv)
+    return (L0 + S(4) * Lh + L1) / S(6)
+end
+
+# Multiplicative noise has no constant metric to cache against; ignore the nodes.
+@inline _line_integral(
+    L::_GeometricLagrangian{D, T}, y::SVector{D, S}, v::SVector{D, S}, _nd0, _nd1,
+) where {D, T, S} = _line_integral(L, y, v)
 
 @inline function _hermite_U(U0::T, U1::T, m0::T, m1::T, λ::T) where {T}
     s0 = isnan(m0) ? (U1 - U0) : m0
