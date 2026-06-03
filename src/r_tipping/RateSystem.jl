@@ -10,21 +10,21 @@ $(TYPEDFIELDS)
 Call signature: `(::RateSystemSpecs)(u, p, t)` for out-of-place and
 `(::RateSystemSpecs)(du, u, p, t)` for in-place dynamical systems.
 """
-mutable struct RateSystemSpecs{S,K,T,P} <: Function
+mutable struct RateSystemSpecs{S,K,T,P,X} <: Function
     "Underlying autonomous system"
     unforced_system::S
     "Mapping parameter index => ForcingProfile"
-    forcing_profile::AbstractDict{K,<:ForcingProfile}
+    forcing_profile::Dict{K,<:ForcingProfile}
     "Mapping parameter index => forcing start time"
-    forcing_start_time::AbstractDict{K,T}
+    forcing_start_time::Dict{K,T}
     "Mapping parameter index => forcing duration"
-    forcing_duration::AbstractDict{K,T}
+    forcing_duration::Dict{K,T}
     "Mapping parameter index => forcing scale"
-    forcing_scale::AbstractDict{K,T}
+    forcing_scale::Dict{K,T}
     "Placeholder parameter container"
     pdummy::P
     "Initial time (of system initiation)"
-    t0::T
+    t0::X
 end
 
 """
@@ -35,7 +35,7 @@ Construct a non-autonomous dynamical system by applying time-dependent parametri
 forcing protocols to an underlying autonomous continuous-time dynamical system `ds`.
 
 `forcing_profile` must be a `Dict` mapping parameter indices (anything valid for
-`set_parameter!`) to `ForcingProfile` instances; each entry defines the functional 
+`set_parameter!`) to `ForcingProfile` instances; each entry defines the functional
 form of how the corresponding parameter evolves over time.
 
 ## Keyword arguments
@@ -53,10 +53,10 @@ form of how the corresponding parameter evolves over time.
 ## Description
 The profile `interval` defines the domain of the forcing function; when applied
 to the system the profile is rescaled in system time units using the
-configured `start` and `duration` values - this allow changing the rate of the 
-parameter ramping. Before a forcing_profile's `start` time the parameter equals its initial 
-autonomous value; during the forcing interval it follows the rescaled profile (multiplied 
-by the corresponding `forcing_scale` factor); after the interval the parameter is frozen 
+configured `start` and `duration` values - this allow changing the rate of the
+parameter ramping. Before a forcing_profile's `start` time the parameter equals its initial
+autonomous value; during the forcing interval it follows the rescaled profile (multiplied
+by the corresponding `forcing_scale` factor); after the interval the parameter is frozen
 at its final value.
 
 ## Multiple parameters
@@ -87,7 +87,7 @@ function RateSystem(
 
     forcing_kw = Dict{String,Any}("start_time" => forcing_start_time, "duration" => forcing_duration,
         "scale" => forcing_scale)
-    
+
     for j in keys(forcing_kw)
         if forcing_kw[j] isa Real
             forcing_kw[j] = Dict(k => forcing_kw[j] for (k, _) in forcing_profile)
@@ -181,12 +181,13 @@ end
 """
     parameters(rs::RateSystem, t)
 
-Returns the parameter container of a [`RateSystem`](@ref) at time `t` (in system time
-units).
+Return the parameter container of a [`RateSystem`](@ref) at time `t` (in system time
+units). This function returns a non-aliased copy but also modifies the parameter
+state of `rs` to be on time `t`.
 """
 function parameters(rs::RateSystem, t)
     update_parameters!(rs.specs, t)
-    return rs.specs.pdummy
+    return copy(rs.specs.pdummy)
 end
 
 """
@@ -197,7 +198,7 @@ time units).
 """
 function parameter(rs::RateSystem, t, pkey)
     update_parameters!(rs.specs, t)
-    return rs.specs.pdummy[pkey]
+    return current_parameter(rs.system, pkey, rs.specs.pdummy)
 end
 
 """
