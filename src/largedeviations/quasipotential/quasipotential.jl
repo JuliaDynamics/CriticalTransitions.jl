@@ -62,11 +62,17 @@ dimension `D` is taken from `sys::CoupledSDEs{IIP, D, I, P}` and must match
 * `band_radius::Int  = default_K(grid)`: accepted-band radius in grid cells.
 * `near_source_layers::Int = 3`: size of the analytic CARE seed box;
   `0` disables analytic seeding.
-* `regularization::Real = default_regularization(grid)`: for systems with one
-  noiseless coordinate (rank-1 diffusion), the amount added to that coordinate's
-  diagonal of the trace-normalized diffusion to make the metric invertible. Smaller
-  values are more accurate but stiffer; reduce it as the grid is refined. Ignored for
-  full-rank systems.
+* `regularization::Real = default_regularization(grid)`: for a system with a single
+  noiseless coordinate (rank-1 diffusion, e.g. momentum-only noise in a second-order
+  Langevin or van der Pol oscillator) the trace-normalized diffusion is singular and
+  has no metric. This amount is added to that coordinate's diagonal (a structural
+  vanishing-viscosity perturbation that leaves the noisy block exact) to make it
+  invertible; the degenerate Freidlin-Wentzell quasipotential is recovered as it tends
+  to 0. The default scales like `1 / minimum(grid.nbox)` (about `0.04` at 80 cells), so
+  it shrinks under refinement; smaller values are more accurate but stiffer. The escape
+  sheet and saddle barrier carry negligible bias, the non-escape region carries the
+  regularization bias. Ignored for full-rank systems; two or more noiseless coordinates
+  (sub-Riemannian) or a non-coordinate-aligned null space are rejected.
 * `verbose::Bool      = false`
 * `show_progress::Bool = true`
 

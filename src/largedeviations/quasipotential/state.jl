@@ -46,6 +46,12 @@ struct _OLIMState{D, T, H}
     heap::H
     handles::Vector{Int}
     nbox::NTuple{D, Int}
+    # Per-cell drift cache for the additive-noise line integral: `b_c[I] = b(c_I)`,
+    # `q_c[I] = |b(c_I)|²_Q`, `sq_c[I] = |b(c_I)|_Q` at each cell center `c_I`.
+    # Populated once by `_fill_node_cache!`; left zero (unused) for multiplicative noise.
+    b_c::Array{SVector{D, T}, D}
+    q_c::Array{T, D}
+    sq_c::Array{T, D}
 end
 
 function _OLIMState(grid::CartesianGrid{D, T}, ::Type{T}) where {D, T}
@@ -60,7 +66,12 @@ function _OLIMState(grid::CartesianGrid{D, T}, ::Type{T}) where {D, T}
     sizehint!(heap.nodes, prod(nbox))
     sizehint!(heap.node_map, prod(nbox))
     handles = zeros(Int, prod(nbox))
-    return _OLIMState{D, T, typeof(heap)}(U, bp, status, front, heap, handles, nbox)
+    b_c = fill(zero(SVector{D, T}), nbox)
+    q_c = zeros(T, nbox)
+    sq_c = zeros(T, nbox)
+    return _OLIMState{D, T, typeof(heap)}(
+        U, bp, status, front, heap, handles, nbox, b_c, q_c, sq_c,
+    )
 end
 
 @inline _linear(x::CartesianIndex{D}, nbox::NTuple{D, Int}) where {D} =

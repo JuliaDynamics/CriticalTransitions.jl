@@ -84,6 +84,7 @@ function _sweep!(
         ::Val{K}, ::Val{K_seed};
         verbose::Bool, show_progress::Bool,
     ) where {D, T, K, K_seed}
+    _fill_node_cache!(state, grid, L)
     _seed_near_source!(state, grid, source, sys, L, Val(K_seed); verbose = verbose)
 
     nbox = state.nbox

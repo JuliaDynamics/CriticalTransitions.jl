@@ -213,6 +213,31 @@ end
     return sqrt_vQv * sqrt(bnQ2) - dot(Qv, bx)
 end
 
+# Precomputed drift data at a cell center: `b = b(c)`, `q = |b|²_Q`, `sq = |b|_Q`.
+# Lets the additive line integral reuse the s=0/s=1 Simpson nodes that always land
+# on a cell center, skipping a drift eval, a matvec, and a sqrt per cached node.
+struct _NodeData{D, T}
+    b::SVector{D, T}
+    q::T
+    sq::T
+end
+
+@inline function _Lg_cached(
+        eps_b::T, nd::_NodeData{D, T},
+        Qv::SVector{D}, vQv::S, sqrt_vQv::S,
+    ) where {D, T, S}
+    if nd.q < S(eps_b) * S(eps_b)
+        return S(0.5) * vQv - dot(Qv, nd.b)
+    end
+    return sqrt_vQv * nd.sq - dot(Qv, nd.b)
+end
+
+# A Simpson node is either cached (`_NodeData`) or evaluated live (`nothing`).
+@inline _node_Lg(L::_GeometricLagrangian, x, ::Nothing, Qinv, Qv, vQv, sqrt_vQv) =
+    _Lg_at(L, x, Qinv, Qv, vQv, sqrt_vQv)
+@inline _node_Lg(L::_GeometricLagrangian, _x, nd::_NodeData, _Qinv, Qv, vQv, sqrt_vQv) =
+    _Lg_cached(L.eps_b, nd, Qv, vQv, sqrt_vQv)
+
 # Additive noise: Qinv is a constant SMatrix; hoist Qv, vQv, sqrt(vQv) out
 # of the three Simpson evaluations.
 @inline function _line_integral(
@@ -237,6 +262,29 @@ end
     half = S(0.5)
     return (L(y, v) + S(4) * L(y + half * v, v) + L(y + v, v)) / S(6)
 end
+
+# Additive noise with cached endpoint nodes. `nd0`/`nd1` are the s=0/s=1 Simpson
+# nodes: a `_NodeData` (cell-center lookup) or `nothing` (evaluate live). The
+# midpoint is always live. Bitwise-identical to the uncached path.
+@inline function _line_integral(
+        L::_GeometricLagrangian{D, T, B, A},
+        y::SVector{D, S}, v::SVector{D, S}, nd0, nd1,
+    ) where {D, T, B, A <: SMatrix, S}
+    half = S(0.5)
+    Qinv = L.Q_inv
+    Qv = Qinv * v
+    vQv = dot(v, Qv)
+    sv = sqrt(vQv)
+    L0 = _node_Lg(L, y, nd0, Qinv, Qv, vQv, sv)
+    Lh = _node_Lg(L, y + half * v, nothing, Qinv, Qv, vQv, sv)
+    L1 = _node_Lg(L, y + v, nd1, Qinv, Qv, vQv, sv)
+    return (L0 + S(4) * Lh + L1) / S(6)
+end
+
+# Multiplicative noise has no constant metric to cache against; ignore the nodes.
+@inline _line_integral(
+    L::_GeometricLagrangian{D, T}, y::SVector{D, S}, v::SVector{D, S}, _nd0, _nd1,
+) where {D, T, S} = _line_integral(L, y, v)
 
 @inline function _hermite_U(U0::T, U1::T, m0::T, m1::T, λ::T) where {T}
     s0 = isnan(m0) ? (U1 - U0) : m0
