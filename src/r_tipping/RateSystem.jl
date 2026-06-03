@@ -172,7 +172,8 @@ function update_parameters!(rss::RateSystemSpecs, t::Real)
         else
             p_new = p_old
         end
-        p_dummy[pkey] = p_new
+        p_dummy[pkey] = p_new # TODO: use `set_parameter!`. we don't need final call to plural
+
     end
     set_parameters!(ds_dummy, p_dummy, rss.pdummy)
     return nothing

@@ -23,6 +23,8 @@ struct ForcingProfile{F,T<:Real}
     profile::F
     interval::Tuple{T,T}
 end
+ForcingProfile(x, y) = ForcingProfile(x, promote(y...))
+
 
 # Convenience constructors for ForcingProfile
 function ForcingProfile(sym::Symbol)

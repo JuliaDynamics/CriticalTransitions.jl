@@ -33,6 +33,8 @@
 # \end{aligned}
 # ```
 
+# which we will create now as a basic `DynamicalSystem` with named parameters
+
 using CriticalTransitions # re-exports `DynamicalSystemsBase`
 using CairoMakie
 import Random # hide
@@ -40,13 +42,15 @@ Random.seed!(1) # hide
 
 function fitzhugh_nagumo(u,p,t)
     u, v = u
-    ϵ, β, α, γ, κ, I = p
+    (; ϵ, β, α, γ, κ, I) = p
     du = (-α*u^3 + γ*u - κ*v + I)/ϵ
     dv = -β*v + u
     return SVector(du, dv)
 end
-
-p = [1, 3, 1, 1, 1, 0.0] # Parameters (ϵ, β, α, γ, κ, I)
+mutable struct FitzhughNagumoParameters
+    ϵ::Float64; β::Float64; α::Float64; γ::Float64; κ::Float64; I::Float64;
+end
+p = FitzhughNagumoParameters(1, 3, 1, 1, 1, 0.0)
 u = [0.1, 0.1]
 ds = CoupledODEs(fitzhugh_nagumo, u, p)
 
@@ -63,8 +67,8 @@ fp = ForcingProfile(:linear)
 # of the time variability.
 # The remaining information is encoded when creating the `RateSystem`:
 
-pidx = 6 # which parameter changes
-rs = RateSystem(ds, Dict(pidx => fp);
+pidx = :I # which parameter changes
+rs = RateSystem(ds, fp, pidx;
     forcing_start_time = 10,
     forcing_duration = 10,
     forcing_scale = 5

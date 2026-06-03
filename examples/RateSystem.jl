@@ -20,12 +20,12 @@
 
 # This setting is widely used and convenient for studying rate-dependent tipping.
 
-# # Example 1: single-parameter `RateSystem` 
+# # Example 1: single-parameter `RateSystem`
 
 
 using CriticalTransitions
 using CairoMakie
-using StaticArrays
+# using StaticArrays
 
 function f(u, p, t)
     x = u[1]
@@ -41,8 +41,8 @@ profile(t) = tanh(t)
 interval = (-5.0, 5.0)
 fp = ForcingProfile(profile, interval)
 
-# Note that the `interval` is given in arbitrary units - the profile is 
-# rescaled to your system's units in the next step, where we apply the 
+# Note that the `interval` is given in arbitrary units - the profile is
+# rescaled to your system's units in the next step, where we apply the
 # forcing to the first parameter
 
 pidx = 1
@@ -58,13 +58,13 @@ rs = RateSystem(ds, Dict(pidx => fp);
     t0 = t0,
 )
 
-# Note that the `forcing_scale` is a multiplication factor that scales 
-# the profile `fp.profile`. Here, we have $p(5)-p(-5) \approx 2$, 
-# so the amplitude of the parameter change is $6$ after multiplying 
+# Note that the `forcing_scale` is a multiplication factor that scales
+# the profile `fp.profile`. Here, we have $p(5)-p(-5) \approx 2$,
+# so the amplitude of the parameter change is $6$ after multiplying
 # with `forcing_scale = 3`.
 
 # You can get the parameter value at a given time
-println("p(t=0) = ", parameter(rs, 0.0, pidx))
+parameter(rs, 25.0, pidx)
 
 # You can modify the forcing later to achieve different rates with `set_forcing_duration!` and `set_forcing_scale!`.
 
@@ -98,9 +98,9 @@ lines!(
 axislegend(axs; position=:lb);
 fig
 
-# While the autonomous system `ds` remains at the fixed point $x^*=-1$, 
-# the nonautonomous system tracks the moving equilibrium until reaching 
-# the stable fixed point $x^*=-7$ of the future limit system (i.e. 
+# While the autonomous system `ds` remains at the fixed point $x^*=-1$,
+# the nonautonomous system tracks the moving equilibrium until reaching
+# the stable fixed point $x^*=-7$ of the future limit system (i.e.
 # the autonomous limit system after the parameter change) where `p=6`.
 
 
@@ -136,7 +136,7 @@ rs2 = RateSystem(ds2, forcing;
 )
 
 # Sample parameters over time and plot both forced parameters
-tvec = range(0.0, 100.0; length = 200)
+tvec = range(0.0, 100.0; length = 101)
 ps = parameters.(Ref(rs2), tvec)
 p1 = getindex.(ps, 1)
 p2 = getindex.(ps, 2)
@@ -145,7 +145,7 @@ fig = Figure()
 ax = Axis(fig[1, 1]; xlabel = "time", ylabel = "parameter value")
 lines!(ax, tvec, p1; label = "p1")
 lines!(ax, tvec, p2; label = "p2")
-axislegend(ax)
+axislegend(ax; position = :lt)
 fig
 
 # Note that the `RateSystem` constructor accepts either scalar `forcing_start_time`, `forcing_duration`, `forcing_scale` values (applied to all keys) or dictionaries mapping each key to its own value.
