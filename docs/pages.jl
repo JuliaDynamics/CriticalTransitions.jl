@@ -1,18 +1,16 @@
 #! format: off
 pages = [
     "Home" => "index.md",
-    "Tutorial" => "quickstart.md",
+    "Tutorial" => "examples/tutorial.md",
+    "Defining a system" => Any[
+        "Stochastic system" => "examples/stochastic-dynamics.md",
+        "Nonautonomous system" => "examples/RateSystem.md",],
     "Examples" => Any[
-        "Tutorial" => "examples/tutorial.md",
-        "Defining a system" => Any[
-            "Stochastic system" => "examples/stochastic-dynamics.md",
-            "Nonautonomous system" => "examples/RateSystem.md",],
-        "System analysis" => Any[
-            "Large deviations: Maier-Stein system" => "examples/gMAM_Maierstein.md",
+          "Large deviations: Maier-Stein system" => "examples/gMAM_Maierstein.md",
             "Quasipotential: Maier-Stein system" => "examples/quasipotential_maierstein.md",
             "Simple gMAM: Kerr Parametric Oscillator" => "examples/sgMAM_KPO.md",
             "Adaptive step-size control for sgMAM" => "examples/backtracking_KPO.md",
-            "Transition path theory: Finite element method" => "examples/transition_path_theory_double_well.md",],
+            "Transition path theory: Finite element method" => "examples/transition_path_theory_double_well.md",
         "Multiple shooting method" => "examples/shooting_Maierstein.md",
         "String method: Muller-Brown potential" => "examples/potential_string.md",
     ],

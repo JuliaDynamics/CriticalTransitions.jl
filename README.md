@@ -34,4 +34,4 @@ Developers: Reyk Börner, Orjan Ameye, Ryan Deeley, Raphael Römer and George Da
 
 Thanks to Jeroen Wouters, Calvin Nesbitt, Tobias Grafke and Oliver Mehling
 
-This package was created as part of the [CriticalEarth](https://www.criticalearth.eu) project.
+This package got started in the EU-funded [CriticalEarth](https://www.criticalearth.eu) project.
