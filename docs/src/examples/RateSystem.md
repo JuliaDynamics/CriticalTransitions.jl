@@ -1,19 +1,15 @@
-```@meta
-EditURL = "../../../examples/RateSystem.jl"
-```
-
 # Example: Defining a `RateSystem`
 
 Consider a dynamical system `ds` with autonomous drift (a `CoupledODEs` or `CoupledSDEs` with autonomous drift) of which
 you want to ramp one or more parameters, i.e. change the parameter values over time.
 
 Using the `RateSystem` type, you can achieve this in two steps:
-1) Specify a `dict` containing a `ForcingProfile` per parameter to be ramped that describes the rammpings' shape `p(t)` over an interval ``t\in I``.
+1) Specify a `dict` containing - for each parameter you would like to ramp - a `ForcingProfile` that describes the rampings' shape `p(t)` over an `interval`.
 2) Apply these parametric forcings to the system `ds` by constructing a `RateSystem`.
 
 ![Schematic explaining RateSystem construction](../assets/ratesystem_scheme.png)
 
-The profile `intervals I` are rescaled to system time units using the configured `start` and `duration` values.
+The profiles' `intervals` are rescaled to system time units using the configured `start` and `duration` values.
 Then, for each ramped parameter, for
 - `t < forcing_start_time`
     - the system has an autonomous drift, with parameter given by the underlying system `ds`
@@ -24,14 +20,12 @@ Then, for each ramped parameter, for
 
 This setting is widely used and convenient for studying rate-dependent tipping.
 
+# Example 1: single-parameter `RateSystem`
+
 ````@example RateSystem
 using CriticalTransitions
 using CairoMakie
 using StaticArrays
-
-################################################################################
-# Simple single-parameter example
-################################################################################
 
 function f(u, p, t)
     x = u[1]
@@ -71,8 +65,8 @@ rs = RateSystem(ds, Dict(pidx => fp);
 ````
 
 Note that the `forcing_scale` is a multiplication factor that scales
-the profile `fp.profile`. Here, we have ``p(5)-p(-5) \approx 2``,
-so the amplitude of the parameter change is ``6`` after multiplying
+the profile `fp.profile`. Here, we have $p(5)-p(-5) \approx 2$,
+so the amplitude of the parameter change is $6$ after multiplying
 with `forcing_scale = 3`.
 
 You can get the parameter value at a given time
@@ -118,16 +112,13 @@ axislegend(axs; position=:lb);
 fig
 ````
 
-While the autonomous system `ds` remains at the fixed point ``x^*=-1``,
+While the autonomous system `ds` remains at the fixed point $x^*=-1$,
 the nonautonomous system tracks the moving equilibrium until reaching
-the stable fixed point ``x^*=-7`` of the future limit system (i.e.
-the autonomous limit system after the parameter change) where ``p=6``.
+the stable fixed point $x^*=-7$ of the future limit system (i.e.
+the autonomous limit system after the parameter change) where `p=6`.
 
-````@example RateSystem
-################################################################################
-# Multiple-parameter example (Dict-based forcing)
-################################################################################
-````
+
+# Example 2: multiple-parameter `RateSystem` (Dict-based forcing)
 
 Define a slightly different system with two parameters to demonstrate forcing two keys
 Parameter 1 enters nonlinearly, parameter 2 shifts the drift additively
@@ -180,8 +171,7 @@ axislegend(ax)
 fig
 ````
 
-!!! note
-    The `RateSystem` constructor accepts either scalar `forcing_start_time`, `forcing_duration`, `forcing_scale` values (applied to all keys) or dictionaries mapping each key to its own value.
+Note that the `RateSystem` constructor accepts either scalar `forcing_start_time`, `forcing_duration`, `forcing_scale` values (applied to all keys) or dictionaries mapping each key to its own value.
 
 ---
 
