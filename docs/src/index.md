@@ -4,9 +4,20 @@
 CriticalTransitions
 ```
 
-## Latest news
+## Installation
+> To install the Julia language, we recommend [juliaup](https://github.com/JuliaLang/juliaup).
 
-Upcoming release!
+`CriticalTransitions` is a registered Julia package and can be installed with the Julia package manager:
+
+```console
+julia> ]
+Pkg>   add CriticalTransitions
+```
+or 
+
+```julia
+using Pkg; Pkg.add("CriticalTransitions")
+```
 
 ## Getting started
 

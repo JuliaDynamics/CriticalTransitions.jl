@@ -4,9 +4,9 @@ using CriticalTransitions, ChaosTools, Attractors
 using DynamicalSystemsBase
 using StochasticDiffEq, DiffEqNoiseProcess
 
-if get(ENV, "CI", nothing) == "true"
-    include("make_md_examples.jl")
-end
+# Literate-render `examples/*.jl` into `src/examples/*.md` on every build so
+# local previews stay in sync with CI. The generated `.md` files are gitignored.
+include("make_md_examples.jl")
 
 include("pages.jl")
 
@@ -32,13 +32,18 @@ links = InterLinks(
     # "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",
 )
 
-# TODO: What is this? What is this remotes? Why do we need it? Seems like really complex code.
+# `remotes` tells Documenter where the source of each included module lives on
+# GitHub, so the "source" link on every docstring resolves to the correct
+# repository and version tag. We include DynamicalSystemsBase and Attractors in
+# `modules` below (their docstrings are rendered here), so without `remotes`
+# Documenter would either fail or link to a wrong path. The version string is
+# read from `Pkg.status` so the link points at the actually installed version.
 using Pkg
 project_toml = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 package_version = project_toml["version"]
 authors = join(project_toml["authors"], ", ") * " and contributors"
 
-remote_pairs = map(["DynamicalSystemsBase", "Attractors"]) do pkg_name
+remote_pairs = map(["DynamicalSystemsBase", "Attractors", "ChaosTools"]) do pkg_name
     status = sprint(io -> Pkg.status(pkg_name; io = io))
     version = match(r"(v[0-9].[0-9]+.[0-9]+)", status)[1]
     gh_moi = Documenter.Remotes.GitHub("JuliaDynamics", string(pkg_name, ".jl"))
@@ -46,9 +51,15 @@ remote_pairs = map(["DynamicalSystemsBase", "Attractors"]) do pkg_name
 end
 remotes = Dict(remote_pairs)
 
-# TODO: Why do we need this?
+# Extra kwargs forwarded to `Documenter.HTML(...)` inside `build_docs_with_style`.
+# The doctheme already sets `prettyurls = CI`, `collapselevel = 3`, and assets,
+# so only add things that genuinely differ from those defaults:
+#   canonical  -> SEO canonical URL for the deployed `stable/` site.
+#   mathengine -> MathJax 2 instead of Documenter's default KaTeX. The current
+#                 math in `src/` (\mathbb, \mathcal, aligned, ...) is supported
+#                 by both engines; MathJax is kept as a safety net for richer
+#                 LaTeX (\bm, \tag, AMS environments) we may add later.
 html_options = Dict(
-    :prettyurls => true,
     :canonical => "https://juliadynamics.github.io/CriticalTransitions.jl/",
     :mathengine => Documenter.MathJax2(),
     # :example_size_threshold => nothing,
@@ -56,12 +67,15 @@ html_options = Dict(
     # :size_threshold => nothing,
 )
 
-# TODO: Why do we need these?
+# `inventory_version` tags the `objects.inv` file Documenter generates so that
+# downstream docs sites using DocumenterInterLinks can pin cross-references to
+# a specific CriticalTransitions release. The field only exists in Documenter
+# >= 1.3, hence the version guard.
 if Documenter.DOCUMENTER_VERSION >= v"1.3.0"
     html_options[:inventory_version] = package_version
 end
 
-modules = [CriticalTransitions, DynamicalSystemsBase, Attractors]
+modules = [CriticalTransitions, DynamicalSystemsBase, Attractors, ChaosTools]
 
 # Build docs
 build_docs_with_style(

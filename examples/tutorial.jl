@@ -206,7 +206,7 @@ fig
 
 # Compute minimum action path using gMAM algorithm:
 
-instanton = geometric_min_action_method(sys, initial_state, current_state(sys))
+instanton = minimize_geometric_action(sys, initial_state, current_state(sys))
 
 # TODO: probable escale path something something.
 

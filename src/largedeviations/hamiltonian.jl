@@ -15,8 +15,8 @@ H(x, p) \\;=\\; \\langle b(x),\\, p\\rangle \\;+\\; \\tfrac{1}{2}\\,\\langle p,\
 invariant sets) live on the zero-energy shell ``H \\equiv 0``; the simplified geometric
 MAM ([grafke_long_2017](@cite)) minimizes the action directly in `(x, p)` space.
 
-The stored `a(x)` is trace-normalized (see [`_trace_normalized_a`](@ref)) so that the
-action is invariant to the overall scale of `noise_strength`.
+The stored `a(x)` is trace-normalized (internal helper `_trace_normalized_a`) so that
+the action is invariant to the overall scale of `noise_strength`.
 
 ## Fields
 * `H_x`, `H_p`: callables `(x, p) -> ∂_x H`, `(x, p) -> ∂_p H`, returning `D × N` matrices.
@@ -27,7 +27,7 @@ action is invariant to the overall scale of `noise_strength`.
 * `FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)`: builds `H_x`, `H_p`,
   `a` from `ds`. Central finite differences are used for ``\\partial_x a`` when `a` is
   state-dependent. Validation and diagonal-vs-coupled classification happen at cache
-  build ([`build_sgmam_cache`](@ref)); rank-deficient `a` is rejected there.
+  build (internal helper `build_sgmam_cache`); rank-deficient `a` is rejected there.
 * `FreidlinWentzellHamiltonian{IIP, D}(H_x, H_p; a = Returns(Diagonal(ones(D))), x_ref = nothing)`:
   for hand-rolled Hamiltonians; you are responsible for matching the convention above.
 
