@@ -21,6 +21,8 @@ mutable struct RateSystemSpecs{S,K,T,P,X} <: Function
     forcing_duration::Dict{K,T}
     "Mapping parameter index => forcing scale"
     forcing_scale::Dict{K,T}
+    "Mapping parameter index => whether forcing should reverse"
+    forcing_reverse::Dict{K,Bool}
     "Placeholder parameter container"
     pdummy::P
     "Initial time (of system initiation)"
@@ -50,6 +52,10 @@ using the keywords below.
 - `forcing_scale = 1.0`: amplitude multiplicative factor of the forcing
     profile. Can be an `AbstractDict` mapping keys to scales or a scalar applied to
     all forcing profiles.
+- `reverse = false`: whether to reverse the forcing after the first forcing interval.
+    Can be an `AbstractDict` mapping keys to booleans or a scalar boolean applied to
+    all forcing profiles. If true, forcing is reversed over a second interval with the
+    same duration.
 - `t0 = initial_time(ds): initial time of the `RateSystem`.
 
 ## Description
@@ -59,8 +65,10 @@ to the system the profile is rescaled in system time units using the
 configured `start` and `duration` values - this allow changing the rate of the
 parameter ramping. Before a forcing_profile's `start` time the parameter equals its initial
 autonomous value; during the forcing interval it follows the rescaled profile (multiplied
-by the corresponding `forcing_scale` factor); after the interval the parameter is frozen
-at its final value.
+by the corresponding `forcing_scale` factor). If `reverse = true`, the same profile is
+traversed backwards over a second interval of equal duration, after which the parameter
+returns to its initial autonomous value. If `reverse = false`, after the interval the
+parameter is frozen at its final value.
 
 To modify a rate system after it has been created, use
 [`set_forcing_duration!`](@ref)`, [`set_forcing_scale!`](@ref)`, [`set_forcing_start!`](@ref)`
@@ -87,6 +95,7 @@ function RateSystem(
     forcing_start_time=initial_time(ds),
     forcing_duration=1.0,
     forcing_scale=1.0,
+    reverse=false,
     t0=initial_time(ds),
     )
 
@@ -95,13 +104,15 @@ function RateSystem(
     end
 
     forcing_kw = Dict{String,Any}("start_time" => forcing_start_time, "duration" => forcing_duration,
-        "scale" => forcing_scale)
+        "scale" => forcing_scale, "reverse" => reverse)
 
     for j in keys(forcing_kw)
-        if forcing_kw[j] isa Real
+        if forcing_kw[j] isa AbstractDict
+            @assert keys(forcing_kw[j]) == keys(forcing_profile) "Dictionary keys of `forcing_$(j)` and `forcing_profile` must be identical."
+        elseif forcing_kw[j] isa Real || forcing_kw[j] isa Bool
             forcing_kw[j] = Dict(k => forcing_kw[j] for (k, _) in forcing_profile)
         else
-            @assert keys(forcing_kw[j]) == keys(forcing_profile) "Dictionary keys of forcing_$(j) and forcing_profile must be identical."
+            throw(ArgumentError("`forcing_$(j)` must be either a scalar or a dictionary with the same keys as `forcing_profile`"))
         end
     end
 
@@ -113,6 +124,7 @@ function RateSystem(
         forcing_kw["start_time"],
         forcing_kw["duration"],
         forcing_kw["scale"],
+        forcing_kw["reverse"],
         p0,
         t0
     )
@@ -173,6 +185,13 @@ function update_parameters!(rss::RateSystemSpecs, t::Real)
                 time_shift = ((section_end - section_start) / rss.forcing_duration[pkey]) *
                     (t - rss.forcing_start_time[pkey]) + section_start
                 p_new = p_old + rss.forcing_scale[pkey] * (f(time_shift) - f(section_start))
+            elseif rss.forcing_reverse[pkey] && t < rss.forcing_start_time[pkey] + 2 * rss.forcing_duration[pkey]
+                # Reverse forcing over a second interval with the same duration.
+                time_shift = section_end - ((section_end - section_start) / rss.forcing_duration[pkey]) *
+                    (t - (rss.forcing_start_time[pkey] + rss.forcing_duration[pkey]))
+                p_new = p_old + rss.forcing_scale[pkey] * (f(time_shift) - f(section_start))
+            elseif rss.forcing_reverse[pkey]
+                p_new = p_old
             else
                 p_new = p_old + rss.forcing_scale[pkey] * (f(section_end) - f(section_start))
             end

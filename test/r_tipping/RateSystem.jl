@@ -199,13 +199,70 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
         @test !all(tr_rs .≈ tr_sys)
     end
 
+    @testset "reverse forcing" begin
+        ds = CoupledODEs(f, x0, p_auto; t0 = 0.0)
+        rs = RateSystem(
+            ds,
+            Dict(1 => fp_case);
+            forcing_start_time = 0.0,
+            forcing_duration = 10.0,
+            forcing_scale = 1.0,
+            reverse = true,
+            t0 = 0.0,
+        )
+
+        f0 = fp_case.profile(fp_case.interval[1])
+        fend = fp_case.profile(fp_case.interval[2])
+
+        # End of forward interval: reaches the same value as non-reversed forcing.
+        @test isapprox(parameter(rs, 10.0, 1), fend - f0; atol = 1e-12)
+
+        # During second interval: follows profile backwards.
+        reverse_mid_t = 15.0
+        reverse_shift = fp_case.interval[2] - ((fp_case.interval[2] - fp_case.interval[1]) / 10.0) * (reverse_mid_t - 10.0)
+        expected_mid = fp_case.profile(reverse_shift) - f0
+        @test isapprox(parameter(rs, reverse_mid_t, 1), expected_mid; atol = 1e-12)
+
+        # After reverse phase ends: returns to autonomous value.
+        @test isapprox(parameter(rs, 21.0, 1), 0.0; atol = 1e-12)
+    end
+
+    @testset "reverse as dictionary" begin
+        function f_out(u, p, t)
+            x = u[1]
+            λ = p[1]
+            γ = p[2]
+            dx = (x + λ + γ)^2 - 1
+            return SVector{1}(dx)
+        end
+
+        ds = CoupledODEs(f_out, x0, [0.0, 0.0]; t0 = 0.0)
+        rs = RateSystem(
+            ds,
+            Dict(1 => fp_case, 2 => fp_case);
+            forcing_start_time = Dict(1 => 0.0, 2 => 0.0),
+            forcing_duration = Dict(1 => 10.0, 2 => 10.0),
+            forcing_scale = Dict(1 => 1.0, 2 => 1.0),
+            reverse = Dict(1 => true, 2 => false),
+            t0 = 0.0,
+        )
+
+        f0 = fp_case.profile(fp_case.interval[1])
+        fend = fp_case.profile(fp_case.interval[2])
+
+        # First parameter reversed: returns to base after 2*duration.
+        @test isapprox(parameter(rs, 21.0, 1), 0.0; atol = 1e-12)
+        # Second parameter non-reversed: stays at final forced value.
+        @test isapprox(parameter(rs, 21.0, 2), fend - f0; atol = 1e-12)
+    end
 
 
 
 
 
 
-    
+
+
 
     # @testset "parameter container variants" begin
     #     fp = ForcingProfile(tanh, (-5.0, 5.0))
