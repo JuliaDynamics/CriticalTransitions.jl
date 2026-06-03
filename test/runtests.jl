@@ -55,9 +55,9 @@ end
 end
 
 # Disabled until #280's RateSystem refactor is finished — see PR #310.
-# @testset "R-tipping" begin
-#     include("r_tipping/RateSystem.jl")
-# end
+@testset "R-tipping" begin
+    include("r_tipping/RateSystem.jl")
+end
 
 @testset "Extensions" begin
     @testset "DistMesh2D" begin

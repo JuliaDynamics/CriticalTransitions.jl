@@ -14,7 +14,7 @@ mutable struct RateSystemSpecs{S,K,T,P} <: Function
     "Underlying autonomous system"
     unforced_system::S
     "Mapping parameter index => ForcingProfile"
-    forcing_profile::AbstractDict{K,ForcingProfile}
+    forcing_profile::AbstractDict{K,<:ForcingProfile}
     "Mapping parameter index => forcing start time"
     forcing_start_time::AbstractDict{K,T}
     "Mapping parameter index => forcing duration"
@@ -85,21 +85,20 @@ function RateSystem(
         throw(ArgumentError("`forcing_profile` must be a dictionary containing at least one entry"))
     end
 
-    forcing_kw = Dict("start_time" => forcing_start_time, "duration" => forcing_duration,
+    forcing_kw = Dict{String,Any}("start_time" => forcing_start_time, "duration" => forcing_duration,
         "scale" => forcing_scale)
     
     for j in keys(forcing_kw)
         if forcing_kw[j] isa Real
             forcing_kw[j] = Dict(k => forcing_kw[j] for (k, _) in forcing_profile)
         else
-            @assert keys(forcing_kw[j]) == keys(forcing_profile) |
-            "Dictionary keys of forcing_$(j) and forcing_profile must be identical."
+            @assert keys(forcing_kw[j]) == keys(forcing_profile) "Dictionary keys of forcing_$(j) and forcing_profile must be identical."
         end
     end
 
     p0 = deepcopy(current_parameters(ds))
 
-    rss = RateSystemSpecs{R,K,T,P}(
+    rss = RateSystemSpecs(
         ds,
         forcing_profile,
         forcing_kw["start_time"],
@@ -113,14 +112,16 @@ function RateSystem(
     if ds isa CoupledSDEs
         IIP = SciMLBase.isinplace(ds)
         prob = referenced_sciml_prob(ds)
-        new_prob = SDEProblem{IIP}(
+        new_prob = SciMLBase.SDEProblem{IIP}(
             rss, prob.g, current_state(ds), (t0, prob.tspan[2]), p0;
             noise_rate_prototype = prob.noise_rate_prototype,
             noise = prob.noise,
         )
         system = CoupledSDEs(new_prob, ds.diffeq, ds.noise_type)
     elseif ds isa CoupledODEs
-        system = CoupledODEs(rss, current_state(ds), p0; t0)
+        IIP = SciMLBase.isinplace(ds)
+        prob = SciMLBase.ODEProblem{IIP}(rss, current_state(ds), (t0, Inf), p0)
+        system = CoupledODEs(prob)
     else
         error("A RateSystem can only be constructed from a CoupledODEs or CoupledSDEs.")
     end
@@ -134,13 +135,18 @@ RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
 # Out-of-place
 function (rss::RateSystemSpecs)(u, p, t)
     update_parameters!(rss, t)
-    return dynamic_rule(rss.unforced_system)(u, rss.pdummy, rss.t0)
+    return dynamic_rule(rss.unforced_system)(u, rss.pdummy, t)
 end
 
 # In-place
 function (rss::RateSystemSpecs)(du, u, p, t)
     update_parameters!(rss, t)
-    return dynamic_rule(rss.unforced_system)(du, u, rss.pdummy, rss.t0)
+    if SciMLBase.isinplace(rss.unforced_system)
+        return dynamic_rule(rss.unforced_system)(du, u, rss.pdummy, t)
+    else
+        du .= dynamic_rule(rss.unforced_system)(u, rss.pdummy, t)
+        return nothing
+    end
 end
 
 function update_parameters!(rss::RateSystemSpecs, t::Real)
@@ -148,7 +154,7 @@ function update_parameters!(rss::RateSystemSpecs, t::Real)
     ds_dummy = rss.unforced_system
 
     for (pkey, profile) in rss.forcing_profile
-        p_old = current_parameter(ds, pkey)
+        p_old = current_parameter(ds_dummy, pkey)
         f = profile.profile
 
         section_start = profile.interval[1]
@@ -157,19 +163,16 @@ function update_parameters!(rss::RateSystemSpecs, t::Real)
         if t > rss.forcing_start_time[pkey]
             if t < rss.forcing_start_time[pkey] + rss.forcing_duration[pkey]
                 # Stretch/squeeze forcing to the correct time units
-                time_shift =
-                    ((section_end - section_start) / rss.forcing_duration[pkey]) *
+                time_shift = ((section_end - section_start) / rss.forcing_duration[pkey]) *
                     (t - rss.forcing_start_time[pkey]) + section_start
-                p_new = p_old + rss.forcing_scale[pkey] * 
-                    (f(time_shift) - f(section_start))
+                p_new = p_old + rss.forcing_scale[pkey] * (f(time_shift) - f(section_start))
             else
-                p_new = p_old + rss.forcing_scale[pkey] * 
-                    (f(section_end) - f(section_start))
+                p_new = p_old + rss.forcing_scale[pkey] * (f(section_end) - f(section_start))
             end
         else
             p_new = p_old
         end
-        pdummy[pkey] = p_new
+        p_dummy[pkey] = p_new
     end
     set_parameters!(ds_dummy, p_dummy, rss.pdummy)
     return nothing
@@ -263,9 +266,9 @@ function frozen_system(rs::RateSystem, t)
     if rs isa CoupledSDEs
         IIP = SciMLBase.isinplace(rs)
         prob = referenced_sciml_prob(rs)
-        new_prob = SDEProblem{IIP}(
+        new_prob = SciMLBase.SDEProblem{IIP}(
             dynamic_rule(rs.specs.unforced_system), prob.g, current_state(rs),
-            (t0, prob.tspan[2]), p;
+            (t, prob.tspan[2]), p;
             noise_rate_prototype = prob.noise_rate_prototype,
             noise = prob.noise,
         )
@@ -294,6 +297,8 @@ for f in (
         rs.system, args...; kw...
     )
 end
+
+DynamicalSystemsBase.current_parameters(rs::RateSystem, t::Real) = parameters(rs, t)
 
 reinit!(rs::RateSystem, u=initial_state(rs); kw...) = reinit!(rs.system, u; kw...)
 
