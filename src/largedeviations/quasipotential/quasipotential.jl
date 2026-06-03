@@ -111,8 +111,8 @@ function _quasipotential_impl(
         regularization::T, verbose::Bool, show_progress::Bool,
     ) where {IIP, D, I, P, T, K, K_seed}
     src = _source_cell(grid, x_A)
-    state = _OLIMState(grid, T)
     L = _geometric_lagrangian(sys, T; regularization = regularization)
+    state = _OLIMState(grid, T, L.Q_inv isa SMatrix)
     _sweep!(
         state, grid, src, sys, L, Val(K), Val(K_seed);
         verbose = verbose, show_progress = show_progress,

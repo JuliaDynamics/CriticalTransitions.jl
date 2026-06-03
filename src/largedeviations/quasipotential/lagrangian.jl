@@ -170,6 +170,12 @@ return `SVector{D, T}` regardless of `IIP`. The trace-normalized diffusion is cl
 by `_degenerate_split`: full rank builds a `_GeometricLagrangian` directly; a single
 noiseless coordinate is regularized (`a + regularization * e_z e_z'`, leaving the noisy
 block exact) and then builds a `_GeometricLagrangian`; unsupported degeneracy throws.
+
+The degeneracy structure is classified once at `current_state(sys)` and assumed constant
+over the domain. For multiplicative noise the regularized coordinate `z` is fixed from
+that single sample; the rank-1 use cases (e.g. momentum-only noise) have a constant null
+coordinate, so this holds, but a diffusion whose null coordinate moves with `x` is not
+detected here.
 """
 function _geometric_lagrangian(
         sys::CoupledSDEs{IIP, D}, ::Type{T};

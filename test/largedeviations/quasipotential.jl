@@ -257,6 +257,25 @@ const CT_ = CriticalTransitions
         @test CT_._diffusion_at(Lf, SVector(0.0, 0.0)) ≈ SMatrix{2, 2, Float64}(I)
     end
 
+    @testset "cached line integral == live (additive)" begin
+        # The cached additive path must be bitwise-identical to the live path; this
+        # locks the equivalence the drift cache relies on.
+        b = x -> SVector(-x[1], x[1] - x[2])
+        Qinv = SMatrix{2, 2, Float64}(2.0, 0.3, 0.3, 1.5)   # symmetric PD
+        L = CT_._GeometricLagrangian{2, Float64}(b, Qinv, 1.0e-10)
+        nd(x) = (bb = b(x); q = dot(bb, Qinv * bb); CT_._NodeData{2, Float64}(bb, q, sqrt(q)))
+        y = SVector(0.2, -0.4); v = SVector(0.1, 0.25)
+        live = CT_._line_integral(L, y, v)
+        @test CT_._line_integral(L, y, v, nd(y), nd(y + v)) == live   # both endpoints cached
+        @test CT_._line_integral(L, y, v, nothing, nd(y + v)) == live # only s=1 cached (edge use)
+        @test CT_._line_integral(L, y, v, nd(y), nothing) == live     # only s=0 cached
+        # near-zero-drift branch (|b|²_Q < eps_b²) must also match
+        bz = x -> SVector(0.0, 0.0)
+        Lz = CT_._GeometricLagrangian{2, Float64}(bz, Qinv, 1.0e-10)
+        ndz = CT_._NodeData{2, Float64}(SVector(0.0, 0.0), 0.0, 0.0)
+        @test CT_._line_integral(Lz, y, v, ndz, ndz) == CT_._line_integral(Lz, y, v)
+    end
+
     @testset "default_regularization" begin
         g80 = CartesianGrid((-1.0, 1.0, 80), (-1.0, 1.0, 80))
         @test CT_.default_regularization(g80) ≈ 0.04
@@ -282,6 +301,15 @@ const CT_ = CriticalTransitions
         g3(u, p, t) = @SMatrix [0.0 0.0 0.0; 0.0 0.0 0.0; 0.0 0.0 1.0]
         sys3 = CoupledSDEs(drift3, SA[0.0, 0.0, 0.0]; g = g3, noise_prototype = SMatrix{3, 3}(zeros(3, 3)))
         @test_throws ArgumentError CT_._geometric_lagrangian(sys3, Float64; regularization = 0.04)
+
+        # state-dependent rank-1 noise -> dynamic regularized metric (_QInvRegDynamic),
+        # not the constant SMatrix branch. The regularized metric must be PD everywhere.
+        gmul(u, p, t) = @SMatrix [0.0 0.0; 0.0 sqrt(2.0) * (1.0 + 0.2 * u[1]^2)]
+        sysm = CoupledSDEs(drift, SA[0.0, 0.0]; g = gmul, noise_prototype = SMatrix{2, 2}(zeros(2, 2)))
+        Lm = CT_._geometric_lagrangian(sysm, Float64; regularization = 0.04)
+        @test !(Lm.Q_inv isa SMatrix)                                   # dynamic metric
+        @test all(isposdef(inv(Lm.Q_inv(SVector(x, p)))) for x in (-0.5, 0.0, 0.5), p in (-0.3, 0.3))
+        @test_throws ArgumentError CT_._geometric_lagrangian(sysm, Float64)  # needs reg
     end
 
     @testset "regularized OLIM: equilibrium Langevin" begin

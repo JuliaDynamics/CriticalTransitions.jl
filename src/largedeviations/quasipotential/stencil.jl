@@ -1,7 +1,9 @@
 # Circular-stencil offsets, sorted by squared radius. Returned as a `const` `Vector`
 # (built once per `(K, D)`): iterating the cached vector is linear, whereas the old
 # tuple form hit Julia's large-tuple iteration cliff for the wide stencils that
-# anisotropic problems require (e.g. K=12 -> a ~450-element tuple).
+# anisotropic problems require (e.g. K=12 -> a ~450-element tuple). The same vector
+# instance is shared across all calls with the same `(K, D)`; callers iterate it
+# read-only and must never mutate it.
 @generated function _stencil_offsets(::Val{K}, ::Val{D}) where {K, D}
     offsets = CartesianIndex{D}[]
     box = ntuple(_ -> -K:K, D)
