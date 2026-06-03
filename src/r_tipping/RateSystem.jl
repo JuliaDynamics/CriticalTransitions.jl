@@ -34,23 +34,26 @@ end
 Construct a non-autonomous dynamical system by applying time-dependent parametric
 forcing protocols to an underlying autonomous continuous-time dynamical system `ds`.
 
-`forcing_profile` must be a `Dict` mapping parameter indices (anything valid for
-`set_parameter!`) to `ForcingProfile` instances; each entry defines the functional
-form of how the corresponding parameter evolves over time.
+`forcing_profile` is a `Dict` mapping parameter indices (anything valid for
+`set_parameter!`) to [`ForcingProfile`](@ref) instances.
+Each entry defines the functional form of how the corresponding parameter evolves over time.
+The profile is then combined with how long, and how large, each parameter forcing is,
+using the keywords below.
 
 ## Keyword arguments
-- `forcing_start_time` (default: `initial_time(ds)`) — start time(s) for the parameter
+- `forcing_start_time = initial_time(ds)`: start time(s) for the parameter
     ramping. You may supply an `AbstractDict` mapping keys to start times, or a scalar
     value which will be applied to all forcing profiles.
-- `forcing_duration` (default: `1.0`) — duration of the parameter ramping (in system
+- `forcing_duration = 1.0`: duration of the parameter ramping (in system
     time units). Can be an `AbstractDict` mapping keys to durations or a scalar
     applied to all forcing profiles.
-- `forcing_scale` (default: `1.0`) — amplitude multiplicative factor of the forcing
+- `forcing_scale = 1.0`: amplitude multiplicative factor of the forcing
     profile. Can be an `AbstractDict` mapping keys to scales or a scalar applied to
     all forcing profiles.
-- `t0` (default: `initial_time(ds)`) — initial time of the `RateSystem`.
+- `t0 = initial_time(ds): initial time of the `RateSystem`.
 
 ## Description
+
 The profile `interval` defines the domain of the forcing function; when applied
 to the system the profile is rescaled in system time units using the
 configured `start` and `duration` values - this allow changing the rate of the
@@ -59,11 +62,17 @@ autonomous value; during the forcing interval it follows the rescaled profile (m
 by the corresponding `forcing_scale` factor); after the interval the parameter is frozen
 at its final value.
 
-## Multiple parameters
-Pass a `Dict` with one `ForcingProfile` per parameter to force multiple
-parameters simultaneously. The `forcing_start_time`, `forcing_duration`, and
-`forcing_scale` keywords accept the same flexibility (per-key `Dict` or scalar
-applied to all keys) in this mode.
+To modify a rate system after it has been created, use
+[`set_forcing_duration!`](@ref)`, [`set_forcing_scale!`](@ref)`, [`set_forcing_start!`](@ref)`
+and to obtain time dependent parametes use [`parameters`](@ref), [`parameter`](@ref).
+
+## Single parameter
+
+You can use the convenience syntax
+
+    RateSystem(ds::ContinuousTimeDynamicalSystem, fp::ForcingProfile, pidx; kw...)
+
+if you are only varying a single parameter with index `pidx`.
 """
 struct RateSystem{S,R} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
