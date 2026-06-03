@@ -253,7 +253,7 @@ const CT_ = CriticalTransitions
     end
 
     @testset "diffusion accessor" begin
-        Lf = CT_._GeometricLagrangian{2, Float64}(x -> -x, SMatrix{2, 2, Float64}(I), 1e-10)
+        Lf = CT_._GeometricLagrangian{2, Float64}(x -> -x, SMatrix{2, 2, Float64}(I), 1.0e-10)
         @test CT_._diffusion_at(Lf, SVector(0.0, 0.0)) ≈ SMatrix{2, 2, Float64}(I)
     end
 
@@ -308,7 +308,7 @@ const CT_ = CriticalTransitions
         isad = argmin(abs.(xs)); jsad = argmin(abs.(ps))
         @test abs(qp.U[isad, jsad] - 0.25) <= 0.02               # saddle barrier
         @test qp.U[qp.source] == 0.0
-        @test all(>=(-1e-8), filter(isfinite, qp.U))
+        @test all(>=(-1.0e-8), filter(isfinite, qp.U))
     end
 
     @testset "regularized OLIM: van der Pol (non-equilibrium)" begin
