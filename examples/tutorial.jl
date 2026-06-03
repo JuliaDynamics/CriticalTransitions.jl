@@ -82,7 +82,7 @@ pidx = :I # which parameter changes
 rs = RateSystem(ds, fp, pidx;
     forcing_start_time = 10,
     forcing_duration = 10,
-    forcing_scale = 5
+    forcing_scale = 5,
 )
 
 # In the above example the current `I` will linearly ramp from 0 to 5 in the time window 10 to 20.
@@ -95,6 +95,19 @@ rs = RateSystem(ds, fp, pidx;
 #   scaled in magnitude by `forcing_scale`.
 # - `t > forcing_start_time + forcing_duration`: the system is again autonomous, with
 #   parameters fixed at their values attained at the end of the forcing interval.
+
+# now if we choose the `reverse` option,
+
+rs = RateSystem(ds, fp, pidx;
+    forcing_start_time = 10,
+    forcing_duration = 10,
+    forcing_scale = 5,
+    reverse = true,
+)
+
+# then while `t ∈ forcing_start_time .+ (forcing_duration, 2forcing_duration)`,
+# the forcing will be reversed all the way back to the starting parameters of
+# the underlying autonomous system.
 
 # Let's simulate both the autonomous and non-autonomous systems to see the difference:
 
@@ -220,3 +233,5 @@ instanton = geometric_min_action_method(sys, initial_state, current_state(sys))
 # Both random and rate systems can easily access the rest of DynamicalSystems.jl.
 # The way to achieve this is to cast the systems back to their deterministic autonomous forms
 # (as this is the type of systems the rest of DynamicalSystems.jl covers).
+# For example, the Attractors.jl documentation has an example for finding the edge state
+# (using edge tracking) for the Fitzhugh-Nagumo model.
