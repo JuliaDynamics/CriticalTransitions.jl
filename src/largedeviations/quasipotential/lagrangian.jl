@@ -45,6 +45,46 @@ interior root.
     return ((aₖ + bₖ) / 2, true)
 end
 
+const _OLIM_MULTI_NOISELESS_MSG =
+    "OLIM supports at most one noiseless coordinate (|Z| = 1). This diffusion has " *
+    "two or more zero coordinates (a sub-Riemannian problem), which is not supported. " *
+    _RANK_DEFICIENT_MSG
+
+const _OLIM_ROTATED_NULL_MSG =
+    "OLIM requires either an invertible diffusion or a single coordinate-aligned " *
+    "noiseless coordinate. This diffusion is singular with a non-coordinate-aligned " *
+    "null space, which is not supported. " * _RANK_DEFICIENT_MSG
+
+"""
+    _degenerate_split(a0; atol) -> (is_degenerate, z, R_idx)
+
+Classify the trace-normalized diffusion `a0`. Returns `(false, 0, 1:D)` for full rank,
+`(true, z, R_idx)` when exactly one coordinate `z` is noiseless (its row and column are
+numerically zero) and the remaining block `a0[R, R]` is positive-definite. Throws for two
+or more noiseless coordinates or a singular `a0` with a non-coordinate-aligned null space.
+"""
+function _degenerate_split(a0::AbstractMatrix{T}; atol::T = sqrt(eps(real(T)))) where {T}
+    D = LinearAlgebra.checksquare(a0)
+    is_zero_rowcol(i) = all(j -> abs(a0[i, j]) <= atol, 1:D) &&
+        all(j -> abs(a0[j, i]) <= atol, 1:D)
+    Z = findall(is_zero_rowcol, 1:D)
+    if isempty(Z)
+        if LinearAlgebra.cond(Matrix(a0)) > 1 / sqrt(eps(real(T)))
+            throw(ArgumentError(_OLIM_ROTATED_NULL_MSG))
+        end
+        return (false, 0, SVector{D, Int}(ntuple(identity, D)))
+    elseif length(Z) == 1
+        z = Z[1]
+        Ridx = SVector{D - 1, Int}(ntuple(k -> k < z ? k : k + 1, D - 1))
+        A_RR = Matrix(a0[Ridx, Ridx])
+        LinearAlgebra.isposdef(LinearAlgebra.Symmetric(A_RR)) ||
+            throw(ArgumentError(_OLIM_ROTATED_NULL_MSG))
+        return (true, z, Ridx)
+    else
+        throw(ArgumentError(_OLIM_MULTI_NOISELESS_MSG))
+    end
+end
+
 """
 Internal wrapper bundling drift, trace-normalized inverse metric, and the
 near-zero-drift threshold for `L_g(x, v) = |v|_Q |b|_Q - <v, b>_Q`.
@@ -104,15 +144,36 @@ end
 _make_Q_inv(a_fn, ::Val{D}, ::Type{T}) where {D, T} =
     _QInvDynamic{D, T, typeof(a_fn)}(a_fn)
 
+@inline _onehot_diag(::Val{D}, z::Int, ::Type{T}) where {D, T} =
+    SMatrix{D, D, T}(LinearAlgebra.Diagonal(SVector{D, T}(ntuple(i -> T(i == z), D))))
+
+# Multiplicative-noise inverse metric with the noiseless coordinate `z` regularized by
+# `delta`, so the otherwise-singular trace-normalized diffusion is invertible. The
+# `delta * e_z e_z'` regularizer is constant, so it is precomputed once into `reg`.
+struct _QInvRegDynamic{D, T, F, L}
+    a_fn::F
+    reg::SMatrix{D, D, T, L}
+end
+@inline function (q::_QInvRegDynamic{D, T})(x::SVector{D}) where {D, T}
+    a = SMatrix{D, D, T}(q.a_fn(x))
+    return inv(a + q.reg)
+end
+_make_Q_inv_reg(a_fn, z::Int, delta::T, ::Val{D}, ::Type{T}) where {D, T} =
+    _QInvRegDynamic{D, T, typeof(a_fn), D * D}(a_fn, delta * _onehot_diag(Val(D), z, T))
+
+# Diffusion tensor `a(x)` for the analytic CARE seed: invert the stored `Q_inv`.
+@inline _diffusion_at(L::_GeometricLagrangian, x) = inv(_Q_inv_at(L.Q_inv, x))
+
 """
-Build a `_GeometricLagrangian` from `sys`. Drift via `dynamic_rule(sys)`,
-wrapped to return `SVector{D, T}` regardless of `IIP`. `Q_inv` via
-`_trace_normalized_a(sys)`, inverted to an `SMatrix` (additive) or wrapped
-as `x -> inv(SMatrix(...))` (multiplicative).
+Build the per-segment Lagrangian from `sys`. Drift via `dynamic_rule(sys)`, wrapped to
+return `SVector{D, T}` regardless of `IIP`. The trace-normalized diffusion is classified
+by `_degenerate_split`: full rank builds a `_GeometricLagrangian` directly; a single
+noiseless coordinate is regularized (`a + regularization * e_z e_z'`, leaving the noisy
+block exact) and then builds a `_GeometricLagrangian`; unsupported degeneracy throws.
 """
 function _geometric_lagrangian(
         sys::CoupledSDEs{IIP, D}, ::Type{T};
-        eps_b::T = T(1.0e-10),
+        eps_b::T = T(1.0e-10), regularization::Real = zero(T),
     ) where {IIP, D, T}
     raw = dynamic_rule(sys); p = current_parameters(sys)
     b = if IIP
@@ -121,11 +182,21 @@ function _geometric_lagrangian(
         _make_b_oop(raw, p, Val(D))
     end
     a_fn = _trace_normalized_a(sys)
-    Q_inv = if a_fn isa Base.Returns
-        inv(SMatrix{D, D, T}(a_fn(current_state(sys))))
-    else
-        _make_Q_inv(a_fn, Val(D), T)
+    a0 = SMatrix{D, D, T}(a_fn(current_state(sys)))
+    is_deg, z, _ = _degenerate_split(a0)
+    if !is_deg
+        Q_inv = a_fn isa Base.Returns ? inv(a0) : _make_Q_inv(a_fn, Val(D), T)
+        return _GeometricLagrangian{D, T}(b, Q_inv, eps_b)
     end
+    δ = T(regularization)
+    δ > zero(T) || throw(
+        ArgumentError(
+            "rank-1 diffusion needs regularization > 0 to invert the metric; got $δ",
+        ),
+    )
+    Q_inv = a_fn isa Base.Returns ?
+        inv(a0 + δ * _onehot_diag(Val(D), z, T)) :
+        _make_Q_inv_reg(a_fn, z, δ, Val(D), T)
     return _GeometricLagrangian{D, T}(b, Q_inv, eps_b)
 end
 

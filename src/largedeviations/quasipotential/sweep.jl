@@ -43,7 +43,7 @@ function _seed_near_source!(
             @info "OLIM: attractor cell is not strictly stable; analytic seed skipped"
         return state
     end
-    Q_mat = L.Q_inv isa SMatrix ? inv(L.Q_inv) : inv(L.Q_inv(x_A))
+    Q_mat = _diffusion_at(L, x_A)
     P = try
         _care(Matrix(A_jac), Matrix(Q_mat))
     catch err

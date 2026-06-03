@@ -17,6 +17,19 @@ Within these bounds the radius is `round(Int, sqrt(minimum(grid.nbox)))`.
     return clamp(round(Int, sqrt(minimum(grid.nbox))), floor_K, cap_K)
 end
 
+"""
+    default_regularization(grid::CartesianGrid) -> T
+
+Default regularization for rank-1 (single noiseless coordinate) diffusion: the amount
+added to the noiseless diagonal of the trace-normalized diffusion so the metric is
+invertible. Proportional to the noiseless cell fraction (`1 / minimum(grid.nbox)`) so it
+vanishes under refinement, with the constant calibrated to about `0.04` at `80` cells
+across. Ignored for full-rank systems; override with the `regularization` keyword of
+[`quasipotential`](@ref).
+"""
+@inline default_regularization(grid::CartesianGrid{D, T}) where {D, T} =
+    T(3.2) / minimum(grid.nbox)
+
 function _source_cell(
         grid::CartesianGrid{D, T}, attractor::SVector{D, T}
     ) where {D, T}
@@ -49,6 +62,11 @@ dimension `D` is taken from `sys::CoupledSDEs{IIP, D, I, P}` and must match
 * `band_radius::Int  = default_K(grid)`: accepted-band radius in grid cells.
 * `near_source_layers::Int = 3`: size of the analytic CARE seed box;
   `0` disables analytic seeding.
+* `regularization::Real = default_regularization(grid)`: for systems with one
+  noiseless coordinate (rank-1 diffusion), the amount added to that coordinate's
+  diagonal of the trace-normalized diffusion to make the metric invertible. Smaller
+  values are more accurate but stiffer; reduce it as the grid is refined. Ignored for
+  full-rank systems.
 * `verbose::Bool      = false`
 * `show_progress::Bool = true`
 
@@ -60,6 +78,7 @@ function quasipotential(
         attractor::AbstractVector{<:Real};
         band_radius::Int = default_K(grid),
         near_source_layers::Int = 3,
+        regularization::Real = default_regularization(grid),
         verbose::Bool = false,
         show_progress::Bool = true,
     ) where {IIP, D, I, P, T}
@@ -74,7 +93,7 @@ function quasipotential(
     return _quasipotential_impl(
         sys, grid, x_A,
         Val(band_radius), Val(near_source_layers),
-        verbose, show_progress,
+        T(regularization), verbose, show_progress,
     )
 end
 
@@ -83,11 +102,11 @@ function _quasipotential_impl(
         grid::CartesianGrid{D, T},
         x_A::SVector{D, T},
         ::Val{K}, ::Val{K_seed},
-        verbose::Bool, show_progress::Bool,
+        regularization::T, verbose::Bool, show_progress::Bool,
     ) where {IIP, D, I, P, T, K, K_seed}
     src = _source_cell(grid, x_A)
     state = _OLIMState(grid, T)
-    L = _geometric_lagrangian(sys, T)
+    L = _geometric_lagrangian(sys, T; regularization = regularization)
     _sweep!(
         state, grid, src, sys, L, Val(K), Val(K_seed);
         verbose = verbose, show_progress = show_progress,
