@@ -39,7 +39,11 @@ end
                 :get_extension,
                 :register_error_hint,
                 :JacobianConfig,
+                :jacobian,
                 :jacobian!,
+                :successful_retcode,
+                :jacobian,
+                :checksquare,
             ),
         ),
     )
@@ -53,6 +57,7 @@ end
                 :diffusion_function,
                 :DEFAULT_DIFFEQ,
                 :_decompose_into_solver_and_remaining,
+                :FasterForward,
             ),
         ),
     )

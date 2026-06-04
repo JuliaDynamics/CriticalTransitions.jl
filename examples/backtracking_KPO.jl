@@ -11,7 +11,7 @@
 
 using CriticalTransitions, CairoMakie
 
-# The KPO drift and hardcoded Jacobian (see [`sgMAM_KPO`](@ref) for details):
+# The KPO drift and hardcoded Jacobian (see the [sgMAM KPO example](sgMAM_KPO.md) for details):
 
 const λ = 3 / 1.21 * 2 / 295
 const ω0 = 1.0

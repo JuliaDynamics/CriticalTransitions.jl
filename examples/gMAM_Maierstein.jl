@@ -44,7 +44,7 @@ sys = CoupledSDEs(meier_stein, zeros(2), (); noise_strength = σ)
 
 # We start by investigating the deterministic dynamics of the Maier-Stein model.
 
-# The function `fixed points` return the attractors, their eigenvalues and stability within the state space volume defined by `bmin` and `bmax`.
+# The function `fixedpoints` returns the attractors, their eigenvalues and stability within the state space volume defined by the interval `box`.
 
 using ChaosTools
 
@@ -52,9 +52,10 @@ u_min = -1.1;
 u_max = 1.1;
 v_min = -0.4;
 v_max = 0.4;
-bmin = [u_min, v_min];
-bmax = [u_max, v_max];
-fp, eig, stab = fixedpoints(sys, bmin, bmax)
+box = [interval(u_min, u_max), interval(v_min, v_max)]
+
+ode = CoupledODEs(sys)
+fp, eig, stab = fixedpoints(ode, box)
 stable_fp = fp[stab]
 
 #
@@ -242,7 +243,7 @@ for i in 1:length(tt.paths)
 end
 fig
 
-# ## Large deviation theory
+# ## A primer on large deviation theory
 
 # In the context of nonlinear dynamics, Large Deviation Theory provides tools to quantify the probability of rare events that deviate significantly from the system's typical behavior. These rare events might be extreme values of a system's output, sudden transitions between different states, or other phenomena that occur with very low probability but can have significant implications for the system's overall behavior.
 

@@ -6,14 +6,14 @@ via Monte Carlo rejection sampling. While [`transition`](@ref) samples one trans
 the [`transitions`](@ref) function generates an ensemble of transition paths. It supports
 parallelization on multiple threads to speed up the run.
 
-```@docs
+```@docs; canonical=false
 transition
 transitions
 ```
 
 Results from the [`transitions`](@ref) function are organized in the following types:
 
-```@docs
+```@docs; canonical=false
 CriticalTransitions.TransitionEnsemble
 CriticalTransitions.TransitionStatistics
 ```

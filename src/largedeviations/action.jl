@@ -89,15 +89,15 @@ Computes the action functional specified by `functional` for a given CoupledSDEs
 * `functional = "FW"`: Returns the Freidlin-Wentzell action ([`fw_action`](@ref))
 * `functional = "OM"`: Returns the Onsager-Machlup action ([`om_action`](@ref))
 """
-function action(sys::CoupledSDEs, path::Matrix, time, functional::AbstractString; noise_strength = nothing)
+function action(sys::CoupledSDEs, path::AbstractMatrix, time, functional::AbstractString; noise_strength = nothing)
     return action(sys, path, time, Val{Symbol(functional)}(); noise_strength)
 end
 
-action(sys::CoupledSDEs, path::Matrix, time, ::Val{:FW}; noise_strength = nothing) =
+action(sys::CoupledSDEs, path::AbstractMatrix, time, ::Val{:FW}; noise_strength = nothing) =
     fw_action(sys, path, time)
-action(sys::CoupledSDEs, path::Matrix, time, ::Val{:OM}; noise_strength = nothing) =
+action(sys::CoupledSDEs, path::AbstractMatrix, time, ::Val{:OM}; noise_strength = nothing) =
     om_action(sys, path, time, noise_strength)
-function action(sys::CoupledSDEs, path::Matrix, time, ::Val{S}; noise_strength = nothing) where {S}
+function action(sys::CoupledSDEs, path::AbstractMatrix, time, ::Val{S}; noise_strength = nothing) where {S}
     throw(
         ArgumentError(
             "Unknown action functional `$(S)`. Supported values are \"FW\" and \"OM\".",

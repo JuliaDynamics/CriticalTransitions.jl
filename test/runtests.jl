@@ -35,6 +35,9 @@ end
     include("largedeviations/string_method.jl")
     include("largedeviations/Maier_stein.jl")
     include("largedeviations/interpolate.jl")
+    include("largedeviations/multiple_shooting.jl")
+    include("largedeviations/multiple_shooting_rejection.jl")
+    include("largedeviations/quasipotential.jl")
 end
 
 @testset "Diffusion operator" begin
@@ -57,12 +60,6 @@ end
 # Disabled until #280's RateSystem refactor is finished — see PR #310.
 @testset "R-tipping" begin
     include("r_tipping/RateSystem.jl")
-end
-
-@testset "Extensions" begin
-    @testset "DistMesh2D" begin
-        include("ext/DistMesh2D.jl")
-    end
 end
 
 @testset "Doctests" begin
