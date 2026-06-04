@@ -76,6 +76,7 @@ parameter is frozen at its final value.
 
 To modify a rate system after it has been created, use
 [`set_forcing_duration!`](@ref)`, [`set_forcing_scale!`](@ref)`, [`set_forcing_start!`](@ref)`
+[`set_forcing_reverse!`](@ref)`
 and to obtain time dependent parametes use [`parameters`](@ref), [`parameter`](@ref).
 
 ## Single parameter
@@ -284,6 +285,25 @@ function set_forcing_start!(rs::RateSystem, start_time; pkey=nothing)
     end
     return rs
 end
+
+"""
+$(TYPEDSIGNATURES)
+
+Set whether the rate forcing is also reversed for the [`RateSystem`](@ref) `rs`.
+If the optional keyword `pkey` is provided, only the
+reversing for that parameter is changed; otherwise all forcings are updated to the given value.
+"""
+function set_forcing_reverse!(rs::RateSystem, value; pkey=nothing)
+    if isnothing(pkey)
+        for k in keys(rs.specs.forcing_profile)
+            rs.specs.forcing_reverse[k] = value
+        end
+    else
+        rs.specs.forcing_reverse[pkey] = value
+    end
+    return rs
+end
+
 
 """
 $(TYPEDSIGNATURES)
