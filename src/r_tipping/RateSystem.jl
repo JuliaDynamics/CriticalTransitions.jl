@@ -10,7 +10,7 @@ $(TYPEDFIELDS)
 Call signature: `(::RateSystemSpecs)(u, p, t)` for out-of-place and
 `(::RateSystemSpecs)(du, u, p, t)` for in-place dynamical systems.
 """
-mutable struct RateSystemSpecs{S,K,T,P,X} <: Function
+mutable struct RateSystemSpecs{S,K,T,TT,P,X} <: Function
     "Underlying autonomous system"
     unforced_system::S
     "Mapping parameter index => ForcingProfile"
@@ -20,7 +20,7 @@ mutable struct RateSystemSpecs{S,K,T,P,X} <: Function
     "Mapping parameter index => forcing duration"
     forcing_duration::Dict{K,T}
     "Mapping parameter index => forcing scale"
-    forcing_scale::Dict{K,T}
+    forcing_scale::Dict{K,TT}
     "Mapping parameter index => whether forcing should reverse"
     forcing_reverse::Dict{K,Bool}
     "Frozen system original parameters"
@@ -98,7 +98,7 @@ function RateSystem(
         ds::ContinuousTimeDynamicalSystem,
         forcing_profile::AbstractDict;
         forcing_start_time=initial_time(ds),
-        forcing_duration=1.0,
+        forcing_duration=one(initial_time(ds)),
         forcing_scale=1.0,
         reverse=false,
         t0=initial_time(ds),
