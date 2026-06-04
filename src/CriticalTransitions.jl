@@ -123,7 +123,7 @@ export StateSpaceSet
 
 export FreidlinWentzellHamiltonian
 export fw_action, om_action, action, geometric_action
-export minimize_action, action_minimizer, minimize_geometric_action, string_method
+export minimize_action, minimize_geometric_action, string_method
 export MinimumActionPath
 export GeometricGradient, AdaptiveGeometricGradient, MultipleShooting
 export quasipotential

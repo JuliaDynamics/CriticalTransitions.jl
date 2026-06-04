@@ -1,5 +1,5 @@
 # Utility functions
 
-```@docs
+```@docs; canonical=false
 CriticalTransitions.normalize_covariance!
 ```

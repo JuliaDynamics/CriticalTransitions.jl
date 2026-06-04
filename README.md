@@ -2,10 +2,9 @@
 
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliadynamics.github.io/CriticalTransitions.jl/dev/)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/CriticalTransitions.jl/stable/)
-[![Tests](https://github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/Tests.yml/badge.svg)](github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/ci.yml)
+[![Tests](https://github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/Tests.yml/badge.svg)](https://github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/ci.yml)
 [![Benchmarks](https://github.com/JuliaDynamics/CriticalTransitions.jl/actions/workflows/Benchmarks.yaml/badge.svg?branch=main)](https://juliadynamics.github.io/CriticalTransitions.jl/benchmarks/)
 
-[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![JET](https://img.shields.io/badge/%E2%9C%88%EF%B8%8F%20tested%20with%20-%20JET.jl%20-%20red)](https://github.com/aviatesk/JET.jl)
 
@@ -26,7 +25,7 @@ CriticalTransitions.jl can be used as a standalone package, or as part of
 
 To install it, run `import Pkg; Pkg.add("CriticalTransitions")`.
 
-All further information is provided in the documentation, which you can either find [online](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/criticaltransitions/stable/) or build locally by running the `docs/make.jl` file.
+All further information is provided in the [documentation](https://juliadynamics.github.io/CriticalTransitions.jl/stable/).
 
 ---
 

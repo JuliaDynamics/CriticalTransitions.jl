@@ -33,3 +33,4 @@ docs/style.jl
 docs/src/examples/*.md
 !docs/src/examples/RateSystem.md
 !docs/src/examples/stochastic-dynamics.md
+docs/build_docs_with_style.jl

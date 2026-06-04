@@ -27,6 +27,7 @@ bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style = :autho
 links = InterLinks(
     "DynamicalSystemsBase" => "https://juliadynamics.github.io/DynamicalSystemsBase.jl/stable/",
     "Attractors" => "https://juliadynamics.github.io/Attractors.jl/stable/",
+    "ChaosTools" => "https://juliadynamics.github.io/ChaosTools.jl/stable/",
     # "DiffEqNoiseProcess" => "https://docs.sciml.ai/DiffEqNoiseProcess/stable/",
     # "DifferentialEquations" => "https://docs.sciml.ai/DiffEqDocs/stable/",
     # "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",
@@ -77,16 +78,28 @@ end
 
 modules = [CriticalTransitions, DynamicalSystemsBase, Attractors, ChaosTools]
 
+# URLs that are valid but cannot pass `linkcheck`: academic publishers that
+# return 403 to automated requests (Wiley, Annual Reviews) and a few external
+# pages that are reachable in a browser but unreliable under the short
+# `linkcheck_timeout` (author homepages, the CriticalEarth site, the SciML
+# DiffEq redirect). Skipping the check for these keeps the build deterministic.
+linkcheck_ignore = [
+    r"https://onlinelibrary\.wiley\.com/.*",
+    r"https://www\.annualreviews\.org/.*",
+    r"https://homepages\.warwick\.ac\.uk/.*",
+    r"https://www\.math\.drexel\.edu/.*",
+    r"https://diffeq\.sciml\.ai/.*",
+    r"https://www\.criticalearth\.eu.*",
+]
+
 # Build docs
 build_docs_with_style(
     pages,
     modules...;
     plugins = [bib, links],
-    # Broad warnonly until #280's docs cleanup lands; some example pages have
-    # stale code that errors at @example evaluation.
-    warnonly = true,
     authors,
     htmlkw = html_options,
     checkdocs_ignored_modules = [CriticalTransitions.CTLibrary],
+    linkcheck_ignore,
     remotes,
 )
