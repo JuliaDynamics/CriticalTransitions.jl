@@ -21,7 +21,7 @@ using Pkg; Pkg.add("CriticalTransitions")
 
 ## Getting started
 
-See the [Tutorial](@ref), and after that either consult the [API](@ref) page for all the available functionality or visit individual examples!
+See the [Tutorial](@ref "CriticalTransitions.jl Tutorial"), and after that either consult the [API](@ref) page for all the available functionality or visit individual examples!
 
 ## People
 
