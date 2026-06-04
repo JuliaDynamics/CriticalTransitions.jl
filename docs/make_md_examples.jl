@@ -9,7 +9,7 @@ examples = filter!(file -> file[(end - 2):end] == ".jl", readdir(EXAMPLES_IN; jo
 filter!(file -> !contains(file, "make_nb_examples"), examples)
 # Orphan / WIP sources kept in `examples/` for reference but not part of the
 # rendered docs. Skip them so Documenter doesn't process broken Literate output.
-const SKIP_EXAMPLES = ("Langevin_MCMC", "RateSystem_old")
+const SKIP_EXAMPLES = ("Langevin_MCMC",)
 filter!(file -> !any(name -> occursin(name, file), SKIP_EXAMPLES), examples)
 
 if isempty(get(ENV, "CI", ""))

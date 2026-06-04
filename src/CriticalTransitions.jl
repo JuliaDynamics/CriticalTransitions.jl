@@ -36,6 +36,7 @@ using DynamicalSystemsBase:
     initial_parameters,
     current_parameter,
     current_parameters,
+    set_parameter!,
     set_parameters!,
     initial_time,
     integrator,
