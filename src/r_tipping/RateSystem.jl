@@ -23,6 +23,8 @@ mutable struct RateSystemSpecs{S,K,T,P,X} <: Function
     forcing_scale::Dict{K,T}
     "Mapping parameter index => whether forcing should reverse"
     forcing_reverse::Dict{K,Bool}
+    "Frozen system original parameters"
+    p0::P
     "Placeholder parameter container"
     pdummy::P
     "Initial time (of system initiation)"
@@ -35,6 +37,8 @@ end
 
 Construct a non-autonomous dynamical system by applying time-dependent parametric
 forcing protocols to an underlying autonomous continuous-time dynamical system `ds`.
+The unforced system parameters are copied and are always considered the starting
+parameter values irrespectively of what happens with `ds` afterwards.
 
 `forcing_profile` is a `Dict` mapping parameter indices (anything valid for
 `set_parameter!`) to [`ForcingProfile`](@ref) instances.
@@ -90,13 +94,13 @@ struct RateSystem{S,R} <: ContinuousTimeDynamicalSystem
 end
 
 function RateSystem(
-    ds::ContinuousTimeDynamicalSystem,
-    forcing_profile::AbstractDict;
-    forcing_start_time=initial_time(ds),
-    forcing_duration=1.0,
-    forcing_scale=1.0,
-    reverse=false,
-    t0=initial_time(ds),
+        ds::ContinuousTimeDynamicalSystem,
+        forcing_profile::AbstractDict;
+        forcing_start_time=initial_time(ds),
+        forcing_duration=1.0,
+        forcing_scale=1.0,
+        reverse=false,
+        t0=initial_time(ds),
     )
 
     if isempty(forcing_profile)
@@ -126,6 +130,7 @@ function RateSystem(
         forcing_kw["scale"],
         forcing_kw["reverse"],
         p0,
+        deepcopy(p0),
         t0
     )
 
@@ -171,9 +176,9 @@ function (rss::RateSystemSpecs)(du, u, p, t)
 end
 
 function update_parameters!(rss::RateSystemSpecs, t::Real)
-    ds_dummy = rss.unforced_system
+    unforced = rss.unforced_system
     for (pkey, profile) in rss.forcing_profile
-        p_old = current_parameter(ds_dummy, pkey)
+        p_old = current_parameter(unforced, pkey, rss.p0)
         f = profile.profile
 
         section_start = profile.interval[1]
@@ -198,7 +203,7 @@ function update_parameters!(rss::RateSystemSpecs, t::Real)
         else
             p_new = p_old
         end
-        set_parameter!(ds_dummy, pkey, p_new, rss.pdummy)
+        set_parameter!(unforced, pkey, p_new, rss.pdummy)
     end
     return nothing
 end
