@@ -10,17 +10,17 @@ $(TYPEDFIELDS)
 Call signature: `(::RateSystemSpecs)(u, p, t)` for out-of-place and
 `(::RateSystemSpecs)(du, u, p, t)` for in-place dynamical systems.
 """
-mutable struct RateSystemSpecs{S,K,T,P,X} <: Function
+mutable struct RateSystemSpecs{S, K, T, P, X} <: Function
     "Underlying autonomous system"
     unforced_system::S
     "Mapping parameter index => ForcingProfile"
-    forcing_profile::Dict{K,<:ForcingProfile}
+    forcing_profile::Dict{K, <:ForcingProfile}
     "Mapping parameter index => forcing start time"
-    forcing_start_time::Dict{K,T}
+    forcing_start_time::Dict{K, T}
     "Mapping parameter index => forcing duration"
-    forcing_duration::Dict{K,T}
+    forcing_duration::Dict{K, T}
     "Mapping parameter index => forcing scale"
-    forcing_scale::Dict{K,T}
+    forcing_scale::Dict{K, T}
     "Placeholder parameter container"
     pdummy::P
     "Initial time (of system initiation)"
@@ -50,7 +50,7 @@ using the keywords below.
 - `forcing_scale = 1.0`: amplitude multiplicative factor of the forcing
     profile. Can be an `AbstractDict` mapping keys to scales or a scalar applied to
     all forcing profiles.
-- `t0 = initial_time(ds): initial time of the `RateSystem`.
+- `t0 = initial_time(ds)`: initial time of the `RateSystem`.
 
 ## Description
 
@@ -64,7 +64,7 @@ at its final value.
 
 To modify a rate system after it has been created, use
 [`set_forcing_duration!`](@ref)`, [`set_forcing_scale!`](@ref)`, [`set_forcing_start!`](@ref)`
-and to obtain time dependent parametes use [`parameters`](@ref), [`parameter`](@ref).
+and to obtain time dependent parameters use [`parameters`](@ref), [`parameter`](@ref).
 
 ## Single parameter
 
@@ -74,7 +74,7 @@ You can use the convenience syntax
 
 if you are only varying a single parameter with index `pidx`.
 """
-struct RateSystem{S,R} <: ContinuousTimeDynamicalSystem
+struct RateSystem{S, R} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
     system::S
     "Data structure representing the system and forcing specifications in system units"
@@ -82,20 +82,22 @@ struct RateSystem{S,R} <: ContinuousTimeDynamicalSystem
 end
 
 function RateSystem(
-    ds::ContinuousTimeDynamicalSystem,
-    forcing_profile::AbstractDict;
-    forcing_start_time=initial_time(ds),
-    forcing_duration=1.0,
-    forcing_scale=1.0,
-    t0=initial_time(ds),
+        ds::ContinuousTimeDynamicalSystem,
+        forcing_profile::AbstractDict;
+        forcing_start_time = initial_time(ds),
+        forcing_duration = 1.0,
+        forcing_scale = 1.0,
+        t0 = initial_time(ds),
     )
 
     if isempty(forcing_profile)
         throw(ArgumentError("`forcing_profile` must be a dictionary containing at least one entry"))
     end
 
-    forcing_kw = Dict{String,Any}("start_time" => forcing_start_time, "duration" => forcing_duration,
-        "scale" => forcing_scale)
+    forcing_kw = Dict{String, Any}(
+        "start_time" => forcing_start_time, "duration" => forcing_duration,
+        "scale" => forcing_scale
+    )
 
     for j in keys(forcing_kw)
         if forcing_kw[j] isa Real
@@ -117,29 +119,35 @@ function RateSystem(
         t0
     )
 
-    # preserve CoupledSDEs properties
-    if ds isa CoupledSDEs
-        IIP = SciMLBase.isinplace(ds)
-        prob = referenced_sciml_prob(ds)
-        new_prob = SciMLBase.SDEProblem{IIP}(
-            rss, prob.g, current_state(ds), (t0, prob.tspan[2]), p0;
-            noise_rate_prototype = prob.noise_rate_prototype,
-            noise = prob.noise,
-        )
-        system = CoupledSDEs(new_prob, ds.diffeq, ds.noise_type)
-    elseif ds isa CoupledODEs
-        IIP = SciMLBase.isinplace(ds)
-        prob = SciMLBase.ODEProblem{IIP}(rss, current_state(ds), (t0, Inf), p0)
-        system = CoupledODEs(prob)
-    else
-        error("A RateSystem can only be constructed from a CoupledODEs or CoupledSDEs.")
-    end
-
-    return RateSystem(system, rss)
+    return RateSystem(_forced_system(ds, rss, p0, t0), rss)
 end
 
-RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
-    pkey; kw...) = RateSystem(ds, Dict(pkey => forcing_profile); kw...)
+RateSystem(
+    ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
+    pkey; kw...
+) = RateSystem(ds, Dict(pkey => forcing_profile); kw...)
+
+# preserve CoupledSDEs properties
+function _forced_system(ds::CoupledSDEs, rss, p0, t0)
+    IIP = SciMLBase.isinplace(ds)
+    prob = referenced_sciml_prob(ds)
+    new_prob = SciMLBase.SDEProblem{IIP}(
+        rss, prob.g, current_state(ds), (t0, prob.tspan[2]), p0;
+        noise_rate_prototype = prob.noise_rate_prototype,
+        noise = prob.noise,
+    )
+    return CoupledSDEs(new_prob, ds.diffeq, ds.noise_type)
+end
+
+function _forced_system(ds::CoupledODEs, rss, p0, t0)
+    IIP = SciMLBase.isinplace(ds)
+    prob = SciMLBase.ODEProblem{IIP}(rss, current_state(ds), (t0, Inf), p0)
+    return CoupledODEs(prob)
+end
+
+_forced_system(::ContinuousTimeDynamicalSystem, rss, p0, t0) = throw(
+    ArgumentError("A RateSystem can only be constructed from a CoupledODEs or CoupledSDEs.")
+)
 
 # Out-of-place
 function (rss::RateSystemSpecs)(u, p, t)
@@ -214,7 +222,7 @@ Sets the amplitude (`forcing_scale`) of the forcing of the [`RateSystem`](@ref) 
 If the keyword `pkey` is provided, only the corresponding parameter's forcing scale is
 changed; otherwise the forcing scale of all parameters is updated to `scale`.
 """
-function set_forcing_scale!(rs::RateSystem, scale; pkey=nothing)
+function set_forcing_scale!(rs::RateSystem, scale; pkey = nothing)
     if isnothing(pkey)
         for k in keys(rs.specs.forcing_profile)
             rs.specs.forcing_scale[k] = scale
@@ -232,7 +240,7 @@ Sets the duration (`forcing_duration`) of the forcing protocol applied to
 the [`RateSystem`](@ref) `rs`. If the optional keyword `pkey` is provided, only the
 duration for that parameter is changed; otherwise all parameters are updated.
 """
-function set_forcing_duration!(rs::RateSystem, duration; pkey=nothing)
+function set_forcing_duration!(rs::RateSystem, duration; pkey = nothing)
     if isnothing(pkey)
         for k in keys(rs.specs.forcing_profile)
             rs.specs.forcing_duration[k] = duration
@@ -250,7 +258,7 @@ Sets the start time (`forcing_start_time`) of the forcing protocol applied to
 the [`RateSystem`](@ref) `rs`. If the optional keyword `pkey` is provided, only the
 start time for that parameter is changed; otherwise all parameters are updated.
 """
-function set_forcing_start!(rs::RateSystem, start_time; pkey=nothing)
+function set_forcing_start!(rs::RateSystem, start_time; pkey = nothing)
     if isnothing(pkey)
         for k in keys(rs.specs.forcing_profile)
             rs.specs.forcing_start_time[k] = start_time
@@ -267,39 +275,43 @@ $(TYPEDSIGNATURES)
 Returns an autonomous dynamical system corresponding to the frozen system of the
 non-autonomous [`RateSystem`](@ref) `rs` at time `t`.
 """
-function frozen_system(rs::RateSystem, t)
+function frozen_system(rs::RateSystem{<:CoupledODEs}, t)
     p = parameters(rs, t)
-    # preserve CoupledSDEs properties
-    if rs isa CoupledSDEs
-        IIP = SciMLBase.isinplace(rs)
-        prob = referenced_sciml_prob(rs)
-        new_prob = SciMLBase.SDEProblem{IIP}(
-            dynamic_rule(rs.specs.unforced_system), prob.g, current_state(rs),
-            (t, prob.tspan[2]), p;
-            noise_rate_prototype = prob.noise_rate_prototype,
-            noise = prob.noise,
-        )
-        return CoupledSDEs(new_prob, rs.diffeq, rs.noise_type)
-    else
-        return CoupledODEs(dynamic_rule(rs.specs.unforced_system), current_state(rs), p)
-    end
+    unforced_rule = dynamic_rule(rs.specs.unforced_system)
+    return CoupledODEs(unforced_rule, current_state(rs.system), p)
+end
+
+# preserve CoupledSDEs properties
+function frozen_system(rs::RateSystem{<:CoupledSDEs}, t)
+    p = parameters(rs, t)
+    unforced_rule = dynamic_rule(rs.specs.unforced_system)
+    sys = rs.system
+    IIP = SciMLBase.isinplace(sys)
+    prob = referenced_sciml_prob(sys)
+    new_prob = SciMLBase.SDEProblem{IIP}(
+        unforced_rule, prob.g, current_state(sys),
+        (t, prob.tspan[2]), p;
+        noise_rate_prototype = prob.noise_rate_prototype,
+        noise = prob.noise,
+    )
+    return CoupledSDEs(new_prob, sys.diffeq, sys.noise_type)
 end
 
 # Extensions
 for f in (
-    :initial_state,
-    :initial_parameters,
-    :current_parameter,
-    :current_parameters,
-    :dynamic_rule,
-    :current_time,
-    :current_state,
-    :initial_time,
-    :successful_step,
-    :set_parameter!,
-    :set_parameters!,
-    :trajectory,
-) # all api functions here
+        :initial_state,
+        :initial_parameters,
+        :current_parameter,
+        :current_parameters,
+        :dynamic_rule,
+        :current_time,
+        :current_state,
+        :initial_time,
+        :successful_step,
+        :set_parameter!,
+        :set_parameters!,
+        :trajectory,
+    ) # all api functions here
     @eval DynamicalSystemsBase.$(f)(rs::RateSystem, args...; kw...) = $(f)(
         rs.system, args...; kw...
     )
@@ -307,7 +319,7 @@ end
 
 DynamicalSystemsBase.current_parameters(rs::RateSystem, t::Real) = parameters(rs, t)
 
-reinit!(rs::RateSystem, u=initial_state(rs); kw...) = reinit!(rs.system, u; kw...)
+reinit!(rs::RateSystem, u = initial_state(rs); kw...) = reinit!(rs.system, u; kw...)
 
 SciMLBase.step!(rs::RateSystem, args...) = (SciMLBase.step!(rs.system, args...); rs)
 SciMLBase.isinplace(rs::RateSystem) = SciMLBase.isinplace(rs.system)
@@ -323,5 +335,6 @@ DynamicalSystemsBase.covariance_matrix(rs::RateSystem, args...; kw...) = covaria
 DynamicalSystemsBase.diffusion_matrix(rs::RateSystem, args...; kw...) = diffusion_matrix(rs.system, args...; kw...)
 
 StateSpaceSets.dimension(rs::RateSystem) = StateSpaceSets.dimension(rs.system)
-DynamicalSystemsBase.isdeterministic(rs::RateSystem) = isa(rs.system, CoupledODEs)
+DynamicalSystemsBase.isdeterministic(::RateSystem{<:CoupledODEs}) = true
+DynamicalSystemsBase.isdeterministic(::RateSystem{<:CoupledSDEs}) = false
 (rs::RateSystem)(t::Real) = rs.system(t)

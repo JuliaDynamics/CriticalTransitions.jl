@@ -14,6 +14,7 @@ RateSystem
 ForcingProfile
 parameters
 parameter
+frozen_system
 set_forcing_duration!
 set_forcing_scale!
 set_forcing_start!

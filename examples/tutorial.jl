@@ -41,15 +41,15 @@ using .CriticalTransitions # re-exports `DynamicalSystemsBase`
 import Random # hide
 Random.seed!(1) # hide
 
-function fitzhugh_nagumo(u,p,t)
+function fitzhugh_nagumo(u, p, t)
     x, y = u
     (; ε, β, I) = p
-    dx = (x - x^3 - y + I)/ε
-    dy = -β*y + x
+    dx = (x - x^3 - y + I) / ε
+    dy = -β * y + x
     return SVector(dx, dy)
 end
 mutable struct FitzhughNagumoParameters
-    ε::Float64; β::Float64; I::Float64;
+    ε::Float64; β::Float64; I::Float64
 end
 p = FitzhughNagumoParameters(0.1, 3.0, 0.0)
 u0 = [0.1, 0.1]
@@ -60,7 +60,7 @@ ds = CoupledODEs(fitzhugh_nagumo, u0, p)
 using Attractors # for finding attractors and basins
 using CairoMakie # for plotting
 
-grid = (range(-1.5, 1.5; length = 100), range(-2, 2; length = 100),)
+grid = (range(-1.5, 1.5; length = 100), range(-2, 2; length = 100))
 mapper = AttractorsViaRecurrences(ds, grid)
 boa = basins_of_attraction(mapper, grid)
 figboa = heatmap_basins_attractors(boa)
@@ -79,7 +79,8 @@ fp = ForcingProfile(:linear)
 # The remaining information is encoded when creating the `RateSystem`:
 
 pidx = :I # which parameter changes
-rs = RateSystem(ds, fp, pidx;
+rs = RateSystem(
+    ds, fp, pidx;
     forcing_start_time = 10,
     forcing_duration = 10,
     forcing_scale = 5
@@ -102,7 +103,7 @@ T = 50.0 # Total time
 traj_ds, tvec = trajectory(ds, T, u0; Δt = 0.01)
 traj_rs, tvec = trajectory(rs, T, u0; Δt = 0.01)
 fig = Figure()
-ax = Axis(fig[1, 1]; ylabel="u")
+ax = Axis(fig[1, 1]; ylabel = "u")
 lines!(ax, tvec, traj_ds[:, 1]; label = "autonomous")
 lines!(ax, tvec, traj_rs[:, 1]; label = "rate-forced")
 axislegend(ax)
@@ -116,7 +117,7 @@ fig
 
 ps_of_t = parameters.(rs, tvec)
 I_of_t = parameter.(rs, tvec, pidx)
-ax = Axis(fig[2, 1]; xlabel="time", ylabel="I(t)")
+ax = Axis(fig[2, 1]; xlabel = "time", ylabel = "I(t)")
 lines!(ax, tvec, I_of_t)
 fig
 
@@ -131,10 +132,11 @@ profiles = Dict(
 
 # and you can provide same type of dictionaries for the forcing start, duration, and scale:
 
-rs2 = RateSystem(ds, profiles;
+rs2 = RateSystem(
+    ds, profiles;
     forcing_start_time = Dict(:I => 10.0, :β => 15.0),
-    forcing_duration   = Dict(:I => 10.0, :β => 20.0),
-    forcing_scale      = Dict(:I => 5.0, :β => 3.0),
+    forcing_duration = Dict(:I => 10.0, :β => 20.0),
+    forcing_scale = Dict(:I => 5.0, :β => 3.0),
     t0 = 0.0,
 )
 
@@ -145,15 +147,15 @@ T = 50.0 # Total time
 traj_ds, tvec = trajectory(ds, T, u0; Δt = 0.01)
 traj_rs, tvec = trajectory(rs2, T, u0; Δt = 0.01)
 fig = Figure()
-ax = Axis(fig[1, 1]; ylabel="u")
+ax = Axis(fig[1, 1]; ylabel = "u")
 lines!(ax, tvec, traj_ds[:, 1]; label = "autonomous")
 lines!(ax, tvec, traj_rs[:, 1]; label = "rate-forced")
 axislegend(ax)
 
 I_of_t = parameter.(rs2, tvec, :I)
 β_of_t = parameter.(rs2, tvec, :β)
-lines(fig[2,1], tvec, I_of_t; axis = (ylabel = "I(t)",))
-lines(fig[3,1], tvec, β_of_t; axis = (ylabel = "β(t)", xlabel = "t"))
+lines(fig[2, 1], tvec, I_of_t; axis = (ylabel = "I(t)",))
+lines(fig[3, 1], tvec, β_of_t; axis = (ylabel = "β(t)", xlabel = "t"))
 
 fig
 
@@ -178,7 +180,7 @@ sds = CoupledSDEs(ds, p; noise_strength = 0.2)
 # trajectories (as this is a stochastic system each one will have different noise
 # by default) on top of the basins of attraction
 
-ax = content(figboa[1,1])
+ax = content(figboa[1, 1])
 for _ in 1:3
     traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
     lines!(ax, traj_sds)

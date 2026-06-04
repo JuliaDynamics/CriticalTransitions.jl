@@ -56,12 +56,7 @@ forcing_duration = 105.0
 forcing_scale = 3.0
 t0 = 0.0
 
-rs = RateSystem(ds, Dict(pidx => fp);
-    forcing_start_time = forcing_start_time,
-    forcing_duration = forcing_duration,
-    forcing_scale = forcing_scale,
-    t0 = t0,
-)
+rs = RateSystem(ds, Dict(pidx => fp); forcing_start_time, forcing_duration, forcing_scale, t0)
 ````
 
 Note that the `forcing_scale` is a multiplication factor that scales
@@ -172,8 +167,4 @@ fig
 ````
 
 Note that the `RateSystem` constructor accepts either scalar `forcing_start_time`, `forcing_duration`, `forcing_scale` values (applied to all keys) or dictionaries mapping each key to its own value.
-
----
-
-*This page was generated using [Literate.jl](https://github.com/fredrikekre/Literate.jl).*
 
