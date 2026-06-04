@@ -1,3 +1,5 @@
+using CriticalTransitions, Attractors
+
 # system setup
 function stommel_f(x, p, t)
     T, S = x
@@ -6,16 +8,16 @@ function stommel_f(x, p, t)
     return SVector(η1 - T - q*T, η2 - η3*S - q*S)
 end
 
-p = [2.0, 1, 0.3]
+p = [2.7, 1, 0.3]
 stommel = CoupledODEs(stommel_f, [0.3, 0.2], p)
-profile = ForcingProfile(x -> cos(x)^2, (-π, 0.0))
+profile = ForcingProfile(x -> cos(x)^2, (-π/2, 0.0))
 
 # inputs to function
-rs = RateSystem(stommel, profile, 1; forcing_start_time = 50.0)
+rs = RateSystem(stommel, profile, 1; reverse = true)
 
 N = 51
 Δps = range(0, 1; length = N)
-Δts =  2 .^ range(-3, 4; length = N)
+Δts =  2 .^ range(-2, 5; length = N)
 
 u0 = [2.348128197247146, 2.455397131357698] # steady state at η0 = 2.6
 
@@ -120,14 +122,10 @@ function rate_track_return_tip(
             step!(rs, T, true)
             u = current_state(rs)
             track_id = find_attractor_id(unforced, u, pcurve[i], attractors_cont[i])
-            @show track_id
-            # println("middle ", current_time(rs))
             # run backwards forcing
             step!(rs, dt, true)
-            # println("end ", current_time(rs))
             u = current_state(rs)
             return_id = find_attractor_id(unforced, u, pcurve[1], attractors_cont[1])
-            @show return_id
             # deduce tipping type
             rate_type[i, j] = label_rate_outcome(track_id, return_id, start_id)
         end
@@ -145,16 +143,15 @@ function label_rate_outcome(track_id, return_id, start_id)
     end
 end
 
-
 # apply and plot:
 rate_type = rate_track_return_tip(rs, Δts, Δps, attractors_cont, u0; proximity_kw)
 
 using CairoMakie
 cmap = cgrad(["white", "red", "blue"], 3; categorical = true)
-fig, ax, hm = heatmap(Δps, log.(Δts), rate_type; colormap = cmap,
+fig, ax, hm = heatmap(Δps, log2.(Δts), rate_type; colormap = cmap,
 colorrange = (0.5, 3.5))
 ax.xlabel = "Δp"
-ax.ylabel = "log(Δt)"
+ax.ylabel = "log2(Δt)"
 cb = Colorbar(fig[1, 2], hm)
 cb.ticks = (1:3, ["always\ntrack", "return but\nnot track", "always\ntip"])
 cb.ticklabelrotation = π/2
