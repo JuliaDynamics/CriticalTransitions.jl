@@ -1,5 +1,5 @@
 # Utility functions
 
-```@docs
-CriticalTransitions.intervals_to_box
+```@docs; canonical=false
+CriticalTransitions.normalize_covariance!
 ```

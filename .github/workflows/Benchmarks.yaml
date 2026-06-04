@@ -29,6 +29,7 @@ permissions:
     actions: write
     contents: write
     deployments: write
+    pull-requests: write
 
 jobs:
   benchmark:
@@ -44,7 +45,7 @@ jobs:
       - name: Run benchmark
         run: |
           cd benchmarks
-          julia --project --threads=2 --color=yes -e '
+          julia --project --threads=1 --color=yes -e '
             using Pkg;
             Pkg.develop(PackageSpec(path=joinpath(pwd(), "..")));
             Pkg.instantiate();

@@ -35,6 +35,9 @@ end
     include("largedeviations/string_method.jl")
     include("largedeviations/Maier_stein.jl")
     include("largedeviations/interpolate.jl")
+    include("largedeviations/multiple_shooting.jl")
+    include("largedeviations/multiple_shooting_rejection.jl")
+    include("largedeviations/quasipotential.jl")
 end
 
 @testset "Diffusion operator" begin

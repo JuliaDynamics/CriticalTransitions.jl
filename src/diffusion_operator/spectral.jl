@@ -67,7 +67,7 @@ function _build_shift_invert(
     Aσ = sparse(A - σ * I)
     rhs = zeros(T, n)
     prob = LinearProblem{true}(Aσ, rhs)
-    cache = init(prob, inner_alg; alias_A = false, alias_b = false)
+    cache = init(prob, inner_alg; alias = LinearSolve.LinearAliasSpecifier(alias_A = false, alias_b = false))
     buf = zeros(T, n)
     return ShiftInvertMap{T, typeof(cache)}(n, cache, buf)
 end

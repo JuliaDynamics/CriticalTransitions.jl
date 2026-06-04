@@ -10,7 +10,7 @@ $(TYPEDFIELDS)
 $(METHODLIST)
 
 """
-struct MinimumActionPath{D, T <: Real, V, Phis, Ahis, Lambda, PV, GPV}
+struct MinimumActionPath{D, T <: Real, V, Phis, Ahis, Lambda, GPV, PV}
     """The path matrix."""
     path::StateSpaceSet{D, T, V}
     """The action value associated to the path."""
