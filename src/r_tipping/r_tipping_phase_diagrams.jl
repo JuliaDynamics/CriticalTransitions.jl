@@ -1,4 +1,5 @@
-# system setup
+using CriticalTransitions, Attractors, CairoMakie
+
 function stommel_f(x, p, t)
     T, S = x
     η1, η2, η3 = p
@@ -6,40 +7,47 @@ function stommel_f(x, p, t)
     return SVector(η1 - T - q * T, η2 - η3 * S - q * S)
 end
 
-p = [2.0, 1, 0.3]
+p = [2.6, 1, 0.3]
 stommel = CoupledODEs(stommel_f, [0.3, 0.2], p)
-profile = ForcingProfile(x -> cos(x)^2, (-π, 0.0))
-
-# inputs to function
+profile = ForcingProfile(x -> cos(x)^2, (-π / 2, 0.0))
 rs = RateSystem(stommel, profile, 1; forcing_start_time = 50.0)
 
 N = 51
-Δps = range(0, 1; length = N)
-Δts = 2 .^ range(-3, 4; length = N)
+Δps = range(0.1, 1; length = N)
+Δts = 2 .^ range(-4, -0.5; length = N)
 
 u0 = [2.348128197247146, 2.455397131357698] # steady state at η0 = 2.6
 
-# global cont is also input to function
-# Frozen system continuation curve
 function unforced_pcurve(rs::RateSystem, Δps)
-    p0s = rs.specs.p0
+    p0s = deepcopy(current_parameters(rs.specs.unforced_system))
     forced_pkeys = keys(rs.specs.forcing_profile)
-    return [Dict(pidx => current_parameter(rs, pidx, p0s) + p for pidx in forced_pkeys) for p in Δps]
+    return [
+        Dict(pidx => current_parameter(rs.specs.unforced_system, pidx, p0s) + p for pidx in forced_pkeys)
+        for p in Δps
+    ]
 end
-pcurve = unforced_pcurve(rs, Δps)
 
+pcurve = unforced_pcurve(rs, Δps)
 
 grid = (range(0, 10; length = 201), range(0, 10; length = 201))
 ics, = statespace_sampler(grid)
 mapper = AttractorsViaRecurrences(stommel, grid)
 gca = AttractorSeedContinueMatch(mapper)
-
-fractions_cont, attractors_cont = global_continuation(
+_, attractors_cont = global_continuation(
     gca, pcurve, ics; samples_per_parameter = 100
 )
 
 proximity_kw = (distance = Centroid(), ε = 0.1)
 
+function attractor_id(unforced, u, p, attractors, relaxation_time; proximity_kw, relax = false)
+    set_parameters!(unforced, p)
+    proximity = AttractorsViaProximity(unforced, attractors; proximity_kw...)
+    if relax
+        relaxed, = trajectory(unforced, relaxation_time, u)
+        return proximity(relaxed[end])
+    end
+    return proximity(u)
+end
 
 """
     rate_track_return_tip(rs::RateSystem, Δts, Δps, attractors_cont, u0; kw...)
@@ -86,50 +94,48 @@ and enforces all forcings to be reversed as well.
 The profiles of each parameter are individual though.
 """
 function rate_track_return_tip(
-        rs::RateSystem, Δts, Δps, attractors_cont, u0;
-        proximity_kw = (distance = Centroid(),)
-    )
-    # configure proximity, finding starting attractor
+    rs::RateSystem, Δts, Δps, attractors_cont, u0;
+    proximity_kw = (distance = Centroid(),),
+    relaxation_time = 100.0,
+)
     unforced = rs.specs.unforced_system
-    function find_attractor_id(unforced, u, p, attractors)
-        set_parameters!(unforced, p)
-        proximity = AttractorsViaProximity(unforced, attractors; proximity_kw...)
-        return proximity(u)
-    end
-    start_id = find_attractor_id(unforced, u0, pcurve[1], attractors_cont[1])
+    start_id = attractor_id(
+        unforced, u0, pcurve[1], attractors_cont[1], relaxation_time;
+        proximity_kw, relax = true
+    )
+    p0 = deepcopy(current_parameters(unforced))
 
-    # find critical parameter (although we don't use this anymore):
-    # critical parameter = when attractor doesn't exist anymore
-    pc_index = findlast(d -> haskey(d, start_id), attractors_cont)
-    pc = pcurve[pc_index]
-
-    # homogenize start time
     set_forcing_start!(rs, first(values(rs.specs.forcing_start_time)))
     tstart = first(values(rs.specs.forcing_start_time))
 
-    # run the main computation
     rate_type = zeros(Int, length(Δps), length(Δts))
 
     for (i, dp) in enumerate(Δps)
         set_forcing_scale!(rs, dp)
-        for (j, dt) in enumerate(Δts)
+        for (j, r) in enumerate(Δts)
+            dt = dp / r
             set_forcing_duration!(rs, dt)
-            # run forwards forcing
-            DynamicalSystemsBase.reinit!(rs, u0)
-            T = tstart + dt
-            step!(rs, T, true)
+            set_forcing_start!(rs, tstart)
+            set_parameters!(unforced, p0)
+            DynamicalSystemsBase.reinit!(rs.system, u0)
+            tracktime = tstart + dt
+            step!(rs, tracktime, true)
             u = current_state(rs)
-            track_id = find_attractor_id(unforced, u, pcurve[i], attractors_cont[i])
-            @show track_id
-            # println("middle ", current_time(rs))
-            # run backwards forcing
-            step!(rs, dt, true)
-            # println("end ", current_time(rs))
+            track_id = attractor_id(
+                unforced, u, pcurve[i], attractors_cont[i], relaxation_time;
+                proximity_kw, relax = true
+            )
+            set_forcing_start!(rs, tracktime)
+            set_forcing_scale!(rs, -dp)
+            finaltime = tracktime + dt
+            step!(rs, finaltime, true)
             u = current_state(rs)
-            return_id = find_attractor_id(unforced, u, pcurve[1], attractors_cont[1])
-            @show return_id
-            # deduce tipping type
+            return_id = attractor_id(
+                unforced, u, pcurve[1], attractors_cont[1], relaxation_time;
+                proximity_kw, relax = true
+            )
             rate_type[i, j] = label_rate_outcome(track_id, return_id, start_id)
+            set_forcing_scale!(rs, dp)
         end
     end
     return rate_type
@@ -140,19 +146,22 @@ function label_rate_outcome(track_id, return_id, start_id)
         return 1
     elseif return_id == start_id && track_id ≠ start_id
         return 2 # return but not track
-    elseif return_id ≠ start_id && track_id ≠ start_id
-        return 3 # always tip
+    elseif return_id ≠ start_id
+        return 3 # tip / fail to return
     end
 end
 
-
-# apply and plot:
 rate_type = rate_track_return_tip(rs, Δts, Δps, attractors_cont, u0; proximity_kw)
 
-using CairoMakie
-cmap = cgrad(["white", "red", "blue"], 3; categorical = true)
+start_id = attractor_id(
+    rs.specs.unforced_system, u0, pcurve[1], attractors_cont[1], 100.0;
+    proximity_kw, relax = true
+)
+Δp_bif = Δps[findlast(d -> haskey(d, start_id), attractors_cont)]
+
+cmap = cgrad(["white", "#7c3aed", "#1e1b4b"], 3; categorical = true)
 fig, ax, hm = heatmap(
-    Δps, log.(Δts), rate_type; colormap = cmap,
+    Δps, log2.(Δts), rate_type; colormap = cmap,
     colorrange = (0.5, 3.5)
 )
 ax.xlabel = "Δp"
