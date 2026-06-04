@@ -27,6 +27,7 @@ bib = CitationBibliography(joinpath(@__DIR__, "src", "refs.bib"); style = :autho
 links = InterLinks(
     "DynamicalSystemsBase" => "https://juliadynamics.github.io/DynamicalSystemsBase.jl/stable/",
     "Attractors" => "https://juliadynamics.github.io/Attractors.jl/stable/",
+    "ChaosTools" => "https://juliadynamics.github.io/ChaosTools.jl/stable/",
     # "DiffEqNoiseProcess" => "https://docs.sciml.ai/DiffEqNoiseProcess/stable/",
     # "DifferentialEquations" => "https://docs.sciml.ai/DiffEqDocs/stable/",
     # "StochasticDiffEq" => "https://docs.sciml.ai/DiffEqDocs/stable/",

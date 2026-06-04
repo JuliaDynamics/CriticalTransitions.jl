@@ -5,7 +5,6 @@ We provide two main functions to simulate a [`CoupledSDEs`](@ref) forward in tim
 * [`deterministic_orbit`](@ref), which integrates only the deterministic part of the `CoupledSDEs` system
 
 
-```@docs
-trajectory
+```@docs; canonical=false
 deterministic_orbit
 ```

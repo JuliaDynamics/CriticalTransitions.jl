@@ -24,7 +24,7 @@ with the seed stored on `sys`; pass `seed` to override it.
 * `times` (Vector): time values (since start of simulation) of the path points (size N)
 * `success` (bool): if `true`, a transition occurred (i.e. the ball around `x_f` has been reached), else `false`
 
-See also [`transitions`](@ref), [`trajectory`](@ref).
+See also [`transitions`](@ref), [`trajectory`](@extref DynamicalSystemsBase.trajectory).
 """
 function transition(
         sys::CoupledSDEs,

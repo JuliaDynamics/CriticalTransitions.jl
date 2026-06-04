@@ -110,10 +110,3 @@ function fix_ends(x::Matrix, x_i, x_f)
     m[:, end] = x_f
     return m
 end;
-
-"""
-    action_minimizer(sys::ContinuousTimeDynamicalSystem, x_i, x_f, T::Real; kwargs...)
-
-Alias for [`minimize_action`](@ref).]
-"""
-const action_minimizer = minimize_action

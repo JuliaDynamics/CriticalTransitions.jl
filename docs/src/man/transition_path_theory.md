@@ -9,7 +9,7 @@ without simulating the (typically exponentially long) waiting times.
 
 TPT is built on top of the discretised generator and the standard
 boundary-value problems on it (committors, invariant density). Read the
-[diffusion operator manual](@ref Diffusion-operator) first if you have not
+[generator manual](@ref "Rates, distributions & the generator") first if you have not
 already.
 
 ---
@@ -92,7 +92,7 @@ also dispatch on a `ReactiveTransition` and return the cached fields.
 Predicates / `BitVector` / linear-index masks are accepted for `A` and `B`,
 just as on a [`DiffusionGenerator`](@ref).
 
-```@docs
+```@docs; canonical=false
 ReactiveTransition
 reactive_rate
 reactive_density

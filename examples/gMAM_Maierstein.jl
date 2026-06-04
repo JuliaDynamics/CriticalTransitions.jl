@@ -244,7 +244,7 @@ for i in 1:length(tt.paths)
 end
 fig
 
-# ## Large deviation theory
+# ## A primer on large deviation theory
 
 # In the context of nonlinear dynamics, Large Deviation Theory provides tools to quantify the probability of rare events that deviate significantly from the system's typical behavior. These rare events might be extreme values of a system's output, sudden transitions between different states, or other phenomena that occur with very low probability but can have significant implications for the system's overall behavior.
 
