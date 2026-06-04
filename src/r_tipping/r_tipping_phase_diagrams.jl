@@ -19,7 +19,7 @@ N = 51
 u0 = [2.348128197247146, 2.455397131357698] # steady state at η0 = 2.6
 
 function unforced_pcurve(rs::RateSystem, Δps)
-    p0s = deepcopy(current_parameters(rs.specs.unforced_system))
+    p0s = current_parameters(rs.specs.unforced_system)
     forced_pkeys = keys(rs.specs.forcing_profile)
     return [
         Dict(pidx => current_parameter(rs.specs.unforced_system, pidx, p0s) + p for pidx in forced_pkeys)
@@ -39,13 +39,9 @@ _, attractors_cont = global_continuation(
 
 proximity_kw = (distance = Centroid(), ε = 0.1)
 
-function attractor_id(unforced, u, p, attractors, relaxation_time; proximity_kw, relax = false)
+function attractor_id(unforced, u, p, attractors; proximity_kw)
     set_parameters!(unforced, p)
     proximity = AttractorsViaProximity(unforced, attractors; proximity_kw...)
-    if relax
-        relaxed, = trajectory(unforced, relaxation_time, u)
-        return proximity(relaxed[end])
-    end
     return proximity(u)
 end
 
@@ -96,14 +92,9 @@ The profiles of each parameter are individual though.
 function rate_track_return_tip(
     rs::RateSystem, Δts, Δps, attractors_cont, u0;
     proximity_kw = (distance = Centroid(),),
-    relaxation_time = 100.0,
 )
     unforced = rs.specs.unforced_system
-    start_id = attractor_id(
-        unforced, u0, pcurve[1], attractors_cont[1], relaxation_time;
-        proximity_kw, relax = true
-    )
-    p0 = deepcopy(current_parameters(unforced))
+    start_id = attractor_id(unforced, u0, pcurve[1], attractors_cont[1]; proximity_kw)
 
     set_forcing_start!(rs, first(values(rs.specs.forcing_start_time)))
     tstart = first(values(rs.specs.forcing_start_time))
@@ -116,24 +107,17 @@ function rate_track_return_tip(
             dt = dp / r
             set_forcing_duration!(rs, dt)
             set_forcing_start!(rs, tstart)
-            set_parameters!(unforced, p0)
             DynamicalSystemsBase.reinit!(rs.system, u0)
             tracktime = tstart + dt
             step!(rs, tracktime, true)
             u = current_state(rs)
-            track_id = attractor_id(
-                unforced, u, pcurve[i], attractors_cont[i], relaxation_time;
-                proximity_kw, relax = true
-            )
+            track_id = attractor_id(unforced, u, pcurve[i], attractors_cont[i]; proximity_kw)
             set_forcing_start!(rs, tracktime)
             set_forcing_scale!(rs, -dp)
             finaltime = tracktime + dt
             step!(rs, finaltime, true)
             u = current_state(rs)
-            return_id = attractor_id(
-                unforced, u, pcurve[1], attractors_cont[1], relaxation_time;
-                proximity_kw, relax = true
-            )
+            return_id = attractor_id(unforced, u, pcurve[1], attractors_cont[1]; proximity_kw)
             rate_type[i, j] = label_rate_outcome(track_id, return_id, start_id)
             set_forcing_scale!(rs, dp)
         end
@@ -153,10 +137,7 @@ end
 
 rate_type = rate_track_return_tip(rs, Δts, Δps, attractors_cont, u0; proximity_kw)
 
-start_id = attractor_id(
-    rs.specs.unforced_system, u0, pcurve[1], attractors_cont[1], 100.0;
-    proximity_kw, relax = true
-)
+start_id = attractor_id(rs.specs.unforced_system, u0, pcurve[1], attractors_cont[1]; proximity_kw)
 Δp_bif = Δps[findlast(d -> haskey(d, start_id), attractors_cont)]
 
 cmap = cgrad(["white", "#7c3aed", "#1e1b4b"], 3; categorical = true)
