@@ -36,8 +36,8 @@
 # ```
 
 # which we will create now as a basic `DynamicalSystem` with named parameters
-
-using CriticalTransitions # re-exports `DynamicalSystemsBase`
+include("../src/CriticalTransitions.jl")
+using .CriticalTransitions # re-exports `DynamicalSystemsBase`
 import Random # hide
 Random.seed!(1) # hide
 
@@ -195,25 +195,34 @@ function g(u, p, t)
     return @. p[6] .* u ./ (1 + t)
 end
 p2 = [1., 3., 1., 1., 1., 1.5] # Parameters (ϵ, β, α, γ, κ, I)
-sds_advanced = CoupledSDEs(fitzhugh_nagumo, u, p2; g = g)
+sds_advanced = CoupledSDEs(fitzhugh_nagumo, u0, p2; g = g)
 
 #
 
-fig = Figure()
-ax = Axis(fig[1, 1]; xlabel="time", ylabel="u", title = "advanced SDE")
+fig_sds = Figure()
+ax = Axis(fig_sds[1, 1]; xlabel="time", ylabel="u", title = "advanced SDE")
 for _ in 1:3
     traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
     lines!(ax, 0:0.1:T, traj_sds[:, 1])
 end
-fig
+fig_sds
 
 # ## RandomSystem: example application
 
 # Compute minimum action path using gMAM algorithm:
 
-instanton = minimize_geometric_action(sys, initial_state, current_state(sys))
+x_i = Vector(boa.attractors[1][1]) # Initial state
+x_f = Vector(boa.attractors[2][1]) # Final state
 
-# TODO: probable escale path something something.
+gmam = minimize_geometric_action(sds, x_i, x_f;
+    npoints = 50, maxiters = 2000, show_progress = false)
+
+instanton = gmam.path
+
+ax = content(figboa[1,1])
+lines!(ax, instanton[:,1], instanton[:,2], linewidth=3, color=:red, label="Instanton (gMAM)")
+axislegend(ax)
+figboa
 
 # ## Usage with the broader DynamicalSystems.jl.
 
