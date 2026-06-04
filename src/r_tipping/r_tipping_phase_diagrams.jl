@@ -2,8 +2,8 @@
 function stommel_f(x, p, t)
     T, S = x
     η1, η2, η3 = p
-    q = abs(T-S)
-    return SVector(η1 - T - q*T, η2 - η3*S - q*S)
+    q = abs(T - S)
+    return SVector(η1 - T - q * T, η2 - η3 * S - q * S)
 end
 
 p = [2.0, 1, 0.3]
@@ -15,7 +15,7 @@ rs = RateSystem(stommel, profile, 1; forcing_start_time = 50.0)
 
 N = 51
 Δps = range(0, 1; length = N)
-Δts =  2 .^ range(-3, 4; length = N)
+Δts = 2 .^ range(-3, 4; length = N)
 
 u0 = [2.348128197247146, 2.455397131357698] # steady state at η0 = 2.6
 
@@ -29,16 +29,16 @@ end
 pcurve = unforced_pcurve(rs, Δps)
 
 
-grid = (range(0, 10; length = 201), range(0, 10; length = 201), )
+grid = (range(0, 10; length = 201), range(0, 10; length = 201))
 ics, = statespace_sampler(grid)
 mapper = AttractorsViaRecurrences(stommel, grid)
 gca = AttractorSeedContinueMatch(mapper)
 
 fractions_cont, attractors_cont = global_continuation(
-	gca, pcurve, ics; samples_per_parameter = 100
+    gca, pcurve, ics; samples_per_parameter = 100
 )
 
-proximity_kw = (distance = Centroid(), ε = 0.1, )
+proximity_kw = (distance = Centroid(), ε = 0.1)
 
 
 """
@@ -87,7 +87,7 @@ The profiles of each parameter are individual though.
 """
 function rate_track_return_tip(
         rs::RateSystem, Δts, Δps, attractors_cont, u0;
-        proximity_kw = (distance = Centroid(), )
+        proximity_kw = (distance = Centroid(),)
     )
     # configure proximity, finding starting attractor
     unforced = rs.specs.unforced_system
@@ -151,11 +151,13 @@ rate_type = rate_track_return_tip(rs, Δts, Δps, attractors_cont, u0; proximity
 
 using CairoMakie
 cmap = cgrad(["white", "red", "blue"], 3; categorical = true)
-fig, ax, hm = heatmap(Δps, log.(Δts), rate_type; colormap = cmap,
-colorrange = (0.5, 3.5))
+fig, ax, hm = heatmap(
+    Δps, log.(Δts), rate_type; colormap = cmap,
+    colorrange = (0.5, 3.5)
+)
 ax.xlabel = "Δp"
 ax.ylabel = "log(Δt)"
 cb = Colorbar(fig[1, 2], hm)
 cb.ticks = (1:3, ["always\ntrack", "return but\nnot track", "always\ntip"])
-cb.ticklabelrotation = π/2
+cb.ticklabelrotation = π / 2
 fig

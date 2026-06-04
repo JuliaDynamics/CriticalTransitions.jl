@@ -386,5 +386,3 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
         @test all(tr_constructed .≈ tr_hardcoded)
     end
 end
-
-

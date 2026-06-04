@@ -41,15 +41,15 @@ using CriticalTransitions # re-exports `DynamicalSystemsBase`
 import Random # hide
 Random.seed!(1) # hide
 
-function fitzhugh_nagumo(u,p,t)
+function fitzhugh_nagumo(u, p, t)
     x, y = u
     (; ε, β, I) = p
     dx = x - x^3 - y + I
-    dy = (x -β*y )*ε
+    dy = (x - β * y) * ε
     return SVector(dx, dy)
 end
 mutable struct FitzhughNagumoParameters
-    ε::Float64; β::Float64; I::Float64;
+    ε::Float64; β::Float64; I::Float64
 end
 p = FitzhughNagumoParameters(0.1, 3.0, 0.0)
 u0 = [0.1, 0.1]
@@ -60,7 +60,7 @@ ds = CoupledODEs(fitzhugh_nagumo, u0, p)
 using Attractors # for finding attractors and basins
 using CairoMakie # for plotting
 
-grid = (range(-1.5, 1.5; length = 100), range(-2, 2; length = 100),)
+grid = (range(-1.5, 1.5; length = 100), range(-2, 2; length = 100))
 mapper = AttractorsViaRecurrences(ds, grid)
 boa = basins_of_attraction(mapper, grid)
 figboa = heatmap_basins_attractors(boa)
@@ -79,7 +79,8 @@ fp = ForcingProfile(:linear)
 # The remaining information is encoded when creating the `RateSystem`:
 
 pidx = :I # which parameter changes
-rs = RateSystem(ds, fp, pidx;
+rs = RateSystem(
+    ds, fp, pidx;
     forcing_start_time = 10,
     forcing_duration = 10,
     forcing_scale = 5,
@@ -98,7 +99,8 @@ rs = RateSystem(ds, fp, pidx;
 
 # now if we choose the `reverse` option,
 
-rs = RateSystem(ds, fp, pidx;
+rs = RateSystem(
+    ds, fp, pidx;
     forcing_start_time = 10,
     forcing_duration = 10,
     forcing_scale = 5,
@@ -115,7 +117,7 @@ T = 50.0
 traj_ds, tvec = trajectory(ds, T, u0; Δt = 0.01)
 traj_rs, tvec = trajectory(rs, T, u0; Δt = 0.01)
 fig = Figure()
-ax = Axis(fig[1, 1]; ylabel="u")
+ax = Axis(fig[1, 1]; ylabel = "u")
 lines!(ax, tvec, traj_ds[:, 1]; label = "autonomous")
 lines!(ax, tvec, traj_rs[:, 1]; label = "rate-forced")
 axislegend(ax)
@@ -129,7 +131,7 @@ fig
 
 ps_of_t = parameters.(rs, tvec)
 I_of_t = parameter.(rs, tvec, pidx)
-ax = Axis(fig[2, 1]; xlabel="time", ylabel="I(t)")
+ax = Axis(fig[2, 1]; xlabel = "time", ylabel = "I(t)")
 lines!(ax, tvec, I_of_t)
 fig
 
@@ -144,10 +146,11 @@ profiles = Dict(
 
 # and you can provide same type of dictionaries for the forcing start, duration, and scale:
 
-rs2 = RateSystem(ds, profiles;
+rs2 = RateSystem(
+    ds, profiles;
     forcing_start_time = Dict(:I => 10.0, :β => 15.0),
-    forcing_duration   = Dict(:I => 10.0, :β => 20.0),
-    forcing_scale      = Dict(:I => 5.0, :β => 3.0),
+    forcing_duration = Dict(:I => 10.0, :β => 20.0),
+    forcing_scale = Dict(:I => 5.0, :β => 3.0),
     t0 = 0.0,
 )
 
@@ -158,15 +161,15 @@ T = 50.0 # Total time
 traj_ds, tvec = trajectory(ds, T, u0; Δt = 0.01)
 traj_rs, tvec = trajectory(rs2, T, u0; Δt = 0.01)
 fig = Figure()
-ax = Axis(fig[1, 1]; ylabel="u")
+ax = Axis(fig[1, 1]; ylabel = "u")
 lines!(ax, tvec, traj_ds[:, 1]; label = "autonomous")
 lines!(ax, tvec, traj_rs[:, 1]; label = "rate-forced")
 axislegend(ax)
 
 I_of_t = parameter.(rs2, tvec, :I)
 β_of_t = parameter.(rs2, tvec, :β)
-lines(fig[2,1], tvec, I_of_t; axis = (ylabel = "I(t)",))
-lines(fig[3,1], tvec, β_of_t; axis = (ylabel = "β(t)", xlabel = "t"))
+lines(fig[2, 1], tvec, I_of_t; axis = (ylabel = "I(t)",))
+lines(fig[3, 1], tvec, β_of_t; axis = (ylabel = "β(t)", xlabel = "t"))
 
 fig
 
@@ -191,7 +194,7 @@ sds = CoupledSDEs(ds, p; noise_strength = 0.2)
 # trajectories (as this is a stochastic system each one will have different noise
 # by default) on top of the basins of attraction
 
-ax = content(figboa[1,1])
+ax = content(figboa[1, 1])
 for _ in 1:3
     traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
     lines!(ax, traj_sds)
@@ -207,13 +210,13 @@ figboa
 function g(u, p, t)
     return @. p[6] .* u ./ (1 + t)
 end
-p2 = [1., 3., 1., 1., 1., 1.5] # Parameters (ϵ, β, α, γ, κ, I)
+p2 = [1.0, 3.0, 1.0, 1.0, 1.0, 1.5] # Parameters (ϵ, β, α, γ, κ, I)
 sds_advanced = CoupledSDEs(fitzhugh_nagumo, u0, p2; g = g)
 
 #
 
 fig = Figure()
-ax = Axis(fig[1, 1]; xlabel="time", ylabel="u", title = "advanced SDE")
+ax = Axis(fig[1, 1]; xlabel = "time", ylabel = "u", title = "advanced SDE")
 for _ in 1:3
     traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
     lines!(ax, 0:0.1:T, traj_sds[:, 1])
@@ -227,13 +230,15 @@ fig
 x_i = Vector(boa.attractors[1][1]) # Initial state
 x_f = Vector(boa.attractors[2][1]) # Final state
 
-gmam = minimize_geometric_action(sds, x_i, x_f;
-    npoints = 50, maxiters = 2000, show_progress = false)
+gmam = minimize_geometric_action(
+    sds, x_i, x_f;
+    npoints = 50, maxiters = 2000, show_progress = false
+)
 
 instanton = gmam.path
 
-ax = content(figboa[1,1])
-lines!(ax, instanton[:,1], instanton[:,2], linewidth=3, color=:red, label="Instanton (gMAM)")
+ax = content(figboa[1, 1])
+lines!(ax, instanton[:, 1], instanton[:, 2], linewidth = 3, color = :red, label = "Instanton (gMAM)")
 axislegend(ax)
 figboa
 
