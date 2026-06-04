@@ -44,8 +44,8 @@ Random.seed!(1) # hide
 function fitzhugh_nagumo(u,p,t)
     x, y = u
     (; ε, β, I) = p
-    dx = (x - x^3 - y + I)/ε
-    dy = -β*y + x
+    dx = x - x^3 - y + I
+    dy = (x -β*y )*ε
     return SVector(dx, dy)
 end
 mutable struct FitzhughNagumoParameters
@@ -111,7 +111,7 @@ rs = RateSystem(ds, fp, pidx;
 
 # Let's simulate both the autonomous and non-autonomous systems to see the difference:
 
-T = 50.0 # Total time
+T = 50.0
 traj_ds, tvec = trajectory(ds, T, u0; Δt = 0.01)
 traj_rs, tvec = trajectory(rs, T, u0; Δt = 0.01)
 fig = Figure()
@@ -208,7 +208,7 @@ function g(u, p, t)
     return @. p[6] .* u ./ (1 + t)
 end
 p2 = [1., 3., 1., 1., 1., 1.5] # Parameters (ϵ, β, α, γ, κ, I)
-sds_advanced = CoupledSDEs(fitzhugh_nagumo, u, p2; g = g)
+sds_advanced = CoupledSDEs(fitzhugh_nagumo, u0, p2; g = g)
 
 #
 
@@ -224,9 +224,19 @@ fig
 
 # Compute minimum action path using gMAM algorithm:
 
-instanton = geometric_min_action_method(sys, initial_state, current_state(sys))
+x_i = Vector(boa.attractors[1][1]) # Initial state
+x_f = Vector(boa.attractors[2][1]) # Final state
 
-# TODO: probable escale path something something.
+gmam = minimize_geometric_action(sds, x_i, x_f;
+    npoints = 50, maxiters = 2000, show_progress = false)
+
+instanton = gmam.path
+
+ax = content(figboa[1,1])
+lines!(ax, instanton[:,1], instanton[:,2], linewidth=3, color=:red, label="Instanton (gMAM)")
+axislegend(ax)
+figboa
+
 
 # ## Usage with the broader DynamicalSystems.jl.
 

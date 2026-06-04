@@ -94,6 +94,8 @@ struct RateSystem{S,R} <: ContinuousTimeDynamicalSystem
     specs::RateSystemSpecs{R}
 end
 
+# TODO: allow the system to have different forwards and reverse profiles
+
 function RateSystem(
         ds::ContinuousTimeDynamicalSystem,
         forcing_profile::AbstractDict;
@@ -351,7 +353,7 @@ end
 
 DynamicalSystemsBase.current_parameters(rs::RateSystem, t::Real) = parameters(rs, t)
 
-reinit!(rs::RateSystem, u=initial_state(rs); kw...) = reinit!(rs.system, u; kw...)
+DynamicalSystemsBase.reinit!(rs::RateSystem, u::AbstractArray = initial_state(rs); kw...) = DynamicalSystemsBase.reinit!(rs.system, u; kw...)
 
 SciMLBase.step!(rs::RateSystem, args...) = (SciMLBase.step!(rs.system, args...); rs)
 SciMLBase.isinplace(rs::RateSystem) = SciMLBase.isinplace(rs.system)
