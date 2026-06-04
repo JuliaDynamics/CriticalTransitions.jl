@@ -199,13 +199,6 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
     end
 
 
-
-
-
-
-
-
-
     # @testset "parameter container variants" begin
     #     fp = ForcingProfile(tanh, (-5.0, 5.0))
     #     # out-of-place unforced rule (returns a new vector) used for these tests
