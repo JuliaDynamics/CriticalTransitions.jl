@@ -12,7 +12,7 @@ using Statistics: Statistics, mean
 using LinearAlgebra:
     LinearAlgebra, norm, dot, tr, diag, eigen, normalize!, I
 using SparseArrays: SparseArrays
-using StaticArrays: StaticArrays, SVector, SMatrix, MVector
+: StaticArrays, SVector, SMatrix, MVector
 using Random: Random
 
 # Core

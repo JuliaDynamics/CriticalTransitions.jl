@@ -1,7 +1,7 @@
 using CriticalTransitions
 using DynamicalSystemsBase
 using Test
-using StaticArrays
+
 using Random
 # using ModelingToolkit
 

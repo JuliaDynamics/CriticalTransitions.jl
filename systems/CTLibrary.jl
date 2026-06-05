@@ -2,7 +2,7 @@ module CTLibrary
 
 using CriticalTransitions: CriticalTransitions
 using IntervalArithmetic: IntervalArithmetic, interval
-using StaticArrays: SA, SVector, SMatrix, @SMatrix
+: SA, SVector, SMatrix, @SMatrix
 
 include("fitzhughnagumo.jl")
 include("truscottbrindley_mod.jl")

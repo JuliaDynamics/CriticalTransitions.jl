@@ -2,7 +2,7 @@ using CriticalTransitions
 using Test
 using LinearAlgebra
 using SparseArrays
-using StaticArrays
+
 using Logging
 using Statistics: mean
 
