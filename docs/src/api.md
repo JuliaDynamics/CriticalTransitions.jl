@@ -11,7 +11,7 @@ link used by `@ref` points here.
 ```@docs
 RateSystem
 ForcingProfile
-frozen_system
+unforced_system
 parameters
 parameter
 set_forcing_start!

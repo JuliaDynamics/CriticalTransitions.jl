@@ -387,8 +387,8 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
 
     rs = RateSystem(ds, Dict(pidx => fp); forcing_start_time = forcing_start_time, forcing_duration = forcing_duration, forcing_scale = forcing_scale)
 
-    @testset "frozen_system" begin
-        frozen = frozen_system(rs, rs.specs.t0)
+    @testset "unforced_system" begin
+        frozen = unforced_system(rs, rs.specs.t0)
         unforced_rule = dynamic_rule(rs.specs.unforced_system)
         u = [2.0]
         t = 10.0

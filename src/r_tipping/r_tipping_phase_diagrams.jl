@@ -16,8 +16,12 @@ Return:
   `AttractorsViaProximity`.
 - `proximity_kw`: Keywords propagated to [`AttractorsViaProximity`](@ref), for mapping
   the rate system state to the unforced attractors at the middle and end (reverse) of forcing.
-  At a minimum you'd want to pass here the same distance function as the one used during global
-  continuation (which happens automatically for the default values).
+  Do not provide a `distance` as this is used from the above keyword.
+- `decide_rate_outcome`: A three input function `f(track_id, return_id, start_id)`
+  that returns an integer representing a possible rate tipping case of a simulation
+  with a specific `Δt, Δp`. It inputs the attractor ID the system converges after the
+  forwards rate forcing, the one it coverges after the forcing is reverse, and the ID
+  that `u0` converges at the starting parameter of the system.
 
 ## Description
 
@@ -27,24 +31,32 @@ To achieve this, it uses global continuation using `mapper, ics`.
 The function will run a whole `global_continuation` run over the
 parameter range `prange = p0 .+ Δps` to establish the unfrozen system attractors and assign
 unique IDs to them throughout `prange`.
-If you instead want to run the global continuation yourself, simply see the source code
-of `rate_track_return_tip` using `@edit`, copy the four global continuation lines
-and then call the second method:
-
+If you instead want to run the global continuation yourself,
+which allows you to change `Δts, Δps` without re-running the global continuation,
+then simply do:
 ```julia
-rate_track_return_tip(rs::RateSystem, Δts, Δps, attractors_cont::AbstractVector; kw...)
+pcurve = unforced_pcurve(rs, Δps)
+matcher = MatchBySSSetDistance(distance)
+ascm = AttractorsSeedContinueMatch(mapper, matcher)
+_, attractors_cont = global_continuation(ascm, pcurve, ics)
+rate_track_return_tip(rs, Δts, Δps, attractors_cont; distance, kw...)
 ```
 
-After the continunation, the function will perform a rate simulation with duration `Δt` and scale `Δp` for all
-combinations, assigning to each combination an integer ∈ (1, 2, 3). These correspond
-to the type of rate-dependent behaviour as in [Ritchie2023](@cite), as:
+After the global continunation, the function will perform a
+rate simulation with duration `Δt` and scale `Δp` for all
+combinations.
+For each, it will then assign an integer corresponding
+to the type of rate-dependent behaviour as in [Ritchie2023](@cite).
+By default, these integers are ∈ (1, 2, 3) and mean:
 
 1. Tracking always.
 2. Return but not tracking (safe overshoot).
 3. Tipping always (failure to track).
 
-To decide which of the three occurs, `AttractorsViaProximity` is used, mapping the state
-to the attractor it converges and checking if that coincides with the starting one.
+You can however provide a custom function that may have more involved decision logic
+via the keyword `decide_rate_outcome`.
+To find the unforced system attractor IDs at the middle and and of the rate simulation
+an `AttractorsViaProximity` is used.
 
 ## Notes
 
@@ -54,14 +66,14 @@ The profiles of each parameter are individual though.
 If any profile does not have the `reverse = true` option, an error is thrown.
 """
 function rate_track_return_tip(
-        rs::RateSystem, Δts, Δps, mapper::AttractorsMapper, ics;
+        rs::RateSystem, Δts, Δps, mapper::AttractorMapper, ics;
         distance = Centroid(), kw...
     )
     pcurve = unforced_pcurve(rs, Δps)
-    matcher = MatchBySSSetDistance(distance)
-    ascm = AttractorsSeedContinueMatch(mapper, matcher)
+    matcher = MatchBySSSetDistance(; distance)
+    ascm = AttractorSeedContinueMatch(mapper, matcher)
     _, attractors_cont = global_continuation(ascm, pcurve, ics)
-    return rate_track_return_tip(rs, Δts, Δps, attractors_cont; u0, distance, proximity_kw)
+    return rate_track_return_tip(rs, Δts, Δps, attractors_cont; distance, kw...)
 end
 
 function rate_track_return_tip(
@@ -69,11 +81,13 @@ function rate_track_return_tip(
         distance = Centroid(),
         proximity_kw = NamedTuple(),
         u0 = initial_state(rs),
+        decide_rate_outcome = decide_rate_outcome_default,
     )
-    if any(isfalse, values(rs.spec.forcing_reverse))
+    if any(isequal(false), values(rs.specs.forcing_reverse))
         error("Provided `RateSystem` must have a `reverse=true` option for all profiles.")
     end
     # configure proximity, finding starting attractor
+    pcurve = unforced_pcurve(rs, Δps)
     unforced = rs.specs.unforced_system
     function find_attractor_id(unforced, u, p, attractors)
         set_parameters!(unforced, p)
@@ -109,13 +123,13 @@ function rate_track_return_tip(
             u = current_state(rs)
             return_id = find_attractor_id(unforced, u, pcurve[1], attractors_cont[1])
             # deduce tipping type
-            rate_type[i, j] = label_rate_outcome(track_id, return_id, start_id)
+            rate_type[i, j] = decide_rate_outcome(track_id, return_id, start_id)
         end
     end
-    return rate_type
+    return rate_type, attractors_cont
 end
 
-function label_rate_outcome(track_id, return_id, start_id)
+function decide_rate_outcome_default(track_id, return_id, start_id)
     if track_id == return_id == start_id
         return 1
     elseif return_id == start_id && track_id ≠ start_id
@@ -139,5 +153,3 @@ function unforced_pcurve(rs::RateSystem, Δps)
     forced_pkeys = keys(rs.specs.forcing_profile)
     return [Dict(pidx => current_parameter(rs, pidx, p0s) + p for pidx in forced_pkeys) for p in Δps]
 end
-
-

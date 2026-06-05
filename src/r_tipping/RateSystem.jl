@@ -313,7 +313,7 @@ $(TYPEDSIGNATURES)
 Returns an autonomous dynamical system corresponding to the frozen system of the
 non-autonomous [`RateSystem`](@ref) `rs` at time `t`.
 """
-function frozen_system(rs::RateSystem, t)
+function unforced_system(rs::RateSystem, t)
     p = parameters(rs, t)
     # preserve CoupledSDEs properties
     if rs isa CoupledSDEs

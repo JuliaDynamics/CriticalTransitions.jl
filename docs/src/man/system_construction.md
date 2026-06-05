@@ -75,7 +75,7 @@ The factor is ``1`` whenever ``\mathbf{Q}_{\mathrm{user}}`` is isotropic (``c\,\
 ```@docs; canonical=false
 RateSystem
 ForcingProfile
-frozen_system
+unforced_system
 ```
 
 ![Schematic explaining RateSystem construction](../assets/ratesystem_scheme.png)

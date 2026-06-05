@@ -7,10 +7,15 @@ module CriticalTransitions
     read(path, String)
 end CriticalTransitions
 
+# TODO: all these usings are bad practice for source code readability.
+# it is impossible to infer where each of these functionalities is used. Like ADTypes?
+# All of them should be removed. The ones that are *actually* used, should be used
+# at the top of each file.
+# An exception here is stuff like DynamicalSystemsBase.
+
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra:
-    LinearAlgebra, norm, dot, tr, diag, eigen, normalize!, I
+using LinearAlgebra: LinearAlgebra, norm, dot, tr, diag, eigen, normalize!, I
 using Random: Random
 
 # Core
@@ -132,7 +137,8 @@ export transition, transitions
 
 export ForcingProfile, RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!, set_forcing_reverse!
-export frozen_system, parameters, parameter
+export unforced_system, parameters, parameter
+export rate_track_return_tip, unforced_pcurve
 
 # Diffusion operator
 export CartesianGrid, DiffusionGenerator
