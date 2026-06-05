@@ -1,5 +1,5 @@
 """
-    rate_track_return_tip(rs::RateSystem, Δts, Δps, mapper, u0; kw...)
+    rate_track_return_tip(rs::RateSystem, Δts, Δps, mapper, ics; kw...)
 
 Utilize the `global_continuation` functionality of Attractors.jl to
 calculate a rate track-return-tip diagram for `rs` for a variety of
@@ -23,27 +23,19 @@ Return:
 
 This function formalizes and generalizes the concept of tracking, returning, or tipping,
 in rate forced systems introduced in [Ritchie2023](@cite).
-To achieve this, it uses global continuation, that must be run over the same parameter
-range as the one covered by `Δps`:
-
-```julia
-pcurve = unforced_pcurve(ratestommel, Δps)
-
-# you decide how to do global continuation:
-mapper = some AttractorsMapper( ... )
-matcher = MatchBySSSetDistance( some distance function ... )
-sampler = some initial conditions sampler
-ascm = AttractorsSeedContinueMatch(mapper, matcher)
-_, attractors_cont = global_continuation(ascm, pcurve, sampler)
-```
-`attractors_cont`
-
+To achieve this, it uses global continuation using `mapper, ics`.
 The function will run a whole `global_continuation` run over the
 parameter range `prange = p0 .+ Δps` to establish the unfrozen system attractors and assign
-unique IDs to them throughout `prange`. If you have already done a global continuation,
-use the call signature below.
+unique IDs to them throughout `prange`.
+If you instead want to run the global continuation yourself, simply see the source code
+of `rate_track_return_tip` using `@edit`, copy the four global continuation lines
+and then call the second method:
 
-After the continunation, it will perform a rate simulation with duration `Δt` and scale `Δp` for all
+```julia
+rate_track_return_tip(rs::RateSystem, Δts, Δps, attractors_cont::AbstractVector; kw...)
+```
+
+After the continunation, the function will perform a rate simulation with duration `Δt` and scale `Δp` for all
 combinations, assigning to each combination an integer ∈ (1, 2, 3). These correspond
 to the type of rate-dependent behaviour as in [Ritchie2023](@cite), as:
 
@@ -59,6 +51,7 @@ to the attractor it converges and checking if that coincides with the starting o
 This function applies the same duration and scaling to all parameters that are forced in `rs`,
 and enforces all forcings to be reversed as well.
 The profiles of each parameter are individual though.
+If any profile does not have the `reverse = true` option, an error is thrown.
 """
 function rate_track_return_tip(
         rs::RateSystem, Δts, Δps, mapper::AttractorsMapper, ics;
