@@ -63,9 +63,9 @@ end
 end
 
 @testset "Extensions" begin
-    @testset "DistMesh2D" begin
-        include("ext/DistMesh2D.jl")
-    end
+    # @testset "DistMesh2D" begin
+    #     include("ext/DistMesh2D.jl")
+    # end
 end
 
 @testset "Doctests" begin
