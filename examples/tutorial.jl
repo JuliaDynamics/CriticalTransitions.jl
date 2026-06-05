@@ -213,7 +213,7 @@ N = 51
 
 # and specify that all nonautonomous simulations start from the initial condition
 
-u0 = [2.348128197247146, 2.455397131357698] # steady state at η0 = 2.6
+u0 = [1.6133415857466658, 1.8530058278760153] # steady state at η1 = η0
 
 # with a rate profile
 profile = ForcingProfile(x -> cos(x)^2, (-π/2, 0.0))
