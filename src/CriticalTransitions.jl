@@ -69,8 +69,8 @@ using ProgressMeter: Progress, next!
 
 # reexport
 using Reexport: @reexport
-@reexport using StaticArrays
 @reexport using DynamicalSystemsBase
+@reexport using Attractors
 
 include("utils.jl")
 include("sde_utils.jl")
