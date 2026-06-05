@@ -172,6 +172,105 @@ fig
 
 # ## RateSystem: example application
 
+# As an example application for `RateSystem` we will showcase The function
+# [`rate_track_return_tip`](@ref). It utilizes the global continuation functionality
+# of Attractors.jl to formalize and generalize the 'track-return-tip' phase diagrams
+# popularized in [Ritchie2023](@cite). We will highlight this feature using a different
+# dynamical system called the two-box Stommel model, where rate tipping is simple and clear
+# to illustrate.
+
+function stommel_f(x, p, t)
+    T, S = x
+    η1, η2, η3 = p
+    q = abs(T-S)
+    return SVector(η1 - T - q*T, η2 - η3*S - q*S)
+end
+p = [2.0, 1, 0.3]
+stommel = CoupledODEs(stommel_f, [0.3, 0.2], p)
+
+# As a prior step before using this functionality we need to specify an `AttractorMapper`,
+# a way to detect unique attractors and map initial conditions to them,
+# as well as a way to samply initial conditions in the state space.
+# These are used internally to perform the global continuation. Here we will use:
+
+grid = (range(0, 10; length = 201), range(0, 10; length = 201), )
+mapper = AttractorsViaRecurrences(stommel, grid)
+sampler, = statespace_sampler(grid)
+
+# The rest of the arguments are specific to the rate tipping functionality.
+# Specifically we provide a range of forcing durations and scales
+N = 51
+Δps = range(0, 1; length = N)
+Δts =  2 .^ range(-2, 5; length = N)
+
+# and, because we start our Stommel model in a monostable regime, we also need to provide
+# an `ε` value for `AttractorsViaProximity`, which will be used to map the end of
+# each nonautonomous simulation to its corresponding attractor.
+# (in multistable regimes this can be deduced automatically from found attractors)
+
+proximity_kw = (distance = Centroid(), ε = 0.1, )
+
+# We now compute the rate 'track-return-tip' diagram by starting all nonautonomous
+# simulations from the initial condition
+
+u0 = [2.348128197247146, 2.455397131357698] # steady state at η0 = 2.6
+
+# with a rate profile
+
+profile = ForcingProfile(x -> cos(x)^2, (-π/2, 0.0))
+ratestommel = RateSystem(stommel, profile, 1; reverse = true)
+
+# and we get
+
+
+
+# to perform a global continuation (to establish algorithmically which attractors exist,
+# what it means for two attractors to be different, and what it means to converge to an attractor).
+
+
+
+
+# Now we can easily set up a rate system with reversable forcing
+profile = ForcingProfile(x -> cos(x)^2, (-π/2, 0.0))
+ratestommel = RateSystem(stommel, profile, 1; reverse = true)
+
+
+
+# global cont is also input to function
+# Frozen system continuation curve
+
+pcurve = unforced_pcurve(ratestommel, Δps)
+
+
+grid = (range(0, 10; length = 201), range(0, 10; length = 201), )
+ics, = statespace_sampler(grid)
+mapper = AttractorsViaRecurrences(stommel, grid)
+gca = AttractorSeedContinueMatch(mapper)
+
+fractions_cont, attractors_cont = global_continuation(
+	gca, pcurve, ics; samples_per_parameter = 100
+)
+
+proximity_kw = (distance = Centroid(), ε = 0.1, )
+
+
+# apply and plot:
+rate_type = rate_track_return_tip(rs, Δts, Δps, attractors_cont, u0; proximity_kw)
+
+using CairoMakie
+cmap = cgrad(["white", "red", "blue"], 3; categorical = true)
+fig, ax, hm = heatmap(Δps, log2.(Δts), rate_type; colormap = cmap,
+colorrange = (0.5, 3.5))
+ax.xlabel = "Δp"
+ax.ylabel = "log2(Δt)"
+cb = Colorbar(fig[1, 2], hm)
+cb.ticks = (1:3, ["always\ntrack", "return but\nnot track", "always\ntip"])
+cb.ticklabelrotation = π/2
+fig
+
+
+
+
 # TODO: finish my function.
 
 # ## RandomSystem: creation

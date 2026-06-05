@@ -4,18 +4,9 @@ This page is the canonical reference for the public API, grouped by topic.
 Each entry also appears, in context, on the relevant manual page; the canonical
 link used by `@ref` points here.
 
-## Defining a system
+## Rate tipping
 
-### Stochastic dynamical systems
-
-```@docs
-CoupledSDEs
-CoupledSDEs(ds::CoupledODEs, p; kwargs...)
-CoupledODEs(ds::CoupledSDEs; kwargs...)
-FreidlinWentzellHamiltonian
-```
-
-### Rate system
+### `RateSystem`
 
 ```@docs
 RateSystem
@@ -26,7 +17,25 @@ parameter
 set_forcing_start!
 set_forcing_duration!
 set_forcing_scale!
+set_forcing_reverse!
 ```
+
+### Rate tipping functions
+
+```@docs
+rate_track_return_tip
+```
+
+## Stochastic dynamical systems
+
+```@docs
+CoupledSDEs
+CoupledSDEs(ds::CoupledODEs, p; kwargs...)
+CoupledODEs(ds::CoupledSDEs; kwargs...)
+FreidlinWentzellHamiltonian
+```
+
+
 
 ### Accessors
 

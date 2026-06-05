@@ -1,69 +1,42 @@
-using CriticalTransitions, Attractors
-
-# system setup
-function stommel_f(x, p, t)
-    T, S = x
-    η1, η2, η3 = p
-    q = abs(T-S)
-    return SVector(η1 - T - q*T, η2 - η3*S - q*S)
-end
-
-p = [2.7, 1, 0.3]
-stommel = CoupledODEs(stommel_f, [0.3, 0.2], p)
-profile = ForcingProfile(x -> cos(x)^2, (-π/2, 0.0))
-
-# inputs to function
-rs = RateSystem(stommel, profile, 1; reverse = true)
-
-N = 51
-Δps = range(0, 1; length = N)
-Δts =  2 .^ range(-2, 5; length = N)
-
-u0 = [2.348128197247146, 2.455397131357698] # steady state at η0 = 2.6
-
-# global cont is also input to function
-# Frozen system continuation curve
-function unforced_pcurve(rs::RateSystem, Δps)
-    p0s = rs.specs.p0
-    forced_pkeys = keys(rs.specs.forcing_profile)
-    return [Dict(pidx => current_parameter(rs, pidx, p0s) + p for pidx in forced_pkeys) for p in Δps]
-end
-pcurve = unforced_pcurve(rs, Δps)
-
-
-grid = (range(0, 10; length = 201), range(0, 10; length = 201), )
-ics, = statespace_sampler(grid)
-mapper = AttractorsViaRecurrences(stommel, grid)
-gca = AttractorSeedContinueMatch(mapper)
-
-fractions_cont, attractors_cont = global_continuation(
-	gca, pcurve, ics; samples_per_parameter = 100
-)
-
-proximity_kw = (distance = Centroid(), ε = 0.1, )
-
-
 """
-    rate_track_return_tip(rs::RateSystem, Δts, Δps, attractors_cont, u0; kw...)
+    rate_track_return_tip(rs::RateSystem, Δts, Δps, mapper, u0; kw...)
 
 Utilize the `global_continuation` functionality of Attractors.jl to
 calculate a rate track-return-tip diagram for `rs` for a variety of
-forcing duration and forcing scales `Δts, Δps` for the rate system starting always at `u0`.
+forcing duration and forcing scales `Δts, Δps` with the rate system starting always at `u0`.
 Return:
 
 1. a matrix of sides `Δts` × `Δps` encoding the type of rate tipping behavior.
-2. `attractors_cont`, the attractors global continuation of the frozen system.
+2. `attractors_cont`, the attractors of the global continuation of the unforced system.
 
 ## Keyword arguments
 
+- `distance = Centroid()`: Distance function used when (1) matching attractors, and
+  (2) mapping the end state of a rate simulation to its closest attractor through the
+  `AttractorsViaProximity`.
 - `proximity_kw`: Keywords propagated to [`AttractorsViaProximity`](@ref), for mapping
   the rate system state to the unforced attractors at the middle and end (reverse) of forcing.
+  At a minimum you'd want to pass here the same distance function as the one used during global
+  continuation (which happens automatically for the default values).
 
 ## Description
 
 This function formalizes and generalizes the concept of tracking, returning, or tipping,
-in rate forced systems introduced in [Ritchie2025](@cite).
-To achieve this, it uses global continuation.
+in rate forced systems introduced in [Ritchie2023](@cite).
+To achieve this, it uses global continuation, that must be run over the same parameter
+range as the one covered by `Δps`:
+
+```julia
+pcurve = unforced_pcurve(ratestommel, Δps)
+
+# you decide how to do global continuation:
+mapper = some AttractorsMapper( ... )
+matcher = MatchBySSSetDistance( some distance function ... )
+sampler = some initial conditions sampler
+ascm = AttractorsSeedContinueMatch(mapper, matcher)
+_, attractors_cont = global_continuation(ascm, pcurve, sampler)
+```
+`attractors_cont`
 
 The function will run a whole `global_continuation` run over the
 parameter range `prange = p0 .+ Δps` to establish the unfrozen system attractors and assign
@@ -72,7 +45,7 @@ use the call signature below.
 
 After the continunation, it will perform a rate simulation with duration `Δt` and scale `Δp` for all
 combinations, assigning to each combination an integer ∈ (1, 2, 3). These correspond
-to the type of rate-dependent behaviour as in [Ritchie2025](@cite), as:
+to the type of rate-dependent behaviour as in [Ritchie2023](@cite), as:
 
 1. Tracking always.
 2. Return but not tracking (safe overshoot).
@@ -88,14 +61,30 @@ and enforces all forcings to be reversed as well.
 The profiles of each parameter are individual though.
 """
 function rate_track_return_tip(
-        rs::RateSystem, Δts, Δps, attractors_cont, u0;
-        proximity_kw = (distance = Centroid(), )
+        rs::RateSystem, Δts, Δps, mapper::AttractorsMapper, ics;
+        distance = Centroid(), kw...
     )
+    pcurve = unforced_pcurve(rs, Δps)
+    matcher = MatchBySSSetDistance(distance)
+    ascm = AttractorsSeedContinueMatch(mapper, matcher)
+    _, attractors_cont = global_continuation(ascm, pcurve, ics)
+    return rate_track_return_tip(rs, Δts, Δps, attractors_cont; u0, distance, proximity_kw)
+end
+
+function rate_track_return_tip(
+        rs::RateSystem, Δts, Δps, attractors_cont::AbstractVector;
+        distance = Centroid(),
+        proximity_kw = NamedTuple(),
+        u0 = initial_state(rs),
+    )
+    if any(isfalse, values(rs.spec.forcing_reverse))
+        error("Provided `RateSystem` must have a `reverse=true` option for all profiles.")
+    end
     # configure proximity, finding starting attractor
     unforced = rs.specs.unforced_system
     function find_attractor_id(unforced, u, p, attractors)
         set_parameters!(unforced, p)
-        proximity = AttractorsViaProximity(unforced, attractors; proximity_kw...)
+        proximity = AttractorsViaProximity(unforced, attractors; proximity_kw..., distance)
         return proximity(u)
     end
     start_id = find_attractor_id(unforced, u0, pcurve[1], attractors_cont[1])
@@ -143,16 +132,19 @@ function label_rate_outcome(track_id, return_id, start_id)
     end
 end
 
-# apply and plot:
-rate_type = rate_track_return_tip(rs, Δts, Δps, attractors_cont, u0; proximity_kw)
 
-using CairoMakie
-cmap = cgrad(["white", "red", "blue"], 3; categorical = true)
-fig, ax, hm = heatmap(Δps, log2.(Δts), rate_type; colormap = cmap,
-colorrange = (0.5, 3.5))
-ax.xlabel = "Δp"
-ax.ylabel = "log2(Δt)"
-cb = Colorbar(fig[1, 2], hm)
-cb.ticks = (1:3, ["always\ntrack", "return but\nnot track", "always\ntip"])
-cb.ticklabelrotation = π/2
-fig
+# TODO: Generalize this to Dps being a vector of dictionaries.
+"""
+    unforced_pcurve(rs::RateSystem, Δps::AbstractVector)
+
+Given a range of parameter increments `Δps`, return a parameter curve `pcurve`
+corresponding to all parameter values that `rs` will be forced through.
+This `pcurve` can be used to perform a global continuation for the unforced system.
+"""
+function unforced_pcurve(rs::RateSystem, Δps)
+    p0s = rs.specs.p0
+    forced_pkeys = keys(rs.specs.forcing_profile)
+    return [Dict(pidx => current_parameter(rs, pidx, p0s) + p for pidx in forced_pkeys) for p in Δps]
+end
+
+
