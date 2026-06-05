@@ -11,8 +11,6 @@ end CriticalTransitions
 using Statistics: Statistics, mean
 using LinearAlgebra:
     LinearAlgebra, norm, dot, tr, diag, eigen, normalize!, I
-using SparseArrays: SparseArrays
-: StaticArrays, SVector, SMatrix, MVector
 using Random: Random
 
 # Core
@@ -93,6 +91,7 @@ include("largedeviations/string_method.jl")
 
 include("r_tipping/ForcingProfile.jl")
 include("r_tipping/RateSystem.jl")
+include("r_tipping/r_tipping_phase_diagrams.jl")
 
 # Diffusion operator (general SDE machinery: discrete generator + analyses)
 include("diffusion_operator/utils.jl")
