@@ -12,19 +12,45 @@ using CairoMakie
 #     \dot{v} &= -(1 + u^2) v
 # \end{aligned}
 # ```
-# with ``\beta = 5``. The system has two stable fixed points at ``(\pm 1, 0)`` and a saddle at the origin; the saddle value of ``U_A`` is the Freidlin-Wentzell barrier between the wells.
+# the standard nongradient benchmark in the large-deviations literature. For every ``\beta > 0`` the system has two stable fixed points at ``(\pm 1, 0)`` and a saddle at the origin; the saddle value of ``U_A`` is the Freidlin-Wentzell barrier between the wells.
 
-f(x, p, t) = SVector(x[1] - x[1]^3 - 5 * x[1] * x[2]^2, -(1 + x[1]^2) * x[2])
-sys = CoupledSDEs(f, [-1.0, 0.0]; noise_strength = 0.3)
+maierstein(β) = (x, p, t) -> SVector(x[1] - x[1]^3 - β * x[1] * x[2]^2, -(1 + x[1]^2) * x[2])
+grid = CartesianGrid((-1.5, 1.5, 121), (-1.0, 1.0, 121))
 
-# We pick a grid that covers both attractors and call `quasipotential` with the left attractor as the source.
+# ## An exact reference value
+#
+# On the invariant ``u``-axis (``v = 0``) the drift collapses to the gradient system ``\dot u = u - u^3`` with potential ``V(u) = -u^2/2 + u^4/4``. As long as the minimum-action path stays on the axis, the quasipotential is therefore known in closed form,
+# ```math
+# U_A(u, 0) = 2\,\bigl(V(u) - V(-1)\bigr) = \tfrac{1}{2}(1 - u^2)^2 ,
+# ```
+# with a barrier ``U_A(0,0) = 1/2`` that is *independent of* ``\beta``. This holds while ``\beta`` stays below the focusing threshold ``\beta_c = 4`` ([Maier and Stein 1993](https://doi.org/10.1103/PhysRevE.48.931)); above it the optimal escape path bows off the axis and ``U_A`` is no longer differentiable.
+#
+# We validate the solver against this exact value at ``\beta = 2``:
 
-grid = CartesianGrid((-1.5, 1.5, 121), (-1.0, 1.0, 81))
+saddle = CartesianIndex(argmin(abs.(grid.centers[1])), argmin(abs.(grid.centers[2])))
+
+sys = CoupledSDEs(maierstein(2.0), [-1.0, 0.0]; noise_strength = 0.3)
 qp = quasipotential(sys, grid, [-1.0, 0.0])
+qp.U[saddle]   # ≈ 0.5
 
-# The saddle at ``(0, 0)`` sits at cell `CartesianIndex(61, 41)`. For this system the analytic barrier is known to be ``1/3``.
+# Overlaying the computed on-axis profile ``U_A(u, 0)`` (the ``v = 0`` row) on the closed form confirms the match on the source side ``u \in [-1, 0]``. Past the saddle the system descends deterministically for free, so ``U_A`` stays flat at ``1/2`` and the formula (dashed) no longer applies:
 
-qp.U[CartesianIndex(61, 41)]
+us = grid.centers[1]
+jaxis = saddle[2]   # grid row closest to v = 0
+
+fig, ax, _ = lines(us, qp.U[:, jaxis]; label = "OLIM  U_A(u, 0)", axis = (; xlabel = "u", ylabel = "U_A(u, 0)"))
+uleft = range(-1, 0; length = 100)
+lines!(ax, uleft, @. (1 - uleft^2)^2 / 2; linestyle = :dash, label = "½(1 - u²)²")
+axislegend(ax; position = :ct)
+fig
+
+# ## Off-axis regime ``\beta = 5``
+#
+# For ``\beta = 5 > \beta_c`` the minimum-action path leaves the axis and the barrier drops below ``1/2``:
+
+sys = CoupledSDEs(maierstein(5.0), [-1.0, 0.0]; noise_strength = 0.3)
+qp = quasipotential(sys, grid, [-1.0, 0.0])
+qp.U[saddle]   # ≈ 0.483
 
 # Contour plot of `qp.U`, with both attractors marked in white and the saddle in red.
 
