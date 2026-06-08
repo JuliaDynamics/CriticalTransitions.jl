@@ -20,7 +20,7 @@
 
 # 1. [`RateSystem`](@ref), which is a deterministic `DynamicalSystem` whose parameters
 #    change as functions of time in a predetermined way.
-# 2. [`RandomSystem`](@ref), which is a stochastic `DynamicalSystem` which is driven
+# 2. `RandomSystem`, which is a stochastic `DynamicalSystem` which is driven
 #    by some sorts of noise input. Currently the only such systems supported are
 #    stochastic differential equations.
 
