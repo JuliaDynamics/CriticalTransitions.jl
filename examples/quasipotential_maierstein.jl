@@ -52,12 +52,19 @@ sys = CoupledSDEs(maierstein(5.0), [-1.0, 0.0]; noise_strength = 0.3)
 qp = quasipotential(sys, grid, [-1.0, 0.0])
 qp.U[saddle]   # ≈ 0.483
 
-# Contour plot of `qp.U`, with both attractors marked in white and the saddle in red.
+# There is no closed form in this regime, so we cross-check the saddle value with the geometric minimum action method ([`minimize_geometric_action`](@ref)). We compute the full transition instanton from one well to the other; the downhill descent into the second well costs no action, so its geometric action equals the saddle barrier. Seeded with a path that bows off the axis, gMAM converges to the same value to three digits:
+
+init = reduce(hcat, [SVector(-1.0 + 2t, 0.4 * sinpi(t)) for t in range(0, 1; length = 200)])
+mp = minimize_geometric_action(sys, init; maxiters = 2000)
+mp.action   # ≈ 0.483
+
+# Contour plot of `qp.U`, with both attractors marked in white, the saddle in red, and the gMAM instanton (red dashed) overlaid — it leaves the ``u``-axis, which is exactly why the barrier falls below ``1/2``.
 
 fig, ax, _ = contourf(
     qp.grid.centers[1], qp.grid.centers[2], qp.U;
     levels = 30, colormap = :viridis,
 )
+lines!(ax, mp.path[:, 1], mp.path[:, 2]; color = :red, linestyle = :dash, linewidth = 2)
 scatter!(
     ax, [-1.0, 1.0, 0.0], [0.0, 0.0, 0.0];
     color = [:white, :white, :red], markersize = 14,
