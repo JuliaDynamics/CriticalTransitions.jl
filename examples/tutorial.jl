@@ -196,7 +196,7 @@ figboa
 function g(u, p, t)
     return @. p[6] .* u ./ (1 + t)
 end
-p2 = [1., 3., 1., 1., 1., 1.5] # Parameters (ϵ, β, α, γ, κ, I)
+p2 = [1.0, 3.0, 1.0, 1.0, 1.0, 1.5] # Parameters (ϵ, β, α, γ, κ, I)
 sds_advanced = CoupledSDEs(fitzhugh_nagumo, u0, p2; g = g)
 
 #
@@ -216,13 +216,15 @@ fig
 x_i = Vector(boa.attractors[1][1]) # Initial state
 x_f = Vector(boa.attractors[2][1]) # Final state
 
-gmam = minimize_geometric_action(sds, x_i, x_f;
-    npoints = 50, maxiters = 2000, show_progress = false)
+gmam = minimize_geometric_action(
+    sds, x_i, x_f;
+    npoints = 50, maxiters = 2000, show_progress = false
+)
 
 instanton = gmam.path
 
-ax = content(figboa[1,1])
-lines!(ax, instanton[:,1], instanton[:,2], linewidth=3, color=:red, label="Instanton (gMAM)")
+ax = content(figboa[1, 1])
+lines!(ax, instanton[:, 1], instanton[:, 2], linewidth = 3, color = :red, label = "Instanton (gMAM)")
 axislegend(ax)
 figboa
 
