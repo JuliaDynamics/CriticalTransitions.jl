@@ -57,7 +57,7 @@ ds = CoupledODEs(fitzhugh_nagumo, u0, p)
 
 # to put the rest of the analysis into context, let's quickly visualize
 # the basins of attraction
-using Attractors # for finding attractors and basins
+using Attractors # also re-exported by `CriticalTransitions`
 using CairoMakie # for plotting
 
 grid = (range(-1.5, 1.5; length = 100), range(-2, 2; length = 100),)
@@ -185,7 +185,7 @@ function stommel_f(x, p, t)
     q = abs(T-S)
     return SVector(η1 - T - q*T, η2 - η3*S - q*S)
 end
-η0 = 2.0
+η0 = 2.6 # model is bistable at this parameter
 p = [η0, 1, 0.3]
 stommel = CoupledODEs(stommel_f, [0.3, 0.2], p)
 
@@ -213,7 +213,7 @@ N = 51
 
 # and specify that all nonautonomous simulations start from the initial condition
 
-u0 = [1.6133415857466658, 1.8530058278760153] # steady state at η1 = η0
+u0 = [2.5, 2.5] # this converges to steady state with larger T
 
 # with a rate profile
 profile = ForcingProfile(x -> cos(x)^2, (-π/2, 0.0))
@@ -235,7 +235,7 @@ using CairoMakie
 cmap = cgrad(["white", "red", "blue"], 3; categorical = true)
 # cmap = Makie.Categorical(["white", "red", "blue"])
 fig, ax, hm = heatmap(Δps, log2.(Δts), rate_type; colormap = cmap)
-ax.xlabel = "Δη1"; ax.ylabel = "log2(Δt)"
+ax.xlabel = "Δη1"; ax.ylabel = "log2(Δt)"; ax.title = "rate tipping"
 cb = Colorbar(fig[1, 2], hm)
 cb.ticks = (1:3, ["always\ntrack", "return but\nnot track", "always\ntip"])
 cb.ticklabelrotation = π/2 # hide
