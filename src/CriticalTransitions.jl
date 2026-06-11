@@ -42,7 +42,8 @@ using DynamicalSystemsBase:
     referenced_sciml_prob,
     covariance_matrix,
     diffusion_matrix,
-    diffusion_function
+    diffusion_function,
+    current_time
 using Attractors: Attractors
 
 using ConstructionBase: ConstructionBase
