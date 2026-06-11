@@ -77,7 +77,7 @@ end
 end
 
 @testset "noise_strength" begin
-    using LinearAlgebra
+    using StaticArrays, LinearAlgebra
     f_ou(u, p, t) = -u
 
     # Isotropic covariance: recovers the noise_strength keyword passed at construction.

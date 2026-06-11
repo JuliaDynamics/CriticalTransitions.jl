@@ -25,6 +25,7 @@ This setting is widely used and convenient for studying rate-dependent tipping.
 ````@example RateSystem
 using CriticalTransitions
 using CairoMakie
+using StaticArrays
 
 
 function f(u, p, t)

@@ -20,7 +20,7 @@ Return:
 - `decide_rate_outcome`: A three input function `f(track_id, return_id, start_id)`
   that returns an integer representing a possible rate tipping case of a simulation
   with a specific `Δt, Δp`. It inputs the attractor ID the system converges after the
-  forwards rate forcing, the one it coverges after the forcing is reverse, and the ID
+  forwards rate forcing, the one it converges after the forcing is reverse, and the ID
   that `u0` converges at the starting parameter of the system.
 
 ## Description
