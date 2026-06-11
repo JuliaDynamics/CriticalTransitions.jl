@@ -62,12 +62,6 @@ end
     include("r_tipping/RateSystem.jl")
 end
 
-@testset "Extensions" begin
-    # @testset "DistMesh2D" begin
-    #     include("ext/DistMesh2D.jl")
-    # end
-end
-
 @testset "Doctests" begin
     using Documenter
     Documenter.doctest(CriticalTransitions)
