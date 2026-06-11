@@ -5,7 +5,7 @@ Time-dependent forcing profile ``p(t)`` describing the evolution of a parameter 
 domain `interval = (start, end)`. Used to define a parametric forcing when
 constructing a non-autonomous [`RateSystem`](@ref).
 
-## Keyword arguments
+## Arguments
 
 - `profile`: function ``p(t)`` from ``ℝ → ℝ`` describing the parameter change
 - `interval`: domain interval over which the `profile` is considered

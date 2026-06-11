@@ -50,7 +50,7 @@ using the keywords below.
 - `forcing_start_time = initial_time(ds)`: start time(s) for the parameter
     ramping. You may supply an `AbstractDict` mapping keys to start times, or a scalar
     value which will be applied to all forcing profiles.
-- `forcing_duration = 1.0`: duration of the parameter ramping (in system
+- `forcing_duration = one(initial_time(ds))`: duration of the parameter ramping (in system
     time units). Can be an `AbstractDict` mapping keys to durations or a scalar
     applied to all forcing profiles.
 - `forcing_scale = 1.0`: amplitude multiplicative factor of the forcing
@@ -60,7 +60,7 @@ using the keywords below.
     Can be an `AbstractDict` mapping keys to booleans or a scalar boolean applied to
     all forcing profiles. If true, forcing is reversed over a second interval with the
     same duration.
-- `t0 = initial_time(ds): initial time of the `RateSystem`.
+- `t0 = initial_time(ds)`: initial time of the `RateSystem`.
 
 ## Description
 
@@ -75,8 +75,8 @@ returns to its initial autonomous value. If `reverse = false`, after the interva
 parameter is frozen at its final value.
 
 To modify a rate system after it has been created, use
-[`set_forcing_duration!`](@ref)`, [`set_forcing_scale!`](@ref)`, [`set_forcing_start!`](@ref)`
-[`set_forcing_reverse!`](@ref)`
+[`set_forcing_duration!`](@ref), [`set_forcing_scale!`](@ref), [`set_forcing_start!`](@ref),
+[`set_forcing_reverse!`](@ref),
 and to obtain time dependent parameters use [`parameters`](@ref), [`parameter`](@ref).
 
 ## Single parameter
@@ -115,13 +115,20 @@ function RateSystem(
         "scale" => forcing_scale, "reverse" => reverse
     )
 
+    kwname = Dict(
+        "start_time" => "forcing_start_time", "duration" => "forcing_duration",
+        "scale" => "forcing_scale", "reverse" => "reverse"
+    )
     for j in keys(forcing_kw)
-        if forcing_kw[j] isa AbstractDict
-            @assert keys(forcing_kw[j]) == keys(forcing_profile) "Dictionary keys of `forcing_$(j)` and `forcing_profile` must be identical."
-        elseif forcing_kw[j] isa Real || forcing_kw[j] isa Bool
-            forcing_kw[j] = Dict(k => forcing_kw[j] for (k, _) in forcing_profile)
+        val = forcing_kw[j]
+        accepts_scalar = j == "reverse" ? val isa Bool : (val isa Real && !(val isa Bool))
+        if val isa AbstractDict
+            @assert keys(val) == keys(forcing_profile) "Dictionary keys of `$(kwname[j])` and `forcing_profile` must be identical."
+        elseif accepts_scalar
+            forcing_kw[j] = Dict(k => val for (k, _) in forcing_profile)
         else
-            throw(ArgumentError("`forcing_$(j)` must be either a scalar or a dictionary with the same keys as `forcing_profile`"))
+            scalar_kind = j == "reverse" ? "`Bool`" : "real"
+            throw(ArgumentError("`$(kwname[j])` must be a $(scalar_kind) scalar or a dictionary with the same keys as `forcing_profile`"))
         end
     end
 
@@ -139,24 +146,7 @@ function RateSystem(
         t0
     )
 
-    # preserve CoupledSDEs properties
-    if ds isa CoupledSDEs
-        IIP = SciMLBase.isinplace(ds)
-        prob = referenced_sciml_prob(ds)
-        new_prob = SciMLBase.SDEProblem{IIP}(
-            rss, prob.g, current_state(ds), (t0, prob.tspan[2]), p0;
-            noise_rate_prototype = prob.noise_rate_prototype,
-            noise = prob.noise,
-        )
-        system = CoupledSDEs(new_prob, ds.diffeq, ds.noise_type)
-    elseif ds isa CoupledODEs
-        IIP = SciMLBase.isinplace(ds)
-        prob = SciMLBase.ODEProblem{IIP}(rss, current_state(ds), (t0, Inf), p0)
-        system = CoupledODEs(prob)
-    else
-        error("A RateSystem can only be constructed from a CoupledODEs or CoupledSDEs.")
-    end
-
+    system = _rebuild_system(ds, rss, current_state(ds), p0, t0)
     return RateSystem(system, rss)
 end
 
@@ -164,6 +154,27 @@ RateSystem(
     ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
     pkey; kw...
 ) = RateSystem(ds, Dict(pkey => forcing_profile); kw...)
+
+function _rebuild_system(template::CoupledSDEs, rule, u, p, t0)
+    IIP = SciMLBase.isinplace(template)
+    prob = referenced_sciml_prob(template)
+    new_prob = SciMLBase.SDEProblem{IIP}(
+        rule, prob.g, u, (t0, prob.tspan[2]), p;
+        noise_rate_prototype = prob.noise_rate_prototype,
+        noise = prob.noise,
+    )
+    return CoupledSDEs(new_prob, template.diffeq, template.noise_type)
+end
+
+function _rebuild_system(template::CoupledODEs, rule, u, p, t0)
+    IIP = SciMLBase.isinplace(template)
+    prob = SciMLBase.ODEProblem{IIP}(rule, u, (t0, Inf), p)
+    return CoupledODEs(prob)
+end
+
+_rebuild_system(::ContinuousTimeDynamicalSystem, args...) = throw(
+    ArgumentError("A RateSystem can only be constructed from a CoupledODEs or CoupledSDEs.")
+)
 
 # Out-of-place
 function (rss::RateSystemSpecs)(u, p, t)
@@ -319,20 +330,8 @@ non-autonomous [`RateSystem`](@ref) `rs` at time `t`.
 """
 function unforced_system(rs::RateSystem, t)
     p = parameters(rs, t)
-    # preserve CoupledSDEs properties
-    if rs isa CoupledSDEs
-        IIP = SciMLBase.isinplace(rs)
-        prob = referenced_sciml_prob(rs)
-        new_prob = SciMLBase.SDEProblem{IIP}(
-            dynamic_rule(rs.specs.unforced_system), prob.g, current_state(rs),
-            (t, prob.tspan[2]), p;
-            noise_rate_prototype = prob.noise_rate_prototype,
-            noise = prob.noise,
-        )
-        return CoupledSDEs(new_prob, rs.diffeq, rs.noise_type)
-    else
-        return CoupledODEs(dynamic_rule(rs.specs.unforced_system), current_state(rs), p)
-    end
+    rule = dynamic_rule(rs.specs.unforced_system)
+    return _rebuild_system(rs.system, rule, current_state(rs.system), p, t)
 end
 
 # Extensions

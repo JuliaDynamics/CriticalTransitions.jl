@@ -6,7 +6,7 @@ calculate a rate track-return-tip diagram for `rs` for a variety of
 forcing duration and forcing scales `Δts, Δps` with the rate system starting always at `u0`.
 Return:
 
-1. a matrix of sides `Δts` × `Δps` encoding the type of rate tipping behavior.
+1. a matrix of size `length(Δps)` × `length(Δts)` encoding the type of rate tipping behavior.
 2. `attractors_cont`, the attractors of the global continuation of the unforced system.
 
 ## Keyword arguments
@@ -112,13 +112,15 @@ function rate_track_return_tip(
         set_forcing_scale!(rs, dp)
         for (j, dt) in enumerate(Δts)
             set_forcing_duration!(rs, dt)
-            # run forwards forcing
+            # run forwards forcing. `step!` advances by a *relative* time, and `reinit!`
+            # resets to the system's initial time, so step to the end of the forward
+            # interval [tstart, tstart + dt] relative to that reset time.
             DynamicalSystemsBase.reinit!(rs, u0)
-            T = tstart + dt
-            SciMLBase.step!(rs, T, true)
+            t_reinit = current_time(rs)
+            SciMLBase.step!(rs, (tstart + dt) - t_reinit, true)
             u = current_state(rs)
             track_id = find_attractor_id(unforced, u, pcurve[i], attractors_cont[i])
-            # run backwards forcing
+            # run backwards forcing over the reverse interval of equal duration
             SciMLBase.step!(rs, dt, true)
             u = current_state(rs)
             return_id = find_attractor_id(unforced, u, pcurve[1], attractors_cont[1])
@@ -131,11 +133,14 @@ end
 
 function decide_rate_outcome_default(track_id, return_id, start_id)
     if track_id == return_id == start_id
-        return 1
+        return 1 # track always
     elseif return_id == start_id && track_id ≠ start_id
         return 2 # return but not track
     elseif return_id ≠ start_id && track_id ≠ start_id
         return 3 # always tip
+    else
+        error("Unclassified rate outcome (track_id=$track_id, return_id=$return_id, \
+               start_id=$start_id); provide a custom `decide_rate_outcome`.")
     end
 end
 
