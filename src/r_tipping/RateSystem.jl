@@ -77,7 +77,7 @@ parameter is frozen at its final value.
 To modify a rate system after it has been created, use
 [`set_forcing_duration!`](@ref)`, [`set_forcing_scale!`](@ref)`, [`set_forcing_start!`](@ref)`
 [`set_forcing_reverse!`](@ref)`
-and to obtain time dependent parametes use [`parameters`](@ref), [`parameter`](@ref).
+and to obtain time dependent parameters use [`parameters`](@ref), [`parameter`](@ref).
 
 ## Single parameter
 

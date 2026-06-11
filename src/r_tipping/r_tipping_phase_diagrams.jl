@@ -66,19 +66,19 @@ The profiles of each parameter are individual though.
 If any profile does not have the `reverse = true` option, an error is thrown.
 """
 function rate_track_return_tip(
-        rs::RateSystem, Δts, Δps, mapper::AttractorMapper, ics;
-        distance = Centroid(), kw...
+        rs::RateSystem, Δts, Δps, mapper::Attractors.AttractorMapper, ics;
+        distance = StateSpaceSets.Centroid(), kw...
     )
     pcurve = unforced_pcurve(rs, Δps)
-    matcher = MatchBySSSetDistance(; distance)
-    ascm = AttractorSeedContinueMatch(mapper, matcher)
-    _, attractors_cont = global_continuation(ascm, pcurve, ics)
+    matcher = Attractors.MatchBySSSetDistance(; distance)
+    ascm = Attractors.AttractorSeedContinueMatch(mapper, matcher)
+    _, attractors_cont = Attractors.global_continuation(ascm, pcurve, ics)
     return rate_track_return_tip(rs, Δts, Δps, attractors_cont; distance, kw...)
 end
 
 function rate_track_return_tip(
         rs::RateSystem, Δts, Δps, attractors_cont::AbstractVector;
-        distance = Centroid(),
+        distance = StateSpaceSets.Centroid(),
         proximity_kw = NamedTuple(),
         u0 = initial_state(rs),
         decide_rate_outcome = decide_rate_outcome_default,
@@ -91,7 +91,7 @@ function rate_track_return_tip(
     unforced = rs.specs.unforced_system
     function find_attractor_id(unforced, u, p, attractors)
         set_parameters!(unforced, p)
-        proximity = AttractorsViaProximity(unforced, attractors; proximity_kw..., distance)
+        proximity = Attractors.AttractorsViaProximity(unforced, attractors; proximity_kw..., distance)
         return proximity(u)
     end
     start_id = find_attractor_id(unforced, u0, pcurve[1], attractors_cont[1])
@@ -115,11 +115,11 @@ function rate_track_return_tip(
             # run forwards forcing
             DynamicalSystemsBase.reinit!(rs, u0)
             T = tstart + dt
-            step!(rs, T, true)
+            SciMLBase.step!(rs, T, true)
             u = current_state(rs)
             track_id = find_attractor_id(unforced, u, pcurve[i], attractors_cont[i])
             # run backwards forcing
-            step!(rs, dt, true)
+            SciMLBase.step!(rs, dt, true)
             u = current_state(rs)
             return_id = find_attractor_id(unforced, u, pcurve[1], attractors_cont[1])
             # deduce tipping type

@@ -43,6 +43,7 @@ using DynamicalSystemsBase:
     covariance_matrix,
     diffusion_matrix,
     diffusion_function
+using Attractors: Attractors
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
