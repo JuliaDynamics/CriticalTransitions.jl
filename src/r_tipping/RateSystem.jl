@@ -10,19 +10,19 @@ $(TYPEDFIELDS)
 Call signature: `(::RateSystemSpecs)(u, p, t)` for out-of-place and
 `(::RateSystemSpecs)(du, u, p, t)` for in-place dynamical systems.
 """
-mutable struct RateSystemSpecs{S,K,T,TT,P,X} <: Function
+mutable struct RateSystemSpecs{S, K, T, TT, P, X} <: Function
     "Underlying autonomous system"
     unforced_system::S
     "Mapping parameter index => ForcingProfile"
-    forcing_profile::Dict{K,<:ForcingProfile}
+    forcing_profile::Dict{K, <:ForcingProfile}
     "Mapping parameter index => forcing start time"
-    forcing_start_time::Dict{K,T}
+    forcing_start_time::Dict{K, T}
     "Mapping parameter index => forcing duration"
-    forcing_duration::Dict{K,T}
+    forcing_duration::Dict{K, T}
     "Mapping parameter index => forcing scale"
-    forcing_scale::Dict{K,TT}
+    forcing_scale::Dict{K, TT}
     "Mapping parameter index => whether forcing should reverse"
-    forcing_reverse::Dict{K,Bool}
+    forcing_reverse::Dict{K, Bool}
     "Frozen system original parameters"
     p0::P
     "Placeholder parameter container"
@@ -87,7 +87,7 @@ You can use the convenience syntax
 
 if you are only varying a single parameter with index `pidx`.
 """
-struct RateSystem{S,R} <: ContinuousTimeDynamicalSystem
+struct RateSystem{S, R} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
     system::S
     "Data structure representing the system and forcing specifications in system units"
@@ -99,19 +99,21 @@ end
 function RateSystem(
         ds::ContinuousTimeDynamicalSystem,
         forcing_profile::AbstractDict;
-        forcing_start_time=initial_time(ds),
-        forcing_duration=one(initial_time(ds)),
-        forcing_scale=1.0,
-        reverse=false,
-        t0=initial_time(ds),
+        forcing_start_time = initial_time(ds),
+        forcing_duration = one(initial_time(ds)),
+        forcing_scale = 1.0,
+        reverse = false,
+        t0 = initial_time(ds),
     )
 
     if isempty(forcing_profile)
         throw(ArgumentError("`forcing_profile` must be a dictionary containing at least one entry"))
     end
 
-    forcing_kw = Dict{String,Any}("start_time" => forcing_start_time, "duration" => forcing_duration,
-        "scale" => forcing_scale, "reverse" => reverse)
+    forcing_kw = Dict{String, Any}(
+        "start_time" => forcing_start_time, "duration" => forcing_duration,
+        "scale" => forcing_scale, "reverse" => reverse
+    )
 
     for j in keys(forcing_kw)
         if forcing_kw[j] isa AbstractDict
@@ -158,8 +160,10 @@ function RateSystem(
     return RateSystem(system, rss)
 end
 
-RateSystem(ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
-    pkey; kw...) = RateSystem(ds, Dict(pkey => forcing_profile); kw...)
+RateSystem(
+    ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
+    pkey; kw...
+) = RateSystem(ds, Dict(pkey => forcing_profile); kw...)
 
 # Out-of-place
 function (rss::RateSystemSpecs)(u, p, t)
@@ -241,7 +245,7 @@ Sets the amplitude (`forcing_scale`) of the forcing of the [`RateSystem`](@ref) 
 If the keyword `pkey` is provided, only the corresponding parameter's forcing scale is
 changed; otherwise the forcing scale of all parameters is updated to `scale`.
 """
-function set_forcing_scale!(rs::RateSystem, scale; pkey=nothing)
+function set_forcing_scale!(rs::RateSystem, scale; pkey = nothing)
     if isnothing(pkey)
         for k in keys(rs.specs.forcing_profile)
             rs.specs.forcing_scale[k] = scale
@@ -259,7 +263,7 @@ Sets the duration (`forcing_duration`) of the forcing protocol applied to
 the [`RateSystem`](@ref) `rs`. If the optional keyword `pkey` is provided, only the
 duration for that parameter is changed; otherwise all parameters are updated.
 """
-function set_forcing_duration!(rs::RateSystem, duration; pkey=nothing)
+function set_forcing_duration!(rs::RateSystem, duration; pkey = nothing)
     if isnothing(pkey)
         for k in keys(rs.specs.forcing_profile)
             rs.specs.forcing_duration[k] = duration
@@ -277,7 +281,7 @@ Sets the start time (`forcing_start_time`) of the forcing protocol applied to
 the [`RateSystem`](@ref) `rs`. If the optional keyword `pkey` is provided, only the
 start time for that parameter is changed; otherwise all parameters are updated.
 """
-function set_forcing_start!(rs::RateSystem, start_time; pkey=nothing)
+function set_forcing_start!(rs::RateSystem, start_time; pkey = nothing)
     if isnothing(pkey)
         for k in keys(rs.specs.forcing_profile)
             rs.specs.forcing_start_time[k] = start_time
@@ -295,7 +299,7 @@ Set whether the rate forcing is also reversed for the [`RateSystem`](@ref) `rs`.
 If the optional keyword `pkey` is provided, only the
 reversing for that parameter is changed; otherwise all forcings are updated to the given value.
 """
-function set_forcing_reverse!(rs::RateSystem, value; pkey=nothing)
+function set_forcing_reverse!(rs::RateSystem, value; pkey = nothing)
     if isnothing(pkey)
         for k in keys(rs.specs.forcing_profile)
             rs.specs.forcing_reverse[k] = value
@@ -333,19 +337,19 @@ end
 
 # Extensions
 for f in (
-    :initial_state,
-    :initial_parameters,
-    :current_parameter,
-    :current_parameters,
-    :dynamic_rule,
-    :current_time,
-    :current_state,
-    :initial_time,
-    :successful_step,
-    :set_parameter!,
-    :set_parameters!,
-    :trajectory,
-) # all api functions here
+        :initial_state,
+        :initial_parameters,
+        :current_parameter,
+        :current_parameters,
+        :dynamic_rule,
+        :current_time,
+        :current_state,
+        :initial_time,
+        :successful_step,
+        :set_parameter!,
+        :set_parameters!,
+        :trajectory,
+    ) # all api functions here
     @eval DynamicalSystemsBase.$(f)(rs::RateSystem, args...; kw...) = $(f)(
         rs.system, args...; kw...
     )

@@ -19,9 +19,9 @@ Note: The units of ``t`` are arbitrary; the forcing profile is rescaled to syste
   from 0 to 1 with interval (-3, 3).
 - [`data`](@ref): Get data points describing a given `ForcingProfile`.
 """
-struct ForcingProfile{F,T<:Real}
+struct ForcingProfile{F, T <: Real}
     profile::F
-    interval::Tuple{T,T}
+    interval::Tuple{T, T}
 end
 ForcingProfile(x, y) = ForcingProfile(x, promote(y...))
 
@@ -31,7 +31,7 @@ function ForcingProfile(sym::Symbol)
     if sym == :linear
         return ForcingProfile(x -> x, (0.0, 1.0))
     elseif sym == :tanh
-        return ForcingProfile(x -> tanh(x)/2 + 0.5, (-3.0, 3.0))
+        return ForcingProfile(x -> tanh(x) / 2 + 0.5, (-3.0, 3.0))
     else
         error("Only :linear or :tanh are supported input arguments.")
     end

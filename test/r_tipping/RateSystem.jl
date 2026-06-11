@@ -34,12 +34,12 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
         p_sys = current_parameters(rs.system)
         out = dynamic_rule(rs)(u, p_sys, 1.0)
         pmod_expected = DynamicalSystemsBase.current_parameters(rs, 1.0)
-        @test isapprox(out[1], (u[1] + pmod_expected[1])^2 - 1; atol=1e-12)
+        @test isapprox(out[1], (u[1] + pmod_expected[1])^2 - 1; atol = 1.0e-12)
 
         du = zeros(1)
         ret = dynamic_rule(rs)(du, u, p_sys, 1.0)
         @test ret === nothing
-        @test isapprox(du[1], (u[1] + pmod_expected[1])^2 - 1; atol=1e-12)
+        @test isapprox(du[1], (u[1] + pmod_expected[1])^2 - 1; atol = 1.0e-12)
     end
 
     @testset "out-of-place CoupledSDEs" begin
@@ -53,12 +53,12 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
         p_sys = current_parameters(rs.system)
         out = dynamic_rule(rs)(u, p_sys, 0.5)
         pmod_expected = DynamicalSystemsBase.current_parameters(rs, 0.5)
-        @test isapprox(out[1], (u[1] + pmod_expected[1])^2 - 1; atol=1e-12)
+        @test isapprox(out[1], (u[1] + pmod_expected[1])^2 - 1; atol = 1.0e-12)
 
         du = zeros(1)
         ret = dynamic_rule(rs)(du, u, p_sys, 0.5)
         @test ret === nothing
-        @test isapprox(du[1], (u[1] + pmod_expected[1])^2 - 1; atol=1e-12)
+        @test isapprox(du[1], (u[1] + pmod_expected[1])^2 - 1; atol = 1.0e-12)
 
         # Short SDE trajectory smoke checks (deterministic RNG)
         T_sde = 0.2
@@ -87,7 +87,7 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
         ret = dynamic_rule(rs)(du, u, p_sys, 1.0)
         @test ret === nothing
         pmod_expected = DynamicalSystemsBase.current_parameters(rs, 1.0)
-        @test isapprox(du[1], (u[1] + pmod_expected[1])^2 - 1; atol=1e-12)
+        @test isapprox(du[1], (u[1] + pmod_expected[1])^2 - 1; atol = 1.0e-12)
     end
 
     @testset "in-place CoupledSDEs" begin
@@ -109,7 +109,7 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
         ret = dynamic_rule(rs)(du, u, p_sys, 0.5)
         @test ret === nothing
         pmod_expected = DynamicalSystemsBase.current_parameters(rs, 0.5)
-        @test isapprox(du[1], -u[1] + pmod_expected[1]; atol=1e-12)
+        @test isapprox(du[1], -u[1] + pmod_expected[1]; atol = 1.0e-12)
 
         # Short SDE trajectory smoke checks (deterministic RNG)
         T_sde = 0.2
@@ -146,12 +146,12 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
         out = dynamic_rule(rs)(u, p_sys, 1.0)
         pmod_expected = DynamicalSystemsBase.current_parameters(rs, 1.0)
         peff = pmod_expected[1] + pmod_expected[2]
-        @test isapprox(out[1], (u[1] + peff)^2 - 1; atol=1e-12)
+        @test isapprox(out[1], (u[1] + peff)^2 - 1; atol = 1.0e-12)
 
         du = zeros(1)
         ret = dynamic_rule(rs)(du, u, p_sys, 1.0)
         @test ret === nothing
-        @test isapprox(du[1], (u[1] + peff)^2 - 1; atol=1e-12)
+        @test isapprox(du[1], (u[1] + peff)^2 - 1; atol = 1.0e-12)
     end
 
     @testset "out-of-place CoupledSDEs_2param" begin
@@ -181,12 +181,12 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
         out = dynamic_rule(rs)(u, p_sys, 0.5)
         pmod_expected = DynamicalSystemsBase.current_parameters(rs, 0.5)
         peff = pmod_expected[1] + pmod_expected[2]
-        @test isapprox(out[1], (u[1] + peff)^2 - 1; atol=1e-12)
+        @test isapprox(out[1], (u[1] + peff)^2 - 1; atol = 1.0e-12)
 
         du = zeros(1)
         ret = dynamic_rule(rs)(du, u, p_sys, 0.5)
         @test ret === nothing
-        @test isapprox(du[1], (u[1] + peff)^2 - 1; atol=1e-12)
+        @test isapprox(du[1], (u[1] + peff)^2 - 1; atol = 1.0e-12)
 
         # Short SDE trajectory smoke checks (deterministic RNG)
         T_sde = 0.2
@@ -215,16 +215,16 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
         fend = fp_case.profile(fp_case.interval[2])
 
         # End of forward interval: reaches the same value as non-reversed forcing.
-        @test isapprox(parameter(rs, 10.0, 1), fend - f0; atol = 1e-12)
+        @test isapprox(parameter(rs, 10.0, 1), fend - f0; atol = 1.0e-12)
 
         # During second interval: follows profile backwards.
         reverse_mid_t = 15.0
         reverse_shift = fp_case.interval[2] - ((fp_case.interval[2] - fp_case.interval[1]) / 10.0) * (reverse_mid_t - 10.0)
         expected_mid = fp_case.profile(reverse_shift) - f0
-        @test isapprox(parameter(rs, reverse_mid_t, 1), expected_mid; atol = 1e-12)
+        @test isapprox(parameter(rs, reverse_mid_t, 1), expected_mid; atol = 1.0e-12)
 
         # After reverse phase ends: returns to autonomous value.
-        @test isapprox(parameter(rs, 21.0, 1), 0.0; atol = 1e-12)
+        @test isapprox(parameter(rs, 21.0, 1), 0.0; atol = 1.0e-12)
     end
 
     @testset "reverse as dictionary" begin
@@ -251,17 +251,10 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
         fend = fp_case.profile(fp_case.interval[2])
 
         # First parameter reversed: returns to base after 2*duration.
-        @test isapprox(parameter(rs, 21.0, 1), 0.0; atol = 1e-12)
+        @test isapprox(parameter(rs, 21.0, 1), 0.0; atol = 1.0e-12)
         # Second parameter non-reversed: stays at final forced value.
-        @test isapprox(parameter(rs, 21.0, 2), fend - f0; atol = 1e-12)
+        @test isapprox(parameter(rs, 21.0, 2), fend - f0; atol = 1.0e-12)
     end
-
-
-
-
-
-
-
 
 
     # @testset "parameter container variants" begin
@@ -385,7 +378,7 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
     profile(t) = tanh(t)
     fp = ForcingProfile(tanh, (-5.0, 5.0))
 
-    rs = RateSystem(ds, Dict(pidx => fp); forcing_start_time = forcing_start_time, forcing_duration = forcing_duration, forcing_scale = forcing_scale)
+    rs = RateSystem(ds, Dict(pidx => fp); forcing_start_time, forcing_duration, forcing_scale)
 
     @testset "unforced_system" begin
         frozen = unforced_system(rs, rs.specs.t0)
@@ -429,7 +422,7 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
 
         ds = CoupledODEs(f, x0, p_auto)
         sys_constructed = RateSystem(
-            ds, Dict(pidx => fp); forcing_start_time = forcing_start_time, forcing_duration = forcing_duration, forcing_scale = forcing_scale
+            ds, Dict(pidx => fp); forcing_start_time, forcing_duration, forcing_scale
         )
 
         p_hardcoded = [p_auto[1], forcing_scale, forcing_duration / 2, 40 / forcing_duration]
@@ -441,5 +434,3 @@ fp_case = ForcingProfile(profile, (-5.0, 5.0))
         @test all(tr_constructed .≈ tr_hardcoded)
     end
 end
-
-
