@@ -227,7 +227,7 @@ ratestommel = RateSystem(
 
 # We can now run the main function
 rate_type, attractors_cont = rate_track_return_tip(
-    ratestommel, Δts, Δps, mapper, sampler; proximity_kw
+    ratestommel, Δts, Δps, mapper, sampler; proximity_kw, u0
 )
 
 # which gives
@@ -258,7 +258,7 @@ fig
 # Here we will keep things simple and add additive white noise of given strength
 # to all variables:
 
-sds = CoupledSDEs(ds, p; noise_strength = 0.2)
+sds = CoupledSDEs(ds; noise_strength = 0.2)
 
 # Now that have our stochastic system let's visualize a couple of
 # trajectories (as this is a stochastic system each one will have different noise
@@ -278,17 +278,17 @@ figboa
 # and also scales by the value of the current `I`, by explicitly providing a noise function
 
 function g(u, p, t)
-    return @. p[6] .* u ./ (1 + t)
+    return @. p.I * u / (1 + t)
 end
-p2 = [1.0, 3.0, 1.0, 1.0, 1.0, 1.5] # Parameters (ϵ, β, α, γ, κ, I)
-sds_advanced = CoupledSDEs(fitzhugh_nagumo, u0, p2; g = g)
+p_noise = FitzhughNagumoParameters(0.1, 3.0, 1.5) # nonzero `I` so the noise is visible
+sds_advanced = CoupledSDEs(fitzhugh_nagumo, [0.1, 0.1], p_noise; g = g)
 
 #
 
 fig = Figure()
 ax = Axis(fig[1, 1]; xlabel = "time", ylabel = "u", title = "advanced SDE")
 for _ in 1:3
-    traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
+    traj_sds, = trajectory(sds_advanced, T, [0.5, 0.5]; Δt = 0.1)
     lines!(ax, 0:0.1:T, traj_sds[:, 1])
 end
 fig

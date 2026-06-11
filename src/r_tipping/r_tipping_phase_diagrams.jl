@@ -14,7 +14,7 @@ Return:
 - `distance = Centroid()`: Distance function used when (1) matching attractors, and
   (2) mapping the end state of a rate simulation to its closest attractor through the
   `AttractorsViaProximity`.
-- `proximity_kw`: Keywords propagated to [`AttractorsViaProximity`](@ref), for mapping
+- `proximity_kw`: Keywords propagated to [`AttractorsViaProximity`](@extref Attractors.AttractorsViaProximity), for mapping
   the rate system state to the unforced attractors at the middle and end (reverse) of forcing.
   Do not provide a `distance` as this is used from the above keyword.
 - `decide_rate_outcome`: A three input function `f(track_id, return_id, start_id)`

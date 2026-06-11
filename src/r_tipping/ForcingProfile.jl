@@ -17,7 +17,6 @@ Note: The units of ``t`` are arbitrary; the forcing profile is rescaled to syste
 - `ForcingProfile(:linear)`: Create a linear ramp from 0 to 1.
 - `ForcingProfile(:tanh)`: Create a hyperbolic tangent ramping
   from 0 to 1 with interval (-3, 3).
-- [`data`](@ref): Get data points describing a given `ForcingProfile`.
 """
 struct ForcingProfile{F, T <: Real}
     profile::F
