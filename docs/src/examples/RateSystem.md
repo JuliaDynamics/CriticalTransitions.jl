@@ -27,6 +27,7 @@ using CriticalTransitions
 using CairoMakie
 using StaticArrays
 
+
 function f(u, p, t)
     x = u[1]
     dx = (x + p[1])^2 - 1

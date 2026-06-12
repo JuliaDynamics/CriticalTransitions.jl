@@ -1,6 +1,6 @@
 using Test
 using CriticalTransitions
-using StaticArrays
+
 using LinearAlgebra: tr
 
 # Verifies the FW convention adopted by the package:

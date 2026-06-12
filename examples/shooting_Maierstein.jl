@@ -1,5 +1,6 @@
 using CriticalTransitions
 using StaticArrays
+
 using Logging
 
 # Maier-Stein β = 10: drift is a 2D vector field with three fixed points,

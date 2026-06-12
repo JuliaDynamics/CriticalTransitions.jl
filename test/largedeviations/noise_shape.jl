@@ -1,7 +1,7 @@
 using CriticalTransitions
 using Test
 using LinearAlgebra
-using StaticArrays
+
 
 const CT_ns = CriticalTransitions
 

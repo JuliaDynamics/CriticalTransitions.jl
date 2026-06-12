@@ -9,10 +9,9 @@ end CriticalTransitions
 
 # Base
 using Statistics: Statistics, mean
-using LinearAlgebra:
-    LinearAlgebra, norm, dot, tr, diag, eigen, normalize!, I
 using SparseArrays: SparseArrays
 using StaticArrays: StaticArrays, SVector, SMatrix, MVector
+using LinearAlgebra: LinearAlgebra, norm, dot, tr, diag, eigen, normalize!, I
 using Random: Random
 
 # Core
@@ -43,7 +42,9 @@ using DynamicalSystemsBase:
     referenced_sciml_prob,
     covariance_matrix,
     diffusion_matrix,
-    diffusion_function
+    diffusion_function,
+    current_time
+using Attractors: Attractors
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
@@ -71,6 +72,7 @@ using ProgressMeter: Progress, next!
 using Reexport: @reexport
 @reexport using StaticArrays
 @reexport using DynamicalSystemsBase
+@reexport using Attractors
 
 include("utils.jl")
 include("sde_utils.jl")
@@ -93,6 +95,7 @@ include("largedeviations/string_method.jl")
 
 include("r_tipping/ForcingProfile.jl")
 include("r_tipping/RateSystem.jl")
+include("r_tipping/r_tipping_phase_diagrams.jl")
 
 # Diffusion operator (general SDE machinery: discrete generator + analyses)
 include("diffusion_operator/utils.jl")
@@ -132,8 +135,9 @@ export deterministic_orbit
 export transition, transitions
 
 export ForcingProfile, RateSystem
-export set_forcing_duration!, set_forcing_scale!, set_forcing_start!
-export frozen_system, parameters, parameter
+export set_forcing_duration!, set_forcing_scale!, set_forcing_start!, set_forcing_reverse!
+export unforced_system, parameters, parameter
+export rate_track_return_tip, unforced_pcurve
 
 # Diffusion operator
 export CartesianGrid, DiffusionGenerator

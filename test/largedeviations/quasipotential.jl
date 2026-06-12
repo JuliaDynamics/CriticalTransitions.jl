@@ -1,6 +1,6 @@
 using CriticalTransitions
 using CriticalTransitions: cell_center
-using StaticArrays
+
 using LinearAlgebra
 using Test
 

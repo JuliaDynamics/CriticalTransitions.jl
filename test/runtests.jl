@@ -17,10 +17,6 @@ end
     include("covariance.jl")
 end
 
-#@testset "ModelingToolkit" begin
-#    include("ModelingToolkit.jl")
-#end
-
 @testset "Large Deviations" begin
     include("largedeviations/noise_shape.jl")
     include("largedeviations/action_fhn.jl")
@@ -57,9 +53,9 @@ end
     include("trajectories/transition.jl")
 end
 
-# Disabled until #280's RateSystem refactor is finished — see PR #310.
 @testset "R-tipping" begin
     include("r_tipping/RateSystem.jl")
+    include("r_tipping/phase_diagrams.jl")
 end
 
 @testset "Doctests" begin

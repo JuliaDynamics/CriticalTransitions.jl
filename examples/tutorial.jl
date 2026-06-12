@@ -44,8 +44,8 @@ Random.seed!(1) # hide
 function fitzhugh_nagumo(u, p, t)
     x, y = u
     (; ε, β, I) = p
-    dx = (x - x^3 - y + I) / ε
-    dy = -β * y + x
+    dx = x - x^3 - y + I
+    dy = (x - β * y) * ε
     return SVector(dx, dy)
 end
 mutable struct FitzhughNagumoParameters
@@ -57,7 +57,7 @@ ds = CoupledODEs(fitzhugh_nagumo, u0, p)
 
 # to put the rest of the analysis into context, let's quickly visualize
 # the basins of attraction
-using Attractors # for finding attractors and basins
+using Attractors # also re-exported by `CriticalTransitions`
 using CairoMakie # for plotting
 
 grid = (range(-1.5, 1.5; length = 100), range(-2, 2; length = 100))
@@ -83,7 +83,7 @@ rs = RateSystem(
     ds, fp, pidx;
     forcing_start_time = 10,
     forcing_duration = 10,
-    forcing_scale = 5
+    forcing_scale = 5,
 )
 
 # In the above example the current `I` will linearly ramp from 0 to 5 in the time window 10 to 20.
@@ -97,9 +97,23 @@ rs = RateSystem(
 # - `t > forcing_start_time + forcing_duration`: the system is again autonomous, with
 #   parameters fixed at their values attained at the end of the forcing interval.
 
+# now if we choose the `reverse` option,
+
+rs = RateSystem(
+    ds, fp, pidx;
+    forcing_start_time = 10,
+    forcing_duration = 10,
+    forcing_scale = 5,
+    reverse = true,
+)
+
+# then while `t ∈ forcing_start_time .+ (forcing_duration, 2forcing_duration)`,
+# the forcing will be reversed all the way back to the starting parameters of
+# the underlying autonomous system.
+
 # Let's simulate both the autonomous and non-autonomous systems to see the difference:
 
-T = 50.0 # Total time
+T = 50.0
 traj_ds, tvec = trajectory(ds, T, u0; Δt = 0.01)
 traj_rs, tvec = trajectory(rs, T, u0; Δt = 0.01)
 fig = Figure()
@@ -161,7 +175,77 @@ fig
 
 # ## RateSystem: example application
 
-# TODO: finish my function.
+# As an example application for `RateSystem` we will showcase The function
+# [`rate_track_return_tip`](@ref). It utilizes the global continuation functionality
+# of Attractors.jl to formalize and generalize the 'track-return-tip' phase diagrams
+# popularized in [Ritchie2023](@cite). We will highlight this feature using a different
+# dynamical system called the two-box Stommel model, where rate tipping is simple and clear
+# to illustrate.
+
+function stommel_f(x, p, t)
+    T, S = x
+    η1, η2, η3 = p
+    q = abs(T - S)
+    return SVector(η1 - T - q * T, η2 - η3 * S - q * S)
+end
+η0 = 2.6 # model is bistable at this parameter
+p = [η0, 1, 0.3]
+stommel = CoupledODEs(stommel_f, [0.3, 0.2], p)
+
+# As a prior step before using this functionality we need to specify an `AttractorMapper`,
+# a way to detect unique attractors and map initial conditions to them,
+# as well as a way to samply initial conditions in the state space.
+# These are used internally to perform the global continuation. Here we will use:
+
+grid = (range(0, 10; length = 201), range(0, 10; length = 201))
+mapper = AttractorsViaRecurrences(stommel, grid)
+sampler, = statespace_sampler(grid)
+
+# and, because we start our Stommel model in a monostable regime, we also need to provide
+# an `ε` value for `AttractorsViaProximity`, which will be used to map the end of
+# each nonautonomous simulation to its corresponding attractor.
+# (in multistable regimes this can be deduced automatically from found attractors)
+
+proximity_kw = (ε = 0.1,)
+
+# The rest of the arguments are specific to the rate tipping functionality.
+# Here we provide a range of forcing durations and scales
+N = 51
+Δps = range(0, 1.5; length = N)
+Δts = 2 .^ range(-2, 5; length = N)
+
+# and specify that all nonautonomous simulations start from the initial condition
+
+u0 = [2.5, 2.5] # this converges to steady state with larger T
+
+# with a rate profile
+profile = ForcingProfile(x -> cos(x)^2, (-π / 2, 0.0))
+ratestommel = RateSystem(
+    stommel, profile, 1;
+    forcing_start_time = 50.0, reverse = true
+)
+
+# We can now run the main function
+rate_type, attractors_cont = rate_track_return_tip(
+    ratestommel, Δts, Δps, mapper, sampler; proximity_kw, u0
+)
+
+# which gives
+
+rate_type
+
+# and we visualize
+using CairoMakie
+cmap = cgrad(["white", "red", "blue"], 3; categorical = true)
+# cmap = Makie.Categorical(["white", "red", "blue"])
+fig, ax, hm = heatmap(Δps, log2.(Δts), rate_type; colormap = cmap)
+ax.xlabel = "Δη1"; ax.ylabel = "log2(Δt)"; ax.title = "rate tipping"
+cb = Colorbar(fig[1, 2], hm)
+cb.ticks = (1:3, ["always\ntrack", "return but\nnot track", "always\ntip"])
+cb.ticklabelrotation = π / 2 # hide
+ax = Axis(fig[1, 0]; xlabel = "η1", ylabel = "attractor T", title = "continuation")
+plot_attractors_curves!(ax, attractors_cont, A -> A[end][1], Δps .+ η0)
+fig
 
 # ## RandomSystem: creation
 
@@ -174,7 +258,7 @@ fig
 # Here we will keep things simple and add additive white noise of given strength
 # to all variables:
 
-sds = CoupledSDEs(ds, p; noise_strength = 0.2)
+sds = CoupledSDEs(ds; noise_strength = 0.2)
 
 # Now that have our stochastic system let's visualize a couple of
 # trajectories (as this is a stochastic system each one will have different noise
@@ -194,17 +278,17 @@ figboa
 # and also scales by the value of the current `I`, by explicitly providing a noise function
 
 function g(u, p, t)
-    return @. p[6] .* u ./ (1 + t)
+    return @. p.I * u / (1 + t)
 end
-p2 = [1.0, 3.0, 1.0, 1.0, 1.0, 1.5] # Parameters (ϵ, β, α, γ, κ, I)
-sds_advanced = CoupledSDEs(fitzhugh_nagumo, u0, p2; g = g)
+p_noise = FitzhughNagumoParameters(0.1, 3.0, 1.5) # nonzero `I` so the noise is visible
+sds_advanced = CoupledSDEs(fitzhugh_nagumo, [0.1, 0.1], p_noise; g = g)
 
 #
 
 fig = Figure()
 ax = Axis(fig[1, 1]; xlabel = "time", ylabel = "u", title = "advanced SDE")
 for _ in 1:3
-    traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
+    traj_sds, = trajectory(sds_advanced, T, [0.5, 0.5]; Δt = 0.1)
     lines!(ax, 0:0.1:T, traj_sds[:, 1])
 end
 fig
@@ -234,3 +318,5 @@ figboa
 # Both random and rate systems can easily access the rest of DynamicalSystems.jl.
 # The way to achieve this is to cast the systems back to their deterministic autonomous forms
 # (as this is the type of systems the rest of DynamicalSystems.jl covers).
+# For example, the Attractors.jl documentation has an example for finding the edge state
+# (using edge tracking) for the Fitzhugh-Nagumo model.
