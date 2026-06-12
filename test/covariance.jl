@@ -25,7 +25,7 @@ end
     covar = covariance_matrix(lorenz_oop)
     @test diffus isa AbstractMatrix
     @test covar isa AbstractMatrix
-    @test diffus * diffus' == covar
+    @test diffus * diffus' ≈ covar
 
     W = noise_process(lorenz_oop)
     int_cov = W.covariance

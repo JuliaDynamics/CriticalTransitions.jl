@@ -4,28 +4,14 @@ This page is the canonical reference for the public API, grouped by topic.
 Each entry also appears, in context, on the relevant manual page; the canonical
 link used by `@ref` points here.
 
-## Defining a system
 
-### Stochastic dynamical systems
+## Stochastic dynamical systems
 
 ```@docs
 CoupledSDEs
 CoupledSDEs(ds::CoupledODEs, p; kwargs...)
 CoupledODEs(ds::CoupledSDEs; kwargs...)
 FreidlinWentzellHamiltonian
-```
-
-### Rate system
-
-```@docs
-RateSystem
-ForcingProfile
-frozen_system
-parameters
-parameter
-set_forcing_start!
-set_forcing_duration!
-set_forcing_scale!
 ```
 
 ### Accessors
@@ -38,6 +24,12 @@ covariance_matrix
 diffusion_matrix
 noise_process
 noise_strength
+```
+
+### Utilities
+
+```@docs
+CriticalTransitions.normalize_covariance!
 ```
 
 ## Simulation
@@ -151,10 +143,24 @@ probability_reactive
 probability_last_A
 ```
 
-## Utilities
+## Rate tipping
+
+### `RateSystem`
 
 ```@docs
-CriticalTransitions.normalize_covariance!
+RateSystem
+ForcingProfile
+unforced_system
+parameters
+parameter
+set_forcing_start!
+set_forcing_duration!
+set_forcing_scale!
+set_forcing_reverse!
 ```
 
+### Rate tipping functions
 
+```@docs
+rate_track_return_tip
+```

@@ -29,7 +29,7 @@ function linear_offdiag_2d_sde()
     function g(u, p, t)
         s11 = 1 + 0.2 * u[1]; s22 = 1 + 0.2 * u[2]
         s12 = 0.3 * u[2];     s21 = 0.3 * u[1]
-        return @SMatrix [s11 s12; s21 s22]
+        return SMatrix{2, 2}(s11, s21, s12, s22)
     end
     return CriticalTransitions.CoupledSDEs(
         b, SA[1.0, 0.0]; g = g, noise_prototype = SMatrix{2, 2}(zeros(2, 2)),

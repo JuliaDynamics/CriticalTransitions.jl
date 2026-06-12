@@ -8,7 +8,7 @@ constructing a non-autonomous [`RateSystem`](@ref).
 ## Arguments
 
 - `profile`: function ``p(t)`` from ``ℝ → ℝ`` describing the parameter change
-- `interval`: domain interval `(start, end)` over which the `profile` is considered
+- `interval`: domain interval over which the `profile` is considered
 
 Note: The units of ``t`` are arbitrary; the forcing profile is rescaled to system time units.
 

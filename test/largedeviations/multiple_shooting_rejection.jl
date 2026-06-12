@@ -1,6 +1,6 @@
 using CriticalTransitions
 using Test
-using StaticArrays
+
 using LinearAlgebra
 
 const CT = CriticalTransitions
