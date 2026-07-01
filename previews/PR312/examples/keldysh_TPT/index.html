@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Quasipotential and TPT for a Keldysh oscillator · CriticalTransitions.jl</title><meta name="title" content="Quasipotential and TPT for a Keldysh oscillator · CriticalTransitions.jl"/><meta property="og:title" content="Quasipotential and TPT for a Keldysh oscillator · CriticalTransitions.jl"/><meta property="twitter:title" content="Quasipotential and TPT for a Keldysh oscillator · CriticalTransitions.jl"/><meta name="description" content="Documentation for CriticalTransitions.jl."/><meta property="og:description" content="Documentation for CriticalTransitions.jl."/><meta property="twitter:description" content="Documentation for CriticalTransitions.jl."/><meta property="og:url" content="https://juliadynamics.github.io/CriticalTransitions.jl/examples/keldysh_TPT/"/><meta property="twitter:url" content="https://juliadynamics.github.io/CriticalTransitions.jl/examples/keldysh_TPT/"/><link rel="canonical" href="https://juliadynamics.github.io/CriticalTransitions.jl/examples/keldysh_TPT/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="https://fonts.googleapis.com/css?family=Montserrat|Source+Code+Pro&amp;display=swap" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="CriticalTransitions.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CriticalTransitions.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../quickstart/">Tutorial</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../tutorial/">Tutorial</a></li><li><span class="tocitem">Defining a system</span><ul><li><a class="tocitem" href="../stochastic-dynamics/">Stochastic system</a></li><li><a class="tocitem" href="../RateSystem/">Nonautonomous system</a></li></ul></li><li><span class="tocitem">System analysis</span><ul><li><a class="tocitem" href="../gMAM_Maierstein/">Large deviations: Maier-Stein system</a></li><li><a class="tocitem" href="../sgMAM_KPO/">Simple gMAM: Kerr Parametric Oscillator</a></li><li><a class="tocitem" href="../backtracking_KPO/">Adaptive step-size control for sgMAM</a></li><li><a class="tocitem" href="../OC_mam/">Minimal action method: Optimal Control problem</a></li><li><a class="tocitem" href="../potential_string/">String method: Muller-Brown potential</a></li><li><a class="tocitem" href="../transition_path_theory_double_well/">Transition path theory: 2D double well</a></li></ul></li></ul></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../../man/system_construction/">Define your system</a></li><li><a class="tocitem" href="../../man/systemanalysis/">Stability analysis</a></li><li><a class="tocitem" href="../../man/simulation/">Simulating the system</a></li><li><a class="tocitem" href="../../man/sampling/">Sampling transitions</a></li><li><a class="tocitem" href="../../man/largedeviations/">Large deviation theory</a></li><li><a class="tocitem" href="../../man/r-tipping/">Rate-induced transitions</a></li><li><a class="tocitem" href="../../man/diffusion_operator/">Diffusion operator</a></li><li><a class="tocitem" href="../../man/transition_path_theory/">Transition path theory</a></li><li><a class="tocitem" href="../../man/utils/">Utilities</a></li><li><a class="tocitem" href="../../man/bibliography/">Bibliography</a></li></ul></li><li><a class="tocitem" href="../../api/">API</a></li><li><a class="tocitem" href="../../refs/">References</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Quasipotential and TPT for a Keldysh oscillator</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Quasipotential and TPT for a Keldysh oscillator</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/CriticalTransitions.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/CriticalTransitions.jl/blob/main/examples/keldysh_TPT.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="keldysh_TPT_example"><a class="docs-heading-anchor" href="#keldysh_TPT_example">Quasipotential and TPT for a Keldysh oscillator</a><a id="keldysh_TPT_example-1"></a><a class="docs-heading-anchor-permalink" href="#keldysh_TPT_example" title="Permalink"></a></h1><p>This example studies a stochastic oscillator with nonlinear damping that arises as the classical limit of the Keldysh field theory for a driven-dissipative quantum oscillator. The deterministic dynamics has a stable limit cycle around the origin and two stable fixed points at large amplitude. We use the layered API of <code>CriticalTransitions.jl</code> to:</p><ol><li>find the deterministic attractors and basins (via <code>Attractors.jl</code>),</li><li>compute the small-noise quasipotential <span>$\Phi \simeq -D\log\rho_{ss}$</span> from the stationary Fokker–Planck solution on a Cartesian grid,</li><li>apply Transition Path Theory: forward committor, reactive density and current, and the mean first-passage time.</li></ol><h2 id="Noise-strength-regimes"><a class="docs-heading-anchor" href="#Noise-strength-regimes">Noise-strength regimes</a><a id="Noise-strength-regimes-1"></a><a class="docs-heading-anchor-permalink" href="#Noise-strength-regimes" title="Permalink"></a></h2><p>The single dimensionless control parameter is <span>$D/\Delta\Phi$</span>, the ratio of the noise strength to the quasipotential barrier <span>$\Delta\Phi$</span> between attractors. Two regimes, two complementary mathematical frameworks:</p><p><strong>Large-deviation regime (<span>$D \ll \Delta\Phi$</span>).</strong> Freidlin–Wentzell theory: trajectories follow the deterministic flow except for rare excursions along instanton (minimum-action) paths. Mean first-passage times scale as <span>$\tau \sim e^{\Delta\Phi/D}$</span> (Kramers/Arrhenius); the stationary density <span>$\rho_{ss} \sim e^{-\Phi/D}$</span> concentrates on attractors. The <em>geometry</em> of the transition (instanton, separatrix, reactive tube) becomes <span>$D$</span>-independent in this limit; only the absolute rate diverges.</p><p><strong>TPT regime (any <span>$D &gt; 0$</span>).</strong> Transition Path Theory does not require an asymptotic limit. At finite <span>$D$</span> the committor&#39;s transition layer across the saddle has width <span>$\sim\sqrt{D}$</span>, reactive currents spread over a tube rather than collapse onto a curve, and absolute rates remain numerically representable. This is the natural setting for a grid-based diffusion-generator solve like the one below.</p><p>To resolve the asymptotic large-deviation picture with this method, push <span>$D$</span> low enough that <span>$\Delta\Phi/D \gtrsim 10$</span> while keeping <span>$D$</span> large enough that (i) the stationary density does not underflow double precision (<span>$\Phi_{\max}/D \lesssim 700$</span>) and (ii) the saddle boundary layer is resolved by the grid (<span>$\sqrt{D} \gtrsim \Delta x$</span>). For the parameters below, <span>$D \in [0.02, 0.1]$</span> is the practical sweet spot; the script uses <span>$D = 0.1$</span>, already deep in the large-deviation regime (<span>$\Delta\Phi/D \approx 42$</span>). The strict <span>$D \to 0$</span> limit is better attacked with instanton solvers (geometric minimum action method, string method) than by refining this PDE.</p><h2 id="Model"><a class="docs-heading-anchor" href="#Model">Model</a><a id="Model-1"></a><a class="docs-heading-anchor-permalink" href="#Model" title="Permalink"></a></h2><p>The SDE comes from the Keldysh action</p><p class="math-container">\[S = \int\mathrm{d}t\,\bigl[\dot{x}_{\mathrm{cl}}\dot{x}_{\mathrm{q}}
+    - \dot{x}_{\mathrm{cl}}x_{\mathrm{q}}\mathcal{D}(x_{\mathrm{cl}})
+    - x_{\mathrm{q}}V&#39;(x_{\mathrm{cl}}) + iDx_{\mathrm{q}}^2\bigr],\]</p><p>with non-linear damping and an anharmonic potential</p><p class="math-container">\[\mathcal{D}(x) = \gamma - \mu(1-x^2),\qquad
+V&#39;(x) = \omega_0^2\,x + \alpha_3\,x^3 + \alpha_5\,x^5 .\]</p><p>Eliminating the quantum field <span>$x_{\mathrm{q}}$</span> yields a second-order Langevin equation on the classical phase space <span>$(x, p) \equiv (x_{\mathrm{cl}}, \dot{x}_{\mathrm{cl}})$</span>:</p><p class="math-container">\[\dot{x} = p,\qquad
+\dot{p} = -p\,\mathcal{D}(x) - V&#39;(x) + \sqrt{2D}\,\xi(t) ,\]</p><p>with white noise on the momentum channel only — this matches the <span>$iDx_{\mathrm{q}}^2$</span> term in the action.</p><pre><code class="language- hljs">using CriticalTransitions, StaticArrays
+import LinearSolve as LS
+using Attractors
+using LinearAlgebra: norm
+using Statistics: quantile
+using CairoMakie
+
+const ω₀ = 1.0
+const γ = 0.03
+const μ = 0.1
+const α₃ = -0.25
+const α₅ = 0.01
+const D = 0.1  # noise strength D in the action; momentum noise = √(2D)
+
+𝒟(x) = γ - μ * (1 - x^2)
+V′(x) = ω₀^2 * x + α₃ * x^3 + α₅ * x^5
+
+drift_kel(u, p_, t) = SA[u[2], -u[2] * 𝒟(u[1]) - V′(u[1])]
+diff_kel(u, p_, t) = SA[0.0, sqrt(2D)]
+
+sys = CoupledSDEs(drift_kel, [0.5, 0.0]; g = diff_kel, noise_strength = 1.0)</code></pre><p><code>covariance_matrix(sys)</code> is <code>Diagonal([0, 2D])</code> — rank-1 diffusion. The <code>DiffusionGenerator</code> discretisation handles this correctly: along the noise-free <span>$x$</span> axis it falls back to a first-order upwind stencil.</p><h2 id="Deterministic-phase-portrait"><a class="docs-heading-anchor" href="#Deterministic-phase-portrait">Deterministic phase portrait</a><a id="Deterministic-phase-portrait-1"></a><a class="docs-heading-anchor-permalink" href="#Deterministic-phase-portrait" title="Permalink"></a></h2><p>The fixed points come from <span>$V&#39;(x)=0$</span>. With our parameters</p><p class="math-container">\[V&#39;(x) = x\bigl(1 - 0.25\,x^2 + 0.01\,x^4\bigr) ,\]</p><p>the non-trivial roots satisfy <span>$x^2 = 5$</span> or <span>$x^2 = 20$</span>. Linearising shows <span>$(0, 0)$</span> is an unstable spiral, <span>$(\pm\sqrt{5}, 0)$</span> are saddles, and <span>$(\pm\sqrt{20}, 0)$</span> are stable spirals. Near the origin the Van-der-Pol pumping (<span>$\mu &gt; \gamma$</span>) creates a stable limit cycle.</p><pre><code class="language-julia hljs">x_saddle = sqrt(5)
+x_fp = sqrt(20)
+@show x_saddle, x_fp</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(2.23606797749979, 4.47213595499958)</code></pre><p>Visualise the deterministic flow:</p><pre><code class="language- hljs">fig = Figure(; size = (760, 420))
+ax = Axis(
+    fig[1, 1]; xlabel = &quot;x&quot;, ylabel = &quot;p&quot;, aspect = DataAspect(),
+    title = &quot;Deterministic flow&quot;
+)
+streamplot!(
+    ax,
+    u -&gt; Point2f(u[2], -u[2] * 𝒟(u[1]) - V′(u[1])),
+    -5.5 .. 5.5, -3.0 .. 3.0;
+    linewidth = 0.7,
+    colormap = [:gray40, :gray40],
+    arrow_size = 7,
+    gridsize = (32, 16),
+)
+scatter!(ax, [-x_fp, x_fp], [0.0, 0.0]; color = :red, markersize = 14, label = &quot;stable FP&quot;)
+scatter!(
+    ax, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
+    marker = :diamond, markersize = 12, label = &quot;saddle&quot;
+)
+axislegend(ax; position = :rb)
+fig</code></pre><h2 id="Attractors-and-basins"><a class="docs-heading-anchor" href="#Attractors-and-basins">Attractors and basins</a><a id="Attractors-and-basins-1"></a><a class="docs-heading-anchor-permalink" href="#Attractors-and-basins" title="Permalink"></a></h2><p>We hand the deterministic system to <code>Attractors.jl</code>&#39;s recurrence-based mapper. The same grid will reappear as the discretisation of the diffusion generator below.</p><pre><code class="language- hljs">ds = CoupledODEs(drift_kel, [0.5, 0.0])
+xg = range(-5.5, 5.5; length = 251)
+pg = range(-3.0, 3.0; length = 121)
+mapper = AttractorsViaRecurrences(
+    ds, (xg, pg);
+    consecutive_recurrences = 200, Dt = 0.1, sparse = true
+)
+basins, attractors = basins_of_attraction(mapper, (xg, pg); show_progress = false)</code></pre><p>Identify the limit cycle as the attractor with the largest support, and the two stable fixed points by their location:</p><pre><code class="language- hljs">lc_key = argmax(k -&gt; length(attractors[k]), keys(attractors))
+lc_pts = [SA[u[1], u[2]] for u in attractors[lc_key]]
+
+right_fp_key = argmin(
+    k -&gt; norm(
+        [
+            attractors[k][1][1] - x_fp,
+            attractors[k][1][2],
+        ]
+    ),
+    [k for k in keys(attractors) if k != lc_key]
+)
+left_fp_key = argmin(
+    k -&gt; norm(
+        [
+            attractors[k][1][1] + x_fp,
+            attractors[k][1][2],
+        ]
+    ),
+    [k for k in keys(attractors) if k != lc_key]
+)
+
+fig = Figure(; size = (760, 420))
+ax = Axis(
+    fig[1, 1]; xlabel = &quot;x&quot;, ylabel = &quot;p&quot;, aspect = DataAspect(),
+    title = &quot;Basins of attraction&quot;
+)
+heatmap!(
+    ax, xg, pg, basins;
+    colormap = Makie.Categorical(:Set2)
+)
+scatter!(
+    ax, [p[1] for p in lc_pts], [p[2] for p in lc_pts];
+    color = :black, markersize = 3, label = &quot;limit cycle&quot;
+)
+scatter!(ax, [-x_fp, x_fp], [0.0, 0.0]; color = :red, markersize = 12)
+scatter!(
+    ax, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
+    marker = :diamond, markersize = 10
+)
+axislegend(ax; position = :rt)
+fig</code></pre><p>Three macroscopic attractors: the limit cycle around the origin (blue) and the two stable fixed points (red, green). The thin fingers extending outward are the stable manifolds of the saddles.</p><h2 id="Discretisation:-the-diffusion-generator"><a class="docs-heading-anchor" href="#Discretisation:-the-diffusion-generator">Discretisation: the diffusion generator</a><a id="Discretisation:-the-diffusion-generator-1"></a><a class="docs-heading-anchor-permalink" href="#Discretisation:-the-diffusion-generator" title="Permalink"></a></h2><p>Build a <code>DiffusionGenerator</code> on the same grid. <code>DiffusionGenerator</code> uses the Scharfetter–Gummel exponential-fitting finite-volume scheme; with reflecting boundaries the discrete generator preserves probability mass.</p><pre><code class="language- hljs">grid = CartesianGrid((-5.5, 5.5, 251), (-3.0, 3.0, 121))
+gen = DiffusionGenerator(sys, grid)
+@show size(gen.Q)
+@show maximum(abs, vec(sum(gen.Q; dims = 2)))  # row sums ≈ 0
+
+reshape_grid(v) = reshape(v, grid.nbox)
+xs_c = collect(grid.centers[1])
+ps_c = collect(grid.centers[2])</code></pre><h2 id="Quasipotential-(\\varepsilon-\\to-0)"><a class="docs-heading-anchor" href="#Quasipotential-(\\varepsilon-\\to-0)">Quasipotential (<span>$\varepsilon \to 0$</span>)</a><a id="Quasipotential-(\\varepsilon-\\to-0)-1"></a><a class="docs-heading-anchor-permalink" href="#Quasipotential-(\\varepsilon-\\to-0)" title="Permalink"></a></h2><p>The Freidlin–Wentzell quasipotential is</p><p class="math-container">\[\Phi(x, p) = -\lim_{D\to 0} D\log\rho_{ss}^D(x, p) .\]</p><p>At the small but finite <span>$D=10^{-3}$</span> used here, <span>$\Phi \simeq -D\log\rho_{ss}$</span> is dominated by the two deep fixed-point wells: their basins carry essentially all of the equilibrium mass and the limit cycle is metastable rather than a global minimum of <span>$\Phi$</span>.</p><pre><code class="language- hljs">ρ = stationary_distribution(
+    gen, KrylovKitSolver();
+    krylovdim = 60,
+    tol = 1.0e-12,
+    maxiter = 2000,
+    inner_alg = LS.UMFPACKFactorization(),
+    verbose = true,
+)</code></pre><p>ρ = stationary<em>distribution(     gen, LS.KrylovJL</em>GMRES(); )</p><pre><code class="language- hljs">Φ = .-(D .* log.(max.(ρ, eps(Float64))))
+Φ .-= minimum(Φ)
+@show extrema(Φ)
+
+Φg = reshape_grid(Φ)
+qhi = quantile(filter(isfinite, vec(Φg)), 0.985)
+
+fig = Figure(; size = (820, 460))
+ax = Axis(
+    fig[1, 1]; xlabel = &quot;x&quot;, ylabel = &quot;p&quot;, aspect = DataAspect(),
+    title = &quot;Quasipotential Φ = -D log ρ_ss  (D = $D)&quot;
+)
+hm = heatmap!(ax, xs_c, ps_c, Φg; colormap = :viridis, colorrange = (0, qhi))
+contour!(ax, xs_c, ps_c, Φg; levels = 14, color = (:white, 0.4), linewidth = 0.7)
+streamplot!(
+    ax, u -&gt; Point2f(u[2], -u[2] * 𝒟(u[1]) - V′(u[1])),
+    -5.5 .. 5.5, -3.0 .. 3.0; gridsize = (28, 14), arrow_size = 6,
+    stepsize = 0.005, linewidth = 0.5,
+    colormap = [(:gray85, 0.6), (:gray85, 0.6)]
+)
+scatter!(ax, [-x_fp, x_fp], [0.0, 0.0]; color = :red, markersize = 12)
+scatter!(
+    ax, [-x_saddle, x_saddle], [0.0, 0.0]; color = :orange,
+    marker = :diamond, markersize = 10
+)
+Colorbar(fig[1, 2], hm; label = &quot;Φ&quot;)
+fig</code></pre><p>The two fixed points sit at the bottom of deep wells; the saddles at <span>$(\pm\sqrt{5}, 0)$</span> are the lowest points on the ridge between the basins, which the optimal (instanton) escape path crosses. The limit-cycle well is very shallow on this scale — see the committor plot below for a finer visualisation of its role.</p><h2 id="Transition-Path-Theory-(\\varepsilon-0)"><a class="docs-heading-anchor" href="#Transition-Path-Theory-(\\varepsilon-0)">Transition Path Theory (<span>$\varepsilon &gt; 0$</span>)</a><a id="Transition-Path-Theory-(\\varepsilon-0)-1"></a><a class="docs-heading-anchor-permalink" href="#Transition-Path-Theory-(\\varepsilon-0)" title="Permalink"></a></h2><p>We consider transitions between the two fixed-point attractors: <span>$A = \{(x, p) : \|(x, p) - (-\sqrt{20}, 0)\| &lt; r\}$</span> and similarly for <span>$B$</span> centred at <span>$(+\sqrt{20}, 0)$</span>. The limit cycle lies between them and plays the role of an obstacle that reactive trajectories must navigate around.</p><pre><code class="language- hljs">r_attr = 0.4
+near_Lfp(u) = norm(u .- SA[-x_fp, 0.0]) &lt; r_attr
+near_Rfp(u) = norm(u .- SA[x_fp, 0.0]) &lt; r_attr
+
+result = ReactiveTransition(gen, near_Lfp, near_Rfp)
+
+qplus = forward_committor(result)
+qminus = backward_committor(result)</code></pre><h3 id="Forward-committor"><a class="docs-heading-anchor" href="#Forward-committor">Forward committor</a><a id="Forward-committor-1"></a><a class="docs-heading-anchor-permalink" href="#Forward-committor" title="Permalink"></a></h3><p class="math-container">\[q^{+}(x, p)\]</p><p>is the probability of reaching <span>$B$</span> before <span>$A$</span>. The 0.5-isocontour traces the stochastic separatrix.</p><pre><code class="language- hljs">q2d = reshape_grid(qplus)
+
+fig = Figure(; size = (820, 460))
+ax = Axis(
+    fig[1, 1]; xlabel = &quot;x&quot;, ylabel = &quot;p&quot;, aspect = DataAspect(),
+    title = &quot;Forward committor q⁺&quot;
+)
+hm = heatmap!(ax, xs_c, ps_c, q2d; colormap = :coolwarm)
+contour!(ax, xs_c, ps_c, q2d; levels = [0.5], color = :black, linewidth = 2)
+scatter!(ax, [-x_fp, x_fp], [0.0, 0.0]; color = :black, markersize = 12)
+Colorbar(fig[1, 2], hm; label = &quot;q⁺&quot;)
+fig</code></pre><p>The spiral structure inside the limit-cycle region is striking: the committor varies smoothly there because the deterministic dynamics wind around the limit cycle, sampling both saddles roughly equally on the way out. The separatrix passes through the unstable origin.</p><h3 id="Reactive-current"><a class="docs-heading-anchor" href="#Reactive-current">Reactive current</a><a id="Reactive-current-1"></a><a class="docs-heading-anchor-permalink" href="#Reactive-current" title="Permalink"></a></h3><p>The reactive current <span>$J_R$</span> points from <span>$A$</span> to <span>$B$</span> everywhere and is divergence-free except on <span>$A\cup B$</span>. The node-centered form returned by <code>reactive_current</code> is convenient for an arrow plot.</p><pre><code class="language- hljs">J_nodes, _ = reactive_current(result)
+Jx, Jy = J_nodes
+
+step = 8
+Is = 1:step:grid.nbox[1]
+Js = 1:step:grid.nbox[2]
+xq = [xs_c[i] for i in Is, _ in Js]
+yq = [ps_c[j] for _ in Is, j in Js]
+ux = [Jx[i, j] for i in Is, j in Js]
+uy = [Jy[i, j] for i in Is, j in Js]
+mag = sqrt.(ux .^ 2 .+ uy .^ 2)
+mmax = maximum(mag)
+
+fig = Figure(; size = (820, 460))
+ax = Axis(
+    fig[1, 1]; xlabel = &quot;x&quot;, ylabel = &quot;p&quot;, aspect = DataAspect(),
+    title = &quot;Reactive current J_R&quot;
+)
+heatmap!(ax, xs_c, ps_c, q2d; colormap = :coolwarm, alpha = 0.7)
+arrows2d!(
+    ax, vec(xq), vec(yq),
+    vec(ux ./ (mmax + eps())), vec(uy ./ (mmax + eps()));
+    color = :black, lengthscale = 0.18
+)
+fig</code></pre><h3 id="Mean-first-passage-time"><a class="docs-heading-anchor" href="#Mean-first-passage-time">Mean first-passage time</a><a id="Mean-first-passage-time-1"></a><a class="docs-heading-anchor-permalink" href="#Mean-first-passage-time" title="Permalink"></a></h3><p>Time to reach either fixed-point attractor as a function of starting position. The limit-cycle interior is the region of longest wait.</p><pre><code class="language- hljs">target = u -&gt; near_Lfp(u) || near_Rfp(u)
+τ = mean_first_passage_time(gen, target)
+τ2d = reshape_grid(τ)
+
+fig = Figure(; size = (820, 460))
+ax = Axis(
+    fig[1, 1]; xlabel = &quot;x&quot;, ylabel = &quot;p&quot;, aspect = DataAspect(),
+    title = &quot;Mean first-passage time to either FP&quot;
+)
+hm = heatmap!(ax, xs_c, ps_c, τ2d; colormap = :plasma)
+contour!(ax, xs_c, ps_c, τ2d; levels = 8, color = (:white, 0.3), linewidth = 0.7)
+scatter!(
+    ax, [p[1] for p in lc_pts], [p[2] for p in lc_pts];
+    color = :white, markersize = 1.5
+)
+Colorbar(fig[1, 2], hm; label = &quot;τ&quot;)
+fig</code></pre><p>Inside the limit-cycle basin τ saturates at a plateau set by the escape rate over the saddle barrier; on the basins of the fixed points the system falls in within a few oscillation periods.</p><h2 id="Reusing-the-generator"><a class="docs-heading-anchor" href="#Reusing-the-generator">Reusing the generator</a><a id="Reusing-the-generator-1"></a><a class="docs-heading-anchor-permalink" href="#Reusing-the-generator" title="Permalink"></a></h2><p>Because <code>DiffusionGenerator</code> is decoupled from the metastable sets, the same sparse matrix can be queried for many different <span>$A, B$</span> pairs at the cost of one linear solve each. For example, sweeping the FP-attractor cutoff radius:</p><pre><code class="language- hljs">for r in (0.3, 0.4, 0.5, 0.6)
+    local Ar = u -&gt; norm(u .- SA[-x_fp, 0.0]) &lt; r
+    local Br = u -&gt; norm(u .- SA[x_fp, 0.0]) &lt; r
+    local res_r = ReactiveTransition(gen, Ar, Br)
+    println(&quot;r = $r → reactive_rate ≈ $(reactive_rate(res_r))&quot;)
+end</code></pre><p>At this small noise the absolute reactive rate underflows (Kramers escape factor <span>$e^{-\Delta\Phi/D}$</span> with <span>$\Delta\Phi/D \approx 42$</span>), but the <em>shape</em> of the committor and the reactive current are well-defined and numerically stable — they characterise the geometry of the transition, not its absolute rate.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 13 May 2026 11:53">Wednesday 13 May 2026</span>. Using Julia version 1.10.11.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
