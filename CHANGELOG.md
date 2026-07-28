@@ -39,6 +39,18 @@
 - Updated to the new `DynamicalSystemsBase` interface; `StochasticSystemsBase`
   is no longer used (#335).
 - Switched code formatter to Runic.jl (#315).
+- `quasipotential` is 32-154x faster (`61x61`, `band_radius=12`, rank-1 oscillator:
+  `17.9 s` to `0.12 s`). Each heap pop now updates a neighbour only from the simplexes
+  the popped cell just created rather than rescanning every front simplex in its
+  stencil, and the independent per-pop updates are spread over the available threads
+  (new `threaded=true` keyword, bitwise identical to the serial sweep). Cost now grows
+  like `band_radius^1.6` rather than the stencil volume. Two further changes are bitwise
+  exact: the edge root find reuses the endpoint values it already computed, and slope
+  limiting is hoisted out of the per-λ Hermite evaluation. The incremental update is
+  *not* bitwise identical to the previous full rescan. It can only leave `U` higher,
+  which is consistent with the method's documented upper-bound property, and it raises
+  `U` in 99.9% of cells by `0.04-0.14 %` of scale; pass `_full_rescan=true` to recover
+  the old candidate set.
 
 #### Fixed
 - Freidlin-Wentzell action conventions and stray `/2` factors (#329).

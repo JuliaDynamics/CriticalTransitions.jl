@@ -83,6 +83,9 @@ function _sweep!(
         L::_GeometricLagrangian{D, T},
         ::Val{K}, ::Val{K_seed};
         verbose::Bool, show_progress::Bool,
+        # Defaulted so that callers driving the sweep directly -- e.g. code that seeds
+        # `state` itself and then hands it over -- keep working unchanged.
+        threaded::Bool = true, full_rescan::Bool = false,
     ) where {D, T, K, K_seed}
     _fill_node_cache!(state, grid, L)
     _seed_near_source!(state, grid, source, sys, L, Val(K_seed); verbose = verbose)
@@ -126,23 +129,51 @@ function _sweep!(
     if show_progress
         return _sweep_loop!(
             state, grid, L, Val(K), Val(D),
-            Progress(N; desc = "OLIM sweep")
+            Progress(N; desc = "OLIM sweep"), threaded, full_rescan,
         )
     else
-        return _sweep_loop!(state, grid, L, Val(K), Val(D), nothing)
+        return _sweep_loop!(
+            state, grid, L, Val(K), Val(D), nothing, threaded, full_rescan,
+        )
     end
 end
 
 @inline _maybe_tick(::Nothing) = nothing
 @inline _maybe_tick(p::Progress) = next!(p)
 
+"""
+The local updates triggered by one pop are mutually independent, which is what makes
+the batch below safe to run in parallel.
+
+An update reads other cells only through `status[y] == _ACCEPTED`, `front[y]`, or
+`_is_final(state, y)`, i.e. only *finalised* cells (`_FRONT`/`_ACCEPTED`), whose `U`
+no longer changes. The sole non-finalised cell it touches is its own `x` (which
+`_incremental_update` seeds `best` from), and the stencil offsets are distinct so no
+two entries of a batch share an `x`. All writes happen in the apply pass afterwards,
+so no update in a batch can observe another's write.
+
+That already holds serially, which is the point: the serial loop's result is
+independent of the order in which one pop's stencil is visited. Computing the batch
+in parallel and applying the results in stencil order therefore reproduces the
+serial field *bitwise*, not merely to tolerance.
+"""
 function _sweep_loop!(
         state::_OLIMState{D, T}, grid::CartesianGrid{D, T},
         L::_GeometricLagrangian{D, T},
         ::Val{K}, ::Val{D}, prog,
+        threaded::Bool = true, full_rescan::Bool = false,
     ) where {D, T, K}
     nbox = state.nbox
     cheb = _chebyshev_neighbors(Val(D))
+    offsets = _stencil_offsets(Val(K), Val(D))
+    cand = Vector{CartesianIndex{D}}(undef, length(offsets))
+    upd = Vector{Tuple{T, BackRef{D}}}(undef, length(offsets))
+    nthr = Threads.nthreads()
+    # Below roughly two candidates per thread the spawn overhead outweighs the work,
+    # which is the regime of small grids and narrow stencils. The floor costs nothing
+    # on grids worth threading: measured at 61x61 with K=12 a pop has a median of 207
+    # candidates, and 99.8% of all candidate work sits in batches of 24 or more.
+    par_floor = threaded && nthr > 1 ? 2 * nthr : typemax(Int)
     while !isempty(state.heap)
         (_, lin_c) = pop!(state.heap)
         c = CartesianIndices(nbox)[lin_c]
@@ -151,11 +182,32 @@ function _sweep_loop!(
         state.front[c] = true
         _maybe_tick(prog)
 
-        for δ in _stencil_offsets(Val(K), Val(D))
+        ncand = 0
+        @inbounds for δ in offsets
             xnew = _shift_in_bounds(c, δ, nbox); xnew === nothing && continue
-            state.status[xnew] == _ACCEPTED && continue
-            state.status[xnew] == _FRONT    && continue
-            Φ, br = _local_update(Val(D), xnew, state, grid, L, Val(K))
+            s = state.status[xnew]
+            (s == _ACCEPTED || s == _FRONT) && continue
+            ncand += 1
+            cand[ncand] = xnew
+        end
+
+        if ncand >= par_floor
+            Threads.@threads for i in 1:ncand
+                @inbounds upd[i] = _candidate_update(
+                    Val(D), cand[i], c, state, grid, L, Val(K), full_rescan,
+                )
+            end
+        else
+            @inbounds for i in 1:ncand
+                upd[i] = _candidate_update(
+                    Val(D), cand[i], c, state, grid, L, Val(K), full_rescan,
+                )
+            end
+        end
+
+        @inbounds for i in 1:ncand
+            xnew = cand[i]
+            Φ, br = upd[i]
             (isfinite(Φ) && Φ < state.U[xnew]) || continue
             state.U[xnew] = Φ
             state.back_pointer[xnew] = br

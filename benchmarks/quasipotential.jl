@@ -38,5 +38,20 @@ function benchmark_quasipotential!(SUITE)
         CartesianGrid((-1.0, 1.0, 81), (-1.0, 1.0, 81)),
         [0.0, 0.0]; show_progress = false,
     ) seconds = 30
+
+    # 2D rank-1 (momentum-only) noise: the anisotropic metric is the expensive case and
+    # the one real second-order Langevin problems hit. Runs serially so the timing is a
+    # measure of the sweep rather than of the host's core count.
+    lin_osc(u, p, t) = SA[u[2], -u[1] - 0.5 * u[2]]
+    osc_g(u, p, t) = SA[0.0, 1.0]
+    sys_r1 = CoupledSDEs(lin_osc, [0.0, 0.0]; g = osc_g, noise_strength = 1.0)
+    SUITE["Large deviation"]["Quasipotential"]["OLIM, rank-1 oscillator 61x61 K=12"] =
+        @benchmarkable quasipotential(
+        $sys_r1,
+        CartesianGrid((-1.5, 1.5, 61), (-1.5, 1.5, 61)),
+        [0.0, 0.0];
+        band_radius = 12, regularization = 0.005,
+        show_progress = false, threaded = false,
+    ) seconds = 60
     return nothing
 end

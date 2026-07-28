@@ -75,6 +75,77 @@ dimension `D` is taken from `sys::CoupledSDEs{IIP, D, I, P}` and must match
   (sub-Riemannian) or a non-coordinate-aligned null space are rejected.
 * `verbose::Bool      = false`
 * `show_progress::Bool = true`
+* `threaded::Bool = true`: spread each pop's local updates over the available Julia
+  threads. The result is *bitwise* identical to the serial sweep (see `_sweep_loop!`),
+  so this trades nothing for speed and is on by default; it is a no-op when Julia runs
+  with one thread. Pass `false` when `quasipotential` is itself being called from
+  inside a parallel region and you would rather own the threads yourself.
+* `_full_rescan::Bool = false`: internal. Rebuilds each candidate's value from every
+  front simplex in its stencil on every pop, instead of only from the simplexes the
+  newly popped cell just created (see `_candidate_update`). Measured 27x slower at
+  `41x41` with `K = 8` and 64x at `61x61` with `K = 12` -- the gap widens with the
+  stencil, since that is exactly the work being skipped. Present only so the tests can
+  pin the two against each other.
+
+# Accuracy
+
+The sweep minimises over a restricted set of paths (polylines through the accepted
+front), so its error is one-sided: `U` is an *upper* estimate, and `U >= 0` always.
+A cell below the exact value is a bug, not discretisation.
+
+How large that overshoot is depends almost entirely on how anisotropic the metric is:
+
+* Full-rank, well-conditioned diffusion: essentially exact. For `b = -x` with `a = I`
+  the error is `0.13%` at worst at `31` cells across and `0.03%` at `121`, with a
+  median near `10^-5`.
+* Rank-1 diffusion with `regularization = δ`: the metric has anisotropy
+  `sqrt(2/δ)`, and the error grows as `δ` shrinks. On a linear oscillator against an
+  exact CARE reference, over the inner 60% of the box (outside that the true optimal
+  path leaves the domain, which is truncation rather than method error):
+
+  | cells | `δ = 0.05` median / worst | `δ = 0.005` median / worst |
+  |-------|---------------------------|----------------------------|
+  |  61   |      5.9% / 32%           |       9.2% / 46%           |
+  | 121   |      3.6% / 18%           |       5.8% / 23%           |
+
+  i.e. falling like `O(h)`, and positive in every cell, as an upper bound must be.
+* `band_radius` past the point where the stencil already contains the cheapest path
+  changes the interior not at all: at `61` cells and `δ = 0.005`, `K = 8` through `24`
+  agree to the last bit over the inner 60%, and `K = 5` differs there by only `7e-3`.
+  What a wider stencil does buy is the *outer* region, where it keeps improving well
+  past `default_K`. So lower `band_radius` freely if you only care about the interior,
+  and raise it if you care about `U` near the domain edge.
+* Second derivatives of `U` are far less accurate than `U`. Differencing a field
+  known to `O(h)` twice leaves errors of tens of percent on a transverse Hessian even
+  where `U` itself is good to a fraction of a percent; fit `U` over a finite window
+  and account for its non-quadratic terms rather than differencing pointwise.
+
+# Performance
+
+The sweep does `O(N)` heap pops, each updating the `O(K^D)` unfinalised cells in the
+popped cell's stencil. Each such update costs `O(1)`, not `O(K^D)`: it only examines the
+simplexes the newly popped cell just created, because every other front simplex was
+already accounted for at an earlier pop (see `_candidate_update`). The work is dominated
+by evaluating `Φ`, a three-node Simpson quadrature of the Lagrangian, a few times per
+candidate simplex, so an expensive `dynamic_rule` is felt directly.
+
+In practice, for a 2D rank-1 problem:
+
+| grid  | `K`  | serial  | threaded (6 cores) |
+|-------|------|---------|--------------------|
+| 41x41 |   8  | 0.047 s |      0.035 s       |
+| 61x61 |  12  | 0.22 s  |      0.12 s        |
+| 81x81 |   9  | 0.25 s  |      0.14 s        |
+
+* Refining the grid is the main cost: `O(N)` pops times `O(K^D)` candidates, so 2x in
+  each 2D direction is about 4x, plus whatever `default_K` adds by growing like
+  `sqrt(n)`.
+* `band_radius` is much weaker than it looks. Measured cost grows like `K^1.6` at fixed
+  grid (`K = 5 -> 24` is 11x), not like the stencil volume, because most cells in a wide
+  stencil are already finalised and skipped.
+* Threading is on by default and exact; see `threaded` above. Its benefit is modest
+  (`1.3-1.9x` here) because what remains after the parallel batch -- the heap and the
+  serial apply pass -- is now a real fraction of the total.
 
 See also: [`QuasiPotential`](@ref), [`BackRef`](@ref).
 """
@@ -87,6 +158,8 @@ function quasipotential(
         regularization::Real = default_regularization(grid),
         verbose::Bool = false,
         show_progress::Bool = true,
+        threaded::Bool = true,
+        _full_rescan::Bool = false,
     ) where {IIP, D, I, P, T}
     length(attractor) == D || throw(
         DimensionMismatch(
@@ -99,7 +172,7 @@ function quasipotential(
     return _quasipotential_impl(
         sys, grid, x_A,
         Val(band_radius), Val(near_source_layers),
-        T(regularization), verbose, show_progress,
+        T(regularization), verbose, show_progress, threaded, _full_rescan,
     )
 end
 
@@ -108,14 +181,16 @@ function _quasipotential_impl(
         grid::CartesianGrid{D, T},
         x_A::SVector{D, T},
         ::Val{K}, ::Val{K_seed},
-        regularization::T, verbose::Bool, show_progress::Bool,
+        regularization::T, verbose::Bool, show_progress::Bool, threaded::Bool,
+        full_rescan::Bool,
     ) where {IIP, D, I, P, T, K, K_seed}
     src = _source_cell(grid, x_A)
     L = _geometric_lagrangian(sys, T; regularization = regularization)
     state = _OLIMState(grid, T, L.Q_inv isa SMatrix)
     _sweep!(
         state, grid, src, sys, L, Val(K), Val(K_seed);
-        verbose = verbose, show_progress = show_progress,
+        verbose = verbose, show_progress = show_progress, threaded = threaded,
+        full_rescan = full_rescan,
     )
     return QuasiPotential{D, T}(state.U, state.back_pointer, src, grid)
 end

@@ -2,6 +2,7 @@ using CriticalTransitions
 using CriticalTransitions: cell_center
 
 using LinearAlgebra
+using Statistics: median
 using Test
 
 const CT_ = CriticalTransitions
@@ -17,6 +18,18 @@ const CT_ = CriticalTransitions
 
         rf, _ = CT_.itp_root(x -> x - 0.25f0, 0.0f0, 1.0f0)
         @test isapprox(rf, 0.25f0; atol = 1.0f-5)
+
+        # Passing the endpoint values in must give the identical root while calling `f`
+        # two fewer times: that is what lets `_edge_minimum` reuse Φ(0) and Φ(1).
+        f = x -> (x - 0.37) * (x + 0.4)
+        ncall = Ref(0)
+        counted = x -> (ncall[] += 1; f(x))
+        rp, okp = CT_.itp_root(counted, 0.0, 1.0; fa = f(0.0), fb = f(1.0))
+        withkw = ncall[]
+        ncall[] = 0
+        rn, okn = CT_.itp_root(counted, 0.0, 1.0)
+        @test (rp, okp) === (rn, okn)
+        @test withkw == ncall[] - 2
     end
 
     @testset "GeometricLagrangian" begin
@@ -52,6 +65,27 @@ const CT_ = CriticalTransitions
         )
         # NaN slopes fall back to the secant (U1 - U0), reducing to linear interpolation.
         @test isapprox(CT_._hermite_U(0.0, 1.0, NaN, NaN, 0.5), 0.5; atol = 1.0e-12)
+    end
+
+    @testset "hermite_U slope limiting" begin
+        # The limiter must not perturb data that is already monotone-compatible:
+        # secant slopes (the NaN fallback) and zero slopes are inside [0, 3Δ].
+        @test CT_._limit_slopes(0.0, 1.0, 1.0, 1.0) == (1.0, 1.0)
+        @test CT_._limit_slopes(0.0, 1.0, 0.0, 0.0) == (0.0, 0.0)
+        @test CT_._limit_slopes(1.0, 0.0, -1.0, -1.0) == (-1.0, -1.0)
+        # Slopes that fight the secant are zeroed; oversteep ones are capped at 3Δ.
+        @test CT_._limit_slopes(0.0, 1.0, -5.0, 9.0) == (0.0, 3.0)
+        @test CT_._limit_slopes(0.0, 0.0, -1.0, 1.0) == (0.0, 0.0)
+
+        # Regression: unlimited, U0 = U1 = 0 with m0 = -a, m1 = a gives
+        # H(λ) = -a λ(1 - λ), i.e. -a/4 at the midpoint. Adding a nonnegative line
+        # integral to a negative interpolated value is the only route by which the
+        # sweep can return U < 0, so the interpolant must stay in [min(U0,U1), max].
+        for λ in (0.1, 0.25, 0.5, 0.75, 0.9)
+            @test CT_._hermite_U(0.0, 0.0, -1.0, 1.0, λ) == 0.0
+            H = CT_._hermite_U(0.3, 0.7, -4.0, 9.0, λ)
+            @test 0.3 - 1.0e-14 <= H <= 0.7 + 1.0e-14
+        end
     end
 
     @testset "stencil_offsets" begin
@@ -336,7 +370,162 @@ const CT_ = CriticalTransitions
         isad = argmin(abs.(xs)); jsad = argmin(abs.(ps))
         @test abs(qp.U[isad, jsad] - 0.25) <= 0.02               # saddle barrier
         @test qp.U[qp.source] == 0.0
-        @test all(>=(-1.0e-8), filter(isfinite, qp.U))
+        @test all(>=(0), filter(isfinite, qp.U))   # exactly 0, not -1e-8
+    end
+
+    @testset "rank-1 linear oscillator: U >= 0 and exact CARE reference" begin
+        # Linear drift plus constant diffusion has a globally quadratic quasipotential
+        # U(x) = x' P x, with P the CARE solution for the *regularized* metric that OLIM
+        # actually solves with. That makes this the sharpest available end-to-end check.
+        #
+        # Regression: at reg = 0.005 (metric anisotropy sqrt(2/reg) = 20) the unlimited
+        # Hermite edge interpolant undershot badly -- min U = -0.218 with 123 cells below
+        # zero, and U up to 78% *below* the exact value. U ≥ 0 holds by definition and
+        # OLIM minimises over a restricted set of paths, so its error must be one-sided
+        # (an overshoot); a negative cell or an undershoot is a bug, not discretisation.
+        gam = 0.5
+        drift(u, p, t) = SVector(u[2], -u[1] - gam * u[2])
+        gmat(u, p, t) = @SMatrix [0.0 0.0; 0.0 1.0]
+        sys = CoupledSDEs(
+            drift, SA[0.0, 0.0]; g = gmat,
+            noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
+        )
+        reg = 0.005
+        P = CT_._care([0.0 1.0; -1.0 -gam], [reg 0.0; 0.0 2.0])
+        grid = CartesianGrid((-1.5, 1.5, 25), (-1.5, 1.5, 25))
+        qp = quasipotential(
+            sys, grid, [0.0, 0.0];
+            band_radius = 12, regularization = reg, show_progress = false,
+        )
+        @test all(>=(0), filter(isfinite, qp.U))
+        @test qp.U[qp.source] == 0.0
+        # Away from the boundary, where the optimal path is not truncated by the box.
+        rel = Float64[]
+        for I in CartesianIndices(qp.U)
+            isfinite(qp.U[I]) || continue
+            x = cell_center(grid, I)
+            (abs(x[1]) <= 0.9 && abs(x[2]) <= 0.9) || continue
+            ue = dot(x, P * x)
+            ue > 0.05 && push!(rel, (qp.U[I] - ue) / ue)
+        end
+        @test minimum(rel) > -0.02                 # was -0.78
+        @test median(rel) < 0.1                    # was -0.18 (undershoot)
+    end
+
+    @testset "sweep is independent of cell visit order (equivariance)" begin
+        # b(u) = (p, -x - γp) is odd and the grid is symmetric about the origin with an
+        # odd cell count, so the reflection (x, p) -> (-x, -p) maps cell (i, j) onto
+        # (n+1-i, n+1-j) and U must be equivariant. It only can be if every candidate
+        # gate is a sound bound: a gate that prunes against the *running* best makes the
+        # accepted value depend on the order cells come off the heap, which is not
+        # symmetric. This caught pruning that left a 7% asymmetry in a fitted transverse
+        # curvature (and up to 8% directly in U) where round-off is the only floor.
+        gam = 0.5
+        drift(u, p, t) = SVector(u[2], -u[1] - gam * u[2])
+        gmat(u, p, t) = @SMatrix [0.0 0.0; 0.0 1.0]
+        sys = CoupledSDEs(
+            drift, SA[0.0, 0.0]; g = gmat,
+            noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
+        )
+        n = 61
+        grid = CartesianGrid((-1.5, 1.5, n), (-1.5, 1.5, n))
+        qp = quasipotential(
+            sys, grid, [0.0, 0.0];
+            band_radius = 8, regularization = 0.05, show_progress = false,
+        )
+        U = qp.U
+        scale = maximum(filter(isfinite, U))
+        gaps = Float64[]
+        for i in 1:n, j in 1:n
+            a, b = U[i, j], U[n + 1 - i, n + 1 - j]
+            (isfinite(a) && isfinite(b)) || continue
+            m = max(abs(a), abs(b))
+            m > 0.01 * scale && push!(gaps, abs(a - b) / m)
+        end
+        @test maximum(gaps) < 1.0e-6
+        @test median(gaps) < 1.0e-9
+
+        # A pop's local updates read only finalised cells and write only non-finalised
+        # ones, so batching them across threads cannot change any of them. The field
+        # must therefore come out *bitwise* identical, not merely close. Anything that
+        # starts reading a `_CONSIDERED` value breaks this rather than degrading it.
+        qp_ser = quasipotential(
+            sys, grid, [0.0, 0.0];
+            band_radius = 8, regularization = 0.05, show_progress = false,
+            threaded = false,
+        )
+        @test all(map(===, qp_ser.U, U))
+        @test all(map(===, qp_ser.back_pointer, qp.back_pointer))
+    end
+
+    @testset "_sweep! drives a caller-seeded state with no extra keywords" begin
+        # Code that needs a custom seed (e.g. a Riccati tube around a limit cycle rather
+        # than a point attractor) builds `_OLIMState` itself and hands it to `_sweep!`.
+        # Keep that callable with just `verbose`/`show_progress`: the performance
+        # keywords added later must stay optional here, not just on `quasipotential`.
+        drift(u, p, t) = SVector(-u[1], -u[2])
+        sys = CoupledSDEs(drift, SA[0.0, 0.0]; noise_strength = 1.0)
+        grid = CartesianGrid((-1.0, 1.0, 21), (-1.0, 1.0, 21))
+        L = CT_._geometric_lagrangian(sys, Float64)
+        state = CT_._OLIMState(grid, Float64, L.Q_inv isa SMatrix)
+        src = CT_._source_cell(grid, SA[0.0, 0.0])
+        CT_._sweep!(
+            state, grid, src, sys, L, Val(5), Val(3);
+            verbose = false, show_progress = false,
+        )
+        @test all(isfinite, state.U)
+        @test all(>=(0), state.U)
+        @test state.U[src] == 0
+    end
+
+    @testset "incremental update matches the full rescan" begin
+        # A pop's only new candidates are the simplexes built from the popped cell;
+        # every other front simplex was already offered at an earlier pop. So updating
+        # from just those, on top of the value the cell already holds, must reproduce
+        # the full rescan. It cannot reproduce it bitwise, because the full rescan also
+        # re-evaluates *old* edges whose slope estimates have since improved -- but
+        # dropping a candidate can only leave `U` higher, so the difference has a sign.
+        gam = 0.5
+        drift(u, p, t) = SVector(u[2], -u[1] - gam * u[2])
+        gmat(u, p, t) = @SMatrix [0.0 0.0; 0.0 1.0]
+        sys = CoupledSDEs(
+            drift, SA[0.0, 0.0]; g = gmat,
+            noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
+        )
+        grid = CartesianGrid((-1.5, 1.5, 41), (-1.5, 1.5, 41))
+        kw = (;
+            band_radius = 8, regularization = 0.02,
+            show_progress = false, threaded = false,
+        )
+        inc = quasipotential(sys, grid, [0.0, 0.0]; kw...)
+        full = quasipotential(sys, grid, [0.0, 0.0]; kw..., _full_rescan = true)
+
+        @test all(>=(0), filter(isfinite, inc.U))
+        @test count(isfinite, inc.U) == count(isfinite, full.U)
+        d = [a - b for (a, b) in zip(inc.U, full.U) if isfinite(a) && isfinite(b)]
+        scale = maximum(filter(isfinite, full.U))
+        # Dropping candidates can only raise U; allow a hair of slack for the cells
+        # where the two sweeps pick different (tied) winners and then diverge.
+        @test count(>=(0), d) > 0.99 * length(d)
+        @test maximum(d) < 0.01 * scale
+        @test -minimum(d) < 1.0e-3 * scale
+    end
+
+    @testset "prepared slopes match the per-λ Hermite path" begin
+        # `_edge_minimum` limits the slopes once per edge instead of at every λ. That is
+        # only sound because `_prepare_slopes` is idempotent: a prepared slope is never
+        # NaN and already lies in [0, 3Δ], so re-preparing it is a no-op.
+        for (U0, U1, m0, m1) in (
+                (0.0, 1.0, NaN, NaN), (1.0, 0.3, 5.0, -2.0), (0.5, 0.5, 0.2, -0.2),
+                (0.2, 0.9, 0.1, 4.0), (2.0, 1.0, NaN, 0.7),
+            )
+            s0, s1 = CT_._prepare_slopes(U0, U1, m0, m1)
+            @test CT_._prepare_slopes(U0, U1, s0, s1) === (s0, s1)
+            for λ in (0.0, 0.1, 0.5, 0.9, 1.0)
+                @test CT_._hermite_prepared(U0, U1, s0, s1, λ) ===
+                    CT_._hermite_U(U0, U1, m0, m1, λ)
+            end
+        end
     end
 
     @testset "regularized OLIM: van der Pol (non-equilibrium)" begin
