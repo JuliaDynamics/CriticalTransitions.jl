@@ -98,6 +98,41 @@ const CT_ = CriticalTransitions
         @test length(s3) == 32  # integer lattice points 0 < |δ|² ≤ 4 in ℤ³
     end
 
+    @testset "periodic stencil geometry" begin
+        nbox = (10, 7)
+        periodic = (true, false)
+        seam_left = CartesianIndex(1, 4)
+        seam_right = CartesianIndex(10, 4)
+
+        @test CT_._shift_in_bounds(
+            seam_left, CartesianIndex(-1, 0), nbox, periodic,
+        ) == seam_right
+        @test CT_._shift_in_bounds(
+            seam_right, CartesianIndex(1, 0), nbox, periodic,
+        ) == seam_left
+        @test CT_._shift_in_bounds(
+            seam_left, CartesianIndex(0, -4), nbox, periodic,
+        ) === nothing
+        @test CT_._is_chebyshev_adjacent(
+            seam_left, seam_right, nbox, periodic,
+        )
+        @test CT_._in_circular_stencil(
+            seam_left, seam_right, Val(1), nbox, periodic,
+        )
+
+        grid = CartesianGrid((0.0, 2.0, 10), (-1.0, 1.0, 7))
+        c = CT_._cell_center_near(grid, seam_right, seam_left, periodic)
+        @test c[1] == grid.centers[1][10] - 2.0
+        @test c[2] == grid.centers[2][4]
+
+        # The default remains hard-boundary behavior.
+        @test CT_._shift_in_bounds(
+            seam_left, CartesianIndex(-1, 0), nbox,
+        ) === nothing
+        @test !CT_._is_chebyshev_adjacent(seam_left, seam_right)
+        @test !CT_._in_circular_stencil(seam_left, seam_right, Val(1))
+    end
+
     @testset "OLIMState initialisation" begin
         grid = CartesianGrid((-1.0, 1.0, 10), (-1.0, 1.0, 10))
         st = CT_._OLIMState(grid, Float64)
@@ -105,6 +140,56 @@ const CT_ = CriticalTransitions
         @test all(==(CT_._UNKNOWN), st.status)
         @test count(st.front) == 0
         @test all(==(CT_.BackRef{2}()), st.back_pointer)
+        src = CartesianIndex(1, 1)
+        qp = CT_.QuasiPotential(st.U, st.back_pointer, src, grid)
+        @test qp.sources == [src]
+    end
+
+    @testset "public boundary and extended-attractor API" begin
+        grid = CartesianGrid((-π, π, 31), (-0.5, 0.5, 21))
+        j0 = 11
+        source_state = cell_center(grid, CartesianIndex(1, j0))
+        drift(z, p, t) = SVector(-sin(z[1] - source_state[1]), -z[2])
+        sys = CoupledSDEs(drift, source_state; noise_strength = 1.0)
+
+        bounded = quasipotential(
+            sys, grid, source_state;
+            bc = Reflecting(), band_radius = 5, near_source_layers = 0,
+            show_progress = false,
+        )
+        wrapped = quasipotential(
+            sys, grid, source_state;
+            bc = (Periodic(), Reflecting()), band_radius = 5,
+            near_source_layers = 0, show_progress = false,
+        )
+        @test wrapped.sources == [wrapped.source]
+        @test wrapped.source == CartesianIndex(1, j0)
+        # The last phase cell is adjacent to the source only on the periodic grid.
+        @test wrapped.U[end, j0] < bounded.U[end, j0] / 10
+        @test_throws ArgumentError quasipotential(
+            sys, grid, source_state;
+            bc = (Absorbing(), Reflecting()), show_progress = false,
+        )
+
+        phase_sources = [
+            SVector(θ, 0.0) for θ in grid.centers[1]
+        ]
+        cycle_drift(z, p, t) = SVector(1.0, -z[2])
+        cycle_sys = CoupledSDEs(cycle_drift, first(phase_sources); noise_strength = 1.0)
+        cycle_qp = quasipotential(
+            cycle_sys, grid, phase_sources;
+            bc = (Periodic(), Reflecting()), band_radius = 5,
+            show_progress = false,
+        )
+        expected_sources = [CartesianIndex(i, j0) for i in axes(cycle_qp.U, 1)]
+        @test cycle_qp.sources == expected_sources
+        @test all(iszero, cycle_qp.U[:, j0])
+        @test all(isfinite, cycle_qp.U)
+        @test_throws ArgumentError quasipotential(
+            cycle_sys, grid, phase_sources;
+            bc = (Periodic(), Reflecting()), near_source_layers = 1,
+            show_progress = false,
+        )
     end
 
     @testset "default_K" begin

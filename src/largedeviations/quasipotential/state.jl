@@ -24,7 +24,8 @@ $(TYPEDEF)
 Discrete quasipotential field `U_A(x)` computed by [`quasipotential`](@ref).
 `U` is `+Inf` on cells the sweep did not reach. `back_pointer` encodes the
 winning sub-cell predecessor per cell (zeroed for the source and unreached
-cells).
+cells). `source` is the first source cell; `sources` contains every source cell
+when the attractor is supplied as a collection of states.
 
 # Fields
 $(TYPEDFIELDS)
@@ -34,6 +35,21 @@ struct QuasiPotential{D, T <: AbstractFloat}
     back_pointer::Array{BackRef{D}, D}
     source::CartesianIndex{D}
     grid::CartesianGrid{D, T}
+    sources::Vector{CartesianIndex{D}}
+end
+
+function QuasiPotential{D, T}(
+        U::Array{T, D}, back_pointer::Array{BackRef{D}, D},
+        source::CartesianIndex{D}, grid::CartesianGrid{D, T},
+    ) where {D, T <: AbstractFloat}
+    return QuasiPotential{D, T}(U, back_pointer, source, grid, [source])
+end
+
+function QuasiPotential(
+        U::Array{T, D}, back_pointer::Array{BackRef{D}, D},
+        source::CartesianIndex{D}, grid::CartesianGrid{D, T},
+    ) where {D, T <: AbstractFloat}
+    return QuasiPotential{D, T}(U, back_pointer, source, grid)
 end
 
 @enum Status::UInt8 _UNKNOWN _CONSIDERED _FRONT _ACCEPTED
@@ -46,6 +62,7 @@ struct _OLIMState{D, T, H}
     heap::H
     handles::Vector{Int}
     nbox::NTuple{D, Int}
+    periodic::NTuple{D, Bool}
     # Per-cell drift cache for the additive-noise line integral: `b_c[I] = b(c_I)`,
     # `q_c[I] = |b(c_I)|²_Q`, `sq_c[I] = |b(c_I)|_Q` at each cell center `c_I`.
     # Populated once by `_fill_node_cache!` (additive noise only). For multiplicative
@@ -59,7 +76,8 @@ end
 # `cache_drift` allocates the full-grid additive-noise drift cache; pass `false`
 # for multiplicative noise to allocate empty placeholders (see `_fill_node_cache!`).
 function _OLIMState(
-        grid::CartesianGrid{D, T}, ::Type{T}, cache_drift::Bool = true,
+        grid::CartesianGrid{D, T}, ::Type{T}, cache_drift::Bool = true;
+        periodic::NTuple{D, Bool} = ntuple(_ -> false, Val(D)),
     ) where {D, T}
     nbox = grid.nbox
     U = fill(T(Inf), nbox)
@@ -77,7 +95,7 @@ function _OLIMState(
     q_c = zeros(T, cbox)
     sq_c = zeros(T, cbox)
     return _OLIMState{D, T, typeof(heap)}(
-        U, bp, status, front, heap, handles, nbox, b_c, q_c, sq_c,
+        U, bp, status, front, heap, handles, nbox, periodic, b_c, q_c, sq_c,
     )
 end
 

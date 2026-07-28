@@ -49,19 +49,67 @@ function _source_cell(
     return CartesianIndex(idx)
 end
 
+function _source_cells(
+        grid::CartesianGrid{D, T},
+        attractor::AbstractVector{<:AbstractVector},
+    ) where {D, T}
+    isempty(attractor) && throw(ArgumentError("attractor collection must not be empty"))
+    sources = CartesianIndex{D}[]
+    sizehint!(sources, length(attractor))
+    for (i, state) in pairs(attractor)
+        length(state) == D || throw(
+            DimensionMismatch(
+                "attractor state $i has length $(length(state)) but sys has D=$D",
+            ),
+        )
+        all(x -> x isa Real, state) || throw(
+            ArgumentError("attractor state $i must contain only real coordinates"),
+        )
+        push!(sources, _source_cell(grid, SVector{D, T}(state)))
+    end
+    unique!(sources)
+    return sources
+end
+
+function _olim_periodic_axes(bc, ::Val{D}) where {D}
+    bcs = _normalize_bc(bc, Val(D))
+    @inbounds for k in 1:D
+        bcs[k] isa Absorbing && throw(
+            ArgumentError(
+                "quasipotential supports Reflecting and Periodic boundaries; " *
+                    "Absorbing is a generator boundary condition and does not define " *
+                    "an OLIM boundary value",
+            ),
+        )
+    end
+    return ntuple(k -> bcs[k] isa Periodic, Val(D))
+end
+
 """
     quasipotential(sys, grid, attractor; band_radius, near_source_layers,
-                   verbose, show_progress) -> QuasiPotential{D}
+                   bc, verbose, show_progress) -> QuasiPotential{D}
 
 Compute the Freidlin-Wentzell quasipotential field `U_A(x)` from `attractor`
 using the Ordered Line Integral Method (Dahiya and Cameron 2018). The state
 dimension `D` is taken from `sys::CoupledSDEs{IIP, D, I, P}` and must match
 `grid::CartesianGrid{D}`. A warning is emitted for `D > 4`.
 
+`attractor` may be one state vector (a fixed point), or a vector of state
+vectors describing an extended attractor such as a limit cycle. Every grid
+cell touched by an extended attractor is initialised with the known value
+`U = 0`; no derivative or curvature data are used. Analytic CARE seeding is
+only available for a one-state attractor, so `near_source_layers` defaults to
+`0` for an extended attractor and must remain zero.
+
 # Keyword arguments
 * `band_radius::Int  = default_K(grid)`: accepted-band radius in grid cells.
 * `near_source_layers::Int = 3`: size of the analytic CARE seed box;
   `0` disables analytic seeding.
+* `bc = Reflecting()`: grid topology, either one boundary condition for every
+  axis or a `D`-tuple for per-axis control. [`Reflecting`](@ref) keeps the OLIM
+  stencil inside the grid; [`Periodic`](@ref) wraps neighbours and line-integral
+  geometry across the corresponding seam. [`Absorbing`](@ref) is rejected
+  because it does not specify a Hamilton-Jacobi boundary value.
 * `regularization::Real = default_regularization(grid)`: for a system with a single
   noiseless coordinate (rank-1 diffusion, e.g. momentum-only noise in a second-order
   Langevin or van der Pol oscillator) the trace-normalized diffusion is singular and
@@ -156,6 +204,7 @@ function quasipotential(
         band_radius::Int = default_K(grid),
         near_source_layers::Int = 3,
         regularization::Real = default_regularization(grid),
+        bc = Reflecting(),
         verbose::Bool = false,
         show_progress::Bool = true,
         threaded::Bool = true,
@@ -168,11 +217,42 @@ function quasipotential(
     )
     proper_FW_system(sys)
     D > 4 && @warn "quasipotential in D=$D: per-axis grid resolution will be coarse" maxlog = 1
+    periodic = _olim_periodic_axes(bc, Val(D))
     x_A = SVector{D, T}(attractor)
     return _quasipotential_impl(
         sys, grid, x_A,
         Val(band_radius), Val(near_source_layers),
-        T(regularization), verbose, show_progress, threaded, _full_rescan,
+        T(regularization), periodic, verbose, show_progress, threaded, _full_rescan,
+    )
+end
+
+function quasipotential(
+        sys::CoupledSDEs{IIP, D, I, P},
+        grid::CartesianGrid{D, T},
+        attractor::AbstractVector{<:AbstractVector};
+        band_radius::Int = default_K(grid),
+        near_source_layers::Int = 0,
+        regularization::Real = default_regularization(grid),
+        bc = Reflecting(),
+        verbose::Bool = false,
+        show_progress::Bool = true,
+        threaded::Bool = true,
+        _full_rescan::Bool = false,
+    ) where {IIP, D, I, P, T}
+    near_source_layers == 0 || throw(
+        ArgumentError(
+            "near_source_layers must be 0 for an extended attractor; " *
+                "analytic CARE seeding is only defined at a stable fixed point",
+        ),
+    )
+    proper_FW_system(sys)
+    D > 4 && @warn "quasipotential in D=$D: per-axis grid resolution will be coarse" maxlog = 1
+    sources = _source_cells(grid, attractor)
+    periodic = _olim_periodic_axes(bc, Val(D))
+    return _quasipotential_impl(
+        sys, grid, sources,
+        Val(band_radius), T(regularization), periodic,
+        verbose, show_progress, threaded, _full_rescan,
     )
 end
 
@@ -181,16 +261,41 @@ function _quasipotential_impl(
         grid::CartesianGrid{D, T},
         x_A::SVector{D, T},
         ::Val{K}, ::Val{K_seed},
-        regularization::T, verbose::Bool, show_progress::Bool, threaded::Bool,
-        full_rescan::Bool,
+        regularization::T, periodic::NTuple{D, Bool},
+        verbose::Bool, show_progress::Bool, threaded::Bool, full_rescan::Bool,
     ) where {IIP, D, I, P, T, K, K_seed}
     src = _source_cell(grid, x_A)
     L = _geometric_lagrangian(sys, T; regularization = regularization)
-    state = _OLIMState(grid, T, L.Q_inv isa SMatrix)
+    state = _OLIMState(grid, T, L.Q_inv isa SMatrix; periodic = periodic)
     _sweep!(
         state, grid, src, sys, L, Val(K), Val(K_seed);
         verbose = verbose, show_progress = show_progress, threaded = threaded,
         full_rescan = full_rescan,
     )
     return QuasiPotential{D, T}(state.U, state.back_pointer, src, grid)
+end
+
+function _quasipotential_impl(
+        sys::CoupledSDEs{IIP, D, I, P},
+        grid::CartesianGrid{D, T},
+        sources::Vector{CartesianIndex{D}},
+        ::Val{K}, regularization::T, periodic::NTuple{D, Bool},
+        verbose::Bool, show_progress::Bool, threaded::Bool, full_rescan::Bool,
+    ) where {IIP, D, I, P, T, K}
+    L = _geometric_lagrangian(sys, T; regularization = regularization)
+    state = _OLIMState(grid, T, L.Q_inv isa SMatrix; periodic = periodic)
+    @inbounds for source in sources
+        state.U[source] = zero(T)
+        state.status[source] = _ACCEPTED
+        state.back_pointer[source] = BackRef{D}(source, source, NaN32)
+    end
+    src = first(sources)
+    _sweep!(
+        state, grid, src, sys, L, Val(K), Val(0);
+        verbose = verbose, show_progress = show_progress, threaded = threaded,
+        full_rescan = full_rescan,
+    )
+    return QuasiPotential{D, T}(
+        state.U, state.back_pointer, src, grid, sources,
+    )
 end

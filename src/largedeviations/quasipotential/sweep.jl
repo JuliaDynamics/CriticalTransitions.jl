@@ -52,16 +52,13 @@ function _seed_near_source!(
     end
 
     nbox = state.nbox
+    periodic = state.periodic
     axes_seed = ntuple(_ -> -K_seed:K_seed, Val(D))
     @inbounds for δ in CartesianIndices(axes_seed)
         iszero(δ) && continue
-        I = source + δ
-        in_bounds = true
-        for d in 1:D
-            (1 <= I[d] <= nbox[d]) || (in_bounds = false; break)
-        end
-        in_bounds || continue
-        x = cell_center(grid, I)
+        I = _shift_in_bounds(source, δ, nbox, periodic)
+        I === nothing && continue
+        x = _cell_center_near(grid, I, source, periodic)
         dx = x - x_A
         state.U[I] = dot(dx, P * dx)
         state.back_pointer[I] = BackRef{D}(source, source, NaN32)
@@ -91,6 +88,7 @@ function _sweep!(
     _seed_near_source!(state, grid, source, sys, L, Val(K_seed); verbose = verbose)
 
     nbox = state.nbox
+    periodic = state.periodic
     N = prod(nbox)
     cheb = _chebyshev_neighbors(Val(D))
 
@@ -98,7 +96,7 @@ function _sweep!(
         state.status[x] == _ACCEPTED || continue
         touches_unknown = false
         for δ in cheb
-            n = _shift_in_bounds(x, δ, nbox); n === nothing && continue
+            n = _shift_in_bounds(x, δ, nbox, periodic); n === nothing && continue
             state.status[n] == _UNKNOWN && (touches_unknown = true; break)
         end
         if touches_unknown
@@ -110,7 +108,7 @@ function _sweep!(
     @inbounds for x in CartesianIndices(state.U)
         state.status[x] == _FRONT || continue
         for δ in _stencil_offsets(Val(K), Val(D))
-            n = _shift_in_bounds(x, δ, nbox); n === nothing && continue
+            n = _shift_in_bounds(x, δ, nbox, periodic); n === nothing && continue
             state.status[n] == _UNKNOWN || continue
             Φ, br = _local_update(Val(D), n, state, grid, L, Val(K))
             isfinite(Φ) || continue
@@ -164,6 +162,7 @@ function _sweep_loop!(
         threaded::Bool = true, full_rescan::Bool = false,
     ) where {D, T, K}
     nbox = state.nbox
+    periodic = state.periodic
     cheb = _chebyshev_neighbors(Val(D))
     offsets = _stencil_offsets(Val(K), Val(D))
     cand = Vector{CartesianIndex{D}}(undef, length(offsets))
@@ -184,7 +183,7 @@ function _sweep_loop!(
 
         ncand = 0
         @inbounds for δ in offsets
-            xnew = _shift_in_bounds(c, δ, nbox); xnew === nothing && continue
+            xnew = _shift_in_bounds(c, δ, nbox, periodic); xnew === nothing && continue
             s = state.status[xnew]
             (s == _ACCEPTED || s == _FRONT) && continue
             ncand += 1
@@ -222,7 +221,7 @@ function _sweep_loop!(
 
         prune = true
         for δ in cheb
-            n = _shift_in_bounds(c, δ, nbox); n === nothing && continue
+            n = _shift_in_bounds(c, δ, nbox, periodic); n === nothing && continue
             s = state.status[n]
             if s == _UNKNOWN || s == _CONSIDERED
                 prune = false; break
