@@ -33,7 +33,6 @@ pages = [
         "Bibliography" => "man/bibliography.md",
     ],
     # "Predefined systems" => "man/systems.md",
-    "API" => "api.md",
     "References" => "refs.md",
 ]
 #! format: on
