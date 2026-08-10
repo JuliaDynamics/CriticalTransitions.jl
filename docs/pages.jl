@@ -2,9 +2,9 @@
 pages = [
     "Home" => "index.md",
     "Tutorial" => "examples/tutorial.md",
-    "Defining a system" => Any[
-        "Stochastic system" => "examples/stochastic-dynamics.md",
-        "Nonautonomous system" => "examples/RateSystem.md",],
+    #"Defining a system" => Any[
+    #    "Stochastic system" => "examples/stochastic-dynamics.md",
+    #    "Nonautonomous system" => "examples/RateSystem.md",],
     "Examples" => Any[
         "Large deviations: Maier-Stein system" => "examples/gMAM_Maierstein.md",
         "Quasipotential: Maier-Stein system" => "examples/quasipotential_maierstein.md",
@@ -30,7 +30,7 @@ pages = [
         ],
         "Utilities" => "man/utils.md",
         "Developer / internals" => "man/dev.md",
-        "Bibliography" => "man/bibliography.md",
+        #"Bibliography" => "man/bibliography.md",
     ],
     # "Predefined systems" => "man/systems.md",
     "References" => "refs.md",
