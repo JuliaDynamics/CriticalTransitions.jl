@@ -1,18 +1,19 @@
 # # CriticalTransitions.jl Tutorial
 
 # !!! note "DynamicalSystems.jl and Attractors.jl background recommended"
-#     CriticalTransitions.jl is an advanced software for the analysis of critical transitions
-#     in dynamical systems. Due to its advanced nature it is recommended that you have basic
-#     familiarity with the DynamicalSystems.jl and Attractors.jl packages, by going through
-#     their main tutorials. Attractors.jl knowledge is not strictly required, but interplays
-#     with various functionalities used in the package, such as displaying basins of attraction,
-#     or using the output of global continuation to define additional rate tipping functionality.
+#     As part of the DynamicalSystems.jl ecosystem, CriticalTransitions.jl builds on
+#     the interface and functionality provided by DynamicalSystems.jl and its subpackage
+#     Attractors.jl. If you haven't worked with these pacakges before, we recommend also
+#     going through their main tutorials. Attractors.jl knowledge is not strictly required
+#     but can be usefully combined with the functionality here, such as displaying basins
+#     of attraction or using the output of global continuation to define additional
+#     rate-tipping functionality.
 
 # The general workflow of CriticalTransitions.jl consists of two steps, similar to DynamicalSystems.jl:
 
-# 1. Define your specific nonautonomous dynamical system type.
+# 1. Define your specific forced dynamical system.
 # 2. Investigate the system by calling existing functions on it
-#    (see [API](@ref), this tutorial, and the Examples entries).
+#    (see [API](@ref), this tutorial, and other [examples](@ref "Examples")).
 
 # ## Nonautonomous systems
 

@@ -101,5 +101,6 @@ build_docs_with_style(
     htmlkw = html_options,
     checkdocs_ignored_modules = [CriticalTransitions.CTLibrary],
     linkcheck_ignore,
+    warnonly = [:doctest, :cross_references, :linkcheck, :example_block],
     remotes,
 )

@@ -1,5 +1,4 @@
 # References
 
 ```@bibliography
-Canonical = false
 ```
