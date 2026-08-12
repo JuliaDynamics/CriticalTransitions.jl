@@ -88,6 +88,7 @@ parameter
 set_forcing_start!
 set_forcing_duration!
 set_forcing_scale!
+set_forcing_reverse!
 ```
 
 ## Converting between systems

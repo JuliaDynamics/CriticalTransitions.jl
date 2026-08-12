@@ -22,7 +22,14 @@ using Pkg; Pkg.add("CriticalTransitions")
 
 ## Getting started
 
-The [Tutorial](@ref "CriticalTransitions.jl Tutorial") showcases how to set up different forced dynamical systems and how to analyze their transition behavior using some of the key functionality. For more detailed and advanced examples, see the [Examples](@ref "Examples") section. The [Manual](@ref "Manual") section lists the full API with additional explanation.
+The [Tutorial](@ref "CriticalTransitions.jl Tutorial") showcases how to set up different forced dynamical systems and how to analyze their transition behavior using some of the key functionality. For more detailed and advanced examples, see the **Examples** section. The **Manual** section lists the full API with additional explanation.
+
+## List of methods
+
+```@index
+Pages = map(file -> joinpath("man", file), readdir("man"))
+Order   = [:type, :function]
+```
 
 ## People
 

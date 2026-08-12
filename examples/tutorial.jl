@@ -3,7 +3,7 @@
 # !!! note "DynamicalSystems.jl and Attractors.jl background recommended"
 #     As part of the DynamicalSystems.jl ecosystem, CriticalTransitions.jl builds on
 #     the interface and functionality provided by DynamicalSystems.jl and its subpackage
-#     Attractors.jl. If you haven't worked with these pacakges before, we recommend also
+#     Attractors.jl. If you haven't worked with these packages before, we recommend also
 #     going through their main tutorials. Attractors.jl knowledge is not strictly required
 #     but can be usefully combined with the functionality here, such as displaying basins
 #     of attraction or using the output of global continuation to define additional
@@ -13,7 +13,8 @@
 
 # 1. Define your specific forced dynamical system.
 # 2. Investigate the system by calling existing functions on it
-#    (see [API](@ref), this tutorial, and other [examples](@ref "Examples")).
+#    (see the Manual section of the docs, this tutorial, and more advanced examples
+#    in the Examples section).
 
 # ## Nonautonomous systems
 

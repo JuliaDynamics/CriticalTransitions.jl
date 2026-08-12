@@ -1,5 +1,8 @@
-# Rate-induced transitions
+# Studying rate-induced tipping
 
-## Critical Rate
+## R-tipping diagrams
 
-> In preparation.
+```@docs
+rate_track_return_tip
+```
+

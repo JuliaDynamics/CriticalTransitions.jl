@@ -3,3 +3,8 @@
 ```@docs; canonical=false
 CriticalTransitions.normalize_covariance!
 ```
+
+```@docs
+CriticalTransitions.DenseEigen
+CriticalTransitions.KrylovKitSolver
+```

@@ -89,6 +89,8 @@ where ``a(x) = \sigma(x)\sigma(x)^{\top}``. The action along an instanton (where
 ```@docs; canonical=false
 minimize_geometric_action
 FreidlinWentzellHamiltonian
+GeometricGradient
+AdaptiveGeometricGradient
 ```
 
 #### Performance notes (sgMAM)
