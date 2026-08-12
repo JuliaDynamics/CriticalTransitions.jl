@@ -63,7 +63,7 @@ using Attractors # also re-exported by `CriticalTransitions`
 using CairoMakie # for plotting
 
 grid = (range(-1.5, 1.5; length = 100), range(-2, 2; length = 100))
-mapper = AttractorsViaRecurrences(ds, grid)
+mapper = BasinMapRecurrences(ds, grid)
 boa = basins_of_attraction(mapper, grid)
 figboa = heatmap_basins_attractors(boa)
 
@@ -204,7 +204,7 @@ mapper = AttractorsViaRecurrences(stommel, grid)
 sampler, = statespace_sampler(grid)
 
 # and, because we start our Stommel model in a monostable regime, we also need to provide
-# an `ε` value for `AttractorsViaProximity`, which will be used to map the end of
+# an `ε` value for `BasinMapProximity`, which will be used to map the end of
 # each nonautonomous simulation to its corresponding attractor.
 # (in multistable regimes this can be deduced automatically from found attractors)
 

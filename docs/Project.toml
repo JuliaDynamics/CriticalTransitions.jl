@@ -25,7 +25,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
 
 [compat]
-Attractors = "1.31.1"
+Attractors = "2"
 CairoMakie = "0.15.8"
 ChaosTools = "3.5.2"
 Contour = "0.6.3"

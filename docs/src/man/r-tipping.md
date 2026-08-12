@@ -4,5 +4,6 @@
 
 ```@docs
 rate_track_return_tip
+unforced_pcurve
 ```
 
