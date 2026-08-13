@@ -11,7 +11,7 @@ using Logging
 # drift fixed point). The user must split into two `attractor → saddle` legs.
 function maier_stein(u, p, t)
     x, y = u
-    return SA[x-x^3-10*x*y^2, -(1+x^2)*y]
+    return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
 end
 
 ds = CoupledSDEs(maier_stein, zeros(2); noise_strength = 0.25)
@@ -24,15 +24,12 @@ yy = 0.3 .* (1 .- xx .^ 2)
 x_initial_full = Matrix([xx yy]')
 
 res_gmam = minimize_geometric_action(
-    H,
-    x_initial_full,
-    GeometricGradient(; stepsize = 1.0);
-    maxiters = 500,
-    show_progress = false,
+    H, x_initial_full, GeometricGradient(; stepsize = 1.0);
+    maxiters = 500, show_progress = false,
 )
 println(
     "gMAM action (full path, deterministic return makes second half free):  ",
-    res_gmam.action,
+    res_gmam.action
 )
 
 # Shooting: left half (-1, 0) → (0, 0).
@@ -42,8 +39,7 @@ x_init_left = Matrix([xs_left ys_left]')
 
 res_left = with_logger(NullLogger()) do
     minimize_geometric_action(
-        H,
-        x_init_left,
+        H, x_init_left,
         MultipleShooting(; nshoots = 8, maxiters = 200, abstol = 1.0e-6);
         show_progress = false,
     )
@@ -57,8 +53,7 @@ x_init_right = Matrix([xs_right ys_right]')
 
 res_right = with_logger(NullLogger()) do
     minimize_geometric_action(
-        H,
-        x_init_right,
+        H, x_init_right,
         MultipleShooting(; nshoots = 8, maxiters = 200, abstol = 1.0e-6);
         show_progress = false,
     )
@@ -71,5 +66,5 @@ println("Shooting action (+1, 0) → (0, 0):  ", res_right.action)
 # they are equal). gMAM's full-path action above should match either half.
 println(
     "Symmetry check: |left - right| / max = ",
-    abs(res_left.action - res_right.action) / max(res_left.action, res_right.action),
+    abs(res_left.action - res_right.action) / max(res_left.action, res_right.action)
 )

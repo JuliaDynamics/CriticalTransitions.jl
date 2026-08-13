@@ -19,13 +19,13 @@ The interpolation is performed in-place, modifying both `path` and `α`.
 function interpolate_path!(path::Matrix, α, s, scratch::Vector = similar(α))
     D, N = size(path)
     @inbounds α[1] = zero(eltype(α))
-    @inbounds for i = 2:N
+    @inbounds for i in 2:N
         d2 = zero(eltype(α))
-        for k = 1:D
-            δ = path[k, i] - path[k, i-1]
+        for k in 1:D
+            δ = path[k, i] - path[k, i - 1]
             d2 += δ * δ
         end
-        α[i] = α[i-1] + sqrt(d2)
+        α[i] = α[i - 1] + sqrt(d2)
     end
     if α[N] <= eps(real(eltype(α)))
         throw(
@@ -35,13 +35,13 @@ function interpolate_path!(path::Matrix, α, s, scratch::Vector = similar(α))
         )
     end
     invL = inv(α[N])
-    @inbounds for i = 1:N
+    @inbounds for i in 1:N
         α[i] *= invL
     end
     @inbounds α[N] = one(eltype(α))  # force exact endpoint to avoid round-off out-of-domain
-    @inbounds for dof = 1:D
+    @inbounds for dof in 1:D
         linear_interp!(scratch, α, view(path, dof, :), s)
-        for k = 1:N
+        for k in 1:N
             path[dof, k] = scratch[k]
         end
     end
@@ -76,7 +76,8 @@ _fd_step(::Type{T}) where {T} = max(sqrt(eps(real(T))), real(T)(1.0e-8))
 _as_diffusion_matrix(σ::AbstractMatrix) = σ
 _as_diffusion_matrix(σ) = LinearAlgebra.Diagonal(σ)
 
-const _RANK_DEFICIENT_MSG = "rank-deficient noise is not supported. Workarounds: add a small ε on the noiseless variable to make the covariance invertible, or supply a Hamiltonian directly via FreidlinWentzellHamiltonian{IIP, D}(H_x, H_p)."
+const _RANK_DEFICIENT_MSG =
+    "rank-deficient noise is not supported. Workarounds: add a small ε on the noiseless variable to make the covariance invertible, or supply a Hamiltonian directly via FreidlinWentzellHamiltonian{IIP, D}(H_x, H_p)."
 
 function _check_rank!(a)
     M = a isa LinearAlgebra.Diagonal ? a : Matrix(a)
@@ -111,7 +112,7 @@ function _validate_and_classify_a(a, x_ref::AbstractVector{T}) where {T}
     a0 = a(x_ref)
     _check_rank!(a0)
     is_diag = _isdiag_numerical(a0)
-    @inbounds for l = 1:D
+    @inbounds for l in 1:D
         e[l] = h
         ap = a(x_ref .+ e)
         _check_rank!(ap)
@@ -152,9 +153,9 @@ function _trace_normalized_a(ds::ContinuousTimeDynamicalSystem)
     a0 = σ0 * σ0'
     s = LinearAlgebra.tr(a0) / D
     if ds.noise_type[:additive]
-        a_const =
-            LinearAlgebra.isdiag(a0) ?
-            LinearAlgebra.Diagonal(collect(LinearAlgebra.diag(a0)) ./ s) : Matrix(a0 ./ s)
+        a_const = LinearAlgebra.isdiag(a0) ?
+            LinearAlgebra.Diagonal(collect(LinearAlgebra.diag(a0)) ./ s) :
+            Matrix(a0 ./ s)
         return Returns(a_const)
     end
     return let σ_fn = σ_fn, ps = ps, s = s
@@ -199,29 +200,27 @@ function path_velocity!(v, path, time; order = 4)
     if order == 2
         @inbounds @views begin
             inv_h1 = 1 / (time[2] - time[1])
-            inv_hN = 1 / (time[end] - time[end-1])
+            inv_hN = 1 / (time[end] - time[end - 1])
             @. v[:, 1] = (path[:, 2] - path[:, 1]) * inv_h1
-            @. v[:, end] = (path[:, end] - path[:, end-1]) * inv_hN
-            for i = 2:(N-1)
-                inv_hi = 1 / (time[i+1] - time[i-1])
-                @. v[:, i] = (path[:, i+1] - path[:, i-1]) * inv_hi
+            @. v[:, end] = (path[:, end] - path[:, end - 1]) * inv_hN
+            for i in 2:(N - 1)
+                inv_hi = 1 / (time[i + 1] - time[i - 1])
+                @. v[:, i] = (path[:, i + 1] - path[:, i - 1]) * inv_hi
             end
         end
     elseif order == 4
         @inbounds @views begin
             inv_h1 = 1 / (time[2] - time[1])
-            inv_hN = 1 / (time[end] - time[end-1])
+            inv_hN = 1 / (time[end] - time[end - 1])
             inv_h2 = 1 / (time[3] - time[1])
-            inv_hM = 1 / (time[end] - time[end-2])
+            inv_hM = 1 / (time[end] - time[end - 2])
             @. v[:, 1] = (path[:, 2] - path[:, 1]) * inv_h1
-            @. v[:, end] = (path[:, end] - path[:, end-1]) * inv_hN
+            @. v[:, end] = (path[:, end] - path[:, end - 1]) * inv_hN
             @. v[:, 2] = (path[:, 3] - path[:, 1]) * inv_h2
-            @. v[:, end-1] = (path[:, end] - path[:, end-2]) * inv_hM
-            for i = 3:(N-2)
-                inv6 = 1 / (6 * (time[i+1] - time[i-1]))
-                @. v[:, i] =
-                    (-path[:, i+2] + 8 * path[:, i+1] - 8 * path[:, i-1] + path[:, i-2]) *
-                    inv6
+            @. v[:, end - 1] = (path[:, end] - path[:, end - 2]) * inv_hM
+            for i in 3:(N - 2)
+                inv6 = 1 / (6 * (time[i + 1] - time[i - 1]))
+                @. v[:, i] = (-path[:, i + 2] + 8 * path[:, i + 1] - 8 * path[:, i - 1] + path[:, i - 2]) * inv6
             end
         end
     end

@@ -50,15 +50,15 @@ using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
 using StochasticDiffEq: StochasticDiffEq
 
-using SparseArrays: SparseArrays, sparse, SparseMatrixCSC, rowvals, nonzeros, nzrange
+using SparseArrays:
+    SparseArrays, sparse, SparseMatrixCSC, rowvals, nonzeros, nzrange
 
 using OptimizationBase: OptimizationBase
 using OptimizationOptimisers: Optimisers
 using KrylovKit: KrylovKit
 using ExponentialUtilities: expv_timestep
 using FastInterpolations: linear_interp!
-using LinearSolve:
-    LinearSolve, LinearProblem, LUFactorization, UMFPACKFactorization, init, solve, solve!
+using LinearSolve: LinearSolve, LinearProblem, LUFactorization, UMFPACKFactorization, init, solve, solve!
 using DataStructures: DataStructures, MutableBinaryHeap, FasterForward
 
 # io and documentation

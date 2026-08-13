@@ -36,12 +36,8 @@ for i in eps
 end;
 
 file = h5open("fhn_basinboundaries_res$(step).h5", "cw");
-attributes(
-    file,
-)["info"] = "Basins boundary of fitzhugh_nagumo system for different time scale parameter values epsilon";
-attributes(
-    file,
-)["data_dimensions"] = "(dim × N), where dim = system dimension and N = number of points of curve. System coordinates = [u (row 1), v (row 2)]"
+attributes(file)["info"] = "Basins boundary of fitzhugh_nagumo system for different time scale parameter values epsilon";
+attributes(file)["data_dimensions"] = "(dim × N), where dim = system dimension and N = number of points of curve. System coordinates = [u (row 1), v (row 2)]"
 for i in eps
     write(file, "boundary_eps=$(i)", bnds[i])
     attributes(file)["systeminfo_eps=$(i)"] = sys_string(systems[i])

@@ -38,15 +38,15 @@ control the Krylov-subspace matrix-exponential algorithm in
 which handles stiffness without ever forming `exp(t·Qᵀ)` explicitly.
 """
 function propagate_density(
-    gen::DiffusionGenerator{D,BC,S},
-    T::Real,
-    ρ_0::AbstractVector;
-    Δt::Real = T,
-    Ttr::Real = 0,
-    tol::Real = 1.0e-7,
-    m::Integer = 30,
-    adaptive::Bool = true,
-) where {D,BC,S}
+        gen::DiffusionGenerator{D, BC, S},
+        T::Real,
+        ρ_0::AbstractVector;
+        Δt::Real = T,
+        Ttr::Real = 0,
+        tol::Real = 1.0e-7,
+        m::Integer = 30,
+        adaptive::Bool = true,
+    ) where {D, BC, S}
     length(ρ_0) == ncells(gen) || throw(
         DimensionMismatch(
             "ρ_0 has length $(length(ρ_0)) but generator has $(ncells(gen)) cells",
@@ -59,7 +59,7 @@ function propagate_density(
         S[S(Ttr)]
     else
         Δt > 0 || throw(ArgumentError("Δt must be > 0; got $Δt"))
-        collect(S, S(Ttr):S(Δt):S(Ttr+T))
+        collect(S, S(Ttr):S(Δt):S(Ttr + T))
     end
     F = fokker_planck_operator(gen)
     b = Vector{S}(ρ_0)
@@ -71,7 +71,9 @@ function propagate_density(
         if iszero(t[1])
             reshape(b, :, 1)
         else
-            reshape(expv_timestep(t[1], F, b; tol = tol, m = m, adaptive = adaptive), :, 1)
+            reshape(
+                expv_timestep(t[1], F, b; tol = tol, m = m, adaptive = adaptive), :, 1,
+            )
         end
     else
         expv_timestep(t, F, b; tol = tol, m = m, adaptive = adaptive)

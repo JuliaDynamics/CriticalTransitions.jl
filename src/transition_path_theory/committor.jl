@@ -16,12 +16,9 @@ solver; further kwargs flow to `LinearSolve.solve`.
 See also [`backward_committor`](@ref) and [`ReactiveTransition`](@ref).
 """
 function forward_committor(
-    generator::DiffusionGenerator{D,BC,T},
-    A,
-    B;
-    alg = UMFPACKFactorization(),
-    kwargs...,
-)::Vector{T} where {D,BC,T}
+        generator::DiffusionGenerator{D, BC, T}, A, B;
+        alg = UMFPACKFactorization(), kwargs...
+    )::Vector{T} where {D, BC, T}
     A_mask, B_mask = _committor_masks(generator.grid, A, B)
     return _forward_committor(generator.Q, A_mask, B_mask, alg; kwargs...)
 end
@@ -36,10 +33,9 @@ function _committor_masks(grid, A, B)
 end
 
 function _forward_committor_system(
-    Q::SparseMatrixCSC{T,Int},
-    A_mask::BitVector,
-    B_mask::BitVector,
-) where {T<:AbstractFloat}
+        Q::SparseMatrixCSC{T, Int},
+        A_mask::BitVector, B_mask::BitVector
+    ) where {T <: AbstractFloat}
     N = size(Q, 1)
     mask_bc = A_mask .| B_mask
     bc_values = zeros(T, N)
@@ -70,13 +66,10 @@ See also [`forward_committor`](@ref), [`stationary_distribution`](@ref),
 and [`ReactiveTransition`](@ref).
 """
 function backward_committor(
-    generator::DiffusionGenerator{D,BC,T},
-    A,
-    B;
-    alg = UMFPACKFactorization(),
-    reverse::Union{Nothing,DiffusionGenerator} = nothing,
-    kwargs...,
-)::Vector{T} where {D,BC,T}
+        generator::DiffusionGenerator{D, BC, T}, A, B;
+        alg = UMFPACKFactorization(),
+        reverse::Union{Nothing, DiffusionGenerator} = nothing, kwargs...,
+    )::Vector{T} where {D, BC, T}
     A_mask, B_mask = _committor_masks(generator.grid, A, B)
     if reverse === nothing
         ρ = stationary_distribution(generator, alg; kwargs...)
@@ -87,29 +80,20 @@ function backward_committor(
     end
 end
 
-function _check_reverse_generator(
-    generator::DiffusionGenerator,
-    reverse::DiffusionGenerator,
-)
-    reverse.grid == generator.grid || throw(
-        ArgumentError("reverse generator must be defined on the same grid as generator"),
-    )
-    reverse.bc == generator.bc || throw(
-        ArgumentError(
-            "reverse generator must use the same boundary conditions as generator",
-        ),
-    )
-    size(reverse.Q) == size(generator.Q) || throw(
-        ArgumentError("reverse generator must have the same matrix size as generator"),
-    )
+function _check_reverse_generator(generator::DiffusionGenerator, reverse::DiffusionGenerator)
+    reverse.grid == generator.grid ||
+        throw(ArgumentError("reverse generator must be defined on the same grid as generator"))
+    reverse.bc == generator.bc ||
+        throw(ArgumentError("reverse generator must use the same boundary conditions as generator"))
+    size(reverse.Q) == size(generator.Q) ||
+        throw(ArgumentError("reverse generator must have the same matrix size as generator"))
     return nothing
 end
 
 function _backward_committor_system(
-    Qrev::SparseMatrixCSC{T,Int},
-    A_mask::BitVector,
-    B_mask::BitVector,
-) where {T<:AbstractFloat}
+        Qrev::SparseMatrixCSC{T, Int},
+        A_mask::BitVector, B_mask::BitVector
+    ) where {T <: AbstractFloat}
     N = size(Qrev, 1)
     mask_bc = A_mask .| B_mask
     bc_values = zeros(T, N)
@@ -120,35 +104,28 @@ function _backward_committor_system(
 end
 
 function _forward_committor(
-    Q::SparseMatrixCSC{T,Int},
-    A_mask::BitVector,
-    B_mask::BitVector,
-    alg = UMFPACKFactorization();
-    kwargs...,
-) where {T<:AbstractFloat}
+        Q::SparseMatrixCSC{T, Int},
+        A_mask::BitVector, B_mask::BitVector,
+        alg = UMFPACKFactorization(); kwargs...
+    ) where {T <: AbstractFloat}
     mask_bc, bc_values = _forward_committor_system(Q, A_mask, B_mask)
     return _solve_dirichlet(Q, mask_bc, bc_values, alg; kwargs...)
 end
 
 function _backward_committor_adjoint(
-    Q::SparseMatrixCSC{T,Int},
-    ρ::Vector{T},
-    A_mask::BitVector,
-    B_mask::BitVector,
-    alg = UMFPACKFactorization();
-    kwargs...,
-) where {T<:AbstractFloat}
+        Q::SparseMatrixCSC{T, Int},
+        ρ::Vector{T}, A_mask::BitVector, B_mask::BitVector,
+        alg = UMFPACKFactorization(); kwargs...
+    ) where {T <: AbstractFloat}
     Qadj = _adjoint_generator(Q, ρ)
     return _backward_committor_explicit(Qadj, A_mask, B_mask, alg; kwargs...)
 end
 
 function _backward_committor_explicit(
-    Qrev::SparseMatrixCSC{T,Int},
-    A_mask::BitVector,
-    B_mask::BitVector,
-    alg = UMFPACKFactorization();
-    kwargs...,
-) where {T<:AbstractFloat}
+        Qrev::SparseMatrixCSC{T, Int},
+        A_mask::BitVector, B_mask::BitVector,
+        alg = UMFPACKFactorization(); kwargs...
+    ) where {T <: AbstractFloat}
     mask_bc, bc_values = _backward_committor_system(Qrev, A_mask, B_mask)
     return _solve_dirichlet(Qrev, mask_bc, bc_values, alg; kwargs...)
 end

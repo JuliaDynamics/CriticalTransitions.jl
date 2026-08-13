@@ -21,7 +21,7 @@ sys(eps, sig) = StochSystem(fitzhugh_nagumo, [eps, 3.0, 1.0, 1.0, 1.0, 0.0], zer
 
 res = Dict()
 
-for i = 1:length(epsilons)
+for i in 1:length(epsilons)
     println("starting eps=$(epsilons[i])")
     @time res[epsilons[i]] = transitions(
         sys(epsilons[i], sigmas[i]),

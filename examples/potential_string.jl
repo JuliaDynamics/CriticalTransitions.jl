@@ -40,7 +40,7 @@ function Muller(x)
 
     x1, x2 = x
     V = 0.0
-    @inbounds for i = 1:4
+    @inbounds for i in 1:4
         dx = x1 - XX[i]
         dy = x2 - YY[i]
         V += AA[i] * exp(aa[i] * dx^2 + bb[i] * dx * dy + cc[i] * dy^2)
@@ -100,16 +100,12 @@ stepsize = 1.0e-4
 maxiters = 2500
 
 string = CriticalTransitions.string_method(
-    b,
-    x_initial;
-    stepsize,
-    maxiters,
-    show_progress = false,
+    b, x_initial; stepsize, maxiters, show_progress = false
 )
 
 # A simple convergence diagnostic: average step along the string.
 string_m = Matrix(string.path)
-dmean = mean(norm(string_m[i+1, :] .- string_m[i, :]) for i = 1:(size(string_m, 1)-1))
+dmean = mean(norm(string_m[i + 1, :] .- string_m[i, :]) for i in 1:(size(string_m, 1) - 1))
 dmean
 
 # ## Visualize on the potential landscape
@@ -123,25 +119,11 @@ fig = Figure(; size = (700, 450), fontsize = 13)
 ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y", aspect = 1.2)
 contour!(ax, xx, yy, V_clip; levels = range(-150, 500, 35), colormap = :viridis)
 
-lines!(
-    ax,
-    x_initial[1, :],
-    x_initial[2, :];
-    color = :black,
-    linewidth = 2,
-    linestyle = :dash,
-) # Initial string (dashed) and converged string (solid)
+lines!(ax, x_initial[1, :], x_initial[2, :]; color = :black, linewidth = 2, linestyle = :dash) # Initial string (dashed) and converged string (solid)
 lines!(ax, string_m[:, 1], string_m[:, 2]; color = :black, linewidth = 3)
 
 scatter!(ax, [x1[1], x2[1], x3[1]], [x1[2], x2[2], x3[2]]; color = :red, markersize = 10) # Minima and saddles
-scatter!(
-    ax,
-    [s1[1], s2[1]],
-    [s1[2], s2[2]];
-    color = :green,
-    marker = :diamond,
-    markersize = 10,
-)
+scatter!(ax, [s1[1], s2[1]], [s1[2], s2[2]]; color = :green, marker = :diamond, markersize = 10)
 
 limits!(ax, extrema(xx)..., extrema(yy)...)
 fig

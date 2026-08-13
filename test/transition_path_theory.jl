@@ -16,7 +16,7 @@ function _rate_into_B(res::ReactiveTransition)
     rv = rowvals(Q)
     nz = nonzeros(Q)
     k = 0.0
-    for col = 1:size(Q, 2)
+    for col in 1:size(Q, 2)
         res.B_mask[col] || continue
         for p in nzrange(Q, col)
             row = rv[p]
@@ -49,9 +49,7 @@ end
 
 @testset "3D dispatch" begin
     sys = CoupledSDEs(
-        (u, p, t) -> [-u[1], -u[2], -u[3]],
-        [0.0, 0.0, 0.0];
-        noise_strength = 1.0,
+        (u, p, t) -> [-u[1], -u[2], -u[3]], [0.0, 0.0, 0.0]; noise_strength = 1.0
     )
     grid = CartesianGrid((-3.0, 3.0, 21), (-3.0, 3.0, 21), (-3.0, 3.0, 21))
     res = ReactiveTransition(
@@ -146,18 +144,15 @@ end
     gen_abs = DiffusionGenerator(sys, grid; bc = Absorbing())
     @test_throws ArgumentError ReactiveTransition(gen_abs, x -> x[1] < -1, x -> x[1] > 1)
     @test_throws ArgumentError ReactiveTransition(
-        sys,
-        grid,
-        x -> x[1] < -1,
-        x -> x[1] > 1;
-        bc = Absorbing(),
+        sys, grid, x -> x[1] < -1, x -> x[1] > 1; bc = Absorbing()
     )
 end
 
 @testset "reactive_current rev/irr decomposition" begin
     # Reversible system: irreversible part should vanish.
-    sys_rev =
-        CoupledSDEs((u, p, t) -> [u[1] - u[1]^3, -u[2]], [0.0, 0.0]; noise_strength = 0.4)
+    sys_rev = CoupledSDEs(
+        (u, p, t) -> [u[1] - u[1]^3, -u[2]], [0.0, 0.0]; noise_strength = 0.4
+    )
     grid = CartesianGrid((-1.6, 1.6, 41), (-1.0, 1.0, 27))
     A = x -> sum((x .- (-1.0, 0.0)) .^ 2) < 0.25^2
     B = x -> sum((x .- (1.0, 0.0)) .^ 2) < 0.25^2
@@ -168,25 +163,24 @@ end
     Jn_irr, Jf_irr = reactive_current_irreversible(res)
 
     # Additivity
-    for k = 1:2
+    for k in 1:2
         @test maximum(abs.(Jf_full[k] .- Jf_rev[k] .- Jf_irr[k])) < 1.0e-12
         @test maximum(abs.(Jn_full[k] .- Jn_rev[k] .- Jn_irr[k])) < 1.0e-12
     end
     # For reversible system, irrev part is essentially zero
-    scale = maximum(maximum(abs, Jf_full[k]) for k = 1:2)
-    @test maximum(maximum(abs, Jf_irr[k]) for k = 1:2) < 1.0e-10 * scale
+    scale = maximum(maximum(abs, Jf_full[k]) for k in 1:2)
+    @test maximum(maximum(abs, Jf_irr[k]) for k in 1:2) < 1.0e-10 * scale
 
     # Non-equilibrium system: irrev part should be substantial.
     sys_nq = CoupledSDEs(
         (u, p, t) -> [u[1] - u[1]^3 - 10 * u[1] * u[2]^2, -(1 + u[1]^2) * u[2]],
-        [0.0, 0.0];
-        noise_strength = 0.4,
+        [0.0, 0.0]; noise_strength = 0.4,
     )
     res_nq = ReactiveTransition(sys_nq, grid, A, B)
     _, Jf_full_nq = reactive_current(res_nq)
     _, Jf_irr_nq = reactive_current_irreversible(res_nq)
-    scale_nq = maximum(maximum(abs, Jf_full_nq[k]) for k = 1:2)
-    @test maximum(maximum(abs, Jf_irr_nq[k]) for k = 1:2) > 0.05 * scale_nq
+    scale_nq = maximum(maximum(abs, Jf_full_nq[k]) for k in 1:2)
+    @test maximum(maximum(abs, Jf_irr_nq[k]) for k in 1:2) > 0.05 * scale_nq
 end
 
 # =====================================================================
@@ -218,31 +212,31 @@ end
     using CriticalTransitions: cell_volume
 
     # Reversible 1D double-well.
-    sys_rev = CoupledSDEs((u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.6)
+    sys_rev = CoupledSDEs(
+        (u, p, t) -> [u[1] - u[1]^3], [0.0]; noise_strength = 0.6
+    )
     grid = CartesianGrid((-2.0, 2.0, 200))
     gen_rev = DiffusionGenerator(sys_rev, grid)
     A = x -> x[1] < -0.7
     B = x -> x[1] > 0.7
     @test reactive_rate(ReactiveTransition(gen_rev, A, B)) ≈
-          reactive_rate(ReactiveTransition(gen_rev, B, A)) rtol = 1.0e-10
+        reactive_rate(ReactiveTransition(gen_rev, B, A)) rtol = 1.0e-10
 
     # Non-reversible Maier-Stein.
     sys_nq = CoupledSDEs(
         (u, p, t) -> [u[1] - u[1]^3 - 10 * u[1] * u[2]^2, -(1 + u[1]^2) * u[2]],
-        [0.0, 0.0];
-        noise_strength = 0.4,
+        [0.0, 0.0]; noise_strength = 0.4,
     )
     grid_2d = CartesianGrid((-1.6, 1.6, 41), (-1.0, 1.0, 27))
     gen_nq = DiffusionGenerator(sys_nq, grid_2d)
     A_2d = x -> sum((x .- (-1.0, 0.0)) .^ 2) < 0.25^2
     B_2d = x -> sum((x .- (1.0, 0.0)) .^ 2) < 0.25^2
     @test reactive_rate(ReactiveTransition(gen_nq, A_2d, B_2d)) ≈
-          reactive_rate(ReactiveTransition(gen_nq, B_2d, A_2d)) rtol = 1.0e-10
+        reactive_rate(ReactiveTransition(gen_nq, B_2d, A_2d)) rtol = 1.0e-10
 
     # Asymmetric A, B on the reversible system.
     @test reactive_rate(ReactiveTransition(gen_rev, x -> x[1] < -0.5, x -> x[1] > 0.9)) ≈
-          reactive_rate(ReactiveTransition(gen_rev, x -> x[1] > 0.9, x -> x[1] < -0.5)) rtol =
-        1.0e-10
+        reactive_rate(ReactiveTransition(gen_rev, x -> x[1] > 0.9, x -> x[1] < -0.5)) rtol = 1.0e-10
 end
 
 # Internal consistency: the integral of the reactive density equals
@@ -308,9 +302,7 @@ end
     @test_throws ArgumentError ReactiveTransition(gen, x -> x[1] < -0.7, x -> false)
     # Overlapping A ∩ B.
     @test_throws ArgumentError ReactiveTransition(
-        gen,
-        x -> abs(x[1]) < 1.0,
-        x -> abs(x[1]) < 1.5,
+        gen, x -> abs(x[1]) < 1.0, x -> abs(x[1]) < 1.5,
     )
     # Same errors via the high-level (sys, grid) form.
     @test_throws ArgumentError ReactiveTransition(sys, grid, x -> false, x -> x[1] > 0.7)
@@ -338,13 +330,13 @@ end
     # grid.centers is symmetric around 0 since (-L, L, even N) gives no cell
     # at exactly 0; index pairing is (i, N+1-i).
     N = length(qp)
-    for i = 1:N
-        @test qp[i] + qp[N+1-i] ≈ 1 atol = 1.0e-12
+    for i in 1:N
+        @test qp[i] + qp[N + 1 - i] ≈ 1 atol = 1.0e-12
     end
     # Reactive density inherits the same symmetry.
     ρR = reactive_density(res)
-    for i = 1:N
-        @test ρR[i] ≈ ρR[N+1-i] atol = 1.0e-12
+    for i in 1:N
+        @test ρR[i] ≈ ρR[N + 1 - i] atol = 1.0e-12
     end
 end
 
@@ -360,7 +352,7 @@ end
     res_adj = ReactiveTransition(sys, grid, A, B)               # discrete adjoint
     res_phys = ReactiveTransition(sys, grid, A, B; reverse = sys) # explicit reverse SDE
     @test !res_adj.physical_reverse
-    @test res_phys.physical_reverse
+    @test  res_phys.physical_reverse
     @test maximum(abs.(res_adj.qminus .- res_phys.qminus)) < 1.0e-6
     @test reactive_rate(res_adj) ≈ reactive_rate(res_phys) rtol = 1.0e-6
 end

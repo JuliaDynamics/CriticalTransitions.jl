@@ -9,8 +9,8 @@ init = Matrix([xx yy]')
 
 function interpolate_path(path, N)
     s = zeros(N)
-    @inbounds for j = 2:N
-        @fastmath s[j] = s[j-1] + norm(path[:, j] - path[:, j-1])
+    @inbounds for j in 2:N
+        @fastmath s[j] = s[j - 1] + norm(path[:, j] - path[:, j - 1])
     end
     s_length = s / s[end]
     interp = ParametricSpline(s_length, path; k = 3)

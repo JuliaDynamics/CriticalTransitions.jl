@@ -100,8 +100,8 @@ limits!(u_min, u_max, v_min, v_max)
 fig
 
 [
-    scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10)
-    for i in eachindex(fp)
+    scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10) for
+        i in eachindex(fp)
 ]
 fig
 
@@ -148,8 +148,8 @@ limits!(u_min, u_max, v_min, v_max)
 fig
 
 [
-    scatter!(ax2, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10)
-    for i in eachindex(fp)
+    scatter!(ax2, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10) for
+        i in eachindex(fp)
 ]
 
 lines!(ax2, reduce(hcat, tr); linewidth = 1, color = (:black, 0.2))
@@ -192,8 +192,8 @@ limits!(u_min, u_max, v_min, v_max)
 fig
 
 [
-    scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10)
-    for i in eachindex(fp)
+    scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10) for
+        i in eachindex(fp)
 ]
 fig
 
@@ -234,11 +234,11 @@ limits!(u_min, u_max, v_min, v_max)
 fig
 
 [
-    scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10)
-    for i in eachindex(fp)
+    scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10) for
+        i in eachindex(fp)
 ]
 
-for i = 1:length(tt.paths)
+for i in 1:length(tt.paths)
     lines!(ax, tt.paths[i])
 end
 fig
@@ -296,8 +296,8 @@ limits!(u_min, u_max, v_min, v_max)
 fig
 
 [
-    scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10)
-    for i in eachindex(fp)
+    scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10) for
+        i in eachindex(fp)
 ]
 
 lines!(ax, init; linewidth = 3, color = :black, linestyle = :dash)

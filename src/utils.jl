@@ -64,17 +64,17 @@ end
 
 # Central finite difference, second derivative
 function central(f, idx, dz)
-    return (f[idx+1] - f[idx-1]) / (2 * dz)
+    return (f[idx + 1] - f[idx - 1]) / (2 * dz)
 end;
 
 function central2(f, idx, dz)
-    return (f[idx+1] - 2f[idx] + f[idx-1]) / (dz^2)
+    return (f[idx + 1] - 2f[idx] + f[idx - 1]) / (dz^2)
 end;
 
 function Base.diff(a::StateSpaceSet)
     r = length(a)
-    r0 = 1:(r-1)
+    r0 = 1:(r - 1)
     r1 = 2:r
 
-    return StateSpaceSet([a[r1[i]] - a[r0[i]] for i = 1:length(r0)])
+    return StateSpaceSet([a[r1[i]] - a[r0[i]] for i in 1:length(r0)])
 end

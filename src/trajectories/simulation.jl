@@ -16,11 +16,7 @@ For stochastic integration, see [`trajectory`](@extref DynamicalSystemsBase.traj
 
 """
 function deterministic_orbit(
-    sys::CoupledSDEs,
-    T,
-    init = current_state(sys);
-    diffeq = CoupledODEs(sys).diffeq,
-    kwargs...,
-)
+        sys::CoupledSDEs, T, init = current_state(sys); diffeq = CoupledODEs(sys).diffeq, kwargs...
+    )
     return trajectory(CoupledODEs(sys; diffeq), T, init; kwargs...)
 end;

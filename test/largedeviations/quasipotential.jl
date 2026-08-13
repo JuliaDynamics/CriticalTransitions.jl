@@ -20,31 +20,28 @@ const CT_ = CriticalTransitions
     end
 
     @testset "GeometricLagrangian" begin
-        Qinv = SMatrix{2,2,Float64}(I)
-        L = CT_._GeometricLagrangian{2,Float64}(x -> -x, Qinv, 1.0e-10)
-        x = SVector(1.0, 0.5);
-        v = SVector(0.2, -0.1)
+        Qinv = SMatrix{2, 2, Float64}(I)
+        L = CT_._GeometricLagrangian{2, Float64}(x -> -x, Qinv, 1.0e-10)
+        x = SVector(1.0, 0.5); v = SVector(0.2, -0.1)
         bx = -x
         @test isapprox(
-            L(x, v),
-            sqrt(dot(v, v)) * sqrt(dot(bx, bx)) - dot(v, bx);
+            L(x, v), sqrt(dot(v, v)) * sqrt(dot(bx, bx)) - dot(v, bx);
             atol = 1.0e-14,
         )
 
-        L0 = CT_._GeometricLagrangian{2,Float64}(x -> zero(x), Qinv, 1.0e-10)
+        L0 = CT_._GeometricLagrangian{2, Float64}(x -> zero(x), Qinv, 1.0e-10)
         @test L0(SVector(0.0, 0.0), SVector(0.1, 0.2)) ==
-              0.5 * dot(SVector(0.1, 0.2), SVector(0.1, 0.2))
+            0.5 * dot(SVector(0.1, 0.2), SVector(0.1, 0.2))
     end
 
     @testset "line_integral / hermite_U" begin
-        Qinv = SMatrix{2,2,Float64}(I)
-        L = CT_._GeometricLagrangian{2,Float64}(x -> -x, Qinv, 1.0e-10)
+        Qinv = SMatrix{2, 2, Float64}(I)
+        L = CT_._GeometricLagrangian{2, Float64}(x -> -x, Qinv, 1.0e-10)
         # L_g(x, v) = |v||x| + v·x along y + s v with y=(1,0), v=(0.1,0), x(s) = (1+0.1s, 0)
         # gives 0.2*(1 + 0.1 s), exact integral 0.21 (Simpson is exact on linear integrands).
         @test isapprox(
             CT_._line_integral(L, SVector(1.0, 0.0), SVector(0.1, 0.0)),
-            0.21;
-            atol = 1.0e-14,
+            0.21; atol = 1.0e-14
         )
 
         @test isapprox(CT_._hermite_U(0.0, 1.0, 0.0, 0.0, 0.5), 0.5; atol = 1.0e-12)
@@ -98,12 +95,8 @@ const CT_ = CriticalTransitions
         sys = CoupledSDEs(f, [0.0, 0.0, 0.0]; noise_strength = 1.0)
         grid = CartesianGrid((-1.0, 1.0, 9), (-1.0, 1.0, 9), (-1.0, 1.0, 9))
         qp = quasipotential(
-            sys,
-            grid,
-            [0.0, 0.0, 0.0];
-            show_progress = false,
-            near_source_layers = 0,
-            band_radius = 2,
+            sys, grid, [0.0, 0.0, 0.0];
+            show_progress = false, near_source_layers = 0, band_radius = 2,
         )
         @test all(isfinite, qp.U)
         @test qp.U[5, 5, 5] == 0.0
@@ -130,19 +123,12 @@ const CT_ = CriticalTransitions
         f(x, p, t) = -x
         sys = CoupledSDEs(f, zeros(5); noise_strength = 1.0)
         grid = CartesianGrid(
-            (-1.0, 1.0, 5),
-            (-1.0, 1.0, 5),
-            (-1.0, 1.0, 5),
-            (-1.0, 1.0, 5),
-            (-1.0, 1.0, 5),
+            (-1.0, 1.0, 5), (-1.0, 1.0, 5), (-1.0, 1.0, 5),
+            (-1.0, 1.0, 5), (-1.0, 1.0, 5),
         )
         @test_logs (:warn, r"D=5") quasipotential(
-            sys,
-            grid,
-            zeros(5);
-            band_radius = 3,
-            near_source_layers = 0,
-            show_progress = false,
+            sys, grid, zeros(5); band_radius = 3,
+            near_source_layers = 0, show_progress = false,
         )
     end
 
@@ -151,8 +137,7 @@ const CT_ = CriticalTransitions
         sys = CoupledSDEs(f, [0.0, 0.0]; noise_strength = 1.0)
         grid = CartesianGrid((-1.0, 1.0, 31), (-1.0, 1.0, 31))
         qp = quasipotential(sys, grid, [0.0, 0.0]; show_progress = false)
-        cur = CartesianIndex(28, 16);
-        visited = [cur]
+        cur = CartesianIndex(28, 16); visited = [cur]
         while cur != qp.source
             cur = qp.back_pointer[cur].v0
             push!(visited, cur)
@@ -171,14 +156,15 @@ const CT_ = CriticalTransitions
         sys = CoupledSDEs(f, [0.0, 0.0, 0.0]; noise_strength = 1.0)
         grid = CartesianGrid((-1.0, 1.0, 11), (-1.0, 1.0, 11), (-1.0, 1.0, 11))
         qp = quasipotential(
-            sys,
-            grid,
-            [0.0, 0.0, 0.0];
-            show_progress = false,
-            band_radius = 3,
+            sys, grid, [0.0, 0.0, 0.0];
+            show_progress = false, band_radius = 3
         )
         @test qp.U[6, 6, 6] == 0.0  # source cell at origin
-        for I in (CartesianIndex(9, 6, 6), CartesianIndex(9, 9, 6), CartesianIndex(9, 9, 9))
+        for I in (
+                CartesianIndex(9, 6, 6),
+                CartesianIndex(9, 9, 6),
+                CartesianIndex(9, 9, 9),
+            )
             x = cell_center(grid, I)
             @test isapprox(qp.U[I], dot(x, x); rtol = 0.1)
         end
@@ -189,12 +175,10 @@ const CT_ = CriticalTransitions
         # `_QInvDynamic` callable path: build a Lagrangian whose Qinv is a state-
         # dependent SMatrix, then check that values agree with the closed form.
         b = x -> SVector(-x[1], -x[2])
-        Qinv_fn = x -> SMatrix{2,2,Float64}((1 + 0.5 * x[1]^2) * I)
-        L_mult = CT_._GeometricLagrangian{2,Float64}(b, Qinv_fn, 1.0e-10)
-        x = SVector(0.7, -0.3);
-        v = SVector(0.2, 0.1)
-        Qinv = Qinv_fn(x);
-        bx = b(x)
+        Qinv_fn = x -> SMatrix{2, 2, Float64}((1 + 0.5 * x[1]^2) * I)
+        L_mult = CT_._GeometricLagrangian{2, Float64}(b, Qinv_fn, 1.0e-10)
+        x = SVector(0.7, -0.3); v = SVector(0.2, 0.1)
+        Qinv = Qinv_fn(x); bx = b(x)
         @test isapprox(
             L_mult(x, v),
             sqrt(dot(v, Qinv * v)) * sqrt(dot(bx, Qinv * bx)) - dot(v, Qinv * bx);
@@ -210,9 +194,9 @@ const CT_ = CriticalTransitions
 
         # Consistency: a callable Qinv that returns a *constant* SMatrix must give
         # the same line integral as the additive (SMatrix) path with the same value.
-        Qinv_const = SMatrix{2,2,Float64}(I)
-        L_add = CT_._GeometricLagrangian{2,Float64}(b, Qinv_const, 1.0e-10)
-        L_dyn = CT_._GeometricLagrangian{2,Float64}(b, _ -> Qinv_const, 1.0e-10)
+        Qinv_const = SMatrix{2, 2, Float64}(I)
+        L_add = CT_._GeometricLagrangian{2, Float64}(b, Qinv_const, 1.0e-10)
+        L_dyn = CT_._GeometricLagrangian{2, Float64}(b, _ -> Qinv_const, 1.0e-10)
         @test isapprox(
             CT_._line_integral(L_add, y, v2),
             CT_._line_integral(L_dyn, y, v2);
@@ -227,8 +211,10 @@ const CT_ = CriticalTransitions
         # whole sweep, then compares to the analytic U(x) = |x|².
         b(u, p, t) = SA[-u[1], -u[2]]
         g(u, p, t) = @SMatrix [1.0 0.0; 0.0 1.0]
-        sys =
-            CoupledSDEs(b, SA[0.0, 0.0]; g = g, noise_prototype = SMatrix{2,2}(zeros(2, 2)))
+        sys = CoupledSDEs(
+            b, SA[0.0, 0.0]; g = g,
+            noise_prototype = SMatrix{2, 2}(zeros(2, 2))
+        )
         grid = CartesianGrid((-1.0, 1.0, 31), (-1.0, 1.0, 31))
         qp = quasipotential(sys, grid, [0.0, 0.0]; show_progress = false)
         @test qp.U[16, 16] == 0.0
@@ -239,7 +225,10 @@ const CT_ = CriticalTransitions
     end
 
     @testset "Maier-Stein non-gradient" begin
-        f(x, p, t) = SVector(x[1] - x[1]^3 - 5 * x[1] * x[2]^2, -(1 + x[1]^2) * x[2])
+        f(x, p, t) = SVector(
+            x[1] - x[1]^3 - 5 * x[1] * x[2]^2,
+            -(1 + x[1]^2) * x[2],
+        )
         sys = CoupledSDEs(f, [-1.0, 0.0]; noise_strength = 0.3)
         grid = CartesianGrid((-1.5, 1.5, 61), (-1.0, 1.0, 41))
         qp = quasipotential(sys, grid, [-1.0, 0.0]; show_progress = false)
@@ -259,35 +248,31 @@ const CT_ = CriticalTransitions
         @test isdeg && z == 1 && collect(R) == [2]
         isdeg, z, R = CT_._degenerate_split([0.0 0.0 0.0; 0.0 2.0 0.0; 0.0 0.0 3.0])  # |Z|=1 in 3D
         @test isdeg && z == 1 && collect(R) == [2, 3]
-        @test_throws ArgumentError CT_._degenerate_split(
-            [0.0 0.0 0.0; 0.0 2.0 0.0; 0.0 0.0 0.0],
-        )  # |Z|=2
+        @test_throws ArgumentError CT_._degenerate_split([0.0 0.0 0.0; 0.0 2.0 0.0; 0.0 0.0 0.0])  # |Z|=2
         @test_throws ArgumentError CT_._degenerate_split([1.0 1.0; 1.0 1.0])  # rotated singular
     end
 
     @testset "diffusion accessor" begin
-        Lf = CT_._GeometricLagrangian{2,Float64}(x -> -x, SMatrix{2,2,Float64}(I), 1.0e-10)
-        @test CT_._diffusion_at(Lf, SVector(0.0, 0.0)) ≈ SMatrix{2,2,Float64}(I)
+        Lf = CT_._GeometricLagrangian{2, Float64}(x -> -x, SMatrix{2, 2, Float64}(I), 1.0e-10)
+        @test CT_._diffusion_at(Lf, SVector(0.0, 0.0)) ≈ SMatrix{2, 2, Float64}(I)
     end
 
     @testset "cached line integral == live (additive)" begin
         # The cached additive path must be bitwise-identical to the live path; this
         # locks the equivalence the drift cache relies on.
         b = x -> SVector(-x[1], x[1] - x[2])
-        Qinv = SMatrix{2,2,Float64}(2.0, 0.3, 0.3, 1.5)   # symmetric PD
-        L = CT_._GeometricLagrangian{2,Float64}(b, Qinv, 1.0e-10)
-        nd(x) =
-            (bb = b(x); q = dot(bb, Qinv * bb); CT_._NodeData{2,Float64}(bb, q, sqrt(q)))
-        y = SVector(0.2, -0.4);
-        v = SVector(0.1, 0.25)
+        Qinv = SMatrix{2, 2, Float64}(2.0, 0.3, 0.3, 1.5)   # symmetric PD
+        L = CT_._GeometricLagrangian{2, Float64}(b, Qinv, 1.0e-10)
+        nd(x) = (bb = b(x); q = dot(bb, Qinv * bb); CT_._NodeData{2, Float64}(bb, q, sqrt(q)))
+        y = SVector(0.2, -0.4); v = SVector(0.1, 0.25)
         live = CT_._line_integral(L, y, v)
         @test CT_._line_integral(L, y, v, nd(y), nd(y + v)) == live   # both endpoints cached
         @test CT_._line_integral(L, y, v, nothing, nd(y + v)) == live # only s=1 cached (edge use)
         @test CT_._line_integral(L, y, v, nd(y), nothing) == live     # only s=0 cached
         # near-zero-drift branch (|b|²_Q < eps_b²) must also match
         bz = x -> SVector(0.0, 0.0)
-        Lz = CT_._GeometricLagrangian{2,Float64}(bz, Qinv, 1.0e-10)
-        ndz = CT_._NodeData{2,Float64}(SVector(0.0, 0.0), 0.0, 0.0)
+        Lz = CT_._GeometricLagrangian{2, Float64}(bz, Qinv, 1.0e-10)
+        ndz = CT_._NodeData{2, Float64}(SVector(0.0, 0.0), 0.0, 0.0)
         @test CT_._line_integral(Lz, y, v, ndz, ndz) == CT_._line_integral(Lz, y, v)
     end
 
@@ -299,21 +284,12 @@ const CT_ = CriticalTransitions
     end
 
     @testset "geometric_lagrangian router (regularized rank-1)" begin
-        sysf = CoupledSDEs(
-            (x, p, t) -> SVector(-x[1], -x[2]),
-            [0.0, 0.0];
-            noise_strength = 1.0,
-        )
+        sysf = CoupledSDEs((x, p, t) -> SVector(-x[1], -x[2]), [0.0, 0.0]; noise_strength = 1.0)
         @test CT_._geometric_lagrangian(sysf, Float64) isa CT_._GeometricLagrangian
 
         drift(u, p, t) = SVector(u[2], -u[1] - u[2])
         gmat(u, p, t) = @SMatrix [0.0 0.0; 0.0 sqrt(2.0)]
-        sysd = CoupledSDEs(
-            drift,
-            SA[0.0, 0.0];
-            g = gmat,
-            noise_prototype = SMatrix{2,2}(zeros(2, 2)),
-        )
+        sysd = CoupledSDEs(drift, SA[0.0, 0.0]; g = gmat, noise_prototype = SMatrix{2, 2}(zeros(2, 2)))
         # rank-1 regularized -> ordinary GeometricLagrangian with an invertible (PD) metric
         L = CT_._geometric_lagrangian(sysd, Float64; regularization = 0.04)
         @test L isa CT_._GeometricLagrangian
@@ -323,33 +299,16 @@ const CT_ = CriticalTransitions
 
         drift3(u, p, t) = SVector(u[2], u[3], -u[1])
         g3(u, p, t) = @SMatrix [0.0 0.0 0.0; 0.0 0.0 0.0; 0.0 0.0 1.0]
-        sys3 = CoupledSDEs(
-            drift3,
-            SA[0.0, 0.0, 0.0];
-            g = g3,
-            noise_prototype = SMatrix{3,3}(zeros(3, 3)),
-        )
-        @test_throws ArgumentError CT_._geometric_lagrangian(
-            sys3,
-            Float64;
-            regularization = 0.04,
-        )
+        sys3 = CoupledSDEs(drift3, SA[0.0, 0.0, 0.0]; g = g3, noise_prototype = SMatrix{3, 3}(zeros(3, 3)))
+        @test_throws ArgumentError CT_._geometric_lagrangian(sys3, Float64; regularization = 0.04)
 
         # state-dependent rank-1 noise -> dynamic regularized metric (_QInvRegDynamic),
         # not the constant SMatrix branch. The regularized metric must be PD everywhere.
         gmul(u, p, t) = @SMatrix [0.0 0.0; 0.0 sqrt(2.0) * (1.0 + 0.2 * u[1]^2)]
-        sysm = CoupledSDEs(
-            drift,
-            SA[0.0, 0.0];
-            g = gmul,
-            noise_prototype = SMatrix{2,2}(zeros(2, 2)),
-        )
+        sysm = CoupledSDEs(drift, SA[0.0, 0.0]; g = gmul, noise_prototype = SMatrix{2, 2}(zeros(2, 2)))
         Lm = CT_._geometric_lagrangian(sysm, Float64; regularization = 0.04)
         @test !(Lm.Q_inv isa SMatrix)                                   # dynamic metric
-        @test all(
-            isposdef(inv(Lm.Q_inv(SVector(x, p)))) for
-            x in (-0.5, 0.0, 0.5), p in (-0.3, 0.3)
-        )
+        @test all(isposdef(inv(Lm.Q_inv(SVector(x, p)))) for x in (-0.5, 0.0, 0.5), p in (-0.3, 0.3))
         @test_throws ArgumentError CT_._geometric_lagrangian(sysm, Float64)  # needs reg
     end
 
@@ -359,30 +318,22 @@ const CT_ = CriticalTransitions
         Ustar(x, p) = p^2 / 2 + Vpot(x) - Vpot(-1.0)
         drift(u, p, t) = SVector(u[2], -Vp(u[1]) - u[2])         # gamma = 1, closed form U*
         gmat(u, p, t) = @SMatrix [0.0 0.0; 0.0 sqrt(2.0)]
-        sys = CoupledSDEs(
-            drift,
-            SA[-1.0, 0.0];
-            g = gmat,
-            noise_prototype = SMatrix{2,2}(zeros(2, 2)),
-        )
+        sys = CoupledSDEs(drift, SA[-1.0, 0.0]; g = gmat, noise_prototype = SMatrix{2, 2}(zeros(2, 2)))
 
         grid = CartesianGrid((-1.8, 0.6, 61), (-1.2, 1.2, 61))
         qp = quasipotential(sys, grid, [-1.0, 0.0]; show_progress = false)
-        xs = grid.centers[1];
-        ps = grid.centers[2];
-        src = qp.source
+        xs = grid.centers[1]; ps = grid.centers[2]; src = qp.source
         K = CT_.default_K(grid)
         # escape sheet (p > 0): the regularization bias is negligible there
         se = Float64[]
-        for i = 1:61, j = 1:61
+        for i in 1:61, j in 1:61
             (-1.0 <= xs[i] <= 0.3 && 0.0 < ps[j] <= 1.0) || continue
             (abs(i - src[1]) <= K && abs(j - src[2]) <= K) && continue
             isfinite(qp.U[i, j]) || continue
             push!(se, (qp.U[i, j] - Ustar(xs[i], ps[j]))^2)
         end
         @test sqrt(sum(se) / length(se)) <= 0.05                 # escape-sheet RMS
-        isad = argmin(abs.(xs));
-        jsad = argmin(abs.(ps))
+        isad = argmin(abs.(xs)); jsad = argmin(abs.(ps))
         @test abs(qp.U[isad, jsad] - 0.25) <= 0.02               # saddle barrier
         @test qp.U[qp.source] == 0.0
         @test all(>=(-1.0e-8), filter(isfinite, qp.U))
@@ -393,20 +344,13 @@ const CT_ = CriticalTransitions
         Dfric(x) = 1.0 - 0.3 * (1 - x^2)                         # state-dependent friction
         drift(u, p, t) = SVector(u[2], -Dfric(u[1]) * u[2] - Vp(u[1]))
         gmat(u, p, t) = @SMatrix [0.0 0.0; 0.0 sqrt(2.0)]
-        sys = CoupledSDEs(
-            drift,
-            SA[-1.0, 0.0];
-            g = gmat,
-            noise_prototype = SMatrix{2,2}(zeros(2, 2)),
-        )
+        sys = CoupledSDEs(drift, SA[-1.0, 0.0]; g = gmat, noise_prototype = SMatrix{2, 2}(zeros(2, 2)))
         grid = CartesianGrid((-1.8, 0.6, 41), (-1.2, 1.2, 41))
         qp = quasipotential(sys, grid, [-1.0, 0.0]; show_progress = false)
-        xs = grid.centers[1];
-        ps = grid.centers[2]
+        xs = grid.centers[1]; ps = grid.centers[2]
         @test all(isfinite, qp.U)                                # full field, no dead band
         @test qp.U[qp.source] == 0.0
-        isad = argmin(abs.(xs));
-        jsad = argmin(abs.(ps))
+        isad = argmin(abs.(xs)); jsad = argmin(abs.(ps))
         @test 0.15 < qp.U[isad, jsad] < 0.24                     # finite, below equilibrium 0.25
         col = [qp.U[isad, argmin(abs.(ps .- pp))] for pp in (0.0, 0.3, 0.6, 0.9)]
         @test issorted(col)                                      # monotone escape sheet

@@ -66,14 +66,9 @@ The profiles of each parameter are individual though.
 If any profile does not have the `reverse = true` option, an error is thrown.
 """
 function rate_track_return_tip(
-    rs::RateSystem,
-    Δts,
-    Δps,
-    mapper::Attractors.BasinMap,
-    ics;
-    distance = StateSpaceSets.Centroid(),
-    kw...,
-)
+        rs::RateSystem, Δts, Δps, mapper::Attractors.BasinMap, ics;
+        distance = StateSpaceSets.Centroid(), kw...
+    )
     pcurve = unforced_pcurve(rs, Δps)
     matcher = Attractors.MatchBySSSetDistance(; distance)
     ascm = Attractors.AttractorSeedContinueMatch(mapper, matcher)
@@ -82,15 +77,12 @@ function rate_track_return_tip(
 end
 
 function rate_track_return_tip(
-    rs::RateSystem,
-    Δts,
-    Δps,
-    attractors_cont::AbstractVector;
-    distance = StateSpaceSets.Centroid(),
-    proximity_kw = NamedTuple(),
-    u0 = initial_state(rs),
-    decide_rate_outcome = decide_rate_outcome_default,
-)
+        rs::RateSystem, Δts, Δps, attractors_cont::AbstractVector;
+        distance = StateSpaceSets.Centroid(),
+        proximity_kw = NamedTuple(),
+        u0 = initial_state(rs),
+        decide_rate_outcome = decide_rate_outcome_default,
+    )
     if any(isequal(false), values(rs.specs.forcing_reverse))
         error("Provided `RateSystem` must have a `reverse=true` option for all profiles.")
     end
@@ -99,8 +91,7 @@ function rate_track_return_tip(
     unforced = rs.specs.unforced_system
     function find_attractor_id(unforced, u, p, attractors)
         set_parameters!(unforced, p)
-        proximity =
-            Attractors.BasinMapProximity(unforced, attractors; proximity_kw..., distance)
+        proximity = Attractors.BasinMapProximity(unforced, attractors; proximity_kw..., distance)
         return proximity(u)
     end
     start_id = find_attractor_id(unforced, u0, pcurve[1], attractors_cont[1])
@@ -165,8 +156,5 @@ This `pcurve` can be used to perform a global continuation for the unforced syst
 function unforced_pcurve(rs::RateSystem, Δps)
     p0s = rs.specs.p0
     forced_pkeys = keys(rs.specs.forcing_profile)
-    return [
-        Dict(pidx => current_parameter(rs, pidx, p0s) + p for pidx in forced_pkeys) for
-        p in Δps
-    ]
+    return [Dict(pidx => current_parameter(rs, pidx, p0s) + p for pidx in forced_pkeys) for p in Δps]
 end

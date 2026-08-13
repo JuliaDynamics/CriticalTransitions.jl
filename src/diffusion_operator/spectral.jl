@@ -29,7 +29,7 @@ struct KrylovKitSolver end
 # eigensolver (KrylovKit) without duplication.
 # ---------------------------------------------------------------------
 
-struct ShiftInvertMap{T,Cache}
+struct ShiftInvertMap{T, Cache}
     n::Int
     cache::Cache
     buf::Vector{T}
@@ -40,7 +40,7 @@ Base.size(M::ShiftInvertMap) = (M.n, M.n)
 Base.size(M::ShiftInvertMap, ::Integer) = M.n
 
 function _apply_shift_invert!(out::AbstractVector, M::ShiftInvertMap, x::AbstractVector)
-    @inbounds @simd for i = 1:M.n
+    @inbounds @simd for i in 1:M.n
         M.buf[i] = x[i]
     end
     M.cache.b = M.buf
@@ -59,22 +59,17 @@ function (M::ShiftInvertMap)(x::AbstractVector)
 end
 
 function _build_shift_invert(
-    A::AbstractMatrix,
-    σ::Number,
-    inner_alg = UMFPACKFactorization(),
-)
+        A::AbstractMatrix, σ::Number,
+        inner_alg = UMFPACKFactorization()
+    )
     n = size(A, 1)
     T = promote_type(eltype(A), typeof(σ), Float64)
     Aσ = sparse(A - σ * I)
     rhs = zeros(T, n)
     prob = LinearProblem{true}(Aσ, rhs)
-    cache = init(
-        prob,
-        inner_alg;
-        alias = LinearSolve.LinearAliasSpecifier(alias_A = false, alias_b = false),
-    )
+    cache = init(prob, inner_alg; alias = LinearSolve.LinearAliasSpecifier(alias_A = false, alias_b = false))
     buf = zeros(T, n)
-    return ShiftInvertMap{T,typeof(cache)}(n, cache, buf)
+    return ShiftInvertMap{T, typeof(cache)}(n, cache, buf)
 end
 
 # ---------------------------------------------------------------------
@@ -91,13 +86,11 @@ function _principal_eigenpair(A::AbstractMatrix, ::DenseEigen; σ::Number = 0.0)
 end
 
 function _principal_eigenpair(
-    A::AbstractMatrix,
-    ::KrylovKitSolver;
-    σ::Number = 0.0,
-    v0::Union{Nothing,AbstractVector} = nothing,
-    inner_alg = UMFPACKFactorization(),
-    kwargs...,
-)
+        A::AbstractMatrix, ::KrylovKitSolver;
+        σ::Number = 0.0, v0::Union{Nothing, AbstractVector} = nothing,
+        inner_alg = UMFPACKFactorization(),
+        kwargs...,
+    )
     n = size(A, 1)
     T = promote_type(eltype(A), typeof(σ), Float64)
     σ_eff = iszero(σ) ? T(-1.0e-12) : σ
@@ -148,24 +141,25 @@ target eigenvalues are unknown a priori, so a single linear solve is
 insufficient.
 """
 function eigenmodes(
-    gen::DiffusionGenerator,
-    k::Integer = 10,
-    alg::Union{DenseEigen,KrylovKitSolver} = KrylovKitSolver();
-    kwargs...,
-)
+        gen::DiffusionGenerator, k::Integer = 10,
+        alg::Union{DenseEigen, KrylovKitSolver} = KrylovKitSolver(); kwargs...
+    )
     N = size(gen.Q, 1)
     k >= 1 || throw(ArgumentError("k must be ≥ 1"))
     k = min(k, N)
     return _eigenmodes(gen.Q, k, alg; kwargs...)
 end
 
-function eigenmodes(::DiffusionGenerator, _k::Integer, alg; kwargs...)
+function eigenmodes(
+        ::DiffusionGenerator, _k::Integer,
+        alg; kwargs...
+    )
     throw(
         ArgumentError(
             "eigenmodes: a `SciMLLinearSolveAlgorithm` is not a valid backend " *
-            "because the target eigenvalues are unknown a priori. " *
-            "Use `KrylovKitSolver()` (default) or `DenseEigen()`.",
-        ),
+                "because the target eigenvalues are unknown a priori. " *
+                "Use `KrylovKitSolver()` (default) or `DenseEigen()`."
+        )
     )
 end
 
@@ -177,13 +171,11 @@ function _eigenmodes(Q::SparseMatrixCSC, k::Integer, ::DenseEigen; kwargs...)
 end
 
 function _eigenmodes(
-    Q::SparseMatrixCSC{T,Int},
-    k::Integer,
-    ::KrylovKitSolver;
-    inner_alg = UMFPACKFactorization(),
-    v0::Union{Nothing,AbstractVector} = nothing,
-    kwargs...,
-) where {T<:AbstractFloat}
+        Q::SparseMatrixCSC{T, Int}, k::Integer, ::KrylovKitSolver;
+        inner_alg = UMFPACKFactorization(),
+        v0::Union{Nothing, AbstractVector} = nothing,
+        kwargs...,
+    ) where {T <: AbstractFloat}
     n = size(Q, 1)
     σ = -T(1.0e-12)  # tiny shift away from the exact 0 eigenvalue
     v_init = v0 === nothing ? normalize!(rand(T, n)) : convert(Vector{T}, v0)

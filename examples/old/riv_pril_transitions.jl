@@ -33,11 +33,11 @@ end
 
 res = [];
 
-for i = 1:length(epsilons)
-    if run[2i-1]
+for i in 1:length(epsilons)
+    if run[2i - 1]
         println("starting eps=$(epsilons[i]), 1-0, sigma=$(sigmas[2i - 1])")
         @time _res = transitions(
-            sys(epsilons[i], sigmas[2i-1]),
+            sys(epsilons[i], sigmas[2i - 1]),
             start,
             [1.0, 0.0],
             N;

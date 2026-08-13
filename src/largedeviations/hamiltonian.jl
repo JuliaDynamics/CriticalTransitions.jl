@@ -33,7 +33,7 @@ the action is invariant to the overall scale of `noise_strength`.
 
 See [freidlin_random_1998](@cite) for the underlying theory.
 """
-struct FreidlinWentzellHamiltonian{IIP,D,Hx,Hp,A,R}
+struct FreidlinWentzellHamiltonian{IIP, D, Hx, Hp, A, R}
     H_x::Hx
     H_p::Hp
     a::A
@@ -48,18 +48,14 @@ In-place evaluation of ``\\partial_p H``. For `IIP=true`, calls `sys.H_p(buf, x,
 (user-supplied in-place form). For `IIP=false`, calls `sys.H_p(x, p)` and copies the
 returned matrix into `buf`.
 """
-@inline _eval_Hp!(buf, sys::FreidlinWentzellHamiltonian{true}, x, p) =
-    (sys.H_p(buf, x, p); buf)
-@inline _eval_Hp!(buf, sys::FreidlinWentzellHamiltonian{false}, x, p) =
-    copyto!(buf, sys.H_p(x, p))
+@inline _eval_Hp!(buf, sys::FreidlinWentzellHamiltonian{true}, x, p) = (sys.H_p(buf, x, p); buf)
+@inline _eval_Hp!(buf, sys::FreidlinWentzellHamiltonian{false}, x, p) = copyto!(buf, sys.H_p(x, p))
 
 """
 In-place evaluation of ``\\partial_x H``. See [`_eval_Hp!`](@ref).
 """
-@inline _eval_Hx!(buf, sys::FreidlinWentzellHamiltonian{true}, x, p) =
-    (sys.H_x(buf, x, p); buf)
-@inline _eval_Hx!(buf, sys::FreidlinWentzellHamiltonian{false}, x, p) =
-    copyto!(buf, sys.H_x(x, p))
+@inline _eval_Hx!(buf, sys::FreidlinWentzellHamiltonian{true}, x, p) = (sys.H_x(buf, x, p); buf)
+@inline _eval_Hx!(buf, sys::FreidlinWentzellHamiltonian{false}, x, p) = copyto!(buf, sys.H_x(x, p))
 
 function FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)
     D = dimension(ds)
@@ -73,38 +69,17 @@ function FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)
     x_ref = collect(current_state(ds))
     # Auto-derived H_p/H_x are out-of-place regardless of `ds`'s isinplace.
     return FreidlinWentzellHamiltonian{
-        false,
-        D,
-        typeof(H_x),
-        typeof(H_p),
-        typeof(a),
-        typeof(x_ref),
-    }(
-        H_x,
-        H_p,
-        a,
-        x_ref,
-    )
+        false, D, typeof(H_x), typeof(H_p), typeof(a), typeof(x_ref),
+    }(H_x, H_p, a, x_ref)
 end
 
-function FreidlinWentzellHamiltonian{IIP,D}(
-    H_x,
-    H_p;
-    a = Returns(LinearAlgebra.Diagonal(ones(Float64, D))),
-    x_ref = nothing,
-) where {IIP,D}
-    return FreidlinWentzellHamiltonian{
-        IIP,
-        D,
-        typeof(H_x),
-        typeof(H_p),
-        typeof(a),
-        typeof(x_ref),
-    }(
-        H_x,
-        H_p,
-        a,
-        x_ref,
+function FreidlinWentzellHamiltonian{IIP, D}(
+        H_x, H_p;
+        a = Returns(LinearAlgebra.Diagonal(ones(Float64, D))),
+        x_ref = nothing,
+    ) where {IIP, D}
+    return FreidlinWentzellHamiltonian{IIP, D, typeof(H_x), typeof(H_p), typeof(a), typeof(x_ref)}(
+        H_x, H_p, a, x_ref,
     )
 end
 
@@ -154,7 +129,7 @@ end
 
 _show_a_label(a, ::Nothing) = "$(_a_const_label(is_constant(a))) a"
 
-function Base.show(io::IO, sys::FreidlinWentzellHamiltonian{IIP,D}) where {IIP,D}
+function Base.show(io::IO, sys::FreidlinWentzellHamiltonian{IIP, D}) where {IIP, D}
     iip = IIP ? "in-place" : "out-of-place"
     label = _show_a_label(sys.a, sys.x_ref)
     return print(

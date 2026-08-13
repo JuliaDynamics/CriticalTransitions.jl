@@ -14,11 +14,11 @@ const α = -1
 
 function fu(u, v)
     return (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
-           (8 * ω)
+        (8 * ω)
 end
 function fv(u, v)
     return (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
-           (8 * ω)
+        (8 * ω)
 end
 stream(u, v) = Point2f(fu(u, v), fv(u, v))
 dfvdv(u, v) = (-4 * γ * ω + 6 * α * u * v) / (8 * ω)
@@ -61,7 +61,7 @@ function sss()
         return StateSpaceSet(permutedims(Matrix([H_pu H_pv]')))
     end
 
-    sys_sss = FreidlinWentzellHamiltonian{false,2}(H_x, H_p)
+    sys_sss = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
 
     x_init_sss = StateSpaceSet([xx yy])
     return sys_sss, x_init_sss
@@ -85,7 +85,7 @@ function m()
         return Matrix([H_pu H_pv]')
     end
 
-    sys_m = FreidlinWentzellHamiltonian{false,2}(H_x, H_p)
+    sys_m = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
 
     x_init_m = Matrix([xx yy]')
     return sys_m, x_init_m
@@ -212,9 +212,5 @@ ds_sa = CoupledSDEs(KPO_SA, zeros(2), ())
     integrator = Euler(),
 )
 @btime string_method(
-    $ds,
-    $x_init_m;
-    maxiters = ($STRING_ITERS),
-    stepsize = ($STRING_STEPSIZE),
-    integrator = RK4(),
+    $ds, $x_init_m; maxiters = ($STRING_ITERS), stepsize = ($STRING_STEPSIZE), integrator = RK4()
 )

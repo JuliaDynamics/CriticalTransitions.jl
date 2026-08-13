@@ -28,8 +28,7 @@ xx = range(-1.0, 1.0; length = 100)
 yy = 0.3 .* (-xx .^ 2 .+ 1)
 init = Matrix([xx yy]')
 
-gm =
-    minimize_geometric_action(sys, init; maxiters = 1000, Stol = 1.0e-6, iter_per_batch = 1)
+gm = minimize_geometric_action(sys, init; maxiters = 1000, Stol = 1.0e-6, iter_per_batch = 1)
 
 begin
     u_min = -1.1
@@ -64,13 +63,7 @@ begin
     )
 
     hm = heatmap!(
-        ax,
-        u_range,
-        v_range,
-        z;
-        colormap = :Blues,
-        colorrange = (zmin, zmax),
-        colorscale = sqrt,
+        ax, u_range, v_range, z; colormap = :Blues, colorrange = (zmin, zmax), colorscale = sqrt
     )
     Colorbar(fig[1, 2], hm; label = "", width = 15, ticksize = 15, tickalign = 1)
     streamplot!(
@@ -88,12 +81,8 @@ begin
     fig
 
     [
-        scatter!(
-            ax,
-            Point(fp[i]);
-            color = stab[i] > 0 ? :red : :dodgerblue,
-            markersize = 10,
-        ) for i in eachindex(fp)
+        scatter!(ax, Point(fp[i]); color = stab[i] > 0 ? :red : :dodgerblue, markersize = 10)
+            for i in eachindex(fp)
     ]
 
     lines!(ax, gm[1][1]; linewidth = 3, color = :black, linestyle = :dash)

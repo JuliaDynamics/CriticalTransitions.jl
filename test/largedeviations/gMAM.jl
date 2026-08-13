@@ -21,7 +21,7 @@ end
 @testset "GeometricGradientWorkspace + step! type-stable" begin
     function meier_stein(u, p, t)
         x, y = u
-        return SA[x-x^3-10*x*y^2, -(1+x^2)*y]
+        return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
     end
     ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = 0.25)
     Nt = 20
@@ -39,12 +39,7 @@ end
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
     res = minimize_geometric_action(
-        fhn,
-        x_i,
-        x_f;
-        npoints = 30,
-        maxiters = 500,
-        show_progress = false,
+        fhn, x_i, x_f; npoints = 30, maxiters = 500, show_progress = false
     )
     S = geometric_action(fhn, Matrix(res.path)')
     @test isapprox(S, 0.18, atol = 0.01)
@@ -69,17 +64,12 @@ end
     x_f = init[:, end]
 
     gm = minimize_geometric_action(
-        sys,
-        init,
-        GeometricGradient();
-        maxiters = 500,
-        verbose = false,
-        show_progress = false,
+        sys, init, GeometricGradient(); maxiters = 500, verbose = false, show_progress = false
     )
 
     path = Matrix(gm.path)'
     action_val = gm.action
-    @test all(isapprox.(path[2, :][(end-5):end], 0, atol = 1.0e-3))
+    @test all(isapprox.(path[2, :][(end - 5):end], 0, atol = 1.0e-3))
     @test all(isapprox.(action_val, 0.3375, atol = 1.0e-3))
 end # GeometricGradient
 
@@ -99,11 +89,7 @@ end # GeometricGradient
 
     # Huge stepsize with backtracking should not crash
     res_bt = minimize_geometric_action(
-        sys,
-        init,
-        GeometricGradient(; stepsize = 1.0e6);
-        maxiters = 100,
-        show_progress = false,
+        sys, init, GeometricGradient(; stepsize = 1.0e6); maxiters = 100, show_progress = false
     )
     @test isfinite(res_bt.action)
 
@@ -111,11 +97,7 @@ end # GeometricGradient
     actions = Float64[]
     for ss in [0.01, 1.0, 1.0e3]
         res = minimize_geometric_action(
-            sys,
-            init,
-            GeometricGradient(; stepsize = ss);
-            maxiters = 500,
-            show_progress = false,
+            sys, init, GeometricGradient(; stepsize = ss); maxiters = 500, show_progress = false
         )
         push!(actions, res.action)
     end

@@ -13,7 +13,7 @@ const _make_2d_offdiag = linear_offdiag_2d_sde
     ds = _make_1d_ou(0.3)
 
     sys = FreidlinWentzellHamiltonian(ds)
-    @test sys isa FreidlinWentzellHamiltonian{<:Any,1}
+    @test sys isa FreidlinWentzellHamiltonian{<:Any, 1}
     @test CT._isdiag_numerical(sys.a(zeros(1)))
 
     Nt = 40
@@ -35,7 +35,7 @@ end
 @testset "Off-diagonal state-dep update_p!: 2D off-diagonal" begin
     ds = _make_2d_offdiag()
     sys = FreidlinWentzellHamiltonian(ds)
-    @test sys isa FreidlinWentzellHamiltonian{<:Any,2}
+    @test sys isa FreidlinWentzellHamiltonian{<:Any, 2}
 
     Nt = 40
     xx = collect(range(1.0, 0.0; length = Nt))
@@ -60,11 +60,8 @@ end
     Nt = 80
     x_initial = reshape(collect(range(1.0, -1.0; length = Nt)), 1, Nt)
     res = minimize_geometric_action(
-        sys,
-        x_initial,
-        GeometricGradient(; stepsize = 1.0);
-        maxiters = 500,
-        show_progress = false,
+        sys, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 500, show_progress = false,
     )
     @test isfinite(res.action)
 end
@@ -77,11 +74,8 @@ end
     yy = collect(range(0.0, 1.0; length = Nt))
     x_initial = Matrix([xx yy]')
     res = minimize_geometric_action(
-        sys,
-        x_initial,
-        GeometricGradient(; stepsize = 1.0);
-        maxiters = 300,
-        show_progress = false,
+        sys, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 300, show_progress = false,
     )
     @test isfinite(res.action)
 end
@@ -110,12 +104,11 @@ end
     S = fw_action(ds, path, time)
 
     function simpson(f, a, b, n)
-        h = (b - a) / n;
-        s = f(a) + f(b)
-        for i = 1:2:(n-1)
+        h = (b - a) / n; s = f(a) + f(b)
+        for i in 1:2:(n - 1)
             s += 4 * f(a + i * h)
         end
-        for i = 2:2:(n-2)
+        for i in 2:2:(n - 2)
             s += 2 * f(a + i * h)
         end
         return s * h / 3
@@ -132,11 +125,8 @@ end
     Nt = 80
     x_initial = reshape(collect(range(1.0, -1.0; length = Nt)), 1, Nt)
     res_g = minimize_geometric_action(
-        ds,
-        x_initial,
-        GeometricGradient(; stepsize = 1.0);
-        maxiters = 500,
-        show_progress = false,
+        ds, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 500, show_progress = false,
     )
     @test isfinite(res_g.action)
 end
@@ -154,11 +144,8 @@ end
 
     xinit_g = reshape(collect(range(1.0, -1.0; length = Nt)), 1, Nt)
     res_g = minimize_geometric_action(
-        ds,
-        xinit_g,
-        GeometricGradient(; stepsize = 1.0);
-        maxiters = 2000,
-        show_progress = false,
+        ds, xinit_g, GeometricGradient(; stepsize = 1.0);
+        maxiters = 2000, show_progress = false,
     )
     S_g = res_g.action
 
@@ -181,20 +168,16 @@ end
     # `functional = "OM"` is rejected for multiplicative noise (the OM
     # correction term is only implemented for additive diffusion).
     @test_throws ArgumentError minimize_action(
-        ds,
-        init,
-        1.0;
-        functional = "OM",
-        noise_strength = 0.1,
-        maxiters = 5,
-        show_progress = false,
+        ds, init, 1.0;
+        functional = "OM", noise_strength = 0.1,
+        maxiters = 5, show_progress = false,
     )
 end
 
 @testset "Additive non-diagonal Σ goes through coupled cache" begin
     function meier_stein(u, p, t)
         x, y = u
-        return SA[x-x^3-10*x*y^2, -(1+x^2)*y]
+        return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
     end
     Nt = 60
     xx = range(-1.0, 1.0; length = Nt)
@@ -207,16 +190,13 @@ end
     Q_rot = R * D * R'
     ds_rot = CoupledSDEs(meier_stein, zeros(2); covariance = Q_rot)
     sys_rot = FreidlinWentzellHamiltonian(ds_rot)
-    @test sys_rot isa FreidlinWentzellHamiltonian{<:Any,2}
+    @test sys_rot isa FreidlinWentzellHamiltonian{<:Any, 2}
     cache_rot = CT.build_sgmam_cache(sys_rot, x_initial, Nt)
     @test cache_rot isa CT.SgMAMCoupledCache
 
     res = minimize_geometric_action(
-        sys_rot,
-        x_initial,
-        GeometricGradient(; stepsize = 1.0);
-        maxiters = 500,
-        show_progress = false,
+        sys_rot, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 500, show_progress = false,
     )
     @test isfinite(res.action)
 end
@@ -229,11 +209,8 @@ end
     yy = collect(range(0.0, 1.0; length = Nt))
     x_initial = Matrix([xx yy]')
     res_g = minimize_geometric_action(
-        ds,
-        x_initial,
-        GeometricGradient(; stepsize = 1.0);
-        maxiters = 300,
-        show_progress = false,
+        ds, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 300, show_progress = false,
     )
     @test isfinite(res_g.action)
 end
@@ -248,7 +225,7 @@ end
     Random.seed!(0)
     function ms_drift(u, p, t)
         x, y = u
-        return SA[x-x^3-10*x*y^2, -(1+x^2)*y]
+        return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
     end
 
     # Reference: additive identity noise.
@@ -258,15 +235,12 @@ end
 
     # State-dependent σ(x) = R(θ(x)) with θ(x) = 0.5 * x[1]; σσᵀ = R Rᵀ = I.
     function g_rotation(u, p, t)
-        c = cos(0.5 * u[1]);
-        s = sin(0.5 * u[1])
+        c = cos(0.5 * u[1]); s = sin(0.5 * u[1])
         return @SMatrix [c -s; s c]
     end
     ds_sd = CoupledSDEs(
-        ms_drift,
-        zeros(2);
-        g = g_rotation,
-        noise_prototype = SMatrix{2,2}(zeros(2, 2)),
+        ms_drift, zeros(2); g = g_rotation,
+        noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
     )
     sys_sd = FreidlinWentzellHamiltonian(ds_sd)
     @test !(sys_sd.a isa Base.Returns)
@@ -277,18 +251,12 @@ end
     x_initial = Matrix([xx yy]')
 
     res_add = minimize_geometric_action(
-        ds_add,
-        x_initial,
-        GeometricGradient(; stepsize = 1.0);
-        maxiters = 500,
-        show_progress = false,
+        ds_add, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 500, show_progress = false,
     )
     res_sd = minimize_geometric_action(
-        ds_sd,
-        x_initial,
-        GeometricGradient(; stepsize = 1.0);
-        maxiters = 500,
-        show_progress = false,
+        ds_sd, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 500, show_progress = false,
     )
 
     @test isapprox(res_add.action, res_sd.action; rtol = 1.0e-6)

@@ -36,14 +36,14 @@ The optional positional argument `optimizer` selects the Optimization.jl solver.
   - `show_progress = false`: whether to print a progress bar
 """
 function minimize_action(
-    sys::ContinuousTimeDynamicalSystem,
-    x_i::AbstractVector{<:Real},
-    x_f::AbstractVector{<:Real},
-    T::Real,
-    optimizer = Optimisers.Adam();
-    npoints::Int = 100,
-    kwargs...,
-)
+        sys::ContinuousTimeDynamicalSystem,
+        x_i::AbstractVector{<:Real},
+        x_f::AbstractVector{<:Real},
+        T::Real,
+        optimizer = Optimisers.Adam();
+        npoints::Int = 100,
+        kwargs...,
+    )
     init = reduce(hcat, range(x_i, x_f; length = npoints))
     return minimize_action(sys, init, T, optimizer; kwargs...)
 end;
@@ -62,30 +62,26 @@ is specified by `T`, such that the time step between consecutive path points is
 The optional positional argument `optimizer` selects the Optimization.jl solver. It defaults to `Optimisers.Adam()`.
 """
 function minimize_action(
-    sys::ContinuousTimeDynamicalSystem,
-    init::AbstractMatrix{<:Real},
-    T::Real,
-    optimizer = Optimisers.Adam();
-    functional = "FW",
-    noise_strength = nothing,
-    ad_type = OptimizationBase.AutoFiniteDiff(),
-    maxiters::Int = 100,
-    abstol::Real = NaN,
-    reltol::Real = NaN,
-    verbose::Bool = false,
-    show_progress::Bool = true,
-)
+        sys::ContinuousTimeDynamicalSystem,
+        init::AbstractMatrix{<:Real},
+        T::Real,
+        optimizer = Optimisers.Adam();
+        functional = "FW",
+        noise_strength = nothing,
+        ad_type = OptimizationBase.AutoFiniteDiff(),
+        maxiters::Int = 100,
+        abstol::Real = NaN,
+        reltol::Real = NaN,
+        verbose::Bool = false,
+        show_progress::Bool = true,
+    )
     init = Matrix(init)
     if sys isa CoupledSDEs
         proper_FW_system(sys)
     end
     times = range(0.0, T; length = size(init, 2))
     S(x) = action(
-        sys,
-        fix_ends(x, init[:, 1], init[:, end]),
-        times,
-        functional;
-        noise_strength,
+        sys, fix_ends(x, init[:, 1], init[:, end]), times, functional; noise_strength
     )
 
     optf = SciMLBase.OptimizationFunction((x, _) -> S(x), ad_type)

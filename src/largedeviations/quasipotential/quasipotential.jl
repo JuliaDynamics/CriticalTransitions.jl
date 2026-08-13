@@ -27,15 +27,18 @@ vanishes under refinement, with the constant calibrated to about `0.04` at `80` 
 across. Ignored for full-rank systems; override with the `regularization` keyword of
 [`quasipotential`](@ref).
 """
-@inline default_regularization(grid::CartesianGrid{D,T}) where {D,T} =
+@inline default_regularization(grid::CartesianGrid{D, T}) where {D, T} =
     T(3.2) / minimum(grid.nbox)
 
-function _source_cell(grid::CartesianGrid{D,T}, attractor::SVector{D,T}) where {D,T}
+function _source_cell(
+        grid::CartesianGrid{D, T}, attractor::SVector{D, T}
+    ) where {D, T}
     idx = ntuple(D) do d
         c = grid.centers[d]
         lo = c[1] - grid.h[d] / 2
         hi = c[end] + grid.h[d] / 2
-        (lo <= attractor[d] <= hi) || throw(
+        (lo <= attractor[d] <= hi) ||
+            throw(
             ArgumentError(
                 "attractor[$d] = $(attractor[d]) outside grid axis $d ($lo, $hi)",
             ),
@@ -76,57 +79,43 @@ dimension `D` is taken from `sys::CoupledSDEs{IIP, D, I, P}` and must match
 See also: [`QuasiPotential`](@ref), [`BackRef`](@ref).
 """
 function quasipotential(
-    sys::CoupledSDEs{IIP,D,I,P},
-    grid::CartesianGrid{D,T},
-    attractor::AbstractVector{<:Real};
-    band_radius::Int = default_K(grid),
-    near_source_layers::Int = 3,
-    regularization::Real = default_regularization(grid),
-    verbose::Bool = false,
-    show_progress::Bool = true,
-) where {IIP,D,I,P,T}
+        sys::CoupledSDEs{IIP, D, I, P},
+        grid::CartesianGrid{D, T},
+        attractor::AbstractVector{<:Real};
+        band_radius::Int = default_K(grid),
+        near_source_layers::Int = 3,
+        regularization::Real = default_regularization(grid),
+        verbose::Bool = false,
+        show_progress::Bool = true,
+    ) where {IIP, D, I, P, T}
     length(attractor) == D || throw(
-        DimensionMismatch("attractor has length $(length(attractor)) but sys has D=$D"),
+        DimensionMismatch(
+            "attractor has length $(length(attractor)) but sys has D=$D",
+        ),
     )
     proper_FW_system(sys)
-    D > 4 &&
-        @warn "quasipotential in D=$D: per-axis grid resolution will be coarse" maxlog = 1
-    x_A = SVector{D,T}(attractor)
+    D > 4 && @warn "quasipotential in D=$D: per-axis grid resolution will be coarse" maxlog = 1
+    x_A = SVector{D, T}(attractor)
     return _quasipotential_impl(
-        sys,
-        grid,
-        x_A,
-        Val(band_radius),
-        Val(near_source_layers),
-        T(regularization),
-        verbose,
-        show_progress,
+        sys, grid, x_A,
+        Val(band_radius), Val(near_source_layers),
+        T(regularization), verbose, show_progress,
     )
 end
 
 function _quasipotential_impl(
-    sys::CoupledSDEs{IIP,D,I,P},
-    grid::CartesianGrid{D,T},
-    x_A::SVector{D,T},
-    ::Val{K},
-    ::Val{K_seed},
-    regularization::T,
-    verbose::Bool,
-    show_progress::Bool,
-) where {IIP,D,I,P,T,K,K_seed}
+        sys::CoupledSDEs{IIP, D, I, P},
+        grid::CartesianGrid{D, T},
+        x_A::SVector{D, T},
+        ::Val{K}, ::Val{K_seed},
+        regularization::T, verbose::Bool, show_progress::Bool,
+    ) where {IIP, D, I, P, T, K, K_seed}
     src = _source_cell(grid, x_A)
     L = _geometric_lagrangian(sys, T; regularization = regularization)
     state = _OLIMState(grid, T, L.Q_inv isa SMatrix)
     _sweep!(
-        state,
-        grid,
-        src,
-        sys,
-        L,
-        Val(K),
-        Val(K_seed);
-        verbose = verbose,
-        show_progress = show_progress,
+        state, grid, src, sys, L, Val(K), Val(K_seed);
+        verbose = verbose, show_progress = show_progress,
     )
-    return QuasiPotential{D,T}(state.U, state.back_pointer, src, grid)
+    return QuasiPotential{D, T}(state.U, state.back_pointer, src, grid)
 end

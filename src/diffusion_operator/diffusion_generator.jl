@@ -76,29 +76,29 @@ is read via [`drift`](@ref); diffusion is read once from
   outer faces. `Q` is a sub-generator (row sums on the boundary become
   negative).
 """
-struct DiffusionGenerator{D,BC<:Tuple,T<:AbstractFloat}
+struct DiffusionGenerator{D, BC <: Tuple, T <: AbstractFloat}
     "The Cartesian grid the generator lives on."
-    grid::CartesianGrid{D,T}
+    grid::CartesianGrid{D, T}
     "Sparse rate matrix (off-diagonals = transition rates ≥ 0)."
-    Q::SparseMatrixCSC{T,Int}
+    Q::SparseMatrixCSC{T, Int}
     "Per-axis boundary condition (one [`BoundaryCondition`](@ref) per axis)."
     bc::BC
 end
 
 @inline ncells(gen::DiffusionGenerator) = ncells(gen.grid)
 @inline cell_volume(gen::DiffusionGenerator) = cell_volume(gen.grid)
-@inline floattype(::DiffusionGenerator{D,BC,T}) where {D,BC,T} = T
-@inline floattype(::CartesianGrid{D,T}) where {D,T} = T
+@inline floattype(::DiffusionGenerator{D, BC, T}) where {D, BC, T} = T
+@inline floattype(::CartesianGrid{D, T}) where {D, T} = T
 
-function _diagonal_diffusion(sys::CoupledSDEs, ::Val{D}, ::Type{T}) where {D,T}
+function _diagonal_diffusion(sys::CoupledSDEs, ::Val{D}, ::Type{T}) where {D, T}
     Σ = covariance_matrix(sys)
     size(Σ) == (D, D) || throw(
         DimensionMismatch(
-            "covariance matrix size $(size(Σ)) does not match grid dimension $D",
+            "covariance matrix size $(size(Σ)) does not match grid dimension $D"
         ),
     )
     tol = T(1.0e-10) * max(maximum(abs, diag(Σ)), one(T))
-    @inbounds for i = 1:D, j = 1:D
+    @inbounds for i in 1:D, j in 1:D
         if i != j && abs(Σ[i, j]) > tol
             throw(
                 ArgumentError(
@@ -107,12 +107,12 @@ function _diagonal_diffusion(sys::CoupledSDEs, ::Val{D}, ::Type{T}) where {D,T}
             )
         end
     end
-    @inbounds for k = 1:D
+    @inbounds for k in 1:D
         Σ[k, k] >= 0 || throw(
             ArgumentError("diffusion covariance diagonal Σ[$k,$k] must be non-negative"),
         )
     end
-    return SVector{D,T}(ntuple(k -> T(Σ[k, k]), D))
+    return SVector{D, T}(ntuple(k -> T(Σ[k, k]), D))
 end
 
 function _normalize_bc(bc::BoundaryCondition, ::Val{D}) where {D}
@@ -122,14 +122,14 @@ function _normalize_bc(bc::Tuple, ::Val{D}) where {D}
     length(bc) == D || throw(
         ArgumentError(
             "expected a single BoundaryCondition or a $D-tuple thereof; " *
-            "got a $(length(bc))-tuple",
+                "got a $(length(bc))-tuple",
         ),
     )
-    @inbounds for k = 1:D
+    @inbounds for k in 1:D
         bc[k] isa BoundaryCondition || throw(
             ArgumentError(
                 "bc[$k] must be a BoundaryCondition (Reflecting/Periodic/" *
-                "Absorbing); got $(typeof(bc[k]))",
+                    "Absorbing); got $(typeof(bc[k]))",
             ),
         )
     end
@@ -144,22 +144,22 @@ _normalize_bc(bc, ::Val{D}) where {D} = throw(
 # Assemble the SG finite-volume sparse matrix. `sign = -1` gives the
 # corresponding M-matrix convention.
 function _assemble_generator(
-    sys::CoupledSDEs,
-    grid::CartesianGrid{D,T},
-    sign::Int,
-    bc::BC,
-)::SparseMatrixCSC{T,Int} where {D,T,BC<:Tuple}
+        sys::CoupledSDEs,
+        grid::CartesianGrid{D, T},
+        sign::Int,
+        bc::BC,
+    )::SparseMatrixCSC{T, Int} where {D, T, BC <: Tuple}
     sign == +1 || sign == -1 || throw(ArgumentError("sign must be ±1"))
     diffusion = _diagonal_diffusion(sys, Val(D), T)
     nbox = grid.nbox
     N = ncells(grid)
     LI = LinearIndices(nbox)
 
-    drift_components = ntuple(_ -> Array{T,D}(undef, nbox), Val(D))
+    drift_components = ntuple(_ -> Array{T, D}(undef, nbox), Val(D))
     @inbounds for I in CartesianIndices(nbox)
         x = cell_center(grid, I)
         f = drift(sys, x)
-        for k = 1:D
+        for k in 1:D
             drift_components[k][I] = T(f[k])
         end
     end
@@ -174,25 +174,14 @@ function _assemble_generator(
 
     # Function barrier: each call specialises on the concrete type of `bc[k]`,
     # turning the per-cell BC isa checks into compile-time branches.
-    for k = 1:D
+    for k in 1:D
         idx = _fill_axis!(
-            bc[k],
-            rows,
-            cols,
-            vals,
-            diagacc,
-            idx,
-            k,
-            sign,
-            drift_components[k],
-            diffusion[k],
-            grid.h[k],
-            nbox,
-            LI,
+            bc[k], rows, cols, vals, diagacc, idx, k, sign,
+            drift_components[k], diffusion[k], grid.h[k], nbox, LI,
         )
     end
 
-    @inbounds for n = 1:N
+    @inbounds for n in 1:N
         idx += 1
         rows[idx] = n
         cols[idx] = n
@@ -217,20 +206,12 @@ end
 end
 
 @inline function _fill_axis!(
-    bc_k::BC_K,
-    rows::Vector{Int},
-    cols::Vector{Int},
-    vals::Vector{T},
-    diagacc::Vector{T},
-    idx::Int,
-    k::Int,
-    sign::Int,
-    fk::AbstractArray{T,D},
-    Dk::T,
-    hk::T,
-    nbox::NTuple{D,Int},
-    LI::LinearIndices{D},
-) where {T,D,BC_K<:BoundaryCondition}
+        bc_k::BC_K,
+        rows::Vector{Int}, cols::Vector{Int}, vals::Vector{T},
+        diagacc::Vector{T}, idx::Int, k::Int, sign::Int,
+        fk::AbstractArray{T, D}, Dk::T, hk::T,
+        nbox::NTuple{D, Int}, LI::LinearIndices{D},
+    ) where {T, D, BC_K <: BoundaryCondition}
     ε = Dk / 2
     ε_h2 = ε / (hk * hk)
     h_ε = ε > 0 ? hk / ε : T(NaN)
@@ -243,13 +224,9 @@ end
             rate_nm, rate_mn = _face_rates(T(1) / 2 * (fk[I] + fk[J]), Dk, ε_h2, h_ε, hk)
 
             idx += 1
-            rows[idx] = n;
-            cols[idx] = m;
-            vals[idx] = sign * rate_nm
+            rows[idx] = n; cols[idx] = m; vals[idx] = sign * rate_nm
             idx += 1
-            rows[idx] = m;
-            cols[idx] = n;
-            vals[idx] = sign * rate_mn
+            rows[idx] = m; cols[idx] = n; vals[idx] = sign * rate_mn
             diagacc[n] -= sign * rate_nm
             diagacc[m] -= sign * rate_mn
         else
@@ -257,17 +234,12 @@ end
                 J = _shift_axis(I, k, 1, Val(D))
                 n = LI[I]
                 m = LI[J]
-                rate_nm, rate_mn =
-                    _face_rates(T(1) / 2 * (fk[I] + fk[J]), Dk, ε_h2, h_ε, hk)
+                rate_nm, rate_mn = _face_rates(T(1) / 2 * (fk[I] + fk[J]), Dk, ε_h2, h_ε, hk)
 
                 idx += 1
-                rows[idx] = n;
-                cols[idx] = m;
-                vals[idx] = sign * rate_nm
+                rows[idx] = n; cols[idx] = m; vals[idx] = sign * rate_nm
                 idx += 1
-                rows[idx] = m;
-                cols[idx] = n;
-                vals[idx] = sign * rate_mn
+                rows[idx] = m; cols[idx] = n; vals[idx] = sign * rate_mn
                 diagacc[n] -= sign * rate_nm
                 diagacc[m] -= sign * rate_mn
             elseif bc_k isa Absorbing
@@ -293,13 +265,11 @@ end
 end
 
 function DiffusionGenerator(
-    sys::CoupledSDEs,
-    grid::CartesianGrid{D,T};
-    bc = Reflecting(),
-) where {D,T}
+        sys::CoupledSDEs, grid::CartesianGrid{D, T}; bc = Reflecting()
+    ) where {D, T}
     bc_tuple = _normalize_bc(bc, Val(D))
     Q = _assemble_generator(sys, grid, +1, bc_tuple)
-    return DiffusionGenerator{D,typeof(bc_tuple),T}(grid, Q, bc_tuple)
+    return DiffusionGenerator{D, typeof(bc_tuple), T}(grid, Q, bc_tuple)
 end
 
 """

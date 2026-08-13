@@ -21,11 +21,7 @@ using Test
     @testset "String method" begin
         for x_init in [init, StateSpaceSet(init')]
             string = string_method(
-                sys,
-                x_init;
-                maxiters = 10_000,
-                stepsize = 0.5,
-                show_progress = false,
+                sys, x_init; maxiters = 10_000, stepsize = 0.5, show_progress = false
             )
             path = Matrix(string.path)
             @test string.path[1] == x_i
@@ -38,24 +34,15 @@ using Test
 
     @testset "Adam" begin
         gm = minimize_geometric_action(
-            sys,
-            x_i,
-            x_f;
-            maxiters = 10,
-            verbose = false,
-            show_progress = false,
+            sys, x_i, x_f; maxiters = 10, verbose = false, show_progress = false
         )
         gm = minimize_geometric_action(
-            sys,
-            init;
-            maxiters = 500,
-            verbose = false,
-            show_progress = false,
+            sys, init; maxiters = 500, verbose = false, show_progress = false
         )
 
         path = Matrix(gm.path)'
         action_val = gm.action
-        @test all(isapprox.(path[2, :][(end-5):end], 0, atol = 0.01))
+        @test all(isapprox.(path[2, :][(end - 5):end], 0, atol = 0.01))
         @test all(isapprox.(action_val, 0.3375, atol = 0.01))
     end
 
@@ -64,18 +51,10 @@ using Test
         S(x) = geometric_action(sys, CT.fix_ends(x, init[:, 1], init[:, end]), 1.0)
 
         gm = minimize_geometric_action(
-            sys,
-            init;
-            maxiters = 500,
-            verbose = false,
-            show_progress = false,
+            sys, init; maxiters = 500, verbose = false, show_progress = false
         )
         string = string_method(
-            sys,
-            init;
-            maxiters = 10_000,
-            stepsize = 0.5,
-            show_progress = false,
+            sys, init; maxiters = 10_000, stepsize = 0.5, show_progress = false
         )
         @test S(permutedims(Matrix(string.path))) > S(Matrix(Matrix(gm.path)'))
     end
