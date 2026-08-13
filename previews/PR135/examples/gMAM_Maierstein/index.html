@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Anlyses for the Maier-Stein system · CriticalTransitions.jl</title><meta name="title" content="Anlyses for the Maier-Stein system · CriticalTransitions.jl"/><meta property="og:title" content="Anlyses for the Maier-Stein system · CriticalTransitions.jl"/><meta property="twitter:title" content="Anlyses for the Maier-Stein system · CriticalTransitions.jl"/><meta name="description" content="Documentation for CriticalTransitions.jl."/><meta property="og:description" content="Documentation for CriticalTransitions.jl."/><meta property="twitter:description" content="Documentation for CriticalTransitions.jl."/><meta property="og:url" content="https://juliadynamics.github.io/CriticalTransitions.jl/examples/gMAM_Maierstein/"/><meta property="twitter:url" content="https://juliadynamics.github.io/CriticalTransitions.jl/examples/gMAM_Maierstein/"/><link rel="canonical" href="https://juliadynamics.github.io/CriticalTransitions.jl/examples/gMAM_Maierstein/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CriticalTransitions.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../quickstart/">Quickstart</a></li><li><a class="tocitem" href="../tutorial/">Tutorial</a></li><li><span class="tocitem">Examples</span><ul><li class="is-active"><a class="tocitem" href>Anlyses for the Maier-Stein system</a><ul class="internal"><li><a class="tocitem" href="#Maier-stein-model"><span>Maier-stein model</span></a></li><li><a class="tocitem" href="#Attractors"><span>Attractors</span></a></li><li><a class="tocitem" href="#Basins-of-attraction"><span>Basins of attraction</span></a></li><li><a class="tocitem" href="#Transitions"><span>Transitions</span></a></li><li><a class="tocitem" href="#Large-deviation-theory"><span>Large deviation theory</span></a></li></ul></li><li><a class="tocitem" href="../sgMAM_KPO/">sgMAM for the Kerr Parametric Oscillator</a></li></ul></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../../man/CoupledSDEs/">Define a CoupledSDEs system</a></li><li><a class="tocitem" href="../../man/simulation/">Simulating the system</a></li><li><a class="tocitem" href="../../man/sampling/">Sampling transitions</a></li><li><a class="tocitem" href="../../man/largedeviations/">Large deviation theory</a></li><li><a class="tocitem" href="../../man/utils/">Utilities</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Anlyses for the Maier-Stein system</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Anlyses for the Maier-Stein system</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/CriticalTransitions.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/CriticalTransitions.jl/blob/main/docs/src/examples/gMAM_Maierstein.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="The-Maier-Stein-model."><a class="docs-heading-anchor" href="#The-Maier-Stein-model.">The Maier-Stein model.</a><a id="The-Maier-Stein-model.-1"></a><a class="docs-heading-anchor-permalink" href="#The-Maier-Stein-model." title="Permalink"></a></h1><pre><code class="language-julia hljs">using CriticalTransitions
+
+using CairoMakie
+using CairoMakie.Makie.MathTeXEngine: get_font
+font = (;
+    regular=get_font(:regular), bold=get_font(:bold),
+    italic=get_font(:italic), bold_italic=get_font(:bolditalic)
+);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(regular = FTFont (family = NewComputerModern Math, style = Regular), bold = FTFont (family = NewComputerModern, style = 10 Bold), italic = FTFont (family = NewComputerModern, style = 10 Italic), bold_italic = FTFont (family = NewComputerModern, style = 10 Bold Italic))</code></pre><p>Let us explore the features of <a href="https://github.com/JuliaDynamics/CriticalTransitions.jl">CriticalTransitions.jl</a> with Maier-Stein model.</p><h2 id="Maier-stein-model"><a class="docs-heading-anchor" href="#Maier-stein-model">Maier-stein model</a><a id="Maier-stein-model-1"></a><a class="docs-heading-anchor-permalink" href="#Maier-stein-model" title="Permalink"></a></h2><p>The <a href="https://link.springer.com/article/10.1007/BF02183736">Maier-Stein model</a> (J. Stat. Phys 83, 3–4 (1996)) is commonly used in the field of nonlinear dynamics for benchmarking Large Deviation Theory (LDT) techniques, e.g., stoachastic transitions between different stable states. It is a simple model that describes the dynamics of a system with two degrees of freedom <span>$u$</span> and <span>$v$</span>, and is given by the following set of ordinary differential equations:</p><p class="math-container">\[\begin{aligned}
+    \dot{u} &amp;= u-u^3 - \beta*u*v^2\\
+    \dot{v} &amp;= -\alpha (1+u^2)*v
+\end{aligned}\]</p><p>The parameter <span>$\alpha&gt;0$</span> controls the strength of the drift field and <span>$\beta&gt;0$</span> represents the softening of that drift field.</p><pre><code class="language-julia hljs">function meier_stein!(du, u, p, t) # in-place
+    x, y = u
+    du[1] = x - x^3 - 10 * x * y^2
+    du[2] = -(1 + x^2) * y
+end
+function meier_stein(u, p, t) # out-of-place
+    x, y = u
+    dx = x - x^3 - 10 * x * y^2
+    dy = -(1 + x^2) * y
+    SA[dx, dy]
+end
+σ = 0.25
+sys = CoupledSDEs(meier_stein, zeros(2), []; noise_strength=σ)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-dimensional CoupledSDEs
+ deterministic: false
+ discrete time: false
+ in-place:      false
+ dynamic rule:  meier_stein
+ SDE solver:    SOSRA
+ SDE kwargs:    (abstol = 0.01, reltol = 0.01, dt = 0.1)
+ Noise type:    (additive = true, autonomous = true, linear = true, invertible = true)
+ parameters:    Any[]
+ time:          0.0
+ state:         [0.0, 0.0]
+</code></pre><p>A good reference to read about the large deviations methods is <a href="https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html">this</a> or <a href=" https://homepages.warwick.ac.uk/staff/T.Grafke/simplified-geometric-minimum-action-method-for-the-computation-of-instantons.html">this</a> blog post by Tobias Grafke.</p><h2 id="Attractors"><a class="docs-heading-anchor" href="#Attractors">Attractors</a><a id="Attractors-1"></a><a class="docs-heading-anchor-permalink" href="#Attractors" title="Permalink"></a></h2><p>We start by investigating the deterministic dynamics of the Maier-Stein model.</p><p>The function <code>fixed points</code> return the attractors, their eigenvalues and stability within the state space volume defined by <code>bmin</code> and <code>bmax</code>.</p><pre><code class="language-julia hljs">using ChaosTools
+
+u_min = -1.1;
+u_max = 1.1;
+v_min = -0.4;
+v_max = 0.4;
+bmin = [u_min, v_min];
+bmax = [u_max, v_max];
+fp, eig, stab = fixedpoints(sys, bmin, bmax)
+stable_fp = fp[stab]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-dimensional StateSpaceSet{Float64} with 2 points
+ -1.0   2.33693e-28
+  1.0  -6.37082e-28</code></pre><pre><code class="language-julia hljs">using LinearAlgebra: norm
+res = 100
+u_range = range(u_min, u_max, length=res)
+v_range = range(v_min, v_max, length=res)
+
+du(u, v) = u - u^3 - 10 * u * v^2
+dv(u, v) = -(1 + u^2) * v
+odeSol(u, v) = Point2f(du(u, v), dv(u, v))
+
+z = [norm([du(x, y), dv(x, y)]) for x in u_range, y in v_range]
+zmin, zmax = minimum(z), maximum(z)
+
+fig = Figure(size=(600, 400), fontsize=13)
+ax = Axis(fig[1, 1], xlabel=&quot;u&quot;, ylabel=&quot;v&quot;, aspect=1.4,
+    xgridcolor=:transparent, ygridcolor=:transparent,
+    ylabelrotation=0)
+
+hm = heatmap!(ax, u_range, v_range, z, colormap=:Blues, colorrange=(zmin, zmax))
+Colorbar(fig[1, 2], hm; label=&quot;&quot;, width=15, ticksize=15, tickalign=1)
+streamplot!(ax, odeSol, (u_min, u_max), (v_min, v_max);
+    gridsize=(20, 20), arrow_size=10, stepsize=0.01,
+    colormap=[:black, :black]
+)
+colgap!(fig.layout, 7)
+limits!(u_min, u_max, v_min, v_max)
+fig
+
+[scatter!(ax, Point(fp[i]), color=stab[i] &gt; 0 ? :red : :dodgerblue,
+    markersize=10) for i in eachindex(fp)]
+fig</code></pre><img src="9043a5c4.png" alt="Example block output"/><p>We can simulate a stochastic trajectory using the function <code>trajectory</code>.</p><pre><code class="language-julia hljs">tr, ts  = trajectory(sys, 1000)
+
+fig = Figure(size=(1000, 400), fontsize=13)
+ax1 = Axis(fig[1, 1], xlabel=&quot;t&quot;, ylabel=&quot;u&quot;, aspect=1.2,
+    xgridcolor=:transparent, ygridcolor=:transparent,
+    ylabelrotation=0)
+ax2 = Axis(fig[1, 2], xlabel=&quot;u&quot;, ylabel=&quot;v&quot;, aspect=1.2,
+    xgridcolor=:transparent, ygridcolor=:transparent,
+    ylabelrotation=0)
+
+lines!(ax1, ts, first.(tr); linewidth=2, color=:black)
+
+hm = heatmap!(ax2, u_range, v_range, z, colormap=:Blues, colorrange=(zmin, zmax))
+Colorbar(fig[1, 3], hm; label=&quot;&quot;, width=15, ticksize=15, tickalign=1)
+streamplot!(ax2, odeSol, (u_min, u_max), (v_min, v_max);
+    gridsize=(20, 20), arrow_size=10, stepsize=0.01,
+    colormap=[:white, :white]
+)
+colgap!(fig.layout, 7)
+limits!(u_min, u_max, v_min, v_max)
+fig
+
+[scatter!(ax2, Point(fp[i]), color=stab[i] &gt; 0 ? :red : :dodgerblue,
+    markersize=10) for i in eachindex(fp)]
+
+lines!(ax2, reduce(hcat, tr), linewidth=1, color=(:black, 0.2))
+fig</code></pre><img src="cd2adae4.png" alt="Example block output"/><h2 id="Basins-of-attraction"><a class="docs-heading-anchor" href="#Basins-of-attraction">Basins of attraction</a><a id="Basins-of-attraction-1"></a><a class="docs-heading-anchor-permalink" href="#Basins-of-attraction" title="Permalink"></a></h2><p>Basins of attraction are the regions in the state space that lead to a particular attractor. We can find the basins of attraction using the function <code>basins</code>.</p><pre><code class="language-julia hljs">using Attractors
+
+ba = basins(sys, [0.0, 0], [0.0, 1], [1.0, 0], intervals_to_box([-2, -2], [2, 2]), bstep=[0.01, 0.01], ϵ_mapper=0.001, Ttr=100)
+Ur, Vr, atr, M = ba
+heatmap(Ur, Vr, M)</code></pre><img src="a4971797.png" alt="Example block output"/><p>The basin boundaries can be quickly extracted using the function <code>basin_boundaries</code>.</p><pre><code class="language-julia hljs">bb = basinboundary(ba)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×401 Matrix{Float64}:
+ -2.0  -1.99  -1.98  -1.97  -1.96  …  1.95  1.96  1.97  1.98  1.99  2.0
+  0.0   0.0    0.0    0.0    0.0      0.0   0.0   0.0   0.0   0.0   0.0</code></pre><h2 id="Transitions"><a class="docs-heading-anchor" href="#Transitions">Transitions</a><a id="Transitions-1"></a><a class="docs-heading-anchor-permalink" href="#Transitions" title="Permalink"></a></h2><p>We can quickly find a path which computes a transition from one attractor to another using the function `transition.</p><pre><code class="language-julia hljs">path, time, succes = transition(sys, fp[stab][1], fp[stab][2]);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(RecursiveArrayTools.DiffEqArray{Float64, 2, Vector{SVector{2, Float64}}, Vector{Float64}, Vector{Any}, SDEProblem{SVector{2, Float64}, Tuple{Float64, Float64}, false, Vector{Any}, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, typeof(Main.meier_stein), StochasticSystemsBase.var&quot;#7#11&quot;{Float64, LinearAlgebra.Diagonal{Float64, Vector{Float64}}}, LinearAlgebra.UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, StochasticSystemsBase.var&quot;#7#11&quot;{Float64, LinearAlgebra.Diagonal{Float64, Vector{Float64}}}, Base.Pairs{Symbol, Union{}, Tuple{}, @NamedTuple{}}, Nothing}, Nothing}(SVector{2, Float64}[[-0.9115342210737711, 0.023379695490929126], [-0.8905889979928097, 0.06146132429801272], [-0.8871798660274586, 0.05679980284225361], [-0.8244617612372778, 0.09601700080910013], [-0.831091059091431, 0.0700675034423541], [-0.7932347938000368, 0.017897277583745125], [-0.7805762006503018, 0.041806461740402645], [-0.8187422475422981, 0.020032361165296577], [-0.8571231464998024, 0.01951050102179272], [-0.7922847511252219, 0.057619997803840806]  …  [0.8872285543984408, -0.1158992737014028], [0.914650853967658, -0.17322819742286155], [0.9084211378442268, -0.15391491973831992], [0.8926377314303175, -0.11953148400043753], [0.8964787544477215, -0.10852565732165388], [0.9294366859503317, -0.13304211028583887], [0.9308155576071862, -0.13789630995715252], [0.9490224334235426, -0.09986781546525976], [0.9628082766418131, -0.05791333634078381], [0.9628082766418131, -0.05791333634078381]], [206.43509588047777, 206.45739265414716, 206.47765610577156, 206.49623692339412, 206.51415672785032, 206.53193276434286, 206.5493097978621, 206.5660083863156, 206.58365618091835, 206.6009284926413  …  210.4244435757549, 210.4376964978409, 210.44975040897393, 210.46192423175222, 210.47511741314077, 210.48775264117018, 210.4994376568141, 210.51089664426956, 210.52313524609403, 210.52313524609403], Any[], SDEProblem{SVector{2, Float64}, Tuple{Float64, Float64}, false, Vector{Any}, Nothing, SDEFunction{false, SciMLBase.FullSpecialize, typeof(Main.meier_stein), StochasticSystemsBase.var&quot;#7#11&quot;{Float64, LinearAlgebra.Diagonal{Float64, Vector{Float64}}}, LinearAlgebra.UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}, StochasticSystemsBase.var&quot;#7#11&quot;{Float64, LinearAlgebra.Diagonal{Float64, Vector{Float64}}}, Base.Pairs{Symbol, Union{}, Tuple{}, @NamedTuple{}}, Nothing}(SDEFunction{false, SciMLBase.FullSpecialize, typeof(Main.meier_stein), StochasticSystemsBase.var&quot;#7#11&quot;{Float64, LinearAlgebra.Diagonal{Float64, Vector{Float64}}}, LinearAlgebra.UniformScaling{Bool}, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, typeof(SciMLBase.DEFAULT_OBSERVED), Nothing, Nothing, Nothing}(Main.meier_stein, StochasticSystemsBase.var&quot;#7#11&quot;{Float64, LinearAlgebra.Diagonal{Float64, Vector{Float64}}}(0.25, [1.0 0.0; 0.0 1.0]), LinearAlgebra.UniformScaling{Bool}(true), nothing, nothing, nothing, nothing, nothing, nothing, nothing, nothing, nothing, nothing, nothing, SciMLBase.DEFAULT_OBSERVED, nothing, nothing, nothing), StochasticSystemsBase.var&quot;#7#11&quot;{Float64, LinearAlgebra.Diagonal{Float64, Vector{Float64}}}(0.25, [1.0 0.0; 0.0 1.0]), [-1.0000000000000002, 2.336932636728035e-28], (0.0, 1000.0), Any[], nothing, Base.Pairs{Symbol, Union{}, Tuple{}, @NamedTuple{}}(), nothing, 0x0000000000000000), nothing), [206.43509588047777, 206.45739265414716, 206.47765610577156, 206.49623692339412, 206.51415672785032, 206.53193276434286, 206.5493097978621, 206.5660083863156, 206.58365618091835, 206.6009284926413  …  210.4244435757549, 210.4376964978409, 210.44975040897393, 210.46192423175222, 210.47511741314077, 210.48775264117018, 210.4994376568141, 210.51089664426956, 210.52313524609403, 210.52313524609403], true)</code></pre><pre><code class="language-julia hljs">fig = Figure(size=(600, 400), fontsize=13)
+ax = Axis(fig[1, 1], xlabel=&quot;u&quot;, ylabel=&quot;v&quot;, aspect=1.4,
+    xgridcolor=:transparent, ygridcolor=:transparent,
+    ylabelrotation=0)
+
+hm = heatmap!(ax, u_range, v_range, z, colormap=:Blues, colorrange=(zmin, zmax))
+Colorbar(fig[1, 2], hm; label=&quot;&quot;, width=15, ticksize=15, tickalign=1)
+streamplot!(ax, odeSol, (u_min, u_max), (v_min, v_max);
+    gridsize=(20, 20), arrow_size=10, stepsize=0.01,
+    colormap=[:white, :white]
+)
+colgap!(fig.layout, 7)
+limits!(u_min, u_max, v_min, v_max)
+fig
+
+[scatter!(ax, Point(fp[i]), color=stab[i] &gt; 0 ? :red : :dodgerblue,
+    markersize=10) for i in eachindex(fp)]
+fig
+
+lines!(ax, path.u, color=:black)
+fig</code></pre><img src="089bb358.png" alt="Example block output"/><p>If we want to compute many: <code>transitions</code> is the function to use.</p><pre><code class="language-julia hljs">tt = transitions(sys, fp[stab][1], fp[stab][2], 1, rad_i=0.1, rad_f=0.1, tmax=1e3);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Transition path ensemble of 2 samples
+           - sampling success rate:      1.0
+           - mean residence time:        285.901
+           - mean transition time:       6.187
+           - normalized transition rate: 46.2</code></pre><pre><code class="language-julia hljs">fig = Figure(size=(600, 400), fontsize=13)
+ax = Axis(fig[1, 1], xlabel=&quot;u&quot;, ylabel=&quot;v&quot;, aspect=1.4,
+    xgridcolor=:transparent, ygridcolor=:transparent,
+    ylabelrotation=0)
+
+hm = heatmap!(ax, u_range, v_range, z, colormap=:Blues, colorrange=(zmin, zmax))
+Colorbar(fig[1, 2], hm; label=&quot;&quot;, width=15, ticksize=15, tickalign=1)
+streamplot!(ax, odeSol, (u_min, u_max), (v_min, v_max);
+    gridsize=(20, 20), arrow_size=10, stepsize=0.01,
+    colormap=[:black, :black]
+)
+colgap!(fig.layout, 7)
+limits!(u_min, u_max, v_min, v_max)
+fig
+
+[scatter!(ax, Point(fp[i]), color=stab[i] &gt; 0 ? :red : :dodgerblue,
+    markersize=10) for i in eachindex(fp)]
+
+for i in 1:length(tt.paths)
+    lines!(ax, tt.paths[i].u)
+end
+fig</code></pre><img src="5ebbbefc.png" alt="Example block output"/><h2 id="Large-deviation-theory"><a class="docs-heading-anchor" href="#Large-deviation-theory">Large deviation theory</a><a id="Large-deviation-theory-1"></a><a class="docs-heading-anchor-permalink" href="#Large-deviation-theory" title="Permalink"></a></h2><p>In the context of nonlinear dynamics, Large Deviation Theory provides tools to quantify the probability of rare events that deviate significantly from the system&#39;s typical behavior. These rare events might be extreme values of a system&#39;s output, sudden transitions between different states, or other phenomena that occur with very low probability but can have significant implications for the system&#39;s overall behavior.</p><p>Large deviation theory applies principles from probability theory and statistical mechanics to develop a rigorous mathematical description of these rare events. It uses the concept of a rate function, which measures the exponential decay rate of the probability of large deviations from the mean or typical behavior. This rate function plays a crucial role in quantifying the likelihood of rare events and understanding their impact on the system.</p><p>For example, in a system exhibiting chaotic behavior, LDT can help quantify the probability of sudden large shifts in the system&#39;s trajectory. Similarly, in a system with multiple stable states, it can provide insight into the likelihood and pathways of transitions between these states under fluctuations. In the context of the Minimum Action Method (MAM) and the Geometric Minimum Action Method (gMAM), Large Deviation Theory is used to handle the large deviations action functional on the space of curves. This is a key part of how these methods analyze dynamical systems.</p><p>The Maier-Stein model is a typical benchmark to test such LDT techniques. Let us try to reproduce the following figure from <a href="https://homepages.warwick.ac.uk/staff/T.Grafke/rogue-waves-and-large-deviations.html">Tobias Grafke&#39;s blog post</a>:</p><p><img src="attachment:image-2.png" alt="image-2.png"/></p><p>Let us first make an initial path:</p><pre><code class="language-julia hljs">xx = range(-1.0, 1.0, length=100)
+yy = 0.3 .* (-xx .^ 2 .+ 1)
+init = Matrix([xx yy]&#39;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×100 Matrix{Float64}:
+ -1.0  -0.979798   -0.959596   -0.939394   …  0.959596   0.979798   1.0
+  0.0   0.0119988   0.0237527   0.0352617     0.0237527  0.0119988  0.0</code></pre><p><code>geometric_min_action_method</code> computes the minimizer of the Freidlin-Wentzell action using the geometric minimum action method (gMAM), to find the minimum action path (instanton) between an initial state x<em>i and final state x</em>f. The Minimum Action Method (MAM) is a more traditional approach, while the Geometric Minimum Action Method (gMAM) is a blend of the original MAM and the <a href="https://journals.aps.org/prb/abstract/10.1103/PhysRevB.66.052301">string method</a>.</p><pre><code class="language-julia hljs">gm = geometric_min_action_method(sys, init, maxiter=200; show_progress=false)
+MLP = gm.path</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2×100 Matrix{Float64}:
+ -1.0  -0.990022   -0.979861   -0.971263   …  0.95628     0.978137    1.0
+  0.0   0.0207948   0.0402996   0.0577312     0.00472927  0.00233629  0.0</code></pre><pre><code class="language-julia hljs">fig = Figure(size=(600, 400), fontsize=13)
+ax = Axis(fig[1, 1], xlabel=&quot;u&quot;, ylabel=&quot;v&quot;, aspect=1.4,
+    xgridcolor=:transparent, ygridcolor=:transparent,
+    ylabelrotation=0)
+
+hm = heatmap!(ax, u_range, v_range, z, colormap=:Blues, colorrange=(zmin, zmax))
+Colorbar(fig[1, 2], hm; label=&quot;&quot;, width=15, ticksize=15, tickalign=1)
+streamplot!(ax, odeSol, (u_min, u_max), (v_min, v_max);
+    gridsize=(20, 20), arrow_size=10, stepsize=0.01,
+    colormap=[:black, :black]
+)
+colgap!(fig.layout, 7)
+limits!(u_min, u_max, v_min, v_max)
+fig
+
+[scatter!(ax, Point(fp[i]), color=stab[i] &gt; 0 ? :red : :dodgerblue,
+    markersize=10) for i in eachindex(fp)]
+
+lines!(ax, init, linewidth=3, color=:black, linestyle=:dash)
+lines!(ax, MLP, linewidth=3, color=:orange)
+fig</code></pre><img src="83a743f3.png" alt="Example block output"/><hr/><p>Author: Orjan Ameye (orjan.ameye@hotmail.com) Date: 13 Feb 2024</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial/">« Tutorial</a><a class="docs-footer-nextpage" href="../sgMAM_KPO/">sgMAM for the Kerr Parametric Oscillator »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Wednesday 25 December 2024 10:21">Wednesday 25 December 2024</span>. Using Julia version 1.10.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
