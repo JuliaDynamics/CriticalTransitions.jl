@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782283788176,
+  "lastUpdate": 1786626052009,
   "repoUrl": "https://github.com/JuliaDynamics/CriticalTransitions.jl",
   "entries": {
     "Benchmark Results": [
@@ -3108,6 +3108,96 @@ window.BENCHMARK_DATA = {
             "value": 42954755,
             "unit": "ns",
             "extra": "gctime=0\nmemory=2593120\nallocs=70285\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "r.borner@uu.nl",
+            "name": "Reyk Börner",
+            "username": "reykboerner"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "64ad5172ced5fc69823b51d69f83da461f3c56c2",
+          "message": "Complete docs for stable release v0.9 (#377)\n\n* remove API section\n\n* remove duplicate sections\n\n* remove predefined systems\n\n* update pages\n\n* working on it...\n\n* restructure, add missing docstrings\n\n* implement PR#378\n\n* temporary fix for extref to Attractors.jl v1\n\n* bump compat to Attractors v2\n\n* remove broken extref\n\n* added relation between generator and hamiltonian formulation in (s)gmam\n\n* add snapshot system API\n\n* add docs for snapshot systems\n\n* format\n\n* Revert \"format\"\nbecause it did something strange\nThis reverts commit e94c0cbd364e8507247f1f21b30fbdd35725a567.\n\n---------\n\nCo-authored-by: raphael-roemer <raphael-roemer@t-online.de>",
+          "timestamp": "2026-08-13T14:46:16+02:00",
+          "tree_id": "4aaf3d7b921d26dfeac6333e9c97f9e2884ca9e1",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/64ad5172ced5fc69823b51d69f83da461f3c56c2"
+        },
+        "date": 1786626046075,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 848441.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243264\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 341493191,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5641536\nallocs=59691\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3106361,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2026928\nallocs=63945\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6018732.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121440\nallocs=97461\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18886548511.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 588050173,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10375579353,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 148665400.5,
+            "unit": "ns",
+            "extra": "gctime=7266853.5\nmemory=141006704\nallocs=370311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 3475745,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=3799024\nallocs=85361\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 7937905.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429944\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42245178,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593872\nallocs=70290\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
           }
         ]
       }
