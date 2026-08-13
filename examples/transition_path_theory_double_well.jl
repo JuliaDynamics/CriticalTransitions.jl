@@ -37,7 +37,7 @@ using CairoMakie
 # noise is isotropic, this is a **reversible** system — the backward committor
 # satisfies $q^{-} = 1 - q^{+}$ exactly.
 
-drift(u, p, t) = SA[u[1] - u[1]^3, -u[2]]
+drift(u, p, t) = SA[u[1]-u[1]^3, -u[2]]
 sys = CoupledSDEs(drift, [0.0, 0.0]; noise_strength = 0.4)
 
 # Visualise the drift field:
@@ -120,10 +120,22 @@ x_centers = collect(grid.centers[1])
 y_centers = collect(grid.centers[2])
 
 fig = Figure(; size = (640, 360))
-ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y", aspect = DataAspect(), title = "Forward committor q⁺")
+ax = Axis(
+    fig[1, 1];
+    xlabel = "x",
+    ylabel = "y",
+    aspect = DataAspect(),
+    title = "Forward committor q⁺",
+)
 hm = heatmap!(ax, x_centers, y_centers, reshape_grid(qplus); colormap = :viridis)
 contour!(
-    ax, x_centers, y_centers, reshape_grid(qplus); levels = [0.5], color = :white, linewidth = 2
+    ax,
+    x_centers,
+    y_centers,
+    reshape_grid(qplus);
+    levels = [0.5],
+    color = :white,
+    linewidth = 2,
 )
 Colorbar(fig[1, 2], hm)
 fig
@@ -141,7 +153,13 @@ fig
 ρR = reactive_density(result)
 
 fig = Figure(; size = (640, 360))
-ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y", aspect = DataAspect(), title = "Reactive density ρ·q⁺·q⁻")
+ax = Axis(
+    fig[1, 1];
+    xlabel = "x",
+    ylabel = "y",
+    aspect = DataAspect(),
+    title = "Reactive density ρ·q⁺·q⁻",
+)
 hm = heatmap!(ax, x_centers, y_centers, reshape_grid(ρR); colormap = :magma)
 Colorbar(fig[1, 2], hm)
 fig
@@ -169,14 +187,20 @@ mag = sqrt.(ux .^ 2 .+ uy .^ 2)
 mmax = maximum(mag)
 
 fig = Figure(; size = (640, 360))
-ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y", aspect = DataAspect(), title = "Reactive current")
-heatmap!(
-    ax, x_centers, y_centers, reshape_grid(ρR); colormap = :magma, alpha = 0.6,
+ax = Axis(
+    fig[1, 1];
+    xlabel = "x",
+    ylabel = "y",
+    aspect = DataAspect(),
+    title = "Reactive current",
 )
+heatmap!(ax, x_centers, y_centers, reshape_grid(ρR); colormap = :magma, alpha = 0.6)
 arrows2d!(
     ax,
-    vec(xq), vec(yq),
-    vec(ux ./ mmax), vec(uy ./ mmax);
+    vec(xq),
+    vec(yq),
+    vec(ux ./ mmax),
+    vec(uy ./ mmax);
     color = :white,
     lengthscale = 0.08,
 )
@@ -194,7 +218,13 @@ fig
 τ = mean_first_passage_time(gen, B)
 
 fig = Figure(; size = (640, 360))
-ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y", aspect = DataAspect(), title = "Mean first-passage time to B")
+ax = Axis(
+    fig[1, 1];
+    xlabel = "x",
+    ylabel = "y",
+    aspect = DataAspect(),
+    title = "Mean first-passage time to B",
+)
 hm = heatmap!(ax, x_centers, y_centers, reshape_grid(τ); colormap = :plasma)
 Colorbar(fig[1, 2], hm)
 fig

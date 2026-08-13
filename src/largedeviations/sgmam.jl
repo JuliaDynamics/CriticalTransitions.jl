@@ -31,43 +31,63 @@ Here ``p = a(x)^{-1}(\\dot x - b(x))`` is the conjugate momentum, i.e. the (dime
 Returns a [`MinimumActionPath`](@ref)
 """
 function minimize_geometric_action(
-        sys::FreidlinWentzellHamiltonian,
-        x_initial::AbstractMatrix{T},
-        optimizer::GeometricGradient = GeometricGradient(; stepsize = 1.0e3);
-        maxiters::Int = 1000, show_progress::Bool = false, verbose::Bool = false,
-        abstol::Real = NaN, reltol::Real = NaN,
-    ) where {T}
+    sys::FreidlinWentzellHamiltonian,
+    x_initial::AbstractMatrix{T},
+    optimizer::GeometricGradient = GeometricGradient(; stepsize = 1.0e3);
+    maxiters::Int = 1000,
+    show_progress::Bool = false,
+    verbose::Bool = false,
+    abstol::Real = NaN,
+    reltol::Real = NaN,
+) where {T}
     x_initial = Matrix(x_initial)
     Nt = size(x_initial, 2)
     cache = build_sgmam_cache(sys, x_initial, Nt)
     return _minimize_geometric_action_inner(
-        sys, x_initial, optimizer, cache;
-        maxiters, show_progress, verbose, abstol, reltol,
+        sys,
+        x_initial,
+        optimizer,
+        cache;
+        maxiters,
+        show_progress,
+        verbose,
+        abstol,
+        reltol,
     )
 end
 
 function minimize_geometric_action(
-        sys::FreidlinWentzellHamiltonian,
-        x_initial::StateSpaceSet,
-        optimizer::GMAMOptimizer = GeometricGradient(; stepsize = 1.0e3);
-        kwargs...,
-    )
+    sys::FreidlinWentzellHamiltonian,
+    x_initial::StateSpaceSet,
+    optimizer::GMAMOptimizer = GeometricGradient(; stepsize = 1.0e3);
+    kwargs...,
+)
     return minimize_geometric_action(sys, Matrix(Matrix(x_initial)'), optimizer; kwargs...)
 end
 
 function minimize_geometric_action(
-        sys::FreidlinWentzellHamiltonian,
-        x_initial::AbstractMatrix{T},
-        optimizer::AdaptiveGeometricGradient;
-        maxiters::Int = 1000, show_progress::Bool = false, verbose::Bool = false,
-        abstol::Real = NaN, reltol::Real = NaN,
-    ) where {T}
+    sys::FreidlinWentzellHamiltonian,
+    x_initial::AbstractMatrix{T},
+    optimizer::AdaptiveGeometricGradient;
+    maxiters::Int = 1000,
+    show_progress::Bool = false,
+    verbose::Bool = false,
+    abstol::Real = NaN,
+    reltol::Real = NaN,
+) where {T}
     x_initial = Matrix(x_initial)
     Nt = size(x_initial, 2)
     cache = build_sgmam_cache(sys, x_initial, Nt)
     return _minimize_geometric_action_inner_adaptive(
-        sys, x_initial, optimizer, cache;
-        maxiters, show_progress, verbose, abstol, reltol,
+        sys,
+        x_initial,
+        optimizer,
+        cache;
+        maxiters,
+        show_progress,
+        verbose,
+        abstol,
+        reltol,
     )
 end
 
@@ -84,10 +104,18 @@ function _init_sgmam_state(sys, x_initial, cache)
 end
 
 function _minimize_geometric_action_inner(
-        sys, x_initial, optimizer::GeometricGradient, cache;
-        maxiters, show_progress, verbose, abstol, reltol,
-    )
-    x, p, pdot, xdot, xdotdot, lambda, alpha, s, interp_scratch = _init_sgmam_state(sys, x_initial, cache)
+    sys,
+    x_initial,
+    optimizer::GeometricGradient,
+    cache;
+    maxiters,
+    show_progress,
+    verbose,
+    abstol,
+    reltol,
+)
+    x, p, pdot, xdot, xdotdot, lambda, alpha, s, interp_scratch =
+        _init_sgmam_state(sys, x_initial, cache)
     x_prev = similar(x)
     initial_action = FW_action(xdot, p)
 
@@ -104,20 +132,39 @@ function _minimize_geometric_action_inner(
     end
 
     current_action, _ = backtracking_optimize!(
-        optimizer, try_step!, save!, restore!, initial_action;
-        maxiters, abstol, reltol, verbose, show_progress,
+        optimizer,
+        try_step!,
+        save!,
+        restore!,
+        initial_action;
+        maxiters,
+        abstol,
+        reltol,
+        verbose,
+        show_progress,
     )
     return MinimumActionPath(
-        StateSpaceSet(x'), current_action;
-        λ = lambda, generalized_momentum = p, path_velocity = xdot,
+        StateSpaceSet(x'),
+        current_action;
+        λ = lambda,
+        generalized_momentum = p,
+        path_velocity = xdot,
     )
 end
 
 function _minimize_geometric_action_inner_adaptive(
-        sys, x_initial, optimizer::AdaptiveGeometricGradient, cache;
-        maxiters, show_progress, verbose, abstol, reltol,
-    )
-    x, p, pdot, xdot, xdotdot, lambda, alpha, s, interp_scratch = _init_sgmam_state(sys, x_initial, cache)
+    sys,
+    x_initial,
+    optimizer::AdaptiveGeometricGradient,
+    cache;
+    maxiters,
+    show_progress,
+    verbose,
+    abstol,
+    reltol,
+)
+    x, p, pdot, xdot, xdotdot, lambda, alpha, s, interp_scratch =
+        _init_sgmam_state(sys, x_initial, cache)
     x_start = similar(x)
     x_big_result = similar(x)
     Tϵ = typeof(optimizer.stepsize)
@@ -125,7 +172,7 @@ function _minimize_geometric_action_inner_adaptive(
 
     function run_probe!(ϵ, n)
         S = oftype(ϵ, NaN)
-        for _ in 1:n
+        for _ = 1:n
             update!(x, xdot, xdotdot, p, pdot, lambda, sys, ϵ, cache)
             interpolate_path!(x, alpha, s, interp_scratch)
             _sgmam_refresh!(xdot, p, lambda, x, sys, cache)
@@ -152,7 +199,9 @@ function _minimize_geometric_action_inner_adaptive(
         copyto!(x, x_start)
         _sgmam_refresh!(xdot, p, lambda, x, sys, cache)
         ϵ_small = clamp(
-            stepsize * optimizer.shrink, optimizer.stepsize_min, optimizer.stepsize_max
+            stepsize * optimizer.shrink,
+            optimizer.stepsize_min,
+            optimizer.stepsize_max,
         )
         S_small = run_probe!(ϵ_small, n)
 
@@ -186,11 +235,12 @@ function _minimize_geometric_action_inner_adaptive(
             oftype(current_action, Inf)
         end
         if (isfinite(abstol) && abs_change < abstol) ||
-                (isfinite(reltol) && rel_change < reltol)
+           (isfinite(reltol) && rel_change < reltol)
             break
         end
         next!(
-            progress; step = n,
+            progress;
+            step = n,
             showvalues = [
                 ("iters_used", iters_used),
                 ("action", round(current_action; sigdigits = 6)),
@@ -200,8 +250,11 @@ function _minimize_geometric_action_inner_adaptive(
         )
     end
     return MinimumActionPath(
-        StateSpaceSet(x'), current_action;
-        λ = lambda, generalized_momentum = p, path_velocity = xdot,
+        StateSpaceSet(x'),
+        current_action;
+        λ = lambda,
+        generalized_momentum = p,
+        path_velocity = xdot,
     )
 end
 

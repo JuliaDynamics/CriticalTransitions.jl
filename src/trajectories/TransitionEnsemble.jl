@@ -25,7 +25,10 @@ struct TransitionStatistics{T}
         mean_trans_time = mean([(sol.t[end] - sol.t[1]) for sol in sim.u])
 
         return new{typeof(mean_res_time)}(
-            success_rate, mean_res_time, mean_trans_time, mean_res_time / mean_trans_time
+            success_rate,
+            mean_res_time,
+            mean_trans_time,
+            mean_res_time / mean_trans_time,
         )
     end
 end;
@@ -42,7 +45,7 @@ $(TYPEDFIELDS)
 $(METHODLIST)
 
 """
-struct TransitionEnsemble{SSS, T, ES}
+struct TransitionEnsemble{SSS,T,ES}
     "paths sampled from the transition process"
     paths::Vector{SSS}
     "coresponsing times of the paths"
@@ -58,8 +61,11 @@ struct TransitionEnsemble{SSS, T, ES}
         samples = [StateSpaceSet(sol.u) for sol in sim.u]
         times = [sol.t for sol in sim.u]
 
-        return new{eltype(samples), eltype(eltype(times)), typeof(sim)}(
-            samples, times, stats, sim
+        return new{eltype(samples),eltype(eltype(times)),typeof(sim)}(
+            samples,
+            times,
+            stats,
+            sim,
         )
     end
 end;

@@ -4,7 +4,7 @@ function _to_mask(spec::AbstractVector{Bool}, grid::CartesianGrid)
     length(spec) == N ||
         throw(DimensionMismatch("mask length $(length(spec)) ≠ ncells = $N"))
     mask = falses(N)
-    @inbounds for i in 1:N
+    @inbounds for i = 1:N
         mask[i] = spec[i]
     end
     return mask
@@ -36,8 +36,8 @@ function _to_mask(spec, ::CartesianGrid)
     throw(
         ArgumentError(
             "set specification must be a predicate, BitVector, or integer cell indices; " *
-                "got $(typeof(spec))",
-        )
+            "got $(typeof(spec))",
+        ),
     )
 end
 
@@ -97,10 +97,12 @@ A single combined warning is emitted with concrete suggestions if any
 check fires.
 """
 function stationary_distribution(
-        generator::DiffusionGenerator{D, BC, T},
-        alg = UMFPACKFactorization();
-        verbose::Bool = false, multimodal_tol::Real = 1.0e-3, kwargs...,
-    )::Vector{T} where {D, BC, T}
+    generator::DiffusionGenerator{D,BC,T},
+    alg = UMFPACKFactorization();
+    verbose::Bool = false,
+    multimodal_tol::Real = 1.0e-3,
+    kwargs...,
+)::Vector{T} where {D,BC,T}
     _check_stationary_bc(generator)
     weights = fill(cell_volume(generator.grid), ncells(generator))
     ρ = _invariant_density(generator.Q, weights, alg; clamp_negative = false, kwargs...)
@@ -110,10 +112,12 @@ function stationary_distribution(
 end
 
 function stationary_distribution(
-        generator::DiffusionGenerator{D, BC, T},
-        alg::Union{DenseEigen, KrylovKitSolver};
-        verbose::Bool = false, multimodal_tol::Real = 1.0e-3, kwargs...,
-    )::Vector{T} where {D, BC, T}
+    generator::DiffusionGenerator{D,BC,T},
+    alg::Union{DenseEigen,KrylovKitSolver};
+    verbose::Bool = false,
+    multimodal_tol::Real = 1.0e-3,
+    kwargs...,
+)::Vector{T} where {D,BC,T}
     _check_stationary_bc(generator)
     weights = fill(cell_volume(generator.grid), ncells(generator))
     λ, v = _principal_eigenpair(transpose(generator.Q), alg; σ = zero(T), kwargs...)
@@ -138,24 +142,31 @@ function _check_stationary_bc(generator::DiffusionGenerator)
     any(b -> b isa Absorbing, generator.bc) && throw(
         ArgumentError(
             "stationary_distribution is undefined for absorbing boundary " *
-                "conditions: the chain leaks probability through the boundary " *
-                "and has no nontrivial normalised invariant.",
+            "conditions: the chain leaks probability through the boundary " *
+            "and has no nontrivial normalised invariant.",
         ),
     )
     return nothing
 end
 
 function _stationary_diagnostics(
-        Q::SparseMatrixCSC{T, Int}, weights::Vector{T},
-        ρ::Vector{T}, alg, multimodal_tol::Real, verbose::Bool
-    ) where {T <: AbstractFloat}
+    Q::SparseMatrixCSC{T,Int},
+    weights::Vector{T},
+    ρ::Vector{T},
+    alg,
+    multimodal_tol::Real,
+    verbose::Bool,
+) where {T<:AbstractFloat}
     issues = String[]
 
     ρ_max = maximum(abs, ρ)
     neg_thresh = -16 * eps(T) * max(ρ_max, one(T))
     n_neg = count(<(neg_thresh), ρ)
     if n_neg > 0
-        push!(issues, "$n_neg entries have ρ < $(round(neg_thresh; sigdigits = 2)) (true invariant must be ≥ 0)")
+        push!(
+            issues,
+            "$n_neg entries have ρ < $(round(neg_thresh; sigdigits = 2)) (true invariant must be ≥ 0)",
+        )
     end
 
     res = norm(transpose(Q) * ρ) / max(norm(ρ), eps(T))
@@ -166,7 +177,8 @@ function _stationary_diagnostics(
     verbose && _multimodality_probe!(issues, Q, weights, ρ, alg, multimodal_tol)
 
     if !isempty(issues)
-        msg = "stationary_distribution: result may be unreliable\n  • " *
+        msg =
+            "stationary_distribution: result may be unreliable\n  • " *
             join(issues, "\n  • ") *
             "\nSuggestions:\n" *
             "  - increase the diffusion strength (the spectral gap shrinks as exp(-ΔΦ / D))\n" *
@@ -180,10 +192,13 @@ end
 
 # Re-pin at a few spread-out cells to reveal numerically disconnected modes.
 function _multimodality_probe!(
-        issues, Q::SparseMatrixCSC{T, Int},
-        weights::Vector{T}, ρ::Vector{T},
-        alg, multimodal_tol::Real
-    ) where {T <: AbstractFloat}
+    issues,
+    Q::SparseMatrixCSC{T,Int},
+    weights::Vector{T},
+    ρ::Vector{T},
+    alg,
+    multimodal_tol::Real,
+) where {T<:AbstractFloat}
     N = size(Q, 1)
     pins = (p for p in unique!([div(N, 4), div(N, 2), div(3N, 4), N]) if p > 1)
     max_diff = zero(T)
@@ -196,9 +211,9 @@ function _multimodality_probe!(
         push!(
             issues,
             "stationary solution depends on the pin row " *
-                "(max rel. difference $(round(max_diff; sigdigits = 3)) across pins). " *
-                "The generator has ≥ 2 near-zero eigenvalues within machine precision; " *
-                "the result is one quasi-stationary mode, not the global invariant."
+            "(max rel. difference $(round(max_diff; sigdigits = 3)) across pins). " *
+            "The generator has ≥ 2 near-zero eigenvalues within machine precision; " *
+            "the result is one quasi-stationary mode, not the global invariant.",
         )
     end
     return nothing
@@ -209,14 +224,18 @@ end
 # generator has a numerically degenerate kernel and the returned
 # vector is one direction in it (a QSD), not the global invariant.
 function _multimodality_probe!(
-        issues, Q::SparseMatrixCSC{T, Int},
-        weights::Vector{T}, ρ::Vector{T},
-        alg::Union{DenseEigen, KrylovKitSolver}, multimodal_tol::Real
-    ) where {T <: AbstractFloat}
+    issues,
+    Q::SparseMatrixCSC{T,Int},
+    weights::Vector{T},
+    ρ::Vector{T},
+    alg::Union{DenseEigen,KrylovKitSolver},
+    multimodal_tol::Real,
+) where {T<:AbstractFloat}
     λs = try
         first(_eigenmodes(Q, 3, alg))
     catch err
-        @debug "Multimodality probe (eigensolver path) failed" exception = (err, catch_backtrace())
+        @debug "Multimodality probe (eigensolver path) failed" exception =
+            (err, catch_backtrace())
         return nothing
     end
     length(λs) >= 3 || return nothing
@@ -230,9 +249,9 @@ function _multimodality_probe!(
         push!(
             issues,
             "|λ₂| / |λ₃| ≈ $(round(ratio; sigdigits = 3)) " *
-                "(λ₂ ≈ $(round(λs[2]; sigdigits = 3)), λ₃ ≈ $(round(λs[3]; sigdigits = 3))). " *
-                "The generator has ≥ 2 near-zero eigenvalues within machine precision; " *
-                "the result is one quasi-stationary mode, not the global invariant."
+            "(λ₂ ≈ $(round(λs[2]; sigdigits = 3)), λ₃ ≈ $(round(λs[3]; sigdigits = 3))). " *
+            "The generator has ≥ 2 near-zero eigenvalues within machine precision; " *
+            "the result is one quasi-stationary mode, not the global invariant.",
         )
     end
     return nothing
@@ -287,9 +306,11 @@ eigenvalue `−λ_exit` is unknown a priori, so a single linear solve is
 insufficient.
 """
 function quasi_stationary_distribution(
-        generator::DiffusionGenerator, basin,
-        alg::Union{DenseEigen, KrylovKitSolver} = KrylovKitSolver(); kwargs...
-    )
+    generator::DiffusionGenerator,
+    basin,
+    alg::Union{DenseEigen,KrylovKitSolver} = KrylovKitSolver();
+    kwargs...,
+)
     T = floattype(generator)
     grid = generator.grid
     basin_mask = _to_mask(basin, grid)
@@ -312,16 +333,13 @@ function quasi_stationary_distribution(
     return ρ_full, λ_exit
 end
 
-function quasi_stationary_distribution(
-        ::DiffusionGenerator, _basin,
-        alg; kwargs...
-    )
+function quasi_stationary_distribution(::DiffusionGenerator, _basin, alg; kwargs...)
     throw(
         ArgumentError(
             "quasi_stationary_distribution: a `SciMLLinearSolveAlgorithm` is not " *
-                "a valid backend because the QSD eigenvalue is unknown a priori. " *
-                "Use `KrylovKitSolver()` (default) or `DenseEigen()`."
-        )
+            "a valid backend because the QSD eigenvalue is unknown a priori. " *
+            "Use `KrylovKitSolver()` (default) or `DenseEigen()`.",
+        ),
     )
 end
 
@@ -346,19 +364,24 @@ Default `alg` is `UMFPACKFactorization()` (sparse direct LU). Pass any
 See also [`first_passage_variance`](@ref).
 """
 function mean_first_passage_time(
-        generator::DiffusionGenerator{D, BC, T}, target;
-        alg = UMFPACKFactorization(),
-        kwargs...
-    )::Vector{T} where {D, BC, T}
+    generator::DiffusionGenerator{D,BC,T},
+    target;
+    alg = UMFPACKFactorization(),
+    kwargs...,
+)::Vector{T} where {D,BC,T}
     target_mask, bc_values, source = _mfpt_system(generator, target)
     return _solve_dirichlet(
-        generator.Q, target_mask, bc_values, alg;
-        source = source, kwargs...
+        generator.Q,
+        target_mask,
+        bc_values,
+        alg;
+        source = source,
+        kwargs...,
     )
 end
 
 
-function _mfpt_system(generator::DiffusionGenerator{D, BC, T}, target) where {D, BC, T}
+function _mfpt_system(generator::DiffusionGenerator{D,BC,T}, target) where {D,BC,T}
     target_mask = _to_mask(target, generator.grid)
     any(target_mask) || throw(ArgumentError("target set is empty"))
     N = size(generator.Q, 1)
@@ -384,18 +407,27 @@ Default `alg` is `UMFPACKFactorization()` (sparse direct LU). Pass any
 See also [`mean_first_passage_time`](@ref).
 """
 function first_passage_variance(
-        generator::DiffusionGenerator{D, BC, T}, target;
-        alg = UMFPACKFactorization(),
-        kwargs...
-    )::Vector{T} where {D, BC, T}
+    generator::DiffusionGenerator{D,BC,T},
+    target;
+    alg = UMFPACKFactorization(),
+    kwargs...,
+)::Vector{T} where {D,BC,T}
     target_mask, bc_values, source = _mfpt_system(generator, target)
     τ_1 = _solve_dirichlet(
-        generator.Q, target_mask, bc_values, alg;
-        source = source, kwargs...
+        generator.Q,
+        target_mask,
+        bc_values,
+        alg;
+        source = source,
+        kwargs...,
     )
     τ_2 = _solve_dirichlet(
-        generator.Q, target_mask, bc_values, alg;
-        source = -2 .* τ_1, kwargs...
+        generator.Q,
+        target_mask,
+        bc_values,
+        alg;
+        source = -2 .* τ_1,
+        kwargs...,
     )
     return τ_2 .- τ_1 .^ 2
 end

@@ -14,7 +14,8 @@ using CairoMakie
 # ```
 # the standard nongradient benchmark in the large-deviations literature. For every ``\beta > 0`` the system has two stable fixed points at ``(\pm 1, 0)`` and a saddle at the origin; the saddle value of ``U_A`` is the Freidlin-Wentzell barrier between the wells.
 
-maierstein(β) = (x, p, t) -> SVector(x[1] - x[1]^3 - β * x[1] * x[2]^2, -(1 + x[1]^2) * x[2])
+maierstein(β) =
+    (x, p, t) -> SVector(x[1] - x[1]^3 - β * x[1] * x[2]^2, -(1 + x[1]^2) * x[2])
 grid = CartesianGrid((-1.5, 1.5, 121), (-1.0, 1.0, 121))
 
 # ## An exact reference value
@@ -38,7 +39,12 @@ qp.U[saddle]   # ≈ 0.5
 us = grid.centers[1]
 jaxis = saddle[2]   # grid row closest to v = 0
 
-fig, ax, _ = lines(us, qp.U[:, jaxis]; label = "OLIM  U_A(u, 0)", axis = (; xlabel = "u", ylabel = "U_A(u, 0)"))
+fig, ax, _ = lines(
+    us,
+    qp.U[:, jaxis];
+    label = "OLIM  U_A(u, 0)",
+    axis = (; xlabel = "u", ylabel = "U_A(u, 0)"),
+)
 uleft = range(-1, 0; length = 100)
 lines!(ax, uleft, @. (1 - uleft^2)^2 / 2; linestyle = :dash, label = "½(1 - u²)²")
 axislegend(ax; position = :ct)
@@ -60,13 +66,14 @@ mp.action   # ≈ 0.483
 
 # Contour plot of `qp.U`, with both attractors marked in white, the saddle in red, and the gMAM instanton (red dashed) overlaid — it leaves the ``u``-axis, which is exactly why the barrier falls below ``1/2``.
 
-fig, ax, _ = contourf(
-    qp.grid.centers[1], qp.grid.centers[2], qp.U;
-    levels = 30, colormap = :viridis,
-)
+fig, ax, _ =
+    contourf(qp.grid.centers[1], qp.grid.centers[2], qp.U; levels = 30, colormap = :viridis)
 lines!(ax, mp.path[:, 1], mp.path[:, 2]; color = :red, linestyle = :dash, linewidth = 2)
 scatter!(
-    ax, [-1.0, 1.0, 0.0], [0.0, 0.0, 0.0];
-    color = [:white, :white, :red], markersize = 14,
+    ax,
+    [-1.0, 1.0, 0.0],
+    [0.0, 0.0, 0.0];
+    color = [:white, :white, :red],
+    markersize = 14,
 )
 fig

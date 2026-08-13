@@ -22,7 +22,7 @@ const CT = CriticalTransitions
 end
 
 @testset "Free endpoint rejected" begin
-    bistable(u, p, t) = SA[u[1] - u[1]^3]
+    bistable(u, p, t) = SA[u[1]-u[1]^3]
     ds = CoupledSDEs(bistable, [0.0]; noise_strength = 1.0)
     H = FreidlinWentzellHamiltonian(ds)
     # Start at a free (non-fixed) point.
@@ -43,7 +43,7 @@ end
     # x' = -x^3 + y, y' = -x. Linearization at origin: J = [0 1; -1 0], purely imaginary eigenvalues.
     function rotrhs(u, p, t)
         x, y = u
-        return SA[-x^3 + y, -x]
+        return SA[-x^3+y, -x]
     end
     ds = CoupledSDEs(rotrhs, [0.0, 0.0]; noise_strength = 1.0)
     H = FreidlinWentzellHamiltonian(ds)

@@ -19,7 +19,13 @@ function rate_diagram(t0)
     Δts = 2.0 .^ range(-1, 3; length = 6)
     Random.seed!(1)
     rate_type, attractors_cont = rate_track_return_tip(
-        rs, Δts, Δps, mapper, sampler; proximity_kw = (ε = 0.1,), u0 = [-1.0]
+        rs,
+        Δts,
+        Δps,
+        mapper,
+        sampler;
+        proximity_kw = (ε = 0.1,),
+        u0 = [-1.0],
     )
     return rate_type, attractors_cont
 end

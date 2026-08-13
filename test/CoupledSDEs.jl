@@ -18,7 +18,7 @@ using CriticalTransitions, Test
 
         using CriticalTransitions: drift
         drift_vector = drift(sys, [0, 0])
-        drift_vector isa SVector{2, Float64}
+        drift_vector isa SVector{2,Float64}
         @test drift_vector == [0, 0]
     end
 
@@ -58,9 +58,14 @@ using CriticalTransitions, Test
     # diagonal additive noise
     lor_oop = CoupledSDEs(lorenz_rule, u0, p0)
     lor_iip = CoupledSDEs(
-        SDEProblem(lorenz_rule_iip, diagonal_noise!(σ), copy(u0), (0.0, Inf), p0)
+        SDEProblem(lorenz_rule_iip, diagonal_noise!(σ), copy(u0), (0.0, Inf), p0),
     )
-    lor_SRA = CoupledSDEs(lorenz_rule, u0, p0; diffeq = (alg = SRA(), abstol = 1.0e-2, reltol = 1.0e-2))
+    lor_SRA = CoupledSDEs(
+        lorenz_rule,
+        u0,
+        p0;
+        diffeq = (alg = SRA(), abstol = 1.0e-2, reltol = 1.0e-2),
+    )
 
     diffeq_cov = (alg = LambaEM(), abstol = 1.0e-2, reltol = 1.0e-2, dt = 0.1)
     lor_oop_cov = CoupledSDEs(lorenz_rule, u0, p0; covariance = Γ, diffeq = diffeq_cov)
@@ -73,14 +78,20 @@ using CriticalTransitions, Test
         @test lorenz_oop.integ.alg isa SOSRA
 
         lorenz_SRA = CoupledSDEs(
-            lorenz_rule, u0, p0; diffeq = (alg = SRA(), abstol = 1.0e-3, reltol = 1.0e-3, verbose = None())
+            lorenz_rule,
+            u0,
+            p0;
+            diffeq = (alg = SRA(), abstol = 1.0e-3, reltol = 1.0e-3, verbose = None()),
         )
         @test lorenz_SRA.integ.alg isa SRA
 
         # also test SDEproblem creation
         prob = lorenz_SRA.integ.sol.prob
 
-        ds = CoupledSDEs(prob, (alg = SRA(), abstol = 0.0, reltol = 1.0e-3, verbose = None()))
+        ds = CoupledSDEs(
+            prob,
+            (alg = SRA(), abstol = 0.0, reltol = 1.0e-3, verbose = None()),
+        )
 
         @test ds.integ.alg isa SRA
 
@@ -113,7 +124,10 @@ using CriticalTransitions, Test
 
             g!(du, u, p, t) = du .= u
             @test_throws ArgumentError CoupledSDEs(
-                f!, zeros(2); g = (g!), covariance = [1 0.3; 0.3 1]
+                f!,
+                zeros(2);
+                g = (g!),
+                covariance = [1 0.3; 0.3 1],
             )
 
             g(u, p, t) = u

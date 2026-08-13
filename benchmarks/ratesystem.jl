@@ -22,16 +22,22 @@ function benchmark_rate_system!(SUITE)
     forcing_scale = 1.0
     t0 = forcing_start_time
 
-    rs = RateSystem(ds, Dict(pidx => fp); forcing_start_time, forcing_duration, forcing_scale, t0)
+    rs = RateSystem(
+        ds,
+        Dict(pidx => fp);
+        forcing_start_time,
+        forcing_duration,
+        forcing_scale,
+        t0,
+    )
 
     T = forcing_duration + 40.0
     trajectory(rs, T, x0)
 
     @btime trajectory($rs, $T, $x0)
 
-    SUITE["Rate System"]["trajectory"]["RateSystem"] = @benchmarkable trajectory(
-        $rs, $T, $x0
-    ) seconds = 20
+    SUITE["Rate System"]["trajectory"]["RateSystem"] =
+        @benchmarkable trajectory($rs, $T, $x0) seconds = 20
 
     function fexpl(u, p, t) # out-of-place
         x = u[1]
@@ -46,7 +52,6 @@ function benchmark_rate_system!(SUITE)
 
     trajectory(nonauto_sysexpl, T, x0)
     @btime trajectory($nonauto_sysexpl, $T, $x0)
-    return SUITE["Rate System"]["trajectory"]["Hard coded"] = @benchmarkable trajectory(
-        $nonauto_sysexpl, $T, $x0
-    ) seconds = 20
+    return SUITE["Rate System"]["trajectory"]["Hard coded"] =
+        @benchmarkable trajectory($nonauto_sysexpl, $T, $x0) seconds = 20
 end

@@ -6,31 +6,29 @@ invariant subspace.
 function _care(A::AbstractMatrix{T}, Q::AbstractMatrix{T}) where {T}
     D = LinearAlgebra.checksquare(A)
     H = [
-        Matrix(-A)        Matrix(-2 * Q);
-        zeros(T, D, D)     Matrix(A')
+        Matrix(-A) Matrix(-2 * Q);
+        zeros(T, D, D) Matrix(A')
     ]
     F = eigen(H)
     stable = findall(λ -> real(λ) < -sqrt(eps(real(T))), F.values)
-    length(stable) == D || throw(
-        ArgumentError(
-            "CARE: drift Jacobian has no $D-dim stable invariant subspace",
-        ),
-    )
+    length(stable) == D ||
+        throw(ArgumentError("CARE: drift Jacobian has no $D-dim stable invariant subspace"))
     V = F.vectors[:, stable]
-    X1 = V[1:D, :]; X2 = V[(D + 1):(2D), :]
+    X1 = V[1:D, :];
+    X2 = V[(D+1):(2D), :]
     P = real(X2 / X1)
     return (P + P') / 2
 end
 
 function _seed_near_source!(
-        state::_OLIMState{D, T},
-        grid::CartesianGrid{D, T},
-        source::CartesianIndex{D},
-        sys::CoupledSDEs,
-        L::_GeometricLagrangian{D, T},
-        ::Val{K_seed};
-        verbose::Bool = false,
-    ) where {D, T, K_seed}
+    state::_OLIMState{D,T},
+    grid::CartesianGrid{D,T},
+    source::CartesianIndex{D},
+    sys::CoupledSDEs,
+    L::_GeometricLagrangian{D,T},
+    ::Val{K_seed};
+    verbose::Bool = false,
+) where {D,T,K_seed}
     state.U[source] = zero(T)
     state.status[source] = _ACCEPTED
     K_seed == 0 && return state
@@ -52,12 +50,12 @@ function _seed_near_source!(
     end
 
     nbox = state.nbox
-    axes_seed = ntuple(_ -> -K_seed:K_seed, Val(D))
+    axes_seed = ntuple(_ -> (-K_seed):K_seed, Val(D))
     @inbounds for δ in CartesianIndices(axes_seed)
         iszero(δ) && continue
         I = source + δ
         in_bounds = true
-        for d in 1:D
+        for d = 1:D
             (1 <= I[d] <= nbox[d]) || (in_bounds = false; break)
         end
         in_bounds || continue
@@ -76,14 +74,16 @@ flips seed cells that touch UNKNOWN to FRONT and seeds the heap with their
 first-tier CONSIDERED neighbours, then iterates until the heap is empty.
 """
 function _sweep!(
-        state::_OLIMState{D, T},
-        grid::CartesianGrid{D, T},
-        source::CartesianIndex{D},
-        sys::CoupledSDEs,
-        L::_GeometricLagrangian{D, T},
-        ::Val{K}, ::Val{K_seed};
-        verbose::Bool, show_progress::Bool,
-    ) where {D, T, K, K_seed}
+    state::_OLIMState{D,T},
+    grid::CartesianGrid{D,T},
+    source::CartesianIndex{D},
+    sys::CoupledSDEs,
+    L::_GeometricLagrangian{D,T},
+    ::Val{K},
+    ::Val{K_seed};
+    verbose::Bool,
+    show_progress::Bool,
+) where {D,T,K,K_seed}
     _fill_node_cache!(state, grid, L)
     _seed_near_source!(state, grid, source, sys, L, Val(K_seed); verbose = verbose)
 
@@ -95,7 +95,8 @@ function _sweep!(
         state.status[x] == _ACCEPTED || continue
         touches_unknown = false
         for δ in cheb
-            n = _shift_in_bounds(x, δ, nbox); n === nothing && continue
+            n = _shift_in_bounds(x, δ, nbox);
+            n === nothing && continue
             state.status[n] == _UNKNOWN && (touches_unknown = true; break)
         end
         if touches_unknown
@@ -107,7 +108,8 @@ function _sweep!(
     @inbounds for x in CartesianIndices(state.U)
         state.status[x] == _FRONT || continue
         for δ in _stencil_offsets(Val(K), Val(D))
-            n = _shift_in_bounds(x, δ, nbox); n === nothing && continue
+            n = _shift_in_bounds(x, δ, nbox);
+            n === nothing && continue
             state.status[n] == _UNKNOWN || continue
             Φ, br = _local_update(Val(D), n, state, grid, L, Val(K))
             isfinite(Φ) || continue
@@ -125,8 +127,12 @@ function _sweep!(
 
     if show_progress
         return _sweep_loop!(
-            state, grid, L, Val(K), Val(D),
-            Progress(N; desc = "OLIM sweep")
+            state,
+            grid,
+            L,
+            Val(K),
+            Val(D),
+            Progress(N; desc = "OLIM sweep"),
         )
     else
         return _sweep_loop!(state, grid, L, Val(K), Val(D), nothing)
@@ -137,10 +143,13 @@ end
 @inline _maybe_tick(p::Progress) = next!(p)
 
 function _sweep_loop!(
-        state::_OLIMState{D, T}, grid::CartesianGrid{D, T},
-        L::_GeometricLagrangian{D, T},
-        ::Val{K}, ::Val{D}, prog,
-    ) where {D, T, K}
+    state::_OLIMState{D,T},
+    grid::CartesianGrid{D,T},
+    L::_GeometricLagrangian{D,T},
+    ::Val{K},
+    ::Val{D},
+    prog,
+) where {D,T,K}
     nbox = state.nbox
     cheb = _chebyshev_neighbors(Val(D))
     while !isempty(state.heap)
@@ -152,9 +161,10 @@ function _sweep_loop!(
         _maybe_tick(prog)
 
         for δ in _stencil_offsets(Val(K), Val(D))
-            xnew = _shift_in_bounds(c, δ, nbox); xnew === nothing && continue
+            xnew = _shift_in_bounds(c, δ, nbox);
+            xnew === nothing && continue
             state.status[xnew] == _ACCEPTED && continue
-            state.status[xnew] == _FRONT    && continue
+            state.status[xnew] == _FRONT && continue
             Φ, br = _local_update(Val(D), xnew, state, grid, L, Val(K))
             (isfinite(Φ) && Φ < state.U[xnew]) || continue
             state.U[xnew] = Φ
@@ -170,10 +180,12 @@ function _sweep_loop!(
 
         prune = true
         for δ in cheb
-            n = _shift_in_bounds(c, δ, nbox); n === nothing && continue
+            n = _shift_in_bounds(c, δ, nbox);
+            n === nothing && continue
             s = state.status[n]
             if s == _UNKNOWN || s == _CONSIDERED
-                prune = false; break
+                prune = false;
+                break
             end
         end
         if prune

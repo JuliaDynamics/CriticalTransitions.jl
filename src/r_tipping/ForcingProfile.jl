@@ -18,9 +18,9 @@ Note: The units of ``t`` are arbitrary; the forcing profile is rescaled to syste
 - `ForcingProfile(:tanh)`: Create a hyperbolic tangent ramping
   from 0 to 1 with interval (-3, 3).
 """
-struct ForcingProfile{F, T <: Real}
+struct ForcingProfile{F,T<:Real}
     profile::F
-    interval::Tuple{T, T}
+    interval::Tuple{T,T}
 end
 ForcingProfile(x, y) = ForcingProfile(x, promote(y...))
 

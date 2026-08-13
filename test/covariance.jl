@@ -41,7 +41,11 @@ end
         noise_prototype = zeros(2, 2)
 
         sdeprob = SDEProblem(
-            f, g, zeros(2), (0.0, 100_000); noise_rate_prototype = noise_prototype
+            f,
+            g,
+            zeros(2),
+            (0.0, 100_000);
+            noise_rate_prototype = noise_prototype,
         )
         sol = solve(sdeprob, EM(); saveat = 0.1, dt = 0.1)
         approx = cov(diff(reduce(hcat, sol.u); dims = 2) ./ sqrt(0.1); dims = 2)
@@ -87,7 +91,10 @@ end
     # Anisotropic diagonal Q: returns the per-direction average noise std,
     # i.e. σ · sqrt(tr(Q)/D).
     sys_diag = CoupledSDEs(
-        f_ou, SA[0.0, 0.0]; covariance = [1.0 0.0; 0.0 4.0], noise_strength = 1.0
+        f_ou,
+        SA[0.0, 0.0];
+        covariance = [1.0 0.0; 0.0 4.0],
+        noise_strength = 1.0,
     )
     @test noise_strength(sys_diag) ≈ sqrt(5 / 2)
 
@@ -100,7 +107,10 @@ end
 
     # Combined scaling: σ=0.5 with covariance=4I matches σ_eff = 0.5·sqrt(4) = 1.
     sys_combined = CoupledSDEs(
-        f_ou, SA[0.0, 0.0]; covariance = [4.0 0.0; 0.0 4.0], noise_strength = 0.5
+        f_ou,
+        SA[0.0, 0.0];
+        covariance = [4.0 0.0; 0.0 4.0],
+        noise_strength = 0.5,
     )
     @test noise_strength(sys_combined) ≈ 1.0
 end

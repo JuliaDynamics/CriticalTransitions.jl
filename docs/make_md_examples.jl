@@ -5,7 +5,7 @@ using Literate
 const EXAMPLES_IN = joinpath(@__DIR__, "..", "examples")
 const OUTPUT_MD_DIR = joinpath(@__DIR__, "src", "examples")
 
-examples = filter!(file -> file[(end - 2):end] == ".jl", readdir(EXAMPLES_IN; join = true))
+examples = filter!(file -> file[(end-2):end] == ".jl", readdir(EXAMPLES_IN; join = true))
 filter!(file -> !contains(file, "make_nb_examples"), examples)
 # Orphan / WIP sources kept in `examples/` for reference but not part of the
 # rendered docs. Skip them so Documenter doesn't process broken Literate output.
@@ -24,10 +24,8 @@ else
 end
 
 function preprocess(content)
-    sub = SubstitutionString(
-        """
-        """
-    )
+    sub = SubstitutionString("""
+                             """)
     content = replace(content, r"^# # [^\n]*"m => sub; count = 1)
 
     # remove VSCode `##` block delimiter lines
@@ -36,11 +34,9 @@ function preprocess(content)
 end
 
 function md_note(str)
-    str = replace(
-        str, r"^#note # (.*)$"m => s"""
-            # !!! note
-            #     \1"""
-    )
+    str = replace(str, r"^#note # (.*)$"m => s"""
+                      # !!! note
+                      #     \1""")
     return str
 end
 

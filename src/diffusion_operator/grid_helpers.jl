@@ -49,10 +49,7 @@ function reshape_to_grid(v::AbstractVector, gen::DiffusionGenerator)
     return reshape_to_grid(v, gen.grid)
 end
 function reshape_to_grid(v::AbstractVector, grid::CartesianGrid)
-    length(v) == ncells(grid) || throw(
-        DimensionMismatch(
-            "vector length $(length(v)) ≠ ncells = $(ncells(grid))",
-        ),
-    )
+    length(v) == ncells(grid) ||
+        throw(DimensionMismatch("vector length $(length(v)) ≠ ncells = $(ncells(grid))"))
     return reshape(v, grid.nbox)
 end

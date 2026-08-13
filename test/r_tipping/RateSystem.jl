@@ -32,7 +32,14 @@ f_struct(u, p, t) = SVector((u[1] + p.λ)^2 - 1)
 @testset "RateSystem" begin
     @testset "out-of-place CoupledODEs" begin
         ds = CoupledODEs(f, x0, p_auto; t0 = 0.0)
-        rs = RateSystem(ds, Dict(1 => fp_case); forcing_start_time = 0.0, forcing_duration = 10.0, forcing_scale = 1.0, t0 = 0.0)
+        rs = RateSystem(
+            ds,
+            Dict(1 => fp_case);
+            forcing_start_time = 0.0,
+            forcing_duration = 10.0,
+            forcing_scale = 1.0,
+            t0 = 0.0,
+        )
 
         u = copy(current_state(rs))
         p_sys = current_parameters(rs.system)
@@ -51,7 +58,14 @@ f_struct(u, p, t) = SVector((u[1] + p.λ)^2 - 1)
         p0_sde = [0.0]
         σ = 0.1
         ds = CoupledSDEs(f, x0_sde, p0_sde; noise_strength = σ)
-        rs = RateSystem(ds, Dict(1 => fp_case); forcing_start_time = 0.0, forcing_duration = 10.0, forcing_scale = 1.0, t0 = 0.0)
+        rs = RateSystem(
+            ds,
+            Dict(1 => fp_case);
+            forcing_start_time = 0.0,
+            forcing_duration = 10.0,
+            forcing_scale = 1.0,
+            t0 = 0.0,
+        )
 
         u = copy(current_state(rs))
         p_sys = current_parameters(rs.system)
@@ -82,7 +96,14 @@ f_struct(u, p, t) = SVector((u[1] + p.λ)^2 - 1)
         end
 
         ds = CoupledODEs(f_inplace!, x0, p_auto; t0 = 0.0)
-        rs = RateSystem(ds, Dict(1 => fp_case); forcing_start_time = 0.0, forcing_duration = 10.0, forcing_scale = 1.0, t0 = 0.0)
+        rs = RateSystem(
+            ds,
+            Dict(1 => fp_case);
+            forcing_start_time = 0.0,
+            forcing_duration = 10.0,
+            forcing_scale = 1.0,
+            t0 = 0.0,
+        )
         @test isinplace(rs) == true
 
         du = zeros(1)
@@ -104,7 +125,14 @@ f_struct(u, p, t) = SVector((u[1] + p.λ)^2 - 1)
         p0_sde = [0.0]
         σ = 0.1
         ds = CoupledSDEs(f_sde_inplace!, x0_sde, p0_sde; noise_strength = σ)
-        rs = RateSystem(ds, Dict(1 => fp_case); forcing_start_time = 0.0, forcing_duration = 1.0, forcing_scale = 1.0, t0 = 0.0)
+        rs = RateSystem(
+            ds,
+            Dict(1 => fp_case);
+            forcing_start_time = 0.0,
+            forcing_duration = 1.0,
+            forcing_scale = 1.0,
+            t0 = 0.0,
+        )
         @test isinplace(rs) == true
 
         du = zeros(1)
@@ -223,7 +251,9 @@ f_struct(u, p, t) = SVector((u[1] + p.λ)^2 - 1)
 
         # During second interval: follows profile backwards.
         reverse_mid_t = 15.0
-        reverse_shift = fp_case.interval[2] - ((fp_case.interval[2] - fp_case.interval[1]) / 10.0) * (reverse_mid_t - 10.0)
+        reverse_shift =
+            fp_case.interval[2] -
+            ((fp_case.interval[2] - fp_case.interval[1]) / 10.0) * (reverse_mid_t - 10.0)
         expected_mid = fp_case.profile(reverse_shift) - f0
         @test isapprox(parameter(rs, reverse_mid_t, 1), expected_mid; atol = 1.0e-12)
 
@@ -267,15 +297,20 @@ f_struct(u, p, t) = SVector((u[1] + p.λ)^2 - 1)
         ds = CoupledODEs(f_struct, x0, CustomParams(0.0); t0 = 0.0)
         start_time, duration, scale = 10.0, 20.0, 1.0
         rs = RateSystem(
-            ds, fp_case, :λ;
-            forcing_start_time = start_time, forcing_duration = duration,
-            forcing_scale = scale, t0 = 0.0,
+            ds,
+            fp_case,
+            :λ;
+            forcing_start_time = start_time,
+            forcing_duration = duration,
+            forcing_scale = scale,
+            t0 = 0.0,
         )
 
         section_start, section_end = fp_case.interval
         # Mid-forcing: parameter follows the rescaled profile.
         t = 15.0
-        time_shift = ((section_end - section_start) / duration) * (t - start_time) + section_start
+        time_shift =
+            ((section_end - section_start) / duration) * (t - start_time) + section_start
         expected = scale * (fp_case.profile(time_shift) - fp_case.profile(section_start))
         @test isapprox(parameter(rs, t, :λ), expected; atol = 1.0e-12)
 
@@ -306,7 +341,13 @@ f_struct(u, p, t) = SVector((u[1] + p.λ)^2 - 1)
     profile(t) = tanh(t)
     fp = ForcingProfile(tanh, (-5.0, 5.0))
 
-    rs = RateSystem(ds, Dict(pidx => fp); forcing_start_time, forcing_duration, forcing_scale)
+    rs = RateSystem(
+        ds,
+        Dict(pidx => fp);
+        forcing_start_time,
+        forcing_duration,
+        forcing_scale,
+    )
 
     @testset "unforced_system" begin
         frozen = unforced_system(rs, rs.specs.t0)
@@ -324,8 +365,12 @@ f_struct(u, p, t) = SVector((u[1] + p.λ)^2 - 1)
     @testset "unforced_system preserves CoupledSDEs" begin
         ds_sde = CoupledSDEs(f, [0.0], [0.0]; noise_strength = 0.1)
         rs_sde = RateSystem(
-            ds_sde, Dict(1 => fp_case);
-            forcing_start_time = 0.0, forcing_duration = 10.0, forcing_scale = 1.0, t0 = 0.0
+            ds_sde,
+            Dict(1 => fp_case);
+            forcing_start_time = 0.0,
+            forcing_duration = 10.0,
+            forcing_scale = 1.0,
+            t0 = 0.0,
         )
         unforced_sde = unforced_system(rs_sde, 0.0)
         @test unforced_sde isa CoupledSDEs
@@ -360,10 +405,15 @@ f_struct(u, p, t) = SVector((u[1] + p.λ)^2 - 1)
 
         ds = CoupledODEs(f, x0, p_auto)
         sys_constructed = RateSystem(
-            ds, Dict(pidx => fp); forcing_start_time, forcing_duration, forcing_scale
+            ds,
+            Dict(pidx => fp);
+            forcing_start_time,
+            forcing_duration,
+            forcing_scale,
         )
 
-        p_hardcoded = [p_auto[1], forcing_scale, forcing_duration / 2, 40 / forcing_duration]
+        p_hardcoded =
+            [p_auto[1], forcing_scale, forcing_duration / 2, 40 / forcing_duration]
         sys_hardcoded = CoupledODEs(fexpl, x0, p_hardcoded; t0 = 0.0)
 
         tr_constructed, _ = trajectory(sys_constructed, T, x0)

@@ -11,11 +11,11 @@ const α = -1
 
 function fu(u, v)
     return (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
-        (8 * ω)
+           (8 * ω)
 end
 function fv(u, v)
     return (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
-        (8 * ω)
+           (8 * ω)
 end
 stream(u, v) = Point2f(fu(u, v), fv(u, v))
 dfvdv(u, v) = (-4 * γ * ω + 6 * α * u * v) / (8 * ω)
@@ -52,12 +52,16 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         return StateSpaceSet([H_pu H_pv])
     end
 
-    sys_sss = FreidlinWentzellHamiltonian{false, 2}(H_x_sss, H_p_sss)
+    sys_sss = FreidlinWentzellHamiltonian{false,2}(H_x_sss, H_p_sss)
 
     x_init_sss = StateSpaceSet([xx yy])
 
     string_sss = string_method(
-        sys_sss, x_init_sss; maxiters = 500, stepsize = 0.5, show_progress = false
+        sys_sss,
+        x_init_sss;
+        maxiters = 500,
+        stepsize = 0.5,
+        show_progress = false,
     )
 
     function H_x_m(x, p) # ℜ² → ℜ²
@@ -77,12 +81,16 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         return Matrix([H_pu H_pv]')
     end
 
-    sys_m = FreidlinWentzellHamiltonian{false, 2}(H_x_m, H_p_m)
+    sys_m = FreidlinWentzellHamiltonian{false,2}(H_x_m, H_p_m)
 
     x_init_m = Matrix([xx yy]')
 
     string_m = string_method(
-        sys_m, x_init_m; maxiters = 500, stepsize = 0.5, show_progress = false
+        sys_m,
+        x_init_m;
+        maxiters = 500,
+        stepsize = 0.5,
+        show_progress = false,
     )
 
     @test vec(string_m.path) ≈ vec(string_sss.path)
@@ -99,16 +107,19 @@ end
 
     b_rot(x) = [-x[2], x[1]]
 
-    string_m = string_method(
-        b_rot, x_init_m; maxiters = 25, stepsize = 0.2, show_progress = false
-    )
+    string_m =
+        string_method(b_rot, x_init_m; maxiters = 25, stepsize = 0.2, show_progress = false)
     m = Matrix(string_m.path)
     @test vec(m[1, :]) ≈ x_init_m[:, 1]
     @test vec(m[end, :]) ≈ x_init_m[:, end]
 
     x_init_sss = StateSpaceSet(x_init_m')
     string_sss = string_method(
-        b_rot, x_init_sss; maxiters = 25, stepsize = 0.2, show_progress = false
+        b_rot,
+        x_init_sss;
+        maxiters = 25,
+        stepsize = 0.2,
+        show_progress = false,
     )
     ms = Matrix(string_sss.path)
     @test vec(ms[1, :]) ≈ x_init_m[:, 1]
@@ -125,9 +136,8 @@ end
 
     b_nl(x) = [-x[1] + 0.2 * x[2]^3, -0.5 * x[2] - 0.1 * x[1]^3]
 
-    string_default = string_method(
-        b_nl, x_init_m; maxiters = 20, stepsize = 0.3, show_progress = false
-    )
+    string_default =
+        string_method(b_nl, x_init_m; maxiters = 20, stepsize = 0.3, show_progress = false)
     string_euler = string_method(
         b_nl,
         x_init_m;
@@ -140,7 +150,12 @@ end
     @test vec(Matrix(string_default.path)) ≈ vec(Matrix(string_euler.path))
 
     string_tsit5 = string_method(
-        b_nl, x_init_m; maxiters = 20, stepsize = 0.3, integrator = Tsit5(), show_progress = false
+        b_nl,
+        x_init_m;
+        maxiters = 20,
+        stepsize = 0.3,
+        integrator = Tsit5(),
+        show_progress = false,
     )
     @test norm(vec(Matrix(string_default.path)) - vec(Matrix(string_tsit5.path))) > 1.0e-10
 end
@@ -155,7 +170,7 @@ end
 
     H_x_m(x, p) = zeros(size(x))
     H_p_m(x, p) = -x
-    sys_m = FreidlinWentzellHamiltonian{false, 2}(H_x_m, H_p_m)
+    sys_m = FreidlinWentzellHamiltonian{false,2}(H_x_m, H_p_m)
 
     H_x_sss(x, p) = StateSpaceSet(zeros(length(x), D))
     function H_p_sss(x, p)
@@ -164,7 +179,7 @@ end
         # regardless of whether Matrix(StateSpaceSet) returns D×Nt or Nt×D.
         return size(m, 1) == length(x) ? StateSpaceSet(-m) : StateSpaceSet(-permutedims(m))
     end
-    sys_sss = FreidlinWentzellHamiltonian{false, 2}(H_x_sss, H_p_sss)
+    sys_sss = FreidlinWentzellHamiltonian{false,2}(H_x_sss, H_p_sss)
 
     string_euler_m = string_method(
         sys_m,
@@ -175,7 +190,12 @@ end
         show_progress = false,
     )
     string_tsit5_m = string_method(
-        sys_m, x_init_m; maxiters = 15, stepsize = 0.25, integrator = Tsit5(), show_progress = false
+        sys_m,
+        x_init_m;
+        maxiters = 15,
+        stepsize = 0.25,
+        integrator = Tsit5(),
+        show_progress = false,
     )
 
     me = Matrix(string_euler_m.path)

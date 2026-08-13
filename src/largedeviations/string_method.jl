@@ -28,13 +28,13 @@ action via [`geometric_action`](@ref). For drift-only systems (e.g. `sys::Functi
 same geometric action is computed assuming an identity noise covariance.
 """
 function string_method(
-        sys::Union{FreidlinWentzellHamiltonian, Function},
-        x_initial::AbstractMatrix;
-        stepsize::Real = 1.0e-1,
-        integrator = Euler(),
-        maxiters::Int = 1000,
-        show_progress::Bool = false,
-    )
+    sys::Union{FreidlinWentzellHamiltonian,Function},
+    x_initial::AbstractMatrix;
+    stepsize::Real = 1.0e-1,
+    integrator = Euler(),
+    maxiters::Int = 1000,
+    show_progress::Bool = false,
+)
     x_initial = Matrix(x_initial)
     Nx, Nt = size(x_initial)
     s = range(0; stop = 1, length = Nt)
@@ -44,7 +44,7 @@ function string_method(
     integ = _init_string_integrator(sys, x; ϵ = stepsize, alg = integrator)
 
     progress = Progress(maxiters; dt = 0.5, enabled = show_progress)
-    for i in 1:maxiters
+    for i = 1:maxiters
         _sciml_step!(x, integ, stepsize)
         # reset initial and final points to allow for string computation
         # between points that are not stable fixed points
@@ -110,13 +110,13 @@ function string_method(sys::CoupledSDEs, init; kwargs...)
 end
 
 function string_method(
-        b::Union{FreidlinWentzellHamiltonian, Function},
-        x_initial::StateSpaceSet{D};
-        stepsize::Real = 1.0e-1,
-        integrator = Euler(),
-        maxiters::Int = 1000,
-        show_progress::Bool = false,
-    ) where {D}
+    b::Union{FreidlinWentzellHamiltonian,Function},
+    x_initial::StateSpaceSet{D};
+    stepsize::Real = 1.0e-1,
+    integrator = Euler(),
+    maxiters::Int = 1000,
+    show_progress::Bool = false,
+) where {D}
     x_initial_m, Nt = _string_matrix(x_initial)
     s = range(0; stop = 1, length = Nt)
 
@@ -125,7 +125,7 @@ function string_method(
     integ = _init_string_integrator(b, x; ϵ = stepsize, alg = integrator)
 
     progress = Progress(maxiters; dt = 0.5, enabled = show_progress)
-    for i in 1:maxiters
+    for i = 1:maxiters
         _sciml_step!(x, integ, stepsize)
 
         # reset initial and final points to allow for string computation
@@ -174,7 +174,7 @@ function _string_matrix(y::AbstractMatrix, D::Int, Nt::Int)
     else
         throw(
             ArgumentError(
-                "Unexpected matrix size $(size(y)); expected $(D)×$(Nt) or $(Nt)×$(D)."
+                "Unexpected matrix size $(size(y)); expected $(D)×$(Nt) or $(Nt)×$(D).",
             ),
         )
     end
@@ -213,8 +213,14 @@ end
 function _build_string_integrator(f!, x::Matrix, ϵ::Real, alg)
     prob = SciMLBase.ODEProblem{true}(f!, x, (0.0, float(ϵ)))
     return SciMLBase.init(
-        prob, alg; adaptive = false, dt = float(ϵ),
-        save_everystep = false, save_start = false, save_end = false, dense = false,
+        prob,
+        alg;
+        adaptive = false,
+        dt = float(ϵ),
+        save_everystep = false,
+        save_start = false,
+        save_end = false,
+        dense = false,
     )
 end
 
@@ -222,7 +228,7 @@ function _init_string_integrator(sys::Function, x::Matrix; ϵ::Real, alg)
     _, Nt = size(x)
     f! = function (du, u, p, t)
         fill!(du, 0)
-        @inbounds @views for j in 2:(Nt - 1)
+        @inbounds @views for j = 2:(Nt-1)
             du[:, j] .= sys(u[:, j])
         end
         return nothing
@@ -231,13 +237,17 @@ function _init_string_integrator(sys::Function, x::Matrix; ϵ::Real, alg)
 end
 
 function _init_string_integrator(
-        sys::FreidlinWentzellHamiltonian{true}, x::Matrix; ϵ::Real, alg,
-    )
+    sys::FreidlinWentzellHamiltonian{true},
+    x::Matrix;
+    ϵ::Real,
+    alg,
+)
     p0_m = zeros(size(x))
     f! = function (du, u, p, t)
         _eval_Hp!(du, sys, u, p0_m)
         @views begin
-            du[:, 1] .= 0; du[:, end] .= 0
+            du[:, 1] .= 0;
+            du[:, end] .= 0
         end
         return nothing
     end
@@ -245,8 +255,11 @@ function _init_string_integrator(
 end
 
 function _init_string_integrator(
-        sys::FreidlinWentzellHamiltonian{false}, x::Matrix; ϵ::Real, alg,
-    )
+    sys::FreidlinWentzellHamiltonian{false},
+    x::Matrix;
+    ϵ::Real,
+    alg,
+)
     D, Nt = size(x)
     mode = _hp_mode(sys, x)
     p0_m = zeros(size(x))
@@ -258,7 +271,8 @@ function _init_string_integrator(
             du .= _string_matrix(sys.H_p(StateSpaceSet(u'), p0_sss), Val(D), Nt)
         end
         @views begin
-            du[:, 1] .= 0; du[:, end] .= 0
+            du[:, 1] .= 0;
+            du[:, end] .= 0
         end
         return nothing
     end

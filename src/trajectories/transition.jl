@@ -27,20 +27,19 @@ with the seed stored on `sys`; pass `seed` to override it.
 See also [`transitions`](@ref), [`trajectory`](@extref DynamicalSystemsBase.trajectory).
 """
 function transition(
-        sys::CoupledSDEs,
-        x_i,
-        x_f;
-        radii::NTuple{2} = (0.1, 0.1),
-        tmax = 1.0e3,
-        radius_directions = 1:length(current_state(sys)),
-        cut_start = true,
-        seed::Union{Nothing, Integer} = nothing,
-        kwargs...,
-    )
+    sys::CoupledSDEs,
+    x_i,
+    x_f;
+    radii::NTuple{2} = (0.1, 0.1),
+    tmax = 1.0e3,
+    radius_directions = 1:length(current_state(sys)),
+    cut_start = true,
+    seed::Union{Nothing,Integer} = nothing,
+    kwargs...,
+)
     rad_i, rad_f = radii
-    prob, cb_ball = prepare_transition_problem(
-        sys, (x_i, x_f), radii, radius_directions, tmax
-    )
+    prob, cb_ball =
+        prepare_transition_problem(sys, (x_i, x_f), radii, radius_directions, tmax)
     if seed !== nothing
         prob = remake(prob; seed = UInt64(seed))
     end
@@ -114,23 +113,22 @@ Returns a [`TransitionEnsemble`](@ref) object.
 
 """
 function transitions(
-        sys::CoupledSDEs,
-        x_i,
-        x_f,
-        N::Int = 1;
-        radii::NTuple{2} = (0.1, 0.1),
-        tmax = 1.0e3,
-        Nmax = 100,
-        cut_start = true,
-        radius_directions = 1:length(current_state(sys)),
-        show_progress::Bool = true,
-        EnsembleAlg = EnsembleThreads()::SciMLBase.EnsembleAlgorithm,
-        seed::Union{Nothing, Integer} = nothing,
-        kwargs...,
-    )
-    prob, cb_ball = prepare_transition_problem(
-        sys, (x_i, x_f), radii, radius_directions, tmax
-    )
+    sys::CoupledSDEs,
+    x_i,
+    x_f,
+    N::Int = 1;
+    radii::NTuple{2} = (0.1, 0.1),
+    tmax = 1.0e3,
+    Nmax = 100,
+    cut_start = true,
+    radius_directions = 1:length(current_state(sys)),
+    show_progress::Bool = true,
+    EnsembleAlg = EnsembleThreads()::SciMLBase.EnsembleAlgorithm,
+    seed::Union{Nothing,Integer} = nothing,
+    kwargs...,
+)
+    prob, cb_ball =
+        prepare_transition_problem(sys, (x_i, x_f), radii, radius_directions, tmax)
 
     lock = ReentrantLock()
     tries = 0
@@ -156,13 +154,17 @@ function transitions(
     function prob_func(prob, ctx)
         return remake(
             prob;
-            seed = rand(Random.MersenneTwister(master_seed + ctx.sim_id + ctx.repeat), UInt32),
+            seed = rand(
+                Random.MersenneTwister(master_seed + ctx.sim_id + ctx.repeat),
+                UInt32,
+            ),
             tspan = (0, tmax),
         )
     end
 
     diffeq_kw = NamedTuple{filter(!=(:alg), keys(sys.diffeq))}(sys.diffeq)
-    ensemble = SciMLBase.EnsembleProblem(prob; output_func = output_func, prob_func = prob_func)
+    ensemble =
+        SciMLBase.EnsembleProblem(prob; output_func = output_func, prob_func = prob_func)
     sim = solve(
         ensemble,
         solver(sys),

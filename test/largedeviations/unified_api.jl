@@ -7,7 +7,7 @@ const CT = CriticalTransitions
 @testset "minimize_geometric_action dispatches: CoupledSDEs (gMAM) ≈ FreidlinWentzellHamiltonian (sgMAM)" begin
     function meier_stein(u, p, t)
         x, y = u
-        return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
+        return SA[x-x^3-10*x*y^2, -(1+x^2)*y]
     end
     σ = 0.25
     ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
@@ -19,12 +19,18 @@ const CT = CriticalTransitions
     x_initial = Matrix([xx yy]')
 
     res_g = minimize_geometric_action(
-        ds, x_initial, GeometricGradient(; stepsize = 1.0);
-        maxiters = 500, show_progress = false,
+        ds,
+        x_initial,
+        GeometricGradient(; stepsize = 1.0);
+        maxiters = 500,
+        show_progress = false,
     )
     res_s = minimize_geometric_action(
-        sys_h, x_initial, GeometricGradient(; stepsize = 1.0);
-        maxiters = 500, show_progress = false,
+        sys_h,
+        x_initial,
+        GeometricGradient(; stepsize = 1.0);
+        maxiters = 500,
+        show_progress = false,
     )
     @test isapprox(res_g.action, res_s.action; rtol = 1.0e-2)
 end

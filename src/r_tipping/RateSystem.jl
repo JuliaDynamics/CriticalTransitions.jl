@@ -10,19 +10,19 @@ $(TYPEDFIELDS)
 Call signature: `(::RateSystemSpecs)(u, p, t)` for out-of-place and
 `(::RateSystemSpecs)(du, u, p, t)` for in-place dynamical systems.
 """
-mutable struct RateSystemSpecs{S, K, T, TT, P, X} <: Function
+mutable struct RateSystemSpecs{S,K,T,TT,P,X} <: Function
     "Underlying autonomous system"
     unforced_system::S
     "Mapping parameter index => ForcingProfile"
-    forcing_profile::Dict{K, <:ForcingProfile}
+    forcing_profile::Dict{K,<:ForcingProfile}
     "Mapping parameter index => forcing start time"
-    forcing_start_time::Dict{K, T}
+    forcing_start_time::Dict{K,T}
     "Mapping parameter index => forcing duration"
-    forcing_duration::Dict{K, T}
+    forcing_duration::Dict{K,T}
     "Mapping parameter index => forcing scale"
-    forcing_scale::Dict{K, TT}
+    forcing_scale::Dict{K,TT}
     "Mapping parameter index => whether forcing should reverse"
-    forcing_reverse::Dict{K, Bool}
+    forcing_reverse::Dict{K,Bool}
     "Frozen system original parameters"
     p0::P
     "Placeholder parameter container"
@@ -87,7 +87,7 @@ You can use the convenience syntax
 
 if you are only varying a single parameter with index `pidx`.
 """
-struct RateSystem{S, R} <: ContinuousTimeDynamicalSystem
+struct RateSystem{S,R} <: ContinuousTimeDynamicalSystem
     "Non-autonomous continuous-time dynamical system"
     system::S
     "Data structure representing the system and forcing specifications in system units"
@@ -97,27 +97,35 @@ end
 # TODO: allow the system to have different forwards and reverse profiles
 
 function RateSystem(
-        ds::ContinuousTimeDynamicalSystem,
-        forcing_profile::AbstractDict;
-        forcing_start_time = initial_time(ds),
-        forcing_duration = one(initial_time(ds)),
-        forcing_scale = 1.0,
-        reverse = false,
-        t0 = initial_time(ds),
-    )
+    ds::ContinuousTimeDynamicalSystem,
+    forcing_profile::AbstractDict;
+    forcing_start_time = initial_time(ds),
+    forcing_duration = one(initial_time(ds)),
+    forcing_scale = 1.0,
+    reverse = false,
+    t0 = initial_time(ds),
+)
 
     if isempty(forcing_profile)
-        throw(ArgumentError("`forcing_profile` must be a dictionary containing at least one entry"))
+        throw(
+            ArgumentError(
+                "`forcing_profile` must be a dictionary containing at least one entry",
+            ),
+        )
     end
 
-    forcing_kw = Dict{String, Any}(
-        "start_time" => forcing_start_time, "duration" => forcing_duration,
-        "scale" => forcing_scale, "reverse" => reverse
+    forcing_kw = Dict{String,Any}(
+        "start_time" => forcing_start_time,
+        "duration" => forcing_duration,
+        "scale" => forcing_scale,
+        "reverse" => reverse,
     )
 
     kwname = Dict(
-        "start_time" => "forcing_start_time", "duration" => "forcing_duration",
-        "scale" => "forcing_scale", "reverse" => "reverse"
+        "start_time" => "forcing_start_time",
+        "duration" => "forcing_duration",
+        "scale" => "forcing_scale",
+        "reverse" => "reverse",
     )
     for j in keys(forcing_kw)
         val = forcing_kw[j]
@@ -128,7 +136,11 @@ function RateSystem(
             forcing_kw[j] = Dict(k => val for (k, _) in forcing_profile)
         else
             scalar_kind = j == "reverse" ? "`Bool`" : "real"
-            throw(ArgumentError("`$(kwname[j])` must be a $(scalar_kind) scalar or a dictionary with the same keys as `forcing_profile`"))
+            throw(
+                ArgumentError(
+                    "`$(kwname[j])` must be a $(scalar_kind) scalar or a dictionary with the same keys as `forcing_profile`",
+                ),
+            )
         end
     end
 
@@ -143,7 +155,7 @@ function RateSystem(
         forcing_kw["reverse"],
         p0,
         deepcopy(p0),
-        t0
+        t0,
     )
 
     system = _rebuild_system(ds, rss, current_state(ds), p0, t0)
@@ -151,15 +163,21 @@ function RateSystem(
 end
 
 RateSystem(
-    ds::ContinuousTimeDynamicalSystem, forcing_profile::ForcingProfile,
-    pkey; kw...
+    ds::ContinuousTimeDynamicalSystem,
+    forcing_profile::ForcingProfile,
+    pkey;
+    kw...,
 ) = RateSystem(ds, Dict(pkey => forcing_profile); kw...)
 
 function _rebuild_system(template::CoupledSDEs, rule, u, p, t0)
     IIP = SciMLBase.isinplace(template)
     prob = referenced_sciml_prob(template)
     new_prob = SciMLBase.SDEProblem{IIP}(
-        rule, prob.g, u, (t0, prob.tspan[2]), p;
+        rule,
+        prob.g,
+        u,
+        (t0, prob.tspan[2]),
+        p;
         noise_rate_prototype = prob.noise_rate_prototype,
         noise = prob.noise,
     )
@@ -173,7 +191,9 @@ function _rebuild_system(template::CoupledODEs, rule, u, p, t0)
 end
 
 _rebuild_system(::ContinuousTimeDynamicalSystem, args...) = throw(
-    ArgumentError("A RateSystem can only be constructed from a CoupledODEs or CoupledSDEs.")
+    ArgumentError(
+        "A RateSystem can only be constructed from a CoupledODEs or CoupledSDEs.",
+    ),
 )
 
 # Out-of-place
@@ -205,18 +225,23 @@ function update_parameters!(rss::RateSystemSpecs, t::Real)
         if t > rss.forcing_start_time[pkey]
             if t < rss.forcing_start_time[pkey] + rss.forcing_duration[pkey]
                 # Stretch/squeeze forcing to the correct time units
-                time_shift = ((section_end - section_start) / rss.forcing_duration[pkey]) *
+                time_shift =
+                    ((section_end - section_start) / rss.forcing_duration[pkey]) *
                     (t - rss.forcing_start_time[pkey]) + section_start
                 p_new = p_old + rss.forcing_scale[pkey] * (f(time_shift) - f(section_start))
-            elseif rss.forcing_reverse[pkey] && t < rss.forcing_start_time[pkey] + 2 * rss.forcing_duration[pkey]
+            elseif rss.forcing_reverse[pkey] &&
+                   t < rss.forcing_start_time[pkey] + 2 * rss.forcing_duration[pkey]
                 # Reverse forcing over a second interval with the same duration.
-                time_shift = section_end - ((section_end - section_start) / rss.forcing_duration[pkey]) *
+                time_shift =
+                    section_end -
+                    ((section_end - section_start) / rss.forcing_duration[pkey]) *
                     (t - (rss.forcing_start_time[pkey] + rss.forcing_duration[pkey]))
                 p_new = p_old + rss.forcing_scale[pkey] * (f(time_shift) - f(section_start))
             elseif rss.forcing_reverse[pkey]
                 p_new = p_old
             else
-                p_new = p_old + rss.forcing_scale[pkey] * (f(section_end) - f(section_start))
+                p_new =
+                    p_old + rss.forcing_scale[pkey] * (f(section_end) - f(section_start))
             end
         else
             p_new = p_old
@@ -336,40 +361,43 @@ end
 
 # Extensions
 for f in (
-        :initial_state,
-        :initial_parameters,
-        :current_parameter,
-        :current_parameters,
-        :dynamic_rule,
-        :current_time,
-        :current_state,
-        :initial_time,
-        :successful_step,
-        :set_parameter!,
-        :set_parameters!,
-        :trajectory,
-    ) # all api functions here
-    @eval DynamicalSystemsBase.$(f)(rs::RateSystem, args...; kw...) = $(f)(
-        rs.system, args...; kw...
-    )
+    :initial_state,
+    :initial_parameters,
+    :current_parameter,
+    :current_parameters,
+    :dynamic_rule,
+    :current_time,
+    :current_state,
+    :initial_time,
+    :successful_step,
+    :set_parameter!,
+    :set_parameters!,
+    :trajectory,
+) # all api functions here
+    @eval DynamicalSystemsBase.$(f)(rs::RateSystem, args...; kw...) =
+        $(f)(rs.system, args...; kw...)
 end
 
 DynamicalSystemsBase.current_parameters(rs::RateSystem, t::Real) = parameters(rs, t)
 
-DynamicalSystemsBase.reinit!(rs::RateSystem, u::AbstractArray = initial_state(rs); kw...) = DynamicalSystemsBase.reinit!(rs.system, u; kw...)
+DynamicalSystemsBase.reinit!(rs::RateSystem, u::AbstractArray = initial_state(rs); kw...) =
+    DynamicalSystemsBase.reinit!(rs.system, u; kw...)
 
 SciMLBase.step!(rs::RateSystem, args...) = (SciMLBase.step!(rs.system, args...); rs)
 SciMLBase.isinplace(rs::RateSystem) = SciMLBase.isinplace(rs.system)
-DynamicalSystemsBase.set_state!(rs::RateSystem, u::AbstractArray) = (DynamicalSystemsBase.set_state!(rs.system, u); rs)
+DynamicalSystemsBase.set_state!(rs::RateSystem, u::AbstractArray) =
+    (DynamicalSystemsBase.set_state!(rs.system, u); rs)
 
 # SDE-specific delegations
 noise_process(rs::RateSystem) = noise_process(rs.system)
 
 solver(rs::RateSystem) = solver(rs.system)
 
-DynamicalSystemsBase.covariance_matrix(rs::RateSystem, args...; kw...) = covariance_matrix(rs.system, args...; kw...)
+DynamicalSystemsBase.covariance_matrix(rs::RateSystem, args...; kw...) =
+    covariance_matrix(rs.system, args...; kw...)
 
-DynamicalSystemsBase.diffusion_matrix(rs::RateSystem, args...; kw...) = diffusion_matrix(rs.system, args...; kw...)
+DynamicalSystemsBase.diffusion_matrix(rs::RateSystem, args...; kw...) =
+    diffusion_matrix(rs.system, args...; kw...)
 
 StateSpaceSets.dimension(rs::RateSystem) = StateSpaceSets.dimension(rs.system)
 DynamicalSystemsBase.isdeterministic(rs::RateSystem) = isa(rs.system, CoupledODEs)

@@ -21,9 +21,13 @@ Returns a [`MinimumActionPath`](@ref).
   - `verbose::Bool = false`, `show_progress::Bool = true`
 """
 function minimize_geometric_action(
-        sys::CoupledSDEs, x_i, x_f, optimizer = GeometricGradient();
-        npoints::Int = 100, kwargs...,
-    )
+    sys::CoupledSDEs,
+    x_i,
+    x_f,
+    optimizer = GeometricGradient();
+    npoints::Int = 100,
+    kwargs...,
+)
     path = reduce(hcat, range(x_i, x_f; length = npoints))
     return minimize_geometric_action(sys, path, optimizer; kwargs...)
 end
@@ -43,20 +47,40 @@ function _gmam_setup(sys::CoupledSDEs, init)
     b_fn = let sys = sys
         x -> drift(sys, x)
     end
-    x_i = init[:, 1]; x_f = init[:, end]
+    x_i = init[:, 1];
+    x_f = init[:, end]
     v_buf = similar(init)
     integrand_buf = zeros(T, N)
-    S = let b_fn = b_fn, x_i = x_i, x_f = x_f, A_at = A_at, v_buf = v_buf, integrand_buf = integrand_buf
-        x -> _geometric_action_from_drift!(b_fn, fix_ends(x, x_i, x_f), 1.0, A_at, v_buf, integrand_buf)
-    end
+    S =
+        let b_fn = b_fn,
+            x_i = x_i,
+            x_f = x_f,
+            A_at = A_at,
+            v_buf = v_buf,
+            integrand_buf = integrand_buf
+
+            x -> _geometric_action_from_drift!(
+                b_fn,
+                fix_ends(x, x_i, x_f),
+                1.0,
+                A_at,
+                v_buf,
+                integrand_buf,
+            )
+        end
     return alpha, arc, S
 end
 
 function minimize_geometric_action(
-        sys::CoupledSDEs, init::AbstractMatrix, optimizer::GeometricGradient;
-        maxiters::Int = 100, abstol::Real = NaN, reltol::Real = NaN,
-        verbose = false, show_progress = true,
-    )
+    sys::CoupledSDEs,
+    init::AbstractMatrix,
+    optimizer::GeometricGradient;
+    maxiters::Int = 100,
+    abstol::Real = NaN,
+    reltol::Real = NaN,
+    verbose = false,
+    show_progress = true,
+)
     alpha, arc, S = _gmam_setup(sys, init)
     path = Matrix(init)
     ws = geometric_gradient_workspace(sys, path)
@@ -75,18 +99,30 @@ function minimize_geometric_action(
     restore!() = copyto!(path, path_prev)
 
     current_action, _ = backtracking_optimize!(
-        optimizer, try_step!, save!, restore!, initial_action;
-        maxiters, abstol, reltol, verbose, show_progress,
+        optimizer,
+        try_step!,
+        save!,
+        restore!,
+        initial_action;
+        maxiters,
+        abstol,
+        reltol,
+        verbose,
+        show_progress,
     )
     return MinimumActionPath(StateSpaceSet(path'), current_action)
 end
 
 function minimize_geometric_action(
-        sys::CoupledSDEs, init::AbstractMatrix, optimizer;
-        maxiters::Int = 100, abstol::Real = NaN, reltol::Real = NaN,
-        ad_type = OptimizationBase.AutoFiniteDiff(),
-        show_progress = true,
-    )
+    sys::CoupledSDEs,
+    init::AbstractMatrix,
+    optimizer;
+    maxiters::Int = 100,
+    abstol::Real = NaN,
+    reltol::Real = NaN,
+    ad_type = OptimizationBase.AutoFiniteDiff(),
+    show_progress = true,
+)
     init = Matrix(init)
     alpha, arc, S = _gmam_setup(sys, init)
     interp_scratch = similar(alpha)
@@ -102,7 +138,7 @@ function minimize_geometric_action(
     return MinimumActionPath(StateSpaceSet(sol.u'), S(sol.u))
 end
 
-struct GeometricGradientWorkspace{T, A, F, JC, LC, LU}
+struct GeometricGradientWorkspace{T,A,F,JC,LC,LU}
     update::Matrix{T}
     x_prime::Matrix{T}
     lambdas::Vector{T}
@@ -152,7 +188,12 @@ function geometric_gradient_workspace(sys::CoupledSDEs, path)
         end
     end
     return GeometricGradientWorkspace{
-        T, typeof(a_func), typeof(jac_fn), typeof(jac_cfg), typeof(linear_cache), typeof(a_const_lu),
+        T,
+        typeof(a_func),
+        typeof(jac_fn),
+        typeof(jac_cfg),
+        typeof(linear_cache),
+        typeof(a_const_lu),
     }(
         similar(path),
         zeros(T, Nx, N),
@@ -162,10 +203,21 @@ function geometric_gradient_workspace(sys::CoupledSDEs, path)
         zeros(T, Nx, N - 2),
         zeros(T, Nx, N - 2),
         range(zero(T), one(T); length = N),
-        a_func, a_const_lu, jac_fn, jac_cfg, J_buf, x_buf, linear_cache,
-        zeros(T, Nx), zeros(T, Nx), zeros(T, Nx), zeros(T, Nx),
-        zeros(T, Nx), zeros(T, Nx),
-        zeros(T, Nx), zeros(T, Nx, Nx),
+        a_func,
+        a_const_lu,
+        jac_fn,
+        jac_cfg,
+        J_buf,
+        x_buf,
+        linear_cache,
+        zeros(T, Nx),
+        zeros(T, Nx),
+        zeros(T, Nx),
+        zeros(T, Nx),
+        zeros(T, Nx),
+        zeros(T, Nx),
+        zeros(T, Nx),
+        zeros(T, Nx, Nx),
     )
 end
 
@@ -179,11 +231,13 @@ function _lambda_theta!(θ_out, a_i, b_i, φp, Ainv_b, Ainv_φp, F_cached = noth
             Ainv_φp[k] = φp[k] / d[k]
         end
     else
-        F = F_cached === nothing ?
-            LinearAlgebra.lu(a_i isa Matrix ? a_i : Matrix(a_i)) :
+        F =
+            F_cached === nothing ? LinearAlgebra.lu(a_i isa Matrix ? a_i : Matrix(a_i)) :
             F_cached
-        copyto!(Ainv_b, b_i); LinearAlgebra.ldiv!(F, Ainv_b)
-        copyto!(Ainv_φp, φp);  LinearAlgebra.ldiv!(F, Ainv_φp)
+        copyto!(Ainv_b, b_i);
+        LinearAlgebra.ldiv!(F, Ainv_b)
+        copyto!(Ainv_φp, φp);
+        LinearAlgebra.ldiv!(F, Ainv_φp)
     end
     num = dot(b_i, Ainv_b)
     den = dot(φp, Ainv_φp)
@@ -206,7 +260,7 @@ function _assemble_explicit_rhs!(::Val{true}, ws, a_i, _θ, _b_i, φp, _xi, i)
     LinearAlgebra.mul!(ws.Hphi, J', _θ)
     LinearAlgebra.mul!(ws.aHphi, a_i, ws.Hphi)
     @inbounds for k in eachindex(ws.aHphi)
-        ws.rhs_explicit[k, i - 1] = -ws.lambdas[i] * ws.Hpphi[k] + ws.aHphi[k]
+        ws.rhs_explicit[k, i-1] = -ws.lambdas[i] * ws.Hpphi[k] + ws.aHphi[k]
     end
     return nothing
 end
@@ -218,9 +272,10 @@ function _assemble_explicit_rhs!(::Val{false}, ws, a_i, θ, _b_i, φp, xi, i)
     h = _fd_step(eltype(xi))
     inv_2h = 1 / (2 * h)
     Nx = length(ws.Hphi)
-    xp = ws.x_probe; dla = ws.dla_buf
+    xp = ws.x_probe;
+    dla = ws.dla_buf
     copyto!(xp, xi)
-    @inbounds for l in 1:Nx
+    @inbounds for l = 1:Nx
         xp[l] = xi[l] + h
         a_xp = ws.a_func(xp)
         xp[l] = xi[l] - h
@@ -232,7 +287,7 @@ function _assemble_explicit_rhs!(::Val{false}, ws, a_i, θ, _b_i, φp, xi, i)
     end
     LinearAlgebra.mul!(ws.aHphi, a_i, ws.Hphi)
     @inbounds for k in eachindex(ws.aHphi)
-        ws.rhs_explicit[k, i - 1] = -ws.lambdas[i] * ws.Hpphi[k] + ws.aHphi[k]
+        ws.rhs_explicit[k, i-1] = -ws.lambdas[i] * ws.Hpphi[k] + ws.aHphi[k]
     end
     return nothing
 end
@@ -248,35 +303,46 @@ In-place one-step projected-gradient update of `ws.update` from `path`. Solves e
   - `diff_order = 4`: order of the central finite-difference stencil along the path (2 or 4).
 """
 function geometric_gradient_step!(
-        ws::GeometricGradientWorkspace, sys, path; stepsize = 0.1, diff_order = 4,
-    )
-    N = size(path, 2); Nx = size(path, 1)
+    ws::GeometricGradientWorkspace,
+    sys,
+    path;
+    stepsize = 0.1,
+    diff_order = 4,
+)
+    N = size(path, 2);
+    Nx = size(path, 1)
     dx = one(eltype(path)) / (N - 1)
     path_velocity!(ws.x_prime, path, ws.arc; order = diff_order)
-    @views for i in 2:(N - 1)
-        ws.drift_cache[:, i - 1] .= drift(sys, path[:, i])
+    @views for i = 2:(N-1)
+        ws.drift_cache[:, i-1] .= drift(sys, path[:, i])
     end
-    @views for i in 2:(N - 1)
+    @views for i = 2:(N-1)
         xi = path[:, i]
         a_i = ws.a_func(xi)
-        b_i = ws.drift_cache[:, i - 1]
+        b_i = ws.drift_cache[:, i-1]
         φp = ws.x_prime[:, i]
         ws.lambdas[i] = _lambda_theta!(
-            view(ws.theta_cache, :, i - 1), a_i, b_i, φp, ws.Ainv_b, ws.Ainv_φp, ws.a_const_lu,
+            view(ws.theta_cache, :, i - 1),
+            a_i,
+            b_i,
+            φp,
+            ws.Ainv_b,
+            ws.Ainv_φp,
+            ws.a_const_lu,
         )
     end
-    @views for i in 2:(N - 1)
-        ws.lambdas_prime[i] = (ws.lambdas[i + 1] - ws.lambdas[i - 1]) / (2 * dx)
+    @views for i = 2:(N-1)
+        ws.lambdas_prime[i] = (ws.lambdas[i+1] - ws.lambdas[i-1]) / (2 * dx)
     end
-    @views for i in 2:(N - 1)
+    @views for i = 2:(N-1)
         xi = path[:, i]
         a_i = ws.a_func(xi)
-        b_i = ws.drift_cache[:, i - 1]
+        b_i = ws.drift_cache[:, i-1]
         φp = ws.x_prime[:, i]
-        θ = ws.theta_cache[:, i - 1]
+        θ = ws.theta_cache[:, i-1]
         _assemble_explicit_rhs!(is_constant(ws.a_func), ws, a_i, θ, b_i, φp, xi, i)
-        @inbounds for k in 1:Nx
-            ws.rhs_explicit[k, i - 1] += ws.lambdas[i] * ws.lambdas_prime[i] * φp[k]
+        @inbounds for k = 1:Nx
+            ws.rhs_explicit[k, i-1] += ws.lambdas[i] * ws.lambdas_prime[i] * φp[k]
         end
     end
     _gmam_implicit_shared!(ws, path, N, stepsize, dx)
@@ -286,20 +352,22 @@ end
 function _gmam_implicit_shared!(ws::GeometricGradientWorkspace, path, N, stepsize, dx)
     Tmat = ws.linear_cache.A
     rhs = ws.linear_cache.b
-    fill!(Tmat.d, 1); fill!(Tmat.dl, 0); fill!(Tmat.du, 0)
-    @inbounds for i in 2:(N - 1)
+    fill!(Tmat.d, 1);
+    fill!(Tmat.dl, 0);
+    fill!(Tmat.du, 0)
+    @inbounds for i = 2:(N-1)
         α = stepsize * ws.lambdas[i]^2 / dx^2
         if isfinite(α)
             Tmat.d[i] += 2α
-            Tmat.dl[i - 1] = -α
+            Tmat.dl[i-1] = -α
             Tmat.du[i] = -α
         end
     end
-    @inbounds for j in 1:size(path, 1)
+    @inbounds for j = 1:size(path, 1)
         rhs[1] = path[j, 1]
         rhs[end] = path[j, end]
-        for i in 2:(N - 1)
-            rhs_val = path[j, i] + stepsize * ws.rhs_explicit[j, i - 1]
+        for i = 2:(N-1)
+            rhs_val = path[j, i] + stepsize * ws.rhs_explicit[j, i-1]
             rhs[i] = isfinite(rhs_val) ? rhs_val : path[j, i]
         end
         LinearSolve.reinit!(ws.linear_cache; A = Tmat, b = rhs)

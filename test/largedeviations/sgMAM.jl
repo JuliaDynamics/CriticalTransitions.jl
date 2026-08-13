@@ -8,7 +8,7 @@ const CT = CriticalTransitions
 @testset "FreidlinWentzellHamiltonian inner-loop type-stable" begin
     function meier_stein_ts(u, p, t)
         x, y = u
-        return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
+        return SA[x-x^3-10*x*y^2, -(1+x^2)*y]
     end
     ds = CoupledSDEs(meier_stein_ts, zeros(2); noise_strength = 0.25)
     sys = FreidlinWentzellHamiltonian(ds)
@@ -17,13 +17,17 @@ const CT = CriticalTransitions
     xx = range(-1.0, 1.0; length = Nt)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     xpath = Matrix([xx yy]')
-    xdot = zeros(size(xpath)); ppath = zeros(size(xpath)); λ = zeros(1, Nt)
-    pdot = zeros(size(xpath)); xdotdot = zeros(size(xpath))
+    xdot = zeros(size(xpath));
+    ppath = zeros(size(xpath));
+    λ = zeros(1, Nt)
+    pdot = zeros(size(xpath));
+    xdotdot = zeros(size(xpath))
     cache = CT.build_sgmam_cache(sys, xpath, Nt)
     CT.central_diff!(xdot, xpath)
     CT.update_p!(ppath, λ, xpath, xdot, sys, cache)
     Hx = sys.H_x(xpath, ppath)
-    CT.central_diff!(pdot, ppath); CT.central_diff!(xdotdot, xdot)
+    CT.central_diff!(pdot, ppath);
+    CT.central_diff!(xdotdot, xdot)
 
     @inferred CT.update_p!(ppath, λ, xpath, xdot, sys, cache)
     @inferred CT.update_x!(xpath, λ, pdot, xdotdot, Hx, sys, 1.0, cache)
@@ -32,7 +36,7 @@ end
 @testset "Constant-a update_x! no per-iteration sparse alloc" begin
     function meier_stein(u, p, t)
         x, y = u
-        return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
+        return SA[x-x^3-10*x*y^2, -(1+x^2)*y]
     end
     ds = CoupledSDEs(meier_stein, zeros(2); noise_strength = 0.25)
     sys = FreidlinWentzellHamiltonian(ds)
@@ -41,13 +45,19 @@ end
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     x_initial = Matrix([xx yy]')
     minimize_geometric_action(
-        sys, x_initial, GeometricGradient(; stepsize = 1.0);
-        maxiters = 1, show_progress = false,
+        sys,
+        x_initial,
+        GeometricGradient(; stepsize = 1.0);
+        maxiters = 1,
+        show_progress = false,
     )
     bytes_before = Base.gc_num().total_allocd
     minimize_geometric_action(
-        sys, x_initial, GeometricGradient(; stepsize = 1.0);
-        maxiters = 10, show_progress = false,
+        sys,
+        x_initial,
+        GeometricGradient(; stepsize = 1.0);
+        maxiters = 10,
+        show_progress = false,
     )
     bytes_after = Base.gc_num().total_allocd
     @test (bytes_after - bytes_before) < 5_000_000
@@ -57,19 +67,19 @@ end
     f_lin(u, p, t) = SA[-u[1], -u[2]]
     ds_ode = CoupledODEs(f_lin, SA[0.0, 0.0])
     sys_ode = FreidlinWentzellHamiltonian(ds_ode)
-    @test sys_ode isa FreidlinWentzellHamiltonian{<:Any, 2}
+    @test sys_ode isa FreidlinWentzellHamiltonian{<:Any,2}
     @test sys_ode.a isa Base.Returns
     @test sys_ode.a(zeros(2)) ≈ LinearAlgebra.Diagonal(ones(2))
 
     ds_iso = CoupledSDEs(f_lin, SA[0.0, 0.0]; noise_strength = 1.0)
     sys_iso = FreidlinWentzellHamiltonian(ds_iso)
-    @test sys_iso isa FreidlinWentzellHamiltonian{<:Any, 2}
+    @test sys_iso isa FreidlinWentzellHamiltonian{<:Any,2}
     @test sys_iso.a isa Base.Returns
 
     H_x_user(x, p) = zeros(size(x))
     H_p_user(x, p) = ones(size(x))
-    sys_user = FreidlinWentzellHamiltonian{false, 2}(H_x_user, H_p_user)
-    @test sys_user isa FreidlinWentzellHamiltonian{false, 2}
+    sys_user = FreidlinWentzellHamiltonian{false,2}(H_x_user, H_p_user)
+    @test sys_user isa FreidlinWentzellHamiltonian{false,2}
     @test sys_user.a isa Base.Returns
 end
 
@@ -83,11 +93,11 @@ end
 
     function fu(u, v)
         return (-4 * γ * ω * u - 2 * λ * v - 4 * (ω0 - ω^2) * v - 3 * α * v * (u^2 + v^2)) /
-            (8 * ω)
+               (8 * ω)
     end
     function fv(u, v)
         return (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
-            (8 * ω)
+               (8 * ω)
     end
 
     dfvdv(u, v) = (-4 * γ * ω + 6 * α * u * v) / (8 * ω)
@@ -115,7 +125,7 @@ end
     kpo_rhs(u, p, t) = SA[fu(u[1], u[2]), fv(u[1], u[2])]
     ds = CoupledODEs(kpo_rhs, zeros(2))
 
-    sys = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
+    sys = FreidlinWentzellHamiltonian{false,2}(H_x, H_p)
     sys′ = FreidlinWentzellHamiltonian(ds)
 
     Nt = 500  # number of discrete time steps
@@ -153,7 +163,7 @@ end
 @testset "sgMAM GeometricGradient" begin
     H_x(x, p) = zeros(size(x))
     H_p(x, p) = ones(size(x))
-    sys = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
+    sys = FreidlinWentzellHamiltonian{false,2}(H_x, H_p)
 
     xx = collect(range(-1.0, 1.0; length = 20))
     yy = 0.3 .* (-xx .^ 2 .+ 1)
@@ -212,9 +222,8 @@ end
 
     # Single iteration with huge stepsize: backtracking should prevent blowup
     opt = GeometricGradient(; max_backtracks = 20, stepsize = 1.0e6)
-    res = minimize_geometric_action(
-        sys, x_initial, opt; maxiters = 1, show_progress = false
-    )
+    res =
+        minimize_geometric_action(sys, x_initial, opt; maxiters = 1, show_progress = false)
     @test isfinite(res.action)
     @test res.action <= S0 + 1.0e-10
 
@@ -366,7 +375,10 @@ end
     @test opt.grow > 1
 
     opt2 = AdaptiveGeometricGradient(;
-        stepsize = 50.0, probe_length = 100, shrink = 0.4, grow = 1.5,
+        stepsize = 50.0,
+        probe_length = 100,
+        shrink = 0.4,
+        grow = 1.5,
     )
     @test opt2.stepsize == 50.0
     @test opt2.probe_length == 100
@@ -390,7 +402,9 @@ end
     s = range(0; stop = 1, length = Nt)
     α = zeros(Nt)
     CT.interpolate_path!(x0, α, s)
-    xdot = zeros(size(x0)); p = zeros(size(x0)); λ = zeros(1, Nt)
+    xdot = zeros(size(x0));
+    p = zeros(size(x0));
+    λ = zeros(1, Nt)
     cache_ad = CT.build_sgmam_cache(sys, x0, Nt)
     CT.central_diff!(xdot, x0)
     CT.update_p!(p, λ, x0, xdot, sys, cache_ad)
@@ -399,18 +413,22 @@ end
 
     # Adaptive should strictly improve on the initial path
     res_ad = minimize_geometric_action(
-        sys, x_initial,
+        sys,
+        x_initial,
         AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 50);
-        maxiters = 500, show_progress = false,
+        maxiters = 500,
+        show_progress = false,
     )
     @test isfinite(res_ad.action)
     @test res_ad.action < S0
 
     # Adaptive should be competitive with backtracking GeometricGradient
     res_gg = minimize_geometric_action(
-        sys, x_initial,
+        sys,
+        x_initial,
         GeometricGradient(; stepsize = 100.0);
-        maxiters = 1000, show_progress = false,
+        maxiters = 1000,
+        show_progress = false,
     )
     # Within 10% (Maier–Stein is overdamped: both regimes find similar paths;
     # adaptive uses 2× compute per probe window so with the same maxiters it may
@@ -424,9 +442,11 @@ end
     actions = Float64[]
     for ss in (1.0, 100.0, 1.0e4)
         res = minimize_geometric_action(
-            sys, x_initial,
+            sys,
+            x_initial,
             AdaptiveGeometricGradient(; stepsize = ss, probe_length = 50);
-            maxiters = 500, show_progress = false,
+            maxiters = 500,
+            show_progress = false,
         )
         @test isfinite(res.action)
         push!(actions, res.action)
@@ -440,16 +460,21 @@ end
 
     # reltol-based early stop
     res_tol = minimize_geometric_action(
-        sys, x_initial,
+        sys,
+        x_initial,
         AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 50);
-        maxiters = 10_000, reltol = 1.0e-6, show_progress = false,
+        maxiters = 10_000,
+        reltol = 1.0e-6,
+        show_progress = false,
     )
     @test isfinite(res_tol.action)
 
     res_notol = minimize_geometric_action(
-        sys, x_initial,
+        sys,
+        x_initial,
         AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 50);
-        maxiters = 10_000, show_progress = false,
+        maxiters = 10_000,
+        show_progress = false,
     )
     @test res_notol.action <= res_tol.action + 1.0e-8
 end
@@ -460,9 +485,11 @@ end
     # Accepts a StateSpaceSet
     sss = StateSpaceSet(x_initial')
     res_sss = minimize_geometric_action(
-        sys, sss,
+        sys,
+        sss,
         AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 30);
-        maxiters = 100, show_progress = false,
+        maxiters = 100,
+        show_progress = false,
     )
     @test isfinite(res_sss.action)
 end
@@ -475,33 +502,41 @@ end
     λ_val = 3 / 1.21 * 2 / 100
     α_val = -1.0
     γ_val = λ_val / 2 * 0.05  # κ = 0.05, strongly underdamped
-    ω0 = 1.0; ω_v = 1.0
+    ω0 = 1.0;
+    ω_v = 1.0
 
-    fu(u, v) = (-4γ_val * ω_v * u - 2λ_val * v - 4(ω0 - ω_v^2) * v - 3α_val * v * (u^2 + v^2)) / (8ω_v)
-    fv(u, v) = (-4γ_val * ω_v * v - 2λ_val * u + 4(ω0 - ω_v^2) * u + 3α_val * u * (u^2 + v^2)) / (8ω_v)
+    fu(u, v) =
+        (-4γ_val * ω_v * u - 2λ_val * v - 4(ω0 - ω_v^2) * v - 3α_val * v * (u^2 + v^2)) /
+        (8ω_v)
+    fv(u, v) =
+        (-4γ_val * ω_v * v - 2λ_val * u + 4(ω0 - ω_v^2) * u + 3α_val * u * (u^2 + v^2)) /
+        (8ω_v)
     dfudu(u, v) = (-4γ_val * ω_v - 6α_val * u * v) / (8ω_v)
     dfudv(u, v) = (-2λ_val - 4(ω0 - ω_v^2) - 3α_val * u^2 - 9α_val * v^2) / (8ω_v)
     dfvdu(u, v) = (-2λ_val + 4(ω0 - ω_v^2) + 9α_val * u^2 + 3α_val * v^2) / (8ω_v)
     dfvdv(u, v) = (-4γ_val * ω_v + 6α_val * u * v) / (8ω_v)
 
     function H_x(x, p)
-        u, v = eachrow(x); pu, pv = eachrow(p)
+        u, v = eachrow(x);
+        pu, pv = eachrow(p)
         H_u = @. pu * dfudu(u, v) + pv * dfvdu(u, v)
         H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
         return Matrix([H_u H_v]')
     end
     function H_p(x, p)
-        u, v = eachrow(x); pu, pv = eachrow(p)
+        u, v = eachrow(x);
+        pu, pv = eachrow(p)
         H_pu = @. pu + fu(u, v)
         H_pv = @. pv + fv(u, v)
         return Matrix([H_pu H_pv]')
     end
-    sys = FreidlinWentzellHamiltonian{false, 2}(H_x, H_p)
+    sys = FreidlinWentzellHamiltonian{false,2}(H_x, H_p)
 
     κ = 2γ_val / λ_val
     r = sqrt(2λ_val * sqrt(1 - κ^2) / (3 * abs(α_val)))
     θ = atan(-κ, -sqrt(1 - κ^2)) / 2
-    xa = [r * cos(θ), r * sin(θ)]; xb = -xa
+    xa = [r * cos(θ), r * sin(θ)];
+    xb = -xa
     Nt = 200
     s = collect(range(0; stop = 1, length = Nt))
     xx = @. (xb[1] - xa[1]) * s + xa[1]
@@ -510,16 +545,20 @@ end
 
     # Backtracking GeometricGradient (incumbent) starting from a large step size
     res_gg = minimize_geometric_action(
-        sys, x_initial,
+        sys,
+        x_initial,
         GeometricGradient(; stepsize = 100.0);
-        maxiters = 2000, show_progress = false,
+        maxiters = 2000,
+        show_progress = false,
     )
 
     # Adaptive — should reach a lower or equal action on this underdamped problem
     res_ad = minimize_geometric_action(
-        sys, x_initial,
+        sys,
+        x_initial,
         AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 100);
-        maxiters = 2000, show_progress = false,
+        maxiters = 2000,
+        show_progress = false,
     )
     @test isfinite(res_ad.action)
     @test isfinite(res_gg.action)

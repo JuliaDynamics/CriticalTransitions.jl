@@ -6,7 +6,7 @@ the floating-point type of `z`; thresholds for switching between the
 Taylor expansion and the direct form scale with `eps(T)` so the series
 remains accurate at any precision.
 """
-@inline function _bernoulli(z::T) where {T <: AbstractFloat}
+@inline function _bernoulli(z::T) where {T<:AbstractFloat}
     az = abs(z)
     # Below `eps^(2/3)` the linear term is already at machine precision,
     # so `B(z) ≈ 1`. Between that and `eps^(1/5)` the order-4 Taylor
@@ -30,11 +30,12 @@ Impose Dirichlet rows in-place by zeroing masked rows and setting their
 diagonal to one.
 """
 function _enforce_dirichlet_rows!(
-        A::SparseMatrixCSC{T, Int}, mask::BitVector
-    ) where {T <: AbstractFloat}
+    A::SparseMatrixCSC{T,Int},
+    mask::BitVector,
+) where {T<:AbstractFloat}
     rv = rowvals(A)
     nz = nonzeros(A)
-    @inbounds for col in 1:size(A, 2)
+    @inbounds for col = 1:size(A, 2)
         for p in nzrange(A, col)
             mask[rv[p]] && (nz[p] = zero(T))
         end
@@ -52,13 +53,13 @@ Solve the linear system `A q = b` subject to Dirichlet conditions
 `q[mask] = values[mask]`. `source` sets the free-row right-hand side.
 """
 function _solve_dirichlet(
-        A::SparseMatrixCSC{T, Int},
-        mask::BitVector,
-        values::Vector{T},
-        alg = UMFPACKFactorization();
-        source::Union{Nothing, Vector{T}} = nothing,
-        kwargs...,
-    )::Vector{T} where {T <: AbstractFloat}
+    A::SparseMatrixCSC{T,Int},
+    mask::BitVector,
+    values::Vector{T},
+    alg = UMFPACKFactorization();
+    source::Union{Nothing,Vector{T}} = nothing,
+    kwargs...,
+)::Vector{T} where {T<:AbstractFloat}
     M = copy(A)
     rhs = source === nothing ? zeros(T, size(A, 1)) : copy(source)
     _enforce_dirichlet_rows!(M, mask)
@@ -82,14 +83,16 @@ algorithm that supports the matrix eltype (e.g. `KrylovJL_GMRES()` or
 `GenericLUFactorization()`).
 """
 function _invariant_density(
-        G::SparseMatrixCSC{T, Int}, weights::Vector{T},
-        alg = UMFPACKFactorization();
-        pin_row::Int = 1, clamp_negative::Bool = true, kwargs...,
-    )::Vector{T} where {T <: AbstractFloat}
+    G::SparseMatrixCSC{T,Int},
+    weights::Vector{T},
+    alg = UMFPACKFactorization();
+    pin_row::Int = 1,
+    clamp_negative::Bool = true,
+    kwargs...,
+)::Vector{T} where {T<:AbstractFloat}
     N = size(G, 1)
-    length(weights) == N || throw(
-        DimensionMismatch("weight vector length $(length(weights)) ≠ N = $N"),
-    )
+    length(weights) == N ||
+        throw(DimensionMismatch("weight vector length $(length(weights)) ≠ N = $N"))
     1 <= pin_row <= N || throw(BoundsError(1:N, pin_row))
 
     A = sparse(transpose(G))
@@ -115,19 +118,19 @@ with diagonal `G̃[i, i] = -∑_{j ≠ i} G̃[i, j]`. Output preserves the
 sparsity pattern of `Gᵀ` and the sign convention of `G`.
 """
 function _adjoint_generator(
-        G::SparseMatrixCSC{T, Int}, ρ::Vector{T}
-    )::SparseMatrixCSC{T, Int} where {T <: AbstractFloat}
+    G::SparseMatrixCSC{T,Int},
+    ρ::Vector{T},
+)::SparseMatrixCSC{T,Int} where {T<:AbstractFloat}
     N = size(G, 1)
-    length(ρ) == N || throw(
-        DimensionMismatch("ρ has length $(length(ρ)) but generator is $N×$N"),
-    )
+    length(ρ) == N ||
+        throw(DimensionMismatch("ρ has length $(length(ρ)) but generator is $N×$N"))
     # Time-reversal is only defined on a strictly positive invariant density;
     # zeros (e.g. off-basin QSD entries) need to be restricted to a support
     # mask by the caller instead of silently clamped.
     any(ρi -> ρi <= 0, ρ) && throw(
         ArgumentError(
             "ρ must be strictly positive; restrict G and ρ to the supporting " *
-                "communicating class before calling `_adjoint_generator`"
+            "communicating class before calling `_adjoint_generator`",
         ),
     )
     Gtil = sparse(transpose(G))
@@ -135,7 +138,7 @@ function _adjoint_generator(
     nz = nonzeros(Gtil)
     diagacc = zeros(T, N)
 
-    @inbounds for col in 1:N
+    @inbounds for col = 1:N
         for p in nzrange(Gtil, col)
             row = rv[p]
             if row == col
@@ -147,7 +150,7 @@ function _adjoint_generator(
             diagacc[row] -= val
         end
     end
-    @inbounds for n in 1:N
+    @inbounds for n = 1:N
         Gtil[n, n] = diagacc[n]
     end
     return Gtil

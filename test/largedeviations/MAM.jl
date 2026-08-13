@@ -10,7 +10,15 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
     N, T = 75, 2.0
-    inst = minimize_action(fhn, x_i, x_f, T; npoints = N, maxiters = 500, show_progress = false)
+    inst = minimize_action(
+        fhn,
+        x_i,
+        x_f,
+        T;
+        npoints = N,
+        maxiters = 500,
+        show_progress = false,
+    )
     # If you evolve for longer the path splits into two :/
     S = fw_action(fhn, Matrix(inst.path)', range(0.0, T; length = N))
     @test isapprox(S, 0.18, atol = 0.01)
@@ -25,7 +33,13 @@ end
     N = 51
     t = range(0, T, N)
     inst_mam = minimize_action(
-        ou, SA[x0], SA[xT], T; npoints = 51, maxiters = 2000, show_progress = false
+        ou,
+        SA[x0],
+        SA[xT],
+        T;
+        npoints = 51,
+        maxiters = 2000,
+        show_progress = false,
     )
     inst_sol =
         ((xT - x0 * exp(-T)) * exp.(t) .+ (x0 * exp(T) - xT) * exp.(-t)) /

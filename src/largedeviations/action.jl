@@ -7,9 +7,10 @@ returns a callable `x -> inv(a(x))`. Callers route through `_eval_metric`.
 """
 _action_metric(sys::CoupledSDEs) = _action_metric(_trace_normalized_a(sys), sys)
 _action_metric(a::Base.Returns, sys::CoupledSDEs) = inv(a(current_state(sys)))
-_action_metric(a, sys::CoupledSDEs) = let a = a
-    x -> inv(a(x))
-end
+_action_metric(a, sys::CoupledSDEs) =
+    let a = a
+        x -> inv(a(x))
+    end
 
 # `A` may be a matrix (constant metric) or callable `x -> A(x)` (state-dep).
 _eval_metric(A::AbstractMatrix, _) = A
@@ -35,8 +36,8 @@ function fw_action(sys::CoupledSDEs, path, time)
     A_at = _action_metric(sys)
     integrand = fw_integrand(sys, path, time, A_at)
     S = zero(eltype(path))
-    @inbounds for i in 1:(size(path, 2) - 1)
-        S += (integrand[i + 1] + integrand[i]) / 2 * (time[i + 1] - time[i])
+    @inbounds for i = 1:(size(path, 2)-1)
+        S += (integrand[i+1] + integrand[i]) / 2 * (time[i+1] - time[i])
     end
     return S / 2
 end
@@ -71,11 +72,12 @@ function om_action(sys::CoupledSDEs, path, time, noise_strength)
     end
     σ = noise_strength
     S = zero(eltype(path))
-    @views @inbounds for i in 1:(size(path, 2) - 1)
-        S += σ^2 / 2 * (
-            (div_drift(sys, path[:, i + 1]) + div_drift(sys, path[:, i])) / 2 *
-                (time[i + 1] - time[i])
-        )
+    @views @inbounds for i = 1:(size(path, 2)-1)
+        S +=
+            σ^2 / 2 * (
+                (div_drift(sys, path[:, i+1]) + div_drift(sys, path[:, i])) / 2 *
+                (time[i+1] - time[i])
+            )
     end
     return fw_action(sys, path, time) + S
 end
@@ -89,7 +91,13 @@ Computes the action functional specified by `functional` for a given CoupledSDEs
 * `functional = "FW"`: Returns the Freidlin-Wentzell action ([`fw_action`](@ref))
 * `functional = "OM"`: Returns the Onsager-Machlup action ([`om_action`](@ref))
 """
-function action(sys::CoupledSDEs, path::AbstractMatrix, time, functional::AbstractString; noise_strength = nothing)
+function action(
+    sys::CoupledSDEs,
+    path::AbstractMatrix,
+    time,
+    functional::AbstractString;
+    noise_strength = nothing,
+)
     return action(sys, path, time, Val{Symbol(functional)}(); noise_strength)
 end
 
@@ -97,7 +105,13 @@ action(sys::CoupledSDEs, path::AbstractMatrix, time, ::Val{:FW}; noise_strength 
     fw_action(sys, path, time)
 action(sys::CoupledSDEs, path::AbstractMatrix, time, ::Val{:OM}; noise_strength = nothing) =
     om_action(sys, path, time, noise_strength)
-function action(sys::CoupledSDEs, path::AbstractMatrix, time, ::Val{S}; noise_strength = nothing) where {S}
+function action(
+    sys::CoupledSDEs,
+    path::AbstractMatrix,
+    time,
+    ::Val{S};
+    noise_strength = nothing,
+) where {S}
     throw(
         ArgumentError(
             "Unknown action functional `$(S)`. Supported values are \"FW\" and \"OM\".",
@@ -157,11 +171,18 @@ function _geometric_action_from_drift(b::Function, path, arclength::Real, A)
     return _geometric_action_from_drift!(b, path, arclength, A, v_buf, integrand_buf)
 end
 
-function _geometric_action_from_drift!(b::Function, path, arclength::Real, A, v_buf, integrand_buf)
+function _geometric_action_from_drift!(
+    b::Function,
+    path,
+    arclength::Real,
+    A,
+    v_buf,
+    integrand_buf,
+)
     N = size(path, 2)
     T = eltype(path)
     path_velocity!(v_buf, path, range(zero(T), T(arclength); length = N); order = 4)
-    @views @inbounds for i in 1:N
+    @views @inbounds for i = 1:N
         xi = path[:, i]
         vi = v_buf[:, i]
         drift_i = b(xi)
@@ -169,8 +190,8 @@ function _geometric_action_from_drift!(b::Function, path, arclength::Real, A, v_
         integrand_buf[i] = anorm(vi, A_i) * anorm(drift_i, A_i) - dot(vi, A_i, drift_i)
     end
     S = zero(eltype(path))
-    @inbounds for i in 1:(N - 1)
-        S += (integrand_buf[i + 1] + integrand_buf[i]) / 2
+    @inbounds for i = 1:(N-1)
+        S += (integrand_buf[i+1] + integrand_buf[i]) / 2
     end
     return S * arclength / (N - 1)
 end

@@ -51,7 +51,9 @@ function fitzhugh_nagumo(u, p, t)
     return SVector(dx, dy)
 end
 mutable struct FitzhughNagumoParameters
-    ε::Float64; β::Float64; I::Float64
+    ε::Float64;
+    β::Float64;
+    I::Float64
 end
 p = FitzhughNagumoParameters(0.1, 3.0, 0.0)
 u0 = [0.1, 0.1]
@@ -82,7 +84,9 @@ fp = ForcingProfile(:linear)
 
 pidx = :I # which parameter changes
 rs = RateSystem(
-    ds, fp, pidx;
+    ds,
+    fp,
+    pidx;
     forcing_start_time = 10,
     forcing_duration = 10,
     forcing_scale = 5,
@@ -102,7 +106,9 @@ rs = RateSystem(
 # now if we choose the `reverse` option,
 
 rs = RateSystem(
-    ds, fp, pidx;
+    ds,
+    fp,
+    pidx;
     forcing_start_time = 10,
     forcing_duration = 10,
     forcing_scale = 5,
@@ -149,7 +155,8 @@ profiles = Dict(
 # and you can provide same type of dictionaries for the forcing start, duration, and scale:
 
 rs2 = RateSystem(
-    ds, profiles;
+    ds,
+    profiles;
     forcing_start_time = Dict(:I => 10.0, :β => 15.0),
     forcing_duration = Dict(:I => 10.0, :β => 20.0),
     forcing_scale = Dict(:I => 5.0, :β => 3.0),
@@ -222,15 +229,11 @@ u0 = [2.5, 2.5] # this converges to steady state with larger T
 
 # with a rate profile
 profile = ForcingProfile(x -> cos(x)^2, (-π / 2, 0.0))
-ratestommel = RateSystem(
-    stommel, profile, 1;
-    forcing_start_time = 50.0, reverse = true
-)
+ratestommel = RateSystem(stommel, profile, 1; forcing_start_time = 50.0, reverse = true)
 
 # We can now run the main function
-rate_type, attractors_cont = rate_track_return_tip(
-    ratestommel, Δts, Δps, mapper, sampler; proximity_kw, u0
-)
+rate_type, attractors_cont =
+    rate_track_return_tip(ratestommel, Δts, Δps, mapper, sampler; proximity_kw, u0)
 
 # which gives
 
@@ -241,7 +244,9 @@ using CairoMakie
 cmap = cgrad(["white", "red", "blue"], 3; categorical = true)
 # cmap = Makie.Categorical(["white", "red", "blue"])
 fig, ax, hm = heatmap(Δps, log2.(Δts), rate_type; colormap = cmap)
-ax.xlabel = "Δη1"; ax.ylabel = "log2(Δt)"; ax.title = "rate tipping"
+ax.xlabel = "Δη1";
+ax.ylabel = "log2(Δt)";
+ax.title = "rate tipping"
 cb = Colorbar(fig[1, 2], hm)
 cb.ticks = (1:3, ["always\ntrack", "return but\nnot track", "always\ntip"])
 cb.ticklabelrotation = π / 2 # hide
@@ -267,7 +272,7 @@ sds = CoupledSDEs(ds; noise_strength = 0.2)
 # by default) on top of the basins of attraction
 
 ax = content(figboa[1, 1])
-for _ in 1:3
+for _ = 1:3
     traj_sds, = trajectory(sds, T, [0.5, 0.5]; Δt = 0.1)
     lines!(ax, traj_sds)
 end
@@ -289,7 +294,7 @@ sds_advanced = CoupledSDEs(fitzhugh_nagumo, [0.1, 0.1], p_noise; g = g)
 
 fig = Figure()
 ax = Axis(fig[1, 1]; xlabel = "time", ylabel = "u", title = "advanced SDE")
-for _ in 1:3
+for _ = 1:3
     traj_sds, = trajectory(sds_advanced, T, [0.5, 0.5]; Δt = 0.1)
     lines!(ax, 0:0.1:T, traj_sds[:, 1])
 end
@@ -303,14 +308,25 @@ x_i = Vector(boa.attractors[1][1]) # Initial state
 x_f = Vector(boa.attractors[2][1]) # Final state
 
 gmam = minimize_geometric_action(
-    sds, x_i, x_f;
-    npoints = 50, maxiters = 2000, show_progress = false
+    sds,
+    x_i,
+    x_f;
+    npoints = 50,
+    maxiters = 2000,
+    show_progress = false,
 )
 
 instanton = gmam.path
 
 ax = content(figboa[1, 1])
-lines!(ax, instanton[:, 1], instanton[:, 2], linewidth = 3, color = :red, label = "Instanton (gMAM)")
+lines!(
+    ax,
+    instanton[:, 1],
+    instanton[:, 2],
+    linewidth = 3,
+    color = :red,
+    label = "Instanton (gMAM)",
+)
 axislegend(ax)
 figboa
 
