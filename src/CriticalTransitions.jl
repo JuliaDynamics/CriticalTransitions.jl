@@ -95,6 +95,7 @@ include("largedeviations/string_method.jl")
 
 include("r_tipping/ForcingProfile.jl")
 include("r_tipping/RateSystem.jl")
+include("r_tipping/frozen_systems.jl")
 include("r_tipping/r_tipping_phase_diagrams.jl")
 
 # Diffusion operator (general SDE machinery: discrete generator + analyses)
@@ -136,6 +137,7 @@ export transition, transitions
 
 export ForcingProfile, RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!, set_forcing_reverse!
+export frozen_system, past_limit_system, future_limit_system
 export unforced_system, parameters, parameter
 export rate_track_return_tip, unforced_pcurve
 
