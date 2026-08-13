@@ -101,6 +101,8 @@ reactive_current_reversible
 reactive_current_irreversible
 probability_reactive
 probability_last_A
+forward_committor
+backward_committor
 ```
 
 ---

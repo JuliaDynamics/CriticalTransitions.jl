@@ -72,13 +72,13 @@ The factor is ``1`` whenever ``\mathbf{Q}_{\mathrm{user}}`` is isotropic (``c\,\
 
 ## Non-autonomous: `RateSystem`
 
+![Schematic explaining RateSystem construction](../assets/ratesystem_scheme.png)
+
 ```@docs; canonical=false
 RateSystem
 ForcingProfile
 unforced_system
 ```
-
-![Schematic explaining RateSystem construction](../assets/ratesystem_scheme.png)
 
 ### `RateSystem` API
 
@@ -88,6 +88,15 @@ parameter
 set_forcing_start!
 set_forcing_duration!
 set_forcing_scale!
+set_forcing_reverse!
+```
+
+**Autonomous snapshot systems**
+
+```@docs; canonical=false
+frozen_system
+past_limit_system
+future_limit_system
 ```
 
 ## Converting between systems

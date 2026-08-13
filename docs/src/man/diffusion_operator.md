@@ -118,6 +118,15 @@ After discretisation, ``\mathcal{L}`` becomes a sparse matrix ``Q``; its transpo
 
 `rate_matrix` and `m_matrix` differ only in sign convention; the Fokker-Planck operator is the matrix transpose, equivalent to the ``L^2``-adjoint of the generator (for the uniform cell-volume inner product). The observables in the first half of this page are linear boundary-value problems on ``\mathcal{L}`` or its adjoint: the invariant density solves ``Q^\top\rho = 0`` with normalisation, and the mean first-passage time to a target ``T`` solves ``\mathcal{L}\tau = -1`` on ``T^{\mathrm{c}}`` with ``\tau|_T = 0``.
 
+For weak noise, the stationary Fokker-Planck equation ``\mathcal{L}^{*}\rho = 0`` connects directly to the large-deviation / Hamiltonian picture used by gMAM/sgMAM. 
+When ubstituting the WKB ansatz ``\rho(x) \approx K(x)\,e^{-U(x)/|\sigma|^2}`` into ``\mathcal{L}^{*}\rho=0``, the leading order as ``|\sigma| \to 0`` gives the stationary Hamilton-Jacobi equation
+
+```math
+H(x, \nabla U(x)) = 0, \qquad H(x,p) = b(x)\cdot p + \tfrac{1}{2}\,p^\top \sigma\sigma^\top(x)\,p,
+```
+
+i.e. exactly the Freidlin-Wentzell Hamiltonian of [Large deviation theory](@ref "Large deviation theory"), with ``U`` the quasipotential.
+
 ### Discretisation
 
 We approximate the diffusion by a continuous-time Markov chain on a uniform Cartesian grid: each cell becomes a state of the chain; the generator ``Q`` collects transition rates between adjacent cells.

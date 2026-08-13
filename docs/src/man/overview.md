@@ -10,7 +10,7 @@ CriticalTransitions.jl provides several complementary methods that all answer th
 | Most probable path **and** exponential rate | [Large deviation theory](@ref "Large deviation theory") | weak noise (``\varepsilon \to 0``); instanton & quasipotential |
 | Escape rate, mean first-passage time, (quasi-)stationary density | [Rates, distributions & the generator](@ref "Rates, distributions & the generator") | finite noise; spectral observables |
 | Where reactive paths concentrate, transition channels, committor | [Transition path theory](@ref "Transition Path Theory") | finite noise; spatial flux |
-| Transition driven by parameter drift rather than noise | [Rate-induced transitions](@ref "Rate-induced transitions") | non-autonomous forcing |
+| Transition driven by parameter drift rather than noise | [Rate-induced transitions](@ref "Studying rate-induced tipping") | non-autonomous forcing |
 
 ## Picking by what you need
 
@@ -19,7 +19,7 @@ CriticalTransitions.jl provides several complementary methods that all answer th
 - **Spatial flux and channels?** Use [transition path theory](@ref "Transition Path Theory").
 - **High barrier, weak noise?** Direct sampling becomes exponentially expensive; prefer LDT or the spectral observables.
 - **Shallow barrier?** Just simulate with [direct sampling](@ref "Sampling transitions").
-- **Parameter drift, not noise?** Use [rate-induced transitions](@ref "Rate-induced transitions").
+- **Parameter drift, not noise?** Use [rate-induced transitions](@ref "Studying rate-induced tipping").
 
 ## Composing methods
 

@@ -13,8 +13,8 @@ Return:
 
 - `distance = Centroid()`: Distance function used when (1) matching attractors, and
   (2) mapping the end state of a rate simulation to its closest attractor through the
-  `AttractorsViaProximity`.
-- `proximity_kw`: Keywords propagated to [`AttractorsViaProximity`](@extref Attractors.AttractorsViaProximity), for mapping
+  `BasinMapProximity`.
+- `proximity_kw`: Keywords propagated to `BasinMapProximity`, for mapping
   the rate system state to the unforced attractors at the middle and end (reverse) of forcing.
   Do not provide a `distance` as this is used from the above keyword.
 - `decide_rate_outcome`: A three input function `f(track_id, return_id, start_id)`
@@ -56,7 +56,7 @@ By default, these integers are ∈ (1, 2, 3) and mean:
 You can however provide a custom function that may have more involved decision logic
 via the keyword `decide_rate_outcome`.
 To find the unforced system attractor IDs at the middle and and of the rate simulation
-an `AttractorsViaProximity` is used.
+an `BasinMapProximity` is used.
 
 ## Notes
 
@@ -66,14 +66,14 @@ The profiles of each parameter are individual though.
 If any profile does not have the `reverse = true` option, an error is thrown.
 """
 function rate_track_return_tip(
-        rs::RateSystem, Δts, Δps, mapper::Attractors.AttractorMapper, ics;
+        rs::RateSystem, Δts, Δps, mapper::Attractors.BasinMap, ics;
         distance = StateSpaceSets.Centroid(), kw...
     )
     pcurve = unforced_pcurve(rs, Δps)
     matcher = Attractors.MatchBySSSetDistance(; distance)
     ascm = Attractors.AttractorSeedContinueMatch(mapper, matcher)
-    _, attractors_cont = Attractors.global_continuation(ascm, pcurve, ics)
-    return rate_track_return_tip(rs, Δts, Δps, attractors_cont; distance, kw...)
+    gco = Attractors.global_continuation(ascm, pcurve, ics)
+    return rate_track_return_tip(rs, Δts, Δps, gco.attractors; distance, kw...)
 end
 
 function rate_track_return_tip(
@@ -91,7 +91,7 @@ function rate_track_return_tip(
     unforced = rs.specs.unforced_system
     function find_attractor_id(unforced, u, p, attractors)
         set_parameters!(unforced, p)
-        proximity = Attractors.AttractorsViaProximity(unforced, attractors; proximity_kw..., distance)
+        proximity = Attractors.BasinMapProximity(unforced, attractors; proximity_kw..., distance)
         return proximity(u)
     end
     start_id = find_attractor_id(unforced, u0, pcurve[1], attractors_cont[1])

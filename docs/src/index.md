@@ -5,7 +5,8 @@ CriticalTransitions
 ```
 
 ## Installation
-> To install the Julia language, we recommend [juliaup](https://github.com/JuliaLang/juliaup).
+!!! note "Installing Julia"
+    To install the Julia language, we recommend [juliaup](https://github.com/JuliaLang/juliaup).
 
 `CriticalTransitions` is a registered Julia package and can be installed with the Julia package manager:
 
@@ -21,7 +22,14 @@ using Pkg; Pkg.add("CriticalTransitions")
 
 ## Getting started
 
-See the [Tutorial](@ref "CriticalTransitions.jl Tutorial"), and after that either consult the [API](@ref) page for all the available functionality or visit individual examples!
+The [Tutorial](@ref "CriticalTransitions.jl Tutorial") showcases how to set up different forced dynamical systems and how to analyze their transition behavior using some of the key functionality. For more detailed and advanced examples, see the **Examples** section. The **Manual** section lists the full API with additional explanation.
+
+## List of methods
+
+```@index
+Pages = map(file -> joinpath("man", file), readdir("man"))
+Order   = [:type, :function]
+```
 
 ## People
 

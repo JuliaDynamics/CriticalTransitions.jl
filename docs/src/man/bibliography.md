@@ -1,5 +1,0 @@
-# Bibliography
-
-```@bibliography
-Canonical = false
-```

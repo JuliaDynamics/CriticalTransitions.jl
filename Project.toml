@@ -1,6 +1,6 @@
 name = "CriticalTransitions"
 uuid = "251e6cd3-3112-48a5-99dd-66efcfd18334"
-version = "0.9.0"
+version = "0.9"
 authors = ["Reyk Börner, Orjan Ameye, Ryan Deeley, Raphael Römer", "George Datseris"]
 repo = "https://github.com/juliadynamics/CriticalTransitions.jl.git"
 
@@ -40,7 +40,7 @@ NonlinearSolveBase = "be0214bd-f91f-a760-ac4e-3421ce2b2da0"
 
 [compat]
 ADTypes = "1"
-Attractors = "1.37.0"
+Attractors = "2"
 ConstructionBase = "1.6.0"
 DataStructures = "0.18, 0.19"
 DocStringExtensions = "0.9.3"
