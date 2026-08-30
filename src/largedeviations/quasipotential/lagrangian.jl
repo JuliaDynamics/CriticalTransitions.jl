@@ -1,10 +1,15 @@
 """
-    itp_root(f, a, b; k1, k2, n0, atol, maxiter) -> (root::T, converged::Bool)
+    itp_root(f, a, b; k1, k2, n0, atol, maxiter, fa, fb) -> (root::T, converged::Bool)
 
 Interpolate-Truncate-Project bracketed scalar root-find (Oliveira and Takahashi 2020,
 ACM TOMS 47:1). Returns `(root, true)` if a sign change is bracketed; returns the
 endpoint with smaller `|f|` and `false` when `f(a) * f(b) > 0`, signalling no
 interior root.
+
+`fa`/`fb` let a caller that already knows the endpoint values pass them in rather
+than pay for `f(a)`/`f(b)` again. That matters here because `f` is a finite-difference
+derivative, so each endpoint evaluation costs two evaluations of the underlying
+function.
 """
 @inline function itp_root(
         f, a::T, b::T;
@@ -12,8 +17,8 @@ interior root.
         n0::Int = 1,
         atol::T = eps(T)^(T(3) / T(4)),
         maxiter::Int = 64,
+        fa::T = f(a), fb::T = f(b),
     ) where {T <: AbstractFloat}
-    fa = f(a); fb = f(b)
     iszero(fa) && return (a, true)
     iszero(fb) && return (b, true)
     if fa * fb > 0
@@ -292,9 +297,49 @@ end
     L::_GeometricLagrangian{D, T}, y::SVector{D, S}, v::SVector{D, S}, _nd0, _nd1,
 ) where {D, T, S} = _line_integral(L, y, v)
 
-@inline function _hermite_U(U0::T, U1::T, m0::T, m1::T, λ::T) where {T}
+"""
+Fritsch-Carlson slope limiter. Clamping both slopes into `[0, 3Δ]` (`Δ = U1 - U0`,
+oriented) is sufficient for the Hermite cubic to be monotone on `[0, 1]`, hence to
+satisfy `H(λ) ∈ [min(U0, U1), max(U0, U1)]`.
+
+Without it the interpolant overshoots and, more damagingly, *undershoots*: an
+unlimited cubic with `U0 = U1 = 0`, `m0 = -a`, `m1 = a` gives `H(λ) = -a λ(1 - λ)`,
+i.e. `-a/4` at the midpoint. Since the local update adds a nonnegative line integral
+to this value, an undershooting interpolant is the only way the sweep can return
+`U < 0`, or an update that undercuts every accepted value it was built from. Slopes
+are one-sided divided differences of a field known only to `O(h)`, so they routinely
+disagree in sign with the secant and trigger exactly that case.
+"""
+@inline function _limit_slopes(U0::T, U1::T, s0::T, s1::T) where {T}
+    Δ = U1 - U0
+    iszero(Δ) && return (zero(T), zero(T))
+    lo, hi = Δ > zero(T) ? (zero(T), T(3) * Δ) : (T(3) * Δ, zero(T))
+    return (clamp(s0, lo, hi), clamp(s1, lo, hi))
+end
+
+"""
+Substitute the secant for a missing (`NaN`) slope estimate, then limit. Depends only
+on the edge data, not on `λ`, so callers that evaluate the interpolant repeatedly along
+one edge hoist this out of the loop (see `_edge_minimum`) rather than redoing the
+`isnan` branches and the clamp at every `λ`.
+"""
+@inline function _prepare_slopes(U0::T, U1::T, m0::T, m1::T) where {T}
     s0 = isnan(m0) ? (U1 - U0) : m0
     s1 = isnan(m1) ? (U1 - U0) : m1
+    return _limit_slopes(U0, U1, s0, s1)
+end
+
+# Hermite cubic on already-prepared (secant-substituted and limited) slopes.
+@inline function _hermite_prepared(U0::T, U1::T, s0::T, s1::T, λ::T) where {T}
+    h00 = T(2) * λ^3 - T(3) * λ^2 + one(T)
+    h10 = λ^3 - T(2) * λ^2 + λ
+    h01 = -T(2) * λ^3 + T(3) * λ^2
+    h11 = λ^3 - λ^2
+    return h00 * U0 + h10 * s0 + h01 * U1 + h11 * s1
+end
+
+@inline function _hermite_U(U0::T, U1::T, m0::T, m1::T, λ::T) where {T}
+    s0, s1 = _prepare_slopes(U0, U1, m0, m1)
     h00 = T(2) * λ^3 - T(3) * λ^2 + one(T)
     h10 = λ^3 - T(2) * λ^2 + λ
     h01 = -T(2) * λ^3 + T(3) * λ^2

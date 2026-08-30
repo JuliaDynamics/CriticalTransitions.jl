@@ -19,11 +19,26 @@ end
 @inline function _shift_in_bounds(
         x::CartesianIndex{D}, δ::CartesianIndex{D}, nbox::NTuple{D, Int}
     ) where {D}
-    @inbounds for d in 1:D
+    return _shift_in_bounds(x, δ, nbox, ntuple(_ -> false, Val(D)))
+end
+
+@inline function _shift_in_bounds(
+        x::CartesianIndex{D}, δ::CartesianIndex{D}, nbox::NTuple{D, Int},
+        periodic::NTuple{D, Bool},
+    ) where {D}
+    idx = ntuple(Val(D)) do d
         i = x[d] + δ[d]
-        (i < 1 || i > nbox[d]) && return nothing
+        if periodic[d]
+            mod1(i, nbox[d])
+        else
+            (i < 1 || i > nbox[d]) && return 0
+            i
+        end
     end
-    return x + δ
+    @inbounds for d in 1:D
+        idx[d] == 0 && return nothing
+    end
+    return CartesianIndex(idx)
 end
 
 @generated function _chebyshev_neighbors(::Val{D}) where {D}
@@ -40,9 +55,24 @@ end
 @inline function _is_chebyshev_adjacent(
         p::CartesianIndex{D}, q::CartesianIndex{D}
     ) where {D}
+    return _is_chebyshev_adjacent(
+        p, q, ntuple(_ -> typemax(Int), Val(D)), ntuple(_ -> false, Val(D)),
+    )
+end
+
+@inline function _wrapped_index_distance(a::Int, b::Int, n::Int, periodic::Bool)
+    δ = abs(a - b)
+    return periodic ? min(δ, n - δ) : δ
+end
+
+@inline function _is_chebyshev_adjacent(
+        p::CartesianIndex{D}, q::CartesianIndex{D},
+        nbox::NTuple{D, Int}, periodic::NTuple{D, Bool},
+    ) where {D}
     p == q && return false
     @inbounds for d in 1:D
-        abs(p[d] - q[d]) > 1 && return false
+        _wrapped_index_distance(p[d], q[d], nbox[d], periodic[d]) > 1 &&
+            return false
     end
     return true
 end
@@ -50,10 +80,39 @@ end
 @inline function _in_circular_stencil(
         x::CartesianIndex{D}, y::CartesianIndex{D}, ::Val{K}
     ) where {D, K}
+    return _in_circular_stencil(
+        x, y, Val(K), ntuple(_ -> typemax(Int), Val(D)),
+        ntuple(_ -> false, Val(D)),
+    )
+end
+
+@inline function _in_circular_stencil(
+        x::CartesianIndex{D}, y::CartesianIndex{D}, ::Val{K},
+        nbox::NTuple{D, Int}, periodic::NTuple{D, Bool},
+    ) where {D, K}
     s = 0
     @inbounds for d in 1:D
-        δ = y[d] - x[d]
+        δ = _wrapped_index_distance(y[d], x[d], nbox[d], periodic[d])
         s += δ * δ
     end
     return s != 0 && s <= K * K
+end
+
+"""
+Return the center of `I`, lifted by whole periods so it is the nearest periodic
+image to the center of `anchor`. Nonperiodic coordinates are unchanged.
+"""
+@inline function _cell_center_near(
+        grid::CartesianGrid{D, T}, I::CartesianIndex{D},
+        anchor::CartesianIndex{D}, periodic::NTuple{D, Bool},
+    ) where {D, T}
+    c = cell_center(grid, I)
+    a = cell_center(grid, anchor)
+    return SVector{D, T}(
+        ntuple(Val(D)) do d
+            periodic[d] || return c[d]
+            period = grid.h[d] * grid.nbox[d]
+            c[d] + round((a[d] - c[d]) / period) * period
+        end
+    )
 end
