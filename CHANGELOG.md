@@ -1,54 +1,63 @@
 # Changelog for `CriticalTransitions.jl`
 
-## Unreleased
+## v0.9
+CriticalTransitions.jl becomes a subpackage of DynamicalSystems.jl!
 
-#### Added
-- `quasipotential(sys, grid, attractor)` computes the Freidlin-Wentzell
-  quasipotential field on a Cartesian grid via the Ordered Line Integral
-  Method (Dahiya and Cameron 2018), with the trace-normalized geometric
-  Lagrangian matching `fw_action`. Multiplicative noise is supported. Most
-  accurate for D = 2, 3 (emits a warning for D > 4). New exports:
-  `quasipotential`, `QuasiPotential`, `BackRef`. New dep: `DataStructures`.
-- State-dependent multiplicative noise support for gMAM, sgMAM, and the
-  Freidlin-Wentzell action functionals (`fw_action`, `geometric_action`). The
-  trace-normalized diffusion tensor `a(x)` is classified once at workspace /
-  cache build (constant-vs-state-dependent from `typeof(a)`, diagonal-vs-coupled
-  from `typeof(a(x_ref))`); the resulting concrete cache type drives
-  compile-time dispatch into the inner loops. A new `FreidlinWentzellHamiltonian`
-  type exposes the Hamiltonian-picture formulation. `om_action` remains
-  restricted to additive noise (the implemented Onsager-Machlup correction term
-  assumes constant diffusion); it now throws on non-additive systems.
-- `proper_FW_system` for constructing Freidlin-Wentzell path systems with
-  arbitrary noise covariance.
-- Type-stability and allocation regression tests; multiplicative-noise
-  benchmarks.
-- `verbose` option for `sgmam`.
+This release comes with a major docs overhaul, new features such as a
+quasipotential solver, and several breaking changes in the process of improving 
+and streamlining the functionality.
 
-#### Changed
-- `GeometricGradient` now performs Armijo-style backtracking step-size control by
-  default (`max_backtracks=10`). Pass `GeometricGradient(; max_backtracks=0)` to
-  recover the previous fixed-step behavior.
-- Default `stepsize` for `minimize_geometric_action` raised from `1e-1` to `1e3`
-  to match the new backtracking-on default. Callers that explicitly pass a
-  `GeometricGradient` optimizer are unaffected; callers that relied on the
-  implicit default with `max_backtracks=0` should pass `stepsize=1e-1` explicitly.
-- `transitions` now forwards `sys.diffeq` and reseeds per call for reproducible
-  ensembles (#331).
-- LinearSolve handles are cached per-call (additive, diagonal noise) and
-  cross-iteration (general noise) for substantial allocation/performance gains.
+### New features
+- `quasipotential` solver: implementation of the OLIM4VAD algorithm. Adds `quasipotential`, `QuasiPotential` and `BackRef` to the exports.
+- `RateSystem`: multi-parameter support and the option to automatically reverse the forcing (via new `reverse` kwarg)
+- `rate_track_return_tip` method for constructing R-tipping diagrams
+- `unforced_pcurve` method to extract parameter curve
+- `MultipleShooting` optimizer for instanton calculation
+- Support of state-dependent (multiplicative) noise in gMAM/sgMAM (`minimize_geometric_action`) and the Freidlin-Wentzell action functionals (`fw_action`, `geometric_action`). The Onsager-Machlup action (`om_action`) remains restricted to additive noise (it assumes constant diffusion and now errors on non-additive systems).
+- `AdaptiveGeometricGradient` optimizer for gMAM
+- New `DiffusionGenerator` type to construct the infinitesimal generator of a diffusion process and related methods
+- `verbose` kwarg added to `minimize_geometric_action`
+
+### Breaking changes
+- Renamed action minimizer methods
+    - `min_action_method` -> `minimize_action`
+    - `min_geometric_action_method` -> `minimize_geometric_action`
+    - `simple_geometric_min_action_method` -> merged in `minimize_geometric_action` which now dispatches `minimize_geometric_action(sys::CoupledSDEs)` (gMAM) and `minimize_geometric_action(sys::FreidlinWentzellHamiltonian)` (sgMAM)
+- Renamed and restructured kwargs in action minimizer methods
+    - `points` -> `npoints`
+    - typed object `GeometricGradient` passed to `optimizer`. Pass `GeometricGradient(; max_backtracks=0)` to recover the previous fixed-step behavior.
+- Revised transition path theory functionality, moved from experimental to main namespace
+- `normalize_covariance!` now uses a different norm (from L1-norm to trace), ensuring rotation invariance
+- Factor 2 corrected in action values computed via sgMAM or `om_action`
+- Step-size control in `GeometricGradient` now controlled by kwarg `max_backtracks`
+
+### Bug fixes
+- Random seeding in `transitions`: `transitions` now forwards `sys.diffeq` and reseeds per call for reproducible ensembles (#331).
+- `transitions`: Forwarding `diffeq` kwargs to `solve`
+- Factor 2 corrected in action values computed via sgMAM or `om_action`
+
+### Other
 - Updated to the new `DynamicalSystemsBase` interface; `StochasticSystemsBase`
   is no longer used (#335).
 - Switched code formatter to Runic.jl (#315).
+- Removed legacy `StochSystem` alias from the public API (#321).
+- Added contributor guide (`CONTRIBUTING.md`).
 
-#### Fixed
-- Freidlin-Wentzell action conventions and stray `/2` factors (#329).
-
-#### Removed
-- `minimize_simple_geometric_action` (unified into `minimize_geometric_action`,
-  now tightened to `CoupledSDEs`).
-- `proper_sgMAM_system` (superseded by `NoiseShape` dispatch).
-- Legacy `StochSystem` alias from the public API (#321).
-- `DataStructures` dependency (was only used for a 2-element circular buffer).
+## v0.8.0
+### Breaking changes
+- Keyword arguments standardized across minimal action solvers:
+  - `iterations` → `maxiters`
+  - `ϵ` → `stepsize`
+  - `alg` → `integrator`
+  - `method` → `optimizer`
+  - `AD` → `ad_type`
+- All large-deviation solvers now return `MinimumActionPath`.
+- `string_method` now computes and returns the geometric Freidlin–Wentzell action automatically in its `MinimumActionPath` output.
+- gMAM optimizer API is type-based:
+    - New `GeometricGradient()` optimizer (default) replaces string-based kwarg 
+- Any `Optimization.jl` optimizer remains supported via `optimizer=...`.
+- `sgMAM` renamed to `simple_geometric_min_action_method`
+- `SgmamSystem` renamed to `ExtendedPhaseSpace`
 
 ## v0.7.0
 New `RateSystem` type
