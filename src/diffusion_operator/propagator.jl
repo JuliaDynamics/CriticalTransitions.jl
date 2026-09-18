@@ -71,21 +71,12 @@ function propagate_density(
         if iszero(t[1])
             reshape(b, :, 1)
         else
-            reshape(_expv_timestep(t[1], F, b, tol, m, adaptive), :, 1)
+            reshape(
+                expv_timestep(t[1], F, b; tol = tol, m = m, adaptive = adaptive), :, 1,
+            )
         end
     else
-        _expv_timestep(t, F, b, tol, m, adaptive)
+        expv_timestep(t, F, b; tol = tol, m = m, adaptive = adaptive)
     end
     return ρs, t
-end
-
-function _expv_timestep(t, F, b, tol, m, adaptive)
-    adaptive || return expv_timestep(t, F, b; tol = tol, m = m, adaptive = false)
-    b_pristine = copy(b)
-    return try
-        expv_timestep(t, F, b; tol = tol, m = m, adaptive = true)
-    catch err
-        err isa InexactError || rethrow()
-        expv_timestep(t, F, b_pristine; tol = tol, m = m, adaptive = false)
-    end
 end
