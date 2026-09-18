@@ -70,12 +70,16 @@ function om_action(sys::CoupledSDEs, path, time, noise_strength)
         )
     end
     σ = noise_strength
+    jac = jacobian(sys)
+    p = sys.p0
     S = zero(eltype(path))
-    @views @inbounds for i in 1:(size(path, 2) - 1)
-        S += σ^2 / 2 * (
-            (div_drift(sys, path[:, i + 1]) + div_drift(sys, path[:, i])) / 2 *
-                (time[i + 1] - time[i])
-        )
+    @views @inbounds begin
+        div_prev = tr(jac(path[:, 1], p, 0))
+        for i in 1:(size(path, 2) - 1)
+            div_next = tr(jac(path[:, i + 1], p, 0))
+            S += σ^2 / 2 * (div_next + div_prev) / 2 * (time[i + 1] - time[i])
+            div_prev = div_next
+        end
     end
     return fw_action(sys, path, time) + S
 end
