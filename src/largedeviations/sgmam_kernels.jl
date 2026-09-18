@@ -24,14 +24,48 @@ struct SgMAMCoupledCache{T, LC, LU}
     p_zero::Matrix{T}               # zero buffer reused as 2nd arg to sys.H_p
 end
 
+struct TridiagonalCache{T}
+    A::LinearAlgebra.Tridiagonal{T, Vector{T}}
+    b::Vector{T}
+    u::Vector{T}
+    d_factor::Vector{T}
+    c_factor::Vector{T}
+end
+
 function _init_tridiag_cache(::Type{T}, L::Int) where {T}
     dl = zeros(T, L - 1); d = ones(T, L); du = zeros(T, L - 1)
     Tmat = LinearAlgebra.Tridiagonal(dl, d, du)
-    rhs = zeros(T, L)
-    return init(
-        LinearProblem(Tmat, rhs), LUFactorization();
-        alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
-    )
+    return TridiagonalCache(Tmat, zeros(T, L), zeros(T, L), zeros(T, L), zeros(T, L - 1))
+end
+
+function _factor_tridiag!(cache::TridiagonalCache)
+    A = cache.A
+    d_factor = cache.d_factor
+    c_factor = cache.c_factor
+    n = length(A.d)
+    d_factor[1] = A.d[1]
+    @inbounds for i in 1:(n - 1)
+        c_factor[i] = A.du[i] / d_factor[i]
+        d_factor[i + 1] = A.d[i + 1] - A.dl[i] * c_factor[i]
+    end
+    return nothing
+end
+
+function _solve_tridiag!(cache::TridiagonalCache)
+    A = cache.A
+    b = cache.b
+    u = cache.u
+    d_factor = cache.d_factor
+    c_factor = cache.c_factor
+    n = length(b)
+    u[1] = b[1] / d_factor[1]
+    @inbounds for i in 2:n
+        u[i] = (b[i] - A.dl[i - 1] * u[i - 1]) / d_factor[i]
+    end
+    @inbounds for i in (n - 1):-1:1
+        u[i] -= c_factor[i] * u[i + 1]
+    end
+    return u
 end
 
 function _fill_constant_a_inv!(a_inv::Matrix{T}, a, Nx, Nt) where {T}
@@ -242,8 +276,8 @@ function update_x!(
         end
         rhs[1] += ϵ * a_inv[dof, 2] * λ[2]^2 * xa[dof]
         rhs[end] += ϵ * a_inv[dof, Nt - 1] * λ[end - 1]^2 * xb[dof]
-        LinearSolve.reinit!(lc; A = Tmat, b = rhs)
-        solve!(lc)
+        _factor_tridiag!(lc)
+        _solve_tridiag!(lc)
         @inbounds for k in 1:L
             x[dof, k + 1] = lc.u[k]
         end
