@@ -90,7 +90,9 @@ end
 @inline floattype(::DiffusionGenerator{D, BC, T}) where {D, BC, T} = T
 @inline floattype(::CartesianGrid{D, T}) where {D, T} = T
 
-function _diagonal_diffusion(sys::CoupledSDEs, ::Val{D}, ::Type{T}) where {D, T}
+function _diagonal_diffusion(
+        sys::CoupledSDEs, ::Val{D}, ::Type{T}
+    )::SVector{D, T} where {D, T}
     Σ = covariance_matrix(sys)
     size(Σ) == (D, D) || throw(
         DimensionMismatch(
@@ -112,13 +114,15 @@ function _diagonal_diffusion(sys::CoupledSDEs, ::Val{D}, ::Type{T}) where {D, T}
             ArgumentError("diffusion covariance diagonal Σ[$k,$k] must be non-negative"),
         )
     end
-    return SVector{D, T}(ntuple(k -> T(Σ[k, k]), D))
+    return SVector{D, T}(ntuple(k -> T(Σ[k, k]), Val(D)))
 end
 
 function _normalize_bc(bc::BoundaryCondition, ::Val{D}) where {D}
-    return ntuple(_ -> bc, D)
+    return ntuple(_ -> bc, Val(D))
 end
-function _normalize_bc(bc::Tuple, ::Val{D}) where {D}
+function _normalize_bc(
+        bc::Tuple, ::Val{D}
+    )::Tuple{Vararg{BoundaryCondition}} where {D}
     length(bc) == D || throw(
         ArgumentError(
             "expected a single BoundaryCondition or a $D-tuple thereof; " *
@@ -148,7 +152,7 @@ function _assemble_generator(
         grid::CartesianGrid{D, T},
         sign::Int,
         bc::BC,
-    )::SparseMatrixCSC{T, Int} where {D, T, BC <: Tuple}
+    )::SparseMatrixCSC{T, Int} where {D, T, BC <: Tuple{Vararg{BoundaryCondition}}}
     sign == +1 || sign == -1 || throw(ArgumentError("sign must be ±1"))
     diffusion = _diagonal_diffusion(sys, Val(D), T)
     nbox = grid.nbox
@@ -169,7 +173,7 @@ function _assemble_generator(
     rows = Vector{Int}(undef, nz_max)
     cols = Vector{Int}(undef, nz_max)
     vals = Vector{T}(undef, nz_max)
-    diagacc = zeros(T, N)
+    diagacc = fill!(Vector{T}(undef, N), zero(T))
     idx = 0
 
     # Function barrier: each call specialises on the concrete type of `bc[k]`,

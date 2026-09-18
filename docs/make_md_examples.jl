@@ -49,6 +49,7 @@ for example in examples
         example,
         OUTPUT_MD_DIR;
         flavor = Literate.DocumenterFlavor(),
+        credit = false,
         config = extra_literate_config,
         preprocess = md_note,
     )
