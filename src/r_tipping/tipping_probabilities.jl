@@ -9,12 +9,12 @@ Return the basin-overlap tipping probabilities before and after a parameter chan
 time-dependent forcing, following [Kaszas2019](@cite).
 
 The basin arrays must have identical sizes and contain integer attractor labels. Let
-``\mathcal{B}_i(p)`` denote the basin of attraction of attractor ``A_i`` at parameters
-``p``. For a change ``p_- \to p_+``, the matrix entry is
+``\\mathcal{B}_i(p)`` denote the basin of attraction of attractor ``A_i`` at parameters
+``p``. For a change ``p_- \\to p_+``, the matrix entry is
 
 ```math
-P(A_i \to A_j \mid p_- \to p_+) =
-\frac{|\mathcal{B}_j(p_+) \cap \mathcal{B}_i(p_-)|}{|\mathcal{B}_i(p_-)|}.
+P(A_i \\to A_j \\mid p_- \\to p_+) =
+\\frac{|\\mathcal{B}_j(p_+) \\cap \\mathcal{B}_i(p_-)|}{|\\mathcal{B}_i(p_-)|}.
 ```
 
 Rows are ordered by the sorted unique labels in `basins_before`, and columns by the sorted
