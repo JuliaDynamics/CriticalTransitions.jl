@@ -58,6 +58,25 @@ function tipping_probabilities(
     return tipping_probabilities(BoA_before.basins, BoA_after.basins)
 end
 
+"""
+    tipping_probabilities(rs::RateSystem, grid)
+
+Return the basin-overlap tipping probabilities between the past and future
+limit systems of the RateSystem `rs`, following [Kaszas2019](@cite).
+
+The `grid` argument specifies the state space grid over which the basins of
+attraction are computed.
+"""
+function tipping_probabilities(rs::RateSystem, grid)
+    sys_before = past_limit_system(rs)
+    sys_after = future_limit_system(rs)
+
+    #boa_before = Attractors.basins_of_attraction(...)
+    #boa_after = Attractors.basins_of_attraction(...)
+
+    return tipping_probabilities(boa_before, boa_after)
+end
+
 function _tipping_probability_ids(basins)
     ids = sort!(collect(unique(basins)))
     divergent = findfirst(isequal(-1), ids)
