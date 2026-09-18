@@ -19,7 +19,7 @@
 
     grid = (range(0, 1; length = 2), range(0, 1; length = 3))
     attractors = Dict(k => StateSpaceSet([[Float64(k), 0.0]]) for k in 1:2)
-    BoA_before = ArrayBasinsOfAttraction(basins_before, attractors, grid)
-    BoA_after = ArrayBasinsOfAttraction(basins_after, attractors, grid)
+    BoA_before = Attractors.ArrayBasinsOfAttraction(basins_before, attractors, grid)
+    BoA_after = Attractors.ArrayBasinsOfAttraction(basins_after, attractors, grid)
     @test tipping_probabilities(BoA_before, BoA_after) == expected
 end
