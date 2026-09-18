@@ -173,7 +173,7 @@ function _assemble_generator(
     rows = Vector{Int}(undef, nz_max)
     cols = Vector{Int}(undef, nz_max)
     vals = Vector{T}(undef, nz_max)
-    diagacc = zeros(T, N)
+    diagacc = fill!(Vector{T}(undef, N), zero(T))
     idx = 0
 
     # Function barrier: each call specialises on the concrete type of `bc[k]`,
