@@ -1,13 +1,5 @@
 # Changelog for `CriticalTransitions.jl`
 
-## Unreleased
-
-### Bug fixes
-- `minimize_geometric_action` with `GeometricGradient`: the implicit gMAM step now factorizes its tridiagonal operator once per step instead of once per state component, fixing wrong minimizers under LinearSolve v5, which factorizes the aliased operator in place.
-
-### Other
-- Allow LinearSolve v5 and JET v0.12.
-
 ## v0.9
 CriticalTransitions.jl becomes a subpackage of DynamicalSystems.jl!
 
