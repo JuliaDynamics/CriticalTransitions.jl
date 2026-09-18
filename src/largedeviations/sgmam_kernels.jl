@@ -8,11 +8,12 @@ struct SgMAMDecoupledCache{T, LC}
     linear_cache::LC
 end
 
-struct SgMAMCoupledCache{T, LC, LU}
+struct SgMAMCoupledCache{T, LF, LU, S}
     M::SparseArrays.SparseMatrixCSC{T, Int}
     diag_idx::Array{Int, 3}
     off_idx::Matrix{Int}
-    linear_cache::LC
+    linear_factor::LF
+    solution::S
     a_at::Vector{Matrix{T}}         # a(x_t) stored per t (only mutated for state-dep a)
     a_const_lu::LU                  # LU(a) for constant a; `nothing` for state-dep
     Hp_buf::Matrix{T}
@@ -126,10 +127,12 @@ function _build_coupled_cache(sys, ::Type{T}, Nx::Int, Nt::Int) where {T}
 
     rhs = zeros(T, n)
     fill!(M.nzval, zero(T))
-    lc = init(
-        LinearProblem(M, rhs), LUFactorization();
-        alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
-    )
+    @inbounds for i_in in 1:N_in, k in 1:Nx
+        M.nzval[diag_idx[k, k, i_in]] = one(T)
+    end
+    linear_factor = LinearAlgebra.lu(M)
+    solution = zeros(eltype(linear_factor), n)
+    fill!(M.nzval, zero(T))
     a_at = [Matrix{T}(undef, Nx, Nx) for _ in 1:Nt]
     p_zero = zeros(T, Nx, Nt)
     Hp_buf = Matrix{T}(undef, Nx, Nt)
@@ -145,10 +148,11 @@ function _build_coupled_cache(sys, ::Type{T}, Nx::Int, Nt::Int) where {T}
     else
         nothing
     end
-    return SgMAMCoupledCache{T, typeof(lc), typeof(a_const_lu)}(
-        M, diag_idx, off_idx, lc, a_at, a_const_lu, Hp_buf, Hx_buf, rhs,
-        Vector{T}(undef, Nx), Vector{T}(undef, Nx), Vector{T}(undef, Nx),
-        p_zero,
+    return SgMAMCoupledCache{
+        T, typeof(linear_factor), typeof(a_const_lu), typeof(solution),
+    }(
+        M, diag_idx, off_idx, linear_factor, solution, a_at, a_const_lu, Hp_buf, Hx_buf,
+        rhs, Vector{T}(undef, Nx), Vector{T}(undef, Nx), Vector{T}(undef, Nx), p_zero,
     )
 end
 
@@ -290,9 +294,10 @@ function update_x!(
             i_in == N_in && (rhs_view[k] += ϵ * λi2 * xb[k])
         end
     end
-    LinearSolve.reinit!(cache.linear_cache; A = M, b = rhs)
-    solve!(cache.linear_cache)
-    sol = cache.linear_cache.u
+    LinearAlgebra.lu!(cache.linear_factor, M)
+    copyto!(cache.solution, rhs)
+    LinearAlgebra.ldiv!(cache.linear_factor, cache.solution)
+    sol = cache.solution
     @inbounds for i_in in 1:N_in
         rb = (i_in - 1) * Nx
         for k in 1:Nx
