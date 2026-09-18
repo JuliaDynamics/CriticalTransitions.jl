@@ -44,7 +44,7 @@ using DynamicalSystemsBase:
     diffusion_matrix,
     diffusion_function,
     current_time
-using Attractors: Attractors
+using Attractors: Attractors, ArrayBasinsOfAttraction
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
