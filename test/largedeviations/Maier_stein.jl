@@ -39,6 +39,12 @@ using Test
         gm = minimize_geometric_action(
             sys, init; maxiters = 500, verbose = false, show_progress = false
         )
+        gm_sss = minimize_geometric_action(
+            sys, StateSpaceSet(init'); maxiters = 2, verbose = false, show_progress = false
+        )
+        @test gm_sss isa MinimumActionPath
+        @test gm_sss.path[1] == x_i
+        @test gm_sss.path[end] == x_f
 
         path = Matrix(gm.path)'
         action_val = gm.action

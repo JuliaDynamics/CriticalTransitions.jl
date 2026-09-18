@@ -1,6 +1,7 @@
 """
     minimize_geometric_action(sys::CoupledSDEs, x_i, x_f, optimizer=GeometricGradient(); kwargs...)
     minimize_geometric_action(sys::CoupledSDEs, init::AbstractMatrix, optimizer=GeometricGradient(); kwargs...)
+    minimize_geometric_action(sys::CoupledSDEs, init::StateSpaceSet, optimizer=GeometricGradient(); kwargs...)
 
 Computes the minimizer of the geometric Freidlin-Wentzell action based on the geometric
 minimum action method (gMAM), using optimizers of Optimization.jl or the original
@@ -8,8 +9,8 @@ formulation by [heymann_pathways_2008](@citet) (projected gradient descent with 
 backtracking).
 
 The minimizer is computed for system `sys` over all paths from `x_i` to `x_f`. To set an
-initial path different from a straight line, see the multiple-dispatch method
-`minimize_geometric_action(sys::CoupledSDEs, init::AbstractMatrix, optimizer; kwargs...)`.
+initial path different from a straight line, pass either a `D × N` matrix or a
+`StateSpaceSet` containing the path points.
 
 Returns a [`MinimumActionPath`](@ref).
 
@@ -30,6 +31,13 @@ end
 
 minimize_geometric_action(sys::CoupledSDEs, init::AbstractMatrix; kwargs...) =
     minimize_geometric_action(sys, init, GeometricGradient(); kwargs...)
+
+function minimize_geometric_action(
+        sys::CoupledSDEs, init::StateSpaceSet,
+        optimizer = GeometricGradient(); kwargs...,
+    )
+    return minimize_geometric_action(sys, Matrix(Matrix(init)'), optimizer; kwargs...)
+end
 
 # Shared setup for both backtracking and Optimization.jl paths.
 function _gmam_setup(sys::CoupledSDEs, init)
