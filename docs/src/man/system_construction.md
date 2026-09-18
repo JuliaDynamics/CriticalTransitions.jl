@@ -4,9 +4,9 @@ This section explains how to specify your dynamical system and forcing of intere
 
 To specify a system, `CriticalTransitions` provides three core system types:
 
-- [CoupledODEs](@ref) - used to define a deterministic system of ordinary differential equations of the form ``\frac{\text{d}\mathbf{u}}{\text{d}t} = \mathbf{f}(\mathbf{u}, p, t)``.
-- [CoupledSDEs](@ref) - used to define a system of stochastic differential equations of the form ``\text{d}\mathbf{u} = \mathbf{f}(\mathbf{u}, p, t) \text{d}t + \mathbf{g}(\mathbf{u}, p, t) \text{d}\mathcal{N}_t``.
-- [RateSystem](@ref) - used to define a non-autonomous system with parametric forcing of the form ``\frac{\text{d}\mathbf{u}}{\text{d}t} = \mathbf{f}(\mathbf{u}(t), p(t))``.
+- [`CoupledODEs`](@ref) - used to define a deterministic system of ordinary differential equations of the form ``\frac{\text{d}\mathbf{u}}{\text{d}t} = \mathbf{f}(\mathbf{u}, p, t)``.
+- [`CoupledSDEs`](@ref) - used to define a system of stochastic differential equations of the form ``\text{d}\mathbf{u} = \mathbf{f}(\mathbf{u}, p, t) \text{d}t + \mathbf{g}(\mathbf{u}, p, t) \text{d}\mathcal{N}_t``.
+- [`RateSystem`](@ref) - used to define a non-autonomous system with parametric forcing of the form ``\frac{\text{d}\mathbf{u}}{\text{d}t} = \mathbf{f}(\mathbf{u}(t), p(t))``.
 
 The `CoupledODEs` and `CoupledSDEs` system types are inherited from [`DynamicalSystemsBase.jl`](https://juliadynamics.github.io/DynamicalSystemsDocs.jl/dynamicalsystemsbase/stable/). The `RateSystem` type is added in CriticalTransitions.jl to enable easy construction of non-autonomous dynamical systems in which a parameter changes over time.
 

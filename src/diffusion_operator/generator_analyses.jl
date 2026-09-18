@@ -362,7 +362,7 @@ function _mfpt_system(generator::DiffusionGenerator{D, BC, T}, target) where {D,
     target_mask = _to_mask(target, generator.grid)
     any(target_mask) || throw(ArgumentError("target set is empty"))
     N = size(generator.Q, 1)
-    return target_mask, zeros(T, N), fill(-one(T), N)
+    return target_mask, fill!(Vector{T}(undef, N), zero(T)), fill(-one(T), N)
 end
 
 """
