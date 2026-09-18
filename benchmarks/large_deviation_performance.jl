@@ -30,9 +30,9 @@ function benchmark_large_deviation_performance!(SUITE)
     ) seconds = 5
 
     init = path[:, 1:4:end]
-    sg_opt = GeometricGradient(; max_backtracks = 0, stepsize = 1.0e3)
-    SUITE["Large deviation"]["Fixed iteration"]["auto sgMAM 100 iterations"] = @benchmarkable minimize_geometric_action(
-        $fw, $init, $sg_opt; maxiters = 100, show_progress = false
+    sg_opt = GeometricGradient(; max_backtracks = 0, stepsize = 1.0)
+    SUITE["Large deviation"]["Fixed iteration"]["auto sgMAM 10 iterations"] = @benchmarkable minimize_geometric_action(
+        $fw, $init, $sg_opt; maxiters = 10, show_progress = false
     ) seconds = 10
 
     gg_opt = GeometricGradient(; max_backtracks = 0, stepsize = 0.1)
