@@ -287,6 +287,7 @@ function _gmam_implicit_shared!(ws::GeometricGradientWorkspace, path, N, stepsiz
     Tmat = ws.linear_cache.A
     rhs = ws.linear_cache.b
     fill!(Tmat.d, 1); fill!(Tmat.dl, 0); fill!(Tmat.du, 0)
+
     @inbounds for i in 2:(N - 1)
         α = stepsize * ws.lambdas[i]^2 / dx^2
         if isfinite(α)
@@ -295,6 +296,8 @@ function _gmam_implicit_shared!(ws::GeometricGradientWorkspace, path, N, stepsiz
             Tmat.du[i] = -α
         end
     end
+
+    LinearSolve.reinit!(ws.linear_cache; A = Tmat, b = rhs)
     @inbounds for j in 1:size(path, 1)
         rhs[1] = path[j, 1]
         rhs[end] = path[j, end]
@@ -302,7 +305,6 @@ function _gmam_implicit_shared!(ws::GeometricGradientWorkspace, path, N, stepsiz
             rhs_val = path[j, i] + stepsize * ws.rhs_explicit[j, i - 1]
             rhs[i] = isfinite(rhs_val) ? rhs_val : path[j, i]
         end
-        LinearSolve.reinit!(ws.linear_cache; A = Tmat, b = rhs)
         solve!(ws.linear_cache)
         @views ws.update[j, :] .= ws.linear_cache.u
     end

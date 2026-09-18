@@ -89,6 +89,7 @@ linkcheck_ignore = [
     r"https://homepages\.warwick\.ac\.uk/.*",
     r"https://www\.math\.drexel\.edu/.*",
     r"https://diffeq\.sciml\.ai/.*",
+    r"https://docs\.sciml\.ai/.*",
     r"https://www\.criticalearth\.eu.*",
 ]
 
