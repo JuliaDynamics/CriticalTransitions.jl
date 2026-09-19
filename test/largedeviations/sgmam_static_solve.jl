@@ -24,3 +24,5 @@ end
     LinearAlgebra.ldiv!(factor, work)
     @test work ≈ expected
 end
+
+include("sgmam_block_solve.jl")
