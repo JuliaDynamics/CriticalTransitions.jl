@@ -11,6 +11,9 @@ using Test
     ]
     rhs = [0.3 1.2 -0.4; -0.7 0.4 0.9]
     rhs_reference = copy(rhs)
+    # Include a zero interior lambda to certify that the unscaled recurrence
+    # remains valid without dividing by lambda^2 or falling back.
+    lambda = reshape([0.0, 1.1, 0.0, 1.3, 0.0], 1, :)
 
     Nx = 2
     L = length(diagonal_blocks)
@@ -20,9 +23,11 @@ using Test
         M[rows, rows] .= diagonal_blocks[i]
         if i < L
             next_rows = (i * Nx + 1):((i + 1) * Nx)
+            q_i = lambda[i + 1]^2
+            q_next = lambda[i + 2]^2
             for k in 1:Nx
-                M[rows[k], next_rows[k]] = -eps_step
-                M[next_rows[k], rows[k]] = -eps_step
+                M[rows[k], next_rows[k]] = -eps_step * q_i
+                M[next_rows[k], rows[k]] = -eps_step * q_next
             end
         end
     end
@@ -37,7 +42,7 @@ using Test
     tmp = zeros(Nx)
 
     @test CT._block_thomas_solve!(
-        schur, factors, rhs, inv_prev, tmp, eps_step,
+        schur, factors, rhs, inv_prev, tmp, eps_step, lambda,
     )
     @test vec(rhs) ≈ expected
 end
