@@ -26,6 +26,7 @@ end
     include("largedeviations/gMAM.jl")
     include("largedeviations/sgMAM.jl")
     include("largedeviations/multiplicative_noise.jl")
+    include("largedeviations/gmam_static_solve.jl")
     include("largedeviations/unified_api.jl")
     include("largedeviations/rank_deficient_rejection.jl")
     include("largedeviations/string_method.jl")
