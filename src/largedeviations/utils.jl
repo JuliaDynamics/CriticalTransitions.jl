@@ -196,31 +196,42 @@ matrix the same size and shape as `path`.
 The velocity matrix `v` (same shape as `path`).
 """
 function path_velocity!(v, path, time; order = 4)
-    N = size(path, 2)
+    D, N = size(path)
     if order == 2
-        @inbounds @views begin
+        @inbounds begin
             inv_h1 = 1 / (time[2] - time[1])
             inv_hN = 1 / (time[end] - time[end - 1])
-            @. v[:, 1] = (path[:, 2] - path[:, 1]) * inv_h1
-            @. v[:, end] = (path[:, end] - path[:, end - 1]) * inv_hN
+            for k in 1:D
+                v[k, 1] = (path[k, 2] - path[k, 1]) * inv_h1
+                v[k, N] = (path[k, N] - path[k, N - 1]) * inv_hN
+            end
             for i in 2:(N - 1)
                 inv_hi = 1 / (time[i + 1] - time[i - 1])
-                @. v[:, i] = (path[:, i + 1] - path[:, i - 1]) * inv_hi
+                for k in 1:D
+                    v[k, i] = (path[k, i + 1] - path[k, i - 1]) * inv_hi
+                end
             end
         end
     elseif order == 4
-        @inbounds @views begin
+        @inbounds begin
             inv_h1 = 1 / (time[2] - time[1])
             inv_hN = 1 / (time[end] - time[end - 1])
             inv_h2 = 1 / (time[3] - time[1])
             inv_hM = 1 / (time[end] - time[end - 2])
-            @. v[:, 1] = (path[:, 2] - path[:, 1]) * inv_h1
-            @. v[:, end] = (path[:, end] - path[:, end - 1]) * inv_hN
-            @. v[:, 2] = (path[:, 3] - path[:, 1]) * inv_h2
-            @. v[:, end - 1] = (path[:, end] - path[:, end - 2]) * inv_hM
+            for k in 1:D
+                v[k, 1] = (path[k, 2] - path[k, 1]) * inv_h1
+                v[k, N] = (path[k, N] - path[k, N - 1]) * inv_hN
+                v[k, 2] = (path[k, 3] - path[k, 1]) * inv_h2
+                v[k, N - 1] = (path[k, N] - path[k, N - 2]) * inv_hM
+            end
             for i in 3:(N - 2)
                 inv6 = 1 / (6 * (time[i + 1] - time[i - 1]))
-                @. v[:, i] = (-path[:, i + 2] + 8 * path[:, i + 1] - 8 * path[:, i - 1] + path[:, i - 2]) * inv6
+                for k in 1:D
+                    v[k, i] = (
+                        -path[k, i + 2] + 8 * path[k, i + 1] -
+                            8 * path[k, i - 1] + path[k, i - 2]
+                    ) * inv6
+                end
             end
         end
     end
