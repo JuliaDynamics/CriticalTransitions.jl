@@ -46,7 +46,8 @@ end
         return @SMatrix [1 + 0.1 * u[1] 0.2 * u[2]; -0.15 * u[1] 1 - 0.1 * u[2]]
     end
     ds_coupled = CoupledSDEs(
-        drift, zeros(2); g = coupled_noise, noise_prototype = @SMatrix zeros(2, 2),
+        drift, zeros(2); g = coupled_noise,
+        noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
     )
     sys_coupled = FreidlinWentzellHamiltonian(ds_coupled)
     a_coupled = zeros(2, 2)
