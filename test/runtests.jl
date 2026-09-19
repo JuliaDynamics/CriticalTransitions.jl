@@ -26,6 +26,8 @@ end
     include("largedeviations/gMAM.jl")
     include("largedeviations/sgMAM.jl")
     include("largedeviations/hamiltonian_inplace.jl")
+    include("largedeviations/sgmam_static_solve.jl")
+    include("largedeviations/sgmam_block_solve.jl")
     include("largedeviations/multiplicative_noise.jl")
     include("largedeviations/gmam_static_solve.jl")
     include("largedeviations/unified_api.jl")
