@@ -71,7 +71,6 @@ function _block_thomas_solve!(
         end
         C = LinearAlgebra.cholesky!(LinearAlgebra.Hermitian(S, :L); check = false)
         LinearAlgebra.issuccess(C) || return false
-        factors[i] = C
     end
 
     @inbounds for i in L:-1:1
