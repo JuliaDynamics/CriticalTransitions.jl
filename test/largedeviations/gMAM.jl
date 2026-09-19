@@ -14,11 +14,11 @@ using CriticalTransitions.CTLibrary: fitzhugh_nagumo
     rhs = cache.b
     fill!(Tmat.d, 4); fill!(Tmat.dl, -1); fill!(Tmat.du, -1)
     A_ref = Tridiagonal(copy(Tmat.dl), copy(Tmat.d), copy(Tmat.du))
-    CT.LinearSolve.reinit!(cache; A = Tmat, b = rhs)
+    CT._factor_tridiag!(cache)
     for j in 1:3
         b_j = j .* collect(1.0:L)
         rhs .= b_j
-        CT.solve!(cache)
+        CT._solve_tridiag!(cache)
         @test cache.u ≈ A_ref \ b_j
     end
 end

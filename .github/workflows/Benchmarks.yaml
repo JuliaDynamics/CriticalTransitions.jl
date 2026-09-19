@@ -5,6 +5,7 @@ on:
       - 'main'
     paths:
       - '.github/workflows/Benchmarks.yaml'
+      - 'benchmarks/**'
       - 'src/**'
       - 'ext/**'
       - 'test/runtests.jl'
@@ -14,6 +15,7 @@ on:
       - 'main'
     paths:
       - '.github/workflows/Benchmarks.yaml'
+      - 'benchmarks/**'
       - 'src/**'
       - 'ext/**'
       - 'test/**'
