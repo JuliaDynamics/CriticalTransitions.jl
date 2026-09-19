@@ -1,7 +1,5 @@
 struct SgMAMDecoupledCache{T, LC}
     a_inv::Matrix{T}                # diag(a⁻¹) per (k, t)
-    Ainv_b::Matrix{T}               # a⁻¹ · b stored elementwise
-    Ainv_xd::Matrix{T}              # a⁻¹ · ẋ stored elementwise
     p_zero::Matrix{T}               # zero buffer reused as 2nd arg to sys.H_p
     Hp_buf::Matrix{T}               # buffer for H_p output (Nx × Nt)
     Hx_buf::Matrix{T}               # buffer for H_x output (Nx × Nt)
@@ -88,15 +86,13 @@ end
 
 function _build_decoupled_cache(sys, ::Type{T}, Nx::Int, Nt::Int) where {T}
     a_inv = Matrix{T}(undef, Nx, Nt)
-    Ainv_b = Matrix{T}(undef, Nx, Nt)
-    Ainv_xd = Matrix{T}(undef, Nx, Nt)
     p_zero = zeros(T, Nx, Nt)
     is_constant(sys.a) === Val(true) && _fill_constant_a_inv!(a_inv, sys.a, Nx, Nt)
     linear_cache = _init_tridiag_cache(T, Nt - 2)
     Hp_buf = Matrix{T}(undef, Nx, Nt)
     Hx_buf = Matrix{T}(undef, Nx, Nt)
     return SgMAMDecoupledCache{T, typeof(linear_cache)}(
-        a_inv, Ainv_b, Ainv_xd, p_zero, Hp_buf, Hx_buf, linear_cache,
+        a_inv, p_zero, Hp_buf, Hx_buf, linear_cache,
     )
 end
 
@@ -203,13 +199,23 @@ function update_p!(p, λ, x, xdot, sys, cache::SgMAMDecoupledCache)
         _refill_state_dep_a_inv!(cache.a_inv, sys.a, x)
     end
     b_ = _eval_Hp!(cache.Hp_buf, sys, x, cache.p_zero)
-    @. cache.Ainv_b = b_ * cache.a_inv
-    @. cache.Ainv_xd = xdot * cache.a_inv
-    num = sum(b_ .* cache.Ainv_b; dims = 1)
-    den = sum(xdot .* cache.Ainv_xd; dims = 1)
-    @. λ = ifelse(den > 1.0e-28, sqrt(num / den), zero(eltype(num)))
-    λ[1, 1] = λ[1, end] = 0
-    @. p = (λ * xdot - b_) * cache.a_inv
+    @inbounds for t in axes(x, 2)
+        num = zero(eltype(p))
+        den = zero(eltype(p))
+        for k in axes(x, 1)
+            ia = cache.a_inv[k, t]
+            bt = b_[k, t]
+            xt = xdot[k, t]
+            num += bt * bt * ia
+            den += xt * xt * ia
+        end
+        λt = den > 1.0e-28 ? sqrt(num / den) : zero(eltype(p))
+        (t == first(axes(x, 2)) || t == last(axes(x, 2))) && (λt = zero(eltype(p)))
+        λ[1, t] = λt
+        for k in axes(x, 1)
+            p[k, t] = (λt * xdot[k, t] - b_[k, t]) * cache.a_inv[k, t]
+        end
+    end
     return nothing
 end
 
