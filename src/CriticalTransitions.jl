@@ -90,6 +90,7 @@ include("largedeviations/minimize_action.jl")
 include("largedeviations/sgmam_kernels.jl")
 include("largedeviations/sgmam.jl")
 include("largedeviations/minimize_geometric_action.jl")
+include("largedeviations/gmam_static_solve.jl")
 include("largedeviations/multiple_shooting.jl")
 include("largedeviations/string_method.jl")
 
