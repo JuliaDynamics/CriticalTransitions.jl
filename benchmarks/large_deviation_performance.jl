@@ -13,6 +13,7 @@ function benchmark_large_deviation_performance!(SUITE)
     xx = collect(range(-1.0, 1.0; length = Nt))
     yy = @. 0.3 * (1 - xx^2)
     path = Matrix([xx yy]')
+    time = collect(range(0.0, 1.0; length = Nt))
     momentum = similar(path)
     @inbounds for j in axes(momentum, 2)
         momentum[1, j] = 0.05 * sinpi((j - 1) / (Nt - 1))
@@ -27,6 +28,10 @@ function benchmark_large_deviation_performance!(SUITE)
 
     SUITE["Large deviation"]["Hamiltonian kernels"]["auto H_x"] = @benchmarkable CT._eval_Hx!(
         $Hx_buf, $fw, $path, $momentum
+    ) seconds = 5
+
+    SUITE["Large deviation"]["Action kernels"]["Onsager-Machlup"] = @benchmarkable om_action(
+        $ds, $path, $time, 0.25
     ) seconds = 5
 
     init = path[:, 1:4:end]
