@@ -46,6 +46,61 @@ end
 is_constant(::Base.Returns) = Val(true)
 is_constant(_) = Val(false)
 
+# Preserve the existing allocating `a(x)` contract while exposing the raw diffusion
+# function needed for caller-owned in-place evaluation on auto-derived Hamiltonian paths.
+struct _StateDependentDiffusion{A, F, P, T}
+    raw::A
+    σ_fn::F
+    ps::P
+    inv_scale::T
+end
+
+(a::_StateDependentDiffusion)(x) = a.raw(x)
+
+function _state_dependent_diffusion(ds, a)
+    is_constant(a) === Val(true) && return a
+    σ_fn = diffusion_function(ds)
+    ps = current_parameters(ds)
+    σ0 = _as_diffusion_matrix(σ_fn(current_state(ds), ps, 0.0))
+    scale = LinearAlgebra.tr(σ0 * σ0') / dimension(ds)
+    return _StateDependentDiffusion(a, σ_fn, ps, inv(scale))
+end
+
+function _eval_a!(out, a::_StateDependentDiffusion, x)
+    σ = a.σ_fn(x, a.ps, 0.0)
+    if σ isa AbstractVector
+        fill!(out, zero(eltype(out)))
+        @inbounds for i in eachindex(σ)
+            out[i, i] = abs2(σ[i]) * a.inv_scale
+        end
+    else
+        @inbounds for j in axes(out, 2), i in axes(out, 1)
+            v = zero(eltype(out))
+            for k in axes(σ, 2)
+                v += σ[i, k] * conj(σ[j, k])
+            end
+            out[i, j] = v * a.inv_scale
+        end
+    end
+    return out
+end
+
+_eval_a!(out, a, x) = copyto!(out, a(x))
+
+_a_matrix_scratch(::Val{true}, ::Type, _) = nothing
+_a_matrix_scratch(::Val{false}, ::Type{T}, D) where {T} = Matrix{T}(undef, D, D)
+
+function _mul_a_p!(out, a, x, p, ::Val{true}, _)
+    LinearAlgebra.mul!(out, a(x), p)
+    return out
+end
+
+function _mul_a_p!(out, a, x, p, ::Val{false}, a_buf)
+    _eval_a!(a_buf, a, x)
+    LinearAlgebra.mul!(out, a_buf, p)
+    return out
+end
+
 struct _AutoHamiltonianPOOP{A, F, P}
     a::A
     f::F
@@ -70,11 +125,13 @@ struct _AutoHamiltonianXJac{A, J, P}
 end
 
 function (H::_AutoHamiltonianPOOP)(out, x, p)
+    a_const = is_constant(H.a)
+    a_buf = _a_matrix_scratch(a_const, eltype(out), size(x, 1))
     @inbounds for i in axes(x, 2)
         xi = view(x, :, i)
         pi = view(p, :, i)
         oi = view(out, :, i)
-        LinearAlgebra.mul!(oi, H.a(xi), pi)
+        _mul_a_p!(oi, H.a, xi, pi, a_const, a_buf)
         fi = H.f(xi, H.ps, 0.0)
         for k in eachindex(oi)
             oi[k] += fi[k]
@@ -84,18 +141,31 @@ function (H::_AutoHamiltonianPOOP)(out, x, p)
 end
 
 function (H::_AutoHamiltonianPIIP)(out, x, p)
+    a_const = is_constant(H.a)
+    a_buf = _a_matrix_scratch(a_const, eltype(out), size(x, 1))
     @inbounds for i in axes(x, 2)
         xi = view(x, :, i)
         pi = view(p, :, i)
         oi = view(out, :, i)
         H.f(oi, xi, H.ps, 0.0)
-        ai = H.a(xi)
-        for k in eachindex(oi)
-            aikp = zero(eltype(out))
-            for l in eachindex(pi)
-                aikp += ai[k, l] * pi[l]
+        if a_const === Val(true)
+            ai = H.a(xi)
+            for k in eachindex(oi)
+                aikp = zero(eltype(out))
+                for l in eachindex(pi)
+                    aikp += ai[k, l] * pi[l]
+                end
+                oi[k] += aikp
             end
-            oi[k] += aikp
+        else
+            _eval_a!(a_buf, H.a, xi)
+            for k in eachindex(oi)
+                aikp = zero(eltype(out))
+                for l in eachindex(pi)
+                    aikp += a_buf[k, l] * pi[l]
+                end
+                oi[k] += aikp
+            end
         end
     end
     return out
@@ -106,6 +176,9 @@ function (H::_AutoHamiltonianXOOP)(out, x, p)
     J_buf = Matrix{eltype(out)}(undef, length(x_buf), length(x_buf))
     jac_cfg = ForwardDiff.JacobianConfig(H.jac_fn, x_buf)
     x_probe = similar(x_buf)
+    a_const = is_constant(H.a)
+    a_plus = _a_matrix_scratch(a_const, eltype(out), length(x_buf))
+    a_minus = _a_matrix_scratch(a_const, eltype(out), length(x_buf))
     @inbounds for i in axes(x, 2)
         xi = view(x, :, i)
         pi = view(p, :, i)
@@ -113,19 +186,22 @@ function (H::_AutoHamiltonianXOOP)(out, x, p)
         copyto!(x_buf, xi)
         ForwardDiff.jacobian!(J_buf, H.jac_fn, x_buf, jac_cfg, Val{false}())
         LinearAlgebra.mul!(oi, J_buf', pi)
-        _add_da_term!(is_constant(H.a), oi, H.a, xi, pi, x_probe)
+        _add_da_term!(a_const, oi, H.a, xi, pi, x_probe, a_plus, a_minus)
     end
     return out
 end
 
 function (H::_AutoHamiltonianXJac)(out, x, p)
     x_probe = collect(view(x, :, first(axes(x, 2))))
+    a_const = is_constant(H.a)
+    a_plus = _a_matrix_scratch(a_const, eltype(out), length(x_probe))
+    a_minus = _a_matrix_scratch(a_const, eltype(out), length(x_probe))
     @inbounds for i in axes(x, 2)
         xi = view(x, :, i)
         pi = view(p, :, i)
         oi = view(out, :, i)
         LinearAlgebra.mul!(oi, H.jac(xi, H.ps, 0.0)', pi)
-        _add_da_term!(is_constant(H.a), oi, H.a, xi, pi, x_probe)
+        _add_da_term!(a_const, oi, H.a, xi, pi, x_probe, a_plus, a_minus)
     end
     return out
 end
@@ -153,7 +229,7 @@ In-place evaluation of ``\partial_x H``. See [`_eval_Hp!`](@ref).
 function FreidlinWentzellHamiltonian(ds::ContinuousTimeDynamicalSystem)
     D = dimension(ds)
     ds isa CoupledSDEs && proper_FW_system(ds)
-    a = _trace_normalized_a(ds)
+    a = _state_dependent_diffusion(ds, _trace_normalized_a(ds))
     f = dynamic_rule(ds)
     ps = current_parameters(ds)
     iip = Val(SciMLBase.isinplace(ds))
@@ -187,21 +263,21 @@ end
 
 _make_H_x(a, ds, _f, ps, ::Val{true}) = _AutoHamiltonianXJac(a, jacobian(ds), ps)
 
-_add_da_term!(::Val{true}, _, _, _, _, _) = nothing
+_add_da_term!(::Val{true}, _, _, _, _, _, _, _) = nothing
 
-function _add_da_term!(::Val{false}, out, a, x, p, x_probe)
+function _add_da_term!(::Val{false}, out, a, x, p, x_probe, a_plus, a_minus)
     h = _fd_step(eltype(x))
     inv_2h = inv(2 * h)
     copyto!(x_probe, x)
     @inbounds for l in eachindex(out)
         x_probe[l] = x[l] + h
-        a_xp = a(x_probe)
+        _eval_a!(a_plus, a, x_probe)
         x_probe[l] = x[l] - h
-        a_xm = a(x_probe)
+        _eval_a!(a_minus, a, x_probe)
         x_probe[l] = x[l]
         contraction = zero(eltype(out))
         for j in eachindex(p), k in eachindex(p)
-            contraction += p[j] * (a_xp[j, k] - a_xm[j, k]) * p[k]
+            contraction += p[j] * (a_plus[j, k] - a_minus[j, k]) * p[k]
         end
         out[l] += 0.5 * contraction * inv_2h
     end
