@@ -172,11 +172,11 @@ end
 # Allocation-free λ, θ computation. Buffers `Ainv_b`, `Ainv_φp` live in the workspace.
 # `F_cached` may be a precomputed LU (constant non-diagonal a) or `nothing`.
 function _lambda_theta!(θ_out, a_i, b_i, φp, Ainv_b, Ainv_φp, F_cached = nothing)
-    if a_i isa LinearAlgebra.Diagonal
-        d = a_i.diag
+    if a_i isa LinearAlgebra.Diagonal || _isdiag_numerical(a_i)
         @inbounds for k in eachindex(Ainv_b)
-            Ainv_b[k] = b_i[k] / d[k]
-            Ainv_φp[k] = φp[k] / d[k]
+            d = a_i[k, k]
+            Ainv_b[k] = b_i[k] / d
+            Ainv_φp[k] = φp[k] / d
         end
     else
         F = F_cached === nothing ?
