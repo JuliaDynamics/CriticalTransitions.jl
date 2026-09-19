@@ -48,7 +48,7 @@ end
     p = zeros(size(x0))
     λ = zeros(1, Nt)
     cache = CT.build_sgmam_cache(sys, x0, Nt)
-    @test cache isa CT.SgMAMCoupledCache
+    @test cache isa CT.SgMAMBlockCoupledCache
     CT.central_diff!(xdot, x0)
     CT.update_p!(p, λ, x0, xdot, sys, cache)
     @test all(isfinite, λ)
@@ -192,7 +192,7 @@ end
     sys_rot = FreidlinWentzellHamiltonian(ds_rot)
     @test sys_rot isa FreidlinWentzellHamiltonian{<:Any, 2}
     cache_rot = CT.build_sgmam_cache(sys_rot, x_initial, Nt)
-    @test cache_rot isa CT.SgMAMCoupledCache
+    @test cache_rot isa CT.SgMAMBlockCoupledCache
 
     res = minimize_geometric_action(
         sys_rot, x_initial, GeometricGradient(; stepsize = 1.0);
