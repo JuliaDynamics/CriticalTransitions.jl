@@ -48,7 +48,15 @@ function benchmark_large_deviation_performance!(SUITE)
     b_eval_diag = let sys = ds_diag
         x -> drift(sys, x)
     end
+    a_diag = CT._trace_normalized_a(ds_diag)
     A_diag = CT._action_metric(ds_diag)
+    x_diag_point = view(path_diag, :, 40)
+    SUITE["Large deviation"]["Action kernels"]["covariance point diagonal"] =
+        @benchmarkable $a_diag($x_diag_point) seconds = 3
+    SUITE["Large deviation"]["Action kernels"]["metric point diagonal"] =
+        @benchmarkable $A_diag($x_diag_point) seconds = 3
+    SUITE["Large deviation"]["Action kernels"]["drift point diagonal"] =
+        @benchmarkable $b_eval_diag($x_diag_point) seconds = 3
     v_diag = similar(path_diag)
     integrand_diag = zeros(eltype(path_diag), size(path_diag, 2))
     SUITE["Large deviation"]["Action kernels"]["gMAM objective multiplicative diagonal"] = @benchmarkable CT._geometric_action_from_drift!(
@@ -77,7 +85,15 @@ function benchmark_large_deviation_performance!(SUITE)
     b_eval_coupled = let sys = ds_coupled
         x -> drift(sys, x)
     end
+    a_coupled = CT._trace_normalized_a(ds_coupled)
     A_coupled = CT._action_metric(ds_coupled)
+    x_coupled_point = view(path_coupled, :, 30)
+    SUITE["Large deviation"]["Action kernels"]["covariance point off-diagonal"] =
+        @benchmarkable $a_coupled($x_coupled_point) seconds = 3
+    SUITE["Large deviation"]["Action kernels"]["metric point off-diagonal"] =
+        @benchmarkable $A_coupled($x_coupled_point) seconds = 3
+    SUITE["Large deviation"]["Action kernels"]["drift point off-diagonal"] =
+        @benchmarkable $b_eval_coupled($x_coupled_point) seconds = 3
     v_coupled = similar(path_coupled)
     integrand_coupled = zeros(eltype(path_coupled), size(path_coupled, 2))
     SUITE["Large deviation"]["Action kernels"]["gMAM objective multiplicative off-diagonal"] = @benchmarkable CT._geometric_action_from_drift!(
