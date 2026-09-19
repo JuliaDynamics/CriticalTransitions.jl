@@ -5,7 +5,7 @@ struct _StaticCoupledCovarianceFactor{A}
 end
 
 @inline function _mul_static_inverse!(
-        b, a_inv, ::StaticArrays.Size{(N, N)},
+        b, a_inv::StaticArrays.StaticMatrix{N, N},
     ) where {N}
     rhs = ntuple(i -> @inbounds(b[i]), Val(N))
     @inbounds for i in 1:N
@@ -19,7 +19,7 @@ end
 end
 
 @inline function LinearAlgebra.ldiv!(F::_StaticCoupledCovarianceFactor, b::AbstractVector)
-    return _mul_static_inverse!(b, F.a_inv, StaticArrays.Size(F.a_inv))
+    return _mul_static_inverse!(b, F.a_inv)
 end
 
 @inline _state_dependent_coupled_factor(a::StaticArrays.StaticMatrix, _a_buf) =
