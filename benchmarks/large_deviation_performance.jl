@@ -106,6 +106,16 @@ function benchmark_large_deviation_performance!(SUITE)
         $fw, $init, $sg_opt; maxiters = 10, show_progress = false
     ) seconds = 10
 
+    sg_mult_opt = GeometricGradient(; max_backtracks = 0, stepsize = 0.1)
+    fw_diag = FreidlinWentzellHamiltonian(ds_diag)
+    fw_coupled = FreidlinWentzellHamiltonian(ds_coupled)
+    SUITE["Large deviation"]["Fixed iteration"]["auto sgMAM multiplicative diagonal 10 iterations"] = @benchmarkable minimize_geometric_action(
+        $fw_diag, $path_diag, $sg_mult_opt; maxiters = 10, show_progress = false
+    ) seconds = 10
+    SUITE["Large deviation"]["Fixed iteration"]["auto sgMAM multiplicative off-diagonal 10 iterations"] = @benchmarkable minimize_geometric_action(
+        $fw_coupled, $path_coupled, $sg_mult_opt; maxiters = 10, show_progress = false
+    ) seconds = 10
+
     gg_opt = GeometricGradient(; max_backtracks = 0, stepsize = 0.1)
     SUITE["Large deviation"]["Fixed iteration"]["direct gMAM 100 iterations"] = @benchmarkable minimize_geometric_action(
         $ds, $init, $gg_opt; maxiters = 100, show_progress = false
