@@ -153,7 +153,7 @@ function geometric_action(b::Function, path, arclength = 1.0; A = nothing)
     return _geometric_action_from_drift(b, path, arclength, A)
 end
 
-function _geometric_action_from_drift(b::Function, path, arclength::Real, A)
+function _geometric_action_from_drift(b::B, path, arclength::Real, A::M) where {B <: Function, M}
     N = size(path, 2)
     T = eltype(path)
     v_buf = similar(path)
@@ -161,7 +161,9 @@ function _geometric_action_from_drift(b::Function, path, arclength::Real, A)
     return _geometric_action_from_drift!(b, path, arclength, A, v_buf, integrand_buf)
 end
 
-function _geometric_action_from_drift!(b::Function, path, arclength::Real, A, v_buf, integrand_buf)
+function _geometric_action_from_drift!(
+        b::B, path, arclength::Real, A::M, v_buf, integrand_buf,
+    ) where {B <: Function, M}
     N = size(path, 2)
     T = eltype(path)
     path_velocity!(v_buf, path, range(zero(T), T(arclength); length = N); order = 4)
