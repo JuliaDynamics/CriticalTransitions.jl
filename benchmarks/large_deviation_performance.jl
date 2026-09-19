@@ -45,6 +45,9 @@ function benchmark_large_deviation_performance!(SUITE)
     SUITE["Large deviation"]["Direct gMAM kernels"]["multiplicative diagonal step"] = @benchmarkable CT.geometric_gradient_step!(
         $ws_diag, $ds_diag, $path_diag; stepsize = 0.1
     ) seconds = 5
+    SUITE["Large deviation"]["Action kernels"]["geometric multiplicative diagonal"] = @benchmarkable geometric_action(
+        $ds_diag, $path_diag
+    ) seconds = 5
 
     b_coupled(u, p, t) = SA[-u[1], -u[2]]
     function g_coupled(u, p, t)
@@ -64,6 +67,9 @@ function benchmark_large_deviation_performance!(SUITE)
     ws_coupled = CT.geometric_gradient_workspace(ds_coupled, path_coupled)
     SUITE["Large deviation"]["Direct gMAM kernels"]["multiplicative off-diagonal step"] = @benchmarkable CT.geometric_gradient_step!(
         $ws_coupled, $ds_coupled, $path_coupled; stepsize = 0.1
+    ) seconds = 5
+    SUITE["Large deviation"]["Action kernels"]["geometric multiplicative off-diagonal"] = @benchmarkable geometric_action(
+        $ds_coupled, $path_coupled
     ) seconds = 5
 
     init = path[:, 1:4:end]
