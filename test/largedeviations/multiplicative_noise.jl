@@ -9,6 +9,32 @@ const CT = CriticalTransitions
 const _make_1d_ou = ou_multiplicative_1d
 const _make_2d_offdiag = linear_offdiag_2d_sde
 
+@testset "dense diagonal _lambda_theta! matches Diagonal" begin
+    a_dense = [2.0 0.0; 0.0 3.0]
+    a_diag = Diagonal([2.0, 3.0])
+    b = [0.4, -0.2]
+    φp = [0.6, 0.8]
+
+    θ_dense = zeros(2)
+    Ainv_b_dense = zeros(2)
+    Ainv_φp_dense = zeros(2)
+    λ_dense = CT._lambda_theta!(
+        θ_dense, a_dense, b, φp, Ainv_b_dense, Ainv_φp_dense, nothing,
+    )
+
+    θ_diag = zeros(2)
+    Ainv_b_diag = zeros(2)
+    Ainv_φp_diag = zeros(2)
+    λ_diag = CT._lambda_theta!(
+        θ_diag, a_diag, b, φp, Ainv_b_diag, Ainv_φp_diag, nothing,
+    )
+
+    @test λ_dense ≈ λ_diag
+    @test θ_dense ≈ θ_diag
+    @test Ainv_b_dense ≈ Ainv_b_diag
+    @test Ainv_φp_dense ≈ Ainv_φp_diag
+end
+
 @testset "Diagonal state-dep update_p!: 1D OU multiplicative" begin
     ds = _make_1d_ou(0.3)
 
