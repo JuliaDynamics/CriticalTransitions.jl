@@ -34,9 +34,7 @@ end
     x = SA[0.2, -0.3]
 
     diagonal_noise(u, p, t) = SA[1 + 0.1 * u[1], 1 - 0.2 * u[2]]
-    ds_diag = CoupledSDEs(
-        drift, zeros(2); g = diagonal_noise, noise_prototype = SA[0.0, 0.0],
-    )
+    ds_diag = CoupledSDEs(drift, zeros(2); g = diagonal_noise)
     sys_diag = FreidlinWentzellHamiltonian(ds_diag)
     a_diag = zeros(2, 2)
     @test CT._eval_a!(a_diag, sys_diag.a, x) === a_diag
