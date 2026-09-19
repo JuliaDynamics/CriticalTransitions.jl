@@ -28,3 +28,28 @@ using Test
     @test Hx ≈ Hx_ref
     @test Hp ≈ Hp_ref
 end
+
+@testset "buffered state-dependent diffusion evaluation" begin
+    drift(u, p, t) = SA[-u[1], -u[2]]
+    x = SA[0.2, -0.3]
+
+    diagonal_noise(u, p, t) = SA[1 + 0.1 * u[1], 1 - 0.2 * u[2]]
+    ds_diag = CoupledSDEs(
+        drift, zeros(2); g = diagonal_noise, noise_prototype = SA[0.0, 0.0],
+    )
+    sys_diag = FreidlinWentzellHamiltonian(ds_diag)
+    a_diag = zeros(2, 2)
+    @test CT._eval_a!(a_diag, sys_diag.a, x) === a_diag
+    @test a_diag ≈ Matrix(sys_diag.a(x))
+
+    function coupled_noise(u, p, t)
+        return @SMatrix [1 + 0.1 * u[1] 0.2 * u[2]; -0.15 * u[1] 1 - 0.1 * u[2]]
+    end
+    ds_coupled = CoupledSDEs(
+        drift, zeros(2); g = coupled_noise, noise_prototype = @SMatrix zeros(2, 2),
+    )
+    sys_coupled = FreidlinWentzellHamiltonian(ds_coupled)
+    a_coupled = zeros(2, 2)
+    @test CT._eval_a!(a_coupled, sys_coupled.a, x) === a_coupled
+    @test a_coupled ≈ Matrix(sys_coupled.a(x))
+end
