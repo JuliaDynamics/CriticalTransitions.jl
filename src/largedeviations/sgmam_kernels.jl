@@ -1,7 +1,5 @@
 struct SgMAMDecoupledCache{T, LC}
     a_inv::Matrix{T}                # diag(a⁻¹) per (k, t)
-    Ainv_b::Matrix{T}               # a⁻¹ · b stored elementwise
-    Ainv_xd::Matrix{T}              # a⁻¹ · ẋ stored elementwise
     p_zero::Matrix{T}               # zero buffer reused as 2nd arg to sys.H_p
     Hp_buf::Matrix{T}               # buffer for H_p output (Nx × Nt)
     Hx_buf::Matrix{T}               # buffer for H_x output (Nx × Nt)
@@ -24,14 +22,48 @@ struct SgMAMCoupledCache{T, LC, LU}
     p_zero::Matrix{T}               # zero buffer reused as 2nd arg to sys.H_p
 end
 
+struct TridiagonalCache{T}
+    A::LinearAlgebra.Tridiagonal{T, Vector{T}}
+    b::Vector{T}
+    u::Vector{T}
+    d_factor::Vector{T}
+    c_factor::Vector{T}
+end
+
 function _init_tridiag_cache(::Type{T}, L::Int) where {T}
     dl = zeros(T, L - 1); d = ones(T, L); du = zeros(T, L - 1)
     Tmat = LinearAlgebra.Tridiagonal(dl, d, du)
-    rhs = zeros(T, L)
-    return init(
-        LinearProblem(Tmat, rhs), LUFactorization();
-        alias = SciMLBase.LinearAliasSpecifier(; alias_A = true, alias_b = true),
-    )
+    return TridiagonalCache(Tmat, zeros(T, L), zeros(T, L), zeros(T, L), zeros(T, L - 1))
+end
+
+function _factor_tridiag!(cache::TridiagonalCache)
+    A = cache.A
+    d_factor = cache.d_factor
+    c_factor = cache.c_factor
+    n = length(A.d)
+    d_factor[1] = A.d[1]
+    @inbounds for i in 1:(n - 1)
+        c_factor[i] = A.du[i] / d_factor[i]
+        d_factor[i + 1] = A.d[i + 1] - A.dl[i] * c_factor[i]
+    end
+    return nothing
+end
+
+function _solve_tridiag!(cache::TridiagonalCache)
+    A = cache.A
+    b = cache.b
+    u = cache.u
+    d_factor = cache.d_factor
+    c_factor = cache.c_factor
+    n = length(b)
+    u[1] = b[1] / d_factor[1]
+    @inbounds for i in 2:n
+        u[i] = (b[i] - A.dl[i - 1] * u[i - 1]) / d_factor[i]
+    end
+    @inbounds for i in (n - 1):-1:1
+        u[i] -= c_factor[i] * u[i + 1]
+    end
+    return u
 end
 
 function _fill_constant_a_inv!(a_inv::Matrix{T}, a, Nx, Nt) where {T}
@@ -54,15 +86,13 @@ end
 
 function _build_decoupled_cache(sys, ::Type{T}, Nx::Int, Nt::Int) where {T}
     a_inv = Matrix{T}(undef, Nx, Nt)
-    Ainv_b = Matrix{T}(undef, Nx, Nt)
-    Ainv_xd = Matrix{T}(undef, Nx, Nt)
     p_zero = zeros(T, Nx, Nt)
     is_constant(sys.a) === Val(true) && _fill_constant_a_inv!(a_inv, sys.a, Nx, Nt)
     linear_cache = _init_tridiag_cache(T, Nt - 2)
     Hp_buf = Matrix{T}(undef, Nx, Nt)
     Hx_buf = Matrix{T}(undef, Nx, Nt)
     return SgMAMDecoupledCache{T, typeof(linear_cache)}(
-        a_inv, Ainv_b, Ainv_xd, p_zero, Hp_buf, Hx_buf, linear_cache,
+        a_inv, p_zero, Hp_buf, Hx_buf, linear_cache,
     )
 end
 
@@ -169,13 +199,23 @@ function update_p!(p, λ, x, xdot, sys, cache::SgMAMDecoupledCache)
         _refill_state_dep_a_inv!(cache.a_inv, sys.a, x)
     end
     b_ = _eval_Hp!(cache.Hp_buf, sys, x, cache.p_zero)
-    @. cache.Ainv_b = b_ * cache.a_inv
-    @. cache.Ainv_xd = xdot * cache.a_inv
-    num = sum(b_ .* cache.Ainv_b; dims = 1)
-    den = sum(xdot .* cache.Ainv_xd; dims = 1)
-    @. λ = ifelse(den > 1.0e-28, sqrt(num / den), zero(eltype(num)))
-    λ[1, 1] = λ[1, end] = 0
-    @. p = (λ * xdot - b_) * cache.a_inv
+    @inbounds for t in axes(x, 2)
+        num = zero(eltype(p))
+        den = zero(eltype(p))
+        for k in axes(x, 1)
+            ia = cache.a_inv[k, t]
+            bt = b_[k, t]
+            xt = xdot[k, t]
+            num += bt * bt * ia
+            den += xt * xt * ia
+        end
+        λt = den > 1.0e-28 ? sqrt(num / den) : zero(eltype(p))
+        (t == first(axes(x, 2)) || t == last(axes(x, 2))) && (λt = zero(eltype(p)))
+        λ[1, t] = λt
+        for k in axes(x, 1)
+            p[k, t] = (λt * xdot[k, t] - b_[k, t]) * cache.a_inv[k, t]
+        end
+    end
     return nothing
 end
 
@@ -242,8 +282,8 @@ function update_x!(
         end
         rhs[1] += ϵ * a_inv[dof, 2] * λ[2]^2 * xa[dof]
         rhs[end] += ϵ * a_inv[dof, Nt - 1] * λ[end - 1]^2 * xb[dof]
-        LinearSolve.reinit!(lc; A = Tmat, b = rhs)
-        solve!(lc)
+        _factor_tridiag!(lc)
+        _solve_tridiag!(lc)
         @inbounds for k in 1:L
             x[dof, k + 1] = lc.u[k]
         end
