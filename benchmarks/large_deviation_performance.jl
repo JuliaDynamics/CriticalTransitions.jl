@@ -45,8 +45,14 @@ function benchmark_large_deviation_performance!(SUITE)
     SUITE["Large deviation"]["Direct gMAM kernels"]["multiplicative diagonal step"] = @benchmarkable CT.geometric_gradient_step!(
         $ws_diag, $ds_diag, $path_diag; stepsize = 0.1
     ) seconds = 5
-    SUITE["Large deviation"]["Action kernels"]["geometric multiplicative diagonal"] = @benchmarkable geometric_action(
-        $ds_diag, $path_diag
+    b_eval_diag = let sys = ds_diag
+        x -> drift(sys, x)
+    end
+    A_diag = CT._action_metric(ds_diag)
+    v_diag = similar(path_diag)
+    integrand_diag = zeros(eltype(path_diag), size(path_diag, 2))
+    SUITE["Large deviation"]["Action kernels"]["gMAM objective multiplicative diagonal"] = @benchmarkable CT._geometric_action_from_drift!(
+        $b_eval_diag, $path_diag, 1.0, $A_diag, $v_diag, $integrand_diag
     ) seconds = 5
 
     b_coupled(u, p, t) = SA[-u[1], -u[2]]
@@ -68,8 +74,14 @@ function benchmark_large_deviation_performance!(SUITE)
     SUITE["Large deviation"]["Direct gMAM kernels"]["multiplicative off-diagonal step"] = @benchmarkable CT.geometric_gradient_step!(
         $ws_coupled, $ds_coupled, $path_coupled; stepsize = 0.1
     ) seconds = 5
-    SUITE["Large deviation"]["Action kernels"]["geometric multiplicative off-diagonal"] = @benchmarkable geometric_action(
-        $ds_coupled, $path_coupled
+    b_eval_coupled = let sys = ds_coupled
+        x -> drift(sys, x)
+    end
+    A_coupled = CT._action_metric(ds_coupled)
+    v_coupled = similar(path_coupled)
+    integrand_coupled = zeros(eltype(path_coupled), size(path_coupled, 2))
+    SUITE["Large deviation"]["Action kernels"]["gMAM objective multiplicative off-diagonal"] = @benchmarkable CT._geometric_action_from_drift!(
+        $b_eval_coupled, $path_coupled, 1.0, $A_coupled, $v_coupled, $integrand_coupled
     ) seconds = 5
 
     init = path[:, 1:4:end]
