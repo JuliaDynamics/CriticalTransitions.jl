@@ -36,3 +36,5 @@ end
     copyto!(cache.a_at[t], a_t)
     return _state_dependent_coupled_factor(a_t, cache.a_at[t])
 end
+
+include("sgmam_block_solve.jl")
