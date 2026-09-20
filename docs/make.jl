@@ -60,12 +60,13 @@ remotes = Dict(remote_pairs)
 #                 math in `src/` (\mathbb, \mathcal, aligned, ...) is supported
 #                 by both engines; MathJax is kept as a safety net for richer
 #                 LaTeX (\bm, \tag, AMS environments) we may add later.
+#   size thresholds -> examples contain several rich scientific figures, so use
+#                      a realistic page-size budget while still catching bloat.
 html_options = Dict(
     :canonical => "https://juliadynamics.github.io/CriticalTransitions.jl/",
     :mathengine => Documenter.MathJax2(),
-    # :example_size_threshold => nothing,
-    # :size_threshold_warn => nothing,
-    # :size_threshold => nothing,
+    :size_threshold_warn => 3 * 1024^2,
+    :size_threshold => 5 * 1024^2,
 )
 
 # `inventory_version` tags the `objects.inv` file Documenter generates so that
