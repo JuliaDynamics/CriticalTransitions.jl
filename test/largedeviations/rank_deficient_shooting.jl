@@ -9,7 +9,7 @@ function _underdamped_double_well(u, p, t)
     return SA[v, q - q^3 - v]
 end
 
-_rank_one_velocity_noise(u, p, t) = SA[0.0 0.0; 0.0 1.0]
+_rank_one_velocity_noise(u, p, t) = SA[0.0 0.0; 0.0 sqrt(2.0)]
 
 function _rank_deficient_double_well()
     return CoupledSDEs(
@@ -38,6 +38,13 @@ function _H_invariant_max(H, res)
     )
 end
 
+function _rank_deficient_trust_region()
+    return CT.NonlinearSolveFirstOrder.TrustRegion(
+        ; autodiff = CT.AutoForwardDiff(),
+        linsolve = CT.LinearSolve.UMFPACKFactorization(),
+    )
+end
+
 @testset "MultipleShooting supports rank-deficient underdamped noise" begin
     ds = _rank_deficient_double_well()
     H = FreidlinWentzellHamiltonian(ds)
@@ -52,13 +59,13 @@ end
         H,
         init,
         MultipleShooting(
-            ; nshoots = 10, maxiters = 200, abstol = 1.0e-8, reltol = 1.0e-7,
-            eps_lin = 1.0e-6,
+            ; nshoots = 10, nlsolve = _rank_deficient_trust_region(), maxiters = 200,
+            abstol = 1.0e-8, reltol = 1.0e-7,
         );
         show_progress = false,
     )
 
-    # For U(q) = (q^2 - 1)^2/4 and fluctuation-dissipation noise in velocity,
+    # For U(q) = (q^2 - 1)^2/4 and fluctuation-dissipation noise √(2γ) in velocity,
     # the quasipotential barrier from (-1,0) to the saddle (0,0) is ΔU = 1/4.
     @test isapprox(res.action, 0.25; rtol = 3.0e-2)
     @test _H_invariant_max(H, res) < 1.0e-5
@@ -77,7 +84,7 @@ end
         return R * _underdamped_double_well(y, p, t)
     end
 
-    σ0 = SA[0.0 0.0; 0.0 1.0]
+    σ0 = SA[0.0 0.0; 0.0 sqrt(2.0)]
     σrot = R * σ0
     noise_rot(u, p, t) = σrot
 
@@ -95,8 +102,8 @@ end
         H,
         init,
         MultipleShooting(
-            ; nshoots = 10, maxiters = 200, abstol = 1.0e-8, reltol = 1.0e-7,
-            eps_lin = 1.0e-6,
+            ; nshoots = 10, nlsolve = _rank_deficient_trust_region(), maxiters = 200,
+            abstol = 1.0e-8, reltol = 1.0e-7,
         );
         show_progress = false,
     )
