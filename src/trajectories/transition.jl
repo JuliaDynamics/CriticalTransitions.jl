@@ -59,7 +59,15 @@ end
 function prepare_transition_problem(sys, x, radii, radius_directions, tmax)
     x_i, x_f = x
     _, rad_f = radii
-    condition(u, t, integrator) = subnorm(u - x_f; directions = radius_directions) < rad_f
+    rad_f_squared = abs2(rad_f)
+    positive_radius = rad_f > zero(rad_f)
+    function condition(u, t, integrator)
+        distance_squared = zero(rad_f_squared)
+        @inbounds for i in radius_directions
+            distance_squared += abs2(u[i] - x_f[i])
+        end
+        return positive_radius && distance_squared < rad_f_squared
+    end
     affect!(integrator) = terminate!(integrator)
     cb_ball = DiscreteCallback(condition, affect!)
     prob = referenced_sciml_prob(sys)
