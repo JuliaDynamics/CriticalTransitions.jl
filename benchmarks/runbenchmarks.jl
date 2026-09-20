@@ -3,22 +3,8 @@ using CriticalTransitions
 
 const SUITE = BenchmarkGroup()
 
-include("kpo.jl")
-include("maierstein.jl")
-include("multiplicative_noise.jl")
-include("quasipotential.jl")
-include("large_deviation_performance.jl")
 include("transition_callbacks.jl")
-# Disabled until #280's RateSystem refactor is finished — see PR #310.
-# include("ratesystem.jl")
-
-benchmark_KPO!(SUITE)
-benchmark_maierstein!(SUITE)
-benchmark_multiplicative_noise!(SUITE)
-benchmark_quasipotential!(SUITE)
-benchmark_large_deviation_performance!(SUITE)
 benchmark_transition_callbacks!(SUITE)
-# benchmark_rate_system!(SUITE)
 
 BenchmarkTools.tune!(SUITE)
 results = BenchmarkTools.run(SUITE; verbose = true)
