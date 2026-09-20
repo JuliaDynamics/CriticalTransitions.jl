@@ -16,6 +16,9 @@ const PNG_WRAPPER = """
 struct _LiteratePNGOnly{T} #hide
     value::T #hide
 end #hide
+Base.showable(::MIME\"text/html\", ::_LiteratePNGOnly) = false #hide
+Base.showable(::MIME\"image/svg+xml\", ::_LiteratePNGOnly) = false #hide
+Base.showable(::MIME\"text/markdown\", ::_LiteratePNGOnly) = false #hide
 Base.showable(::MIME\"image/png\", x::_LiteratePNGOnly) = showable(MIME(\"image/png\"), x.value) #hide
 Base.show(io::IO, mime::MIME\"image/png\", x::_LiteratePNGOnly) = show(io, mime, x.value) #hide
 """
