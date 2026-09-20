@@ -12,31 +12,40 @@ else
     Dict()
 end
 
-function postprocess(content)
-    # Literate keeps `#hide` markers when execute=true because Documenter would
-    # normally consume them. These pages use ordinary Markdown code fences, so
-    # remove the marked source lines from the pre-executed output.
-    return replace(content, r"(?m)^[^\n]*#\s*hide[ \t]*(?:\n|$)" => "")
-end
+const PNG_WRAPPER = """
+struct _LiteratePNGOnly{T} #hide
+    value::T #hide
+end #hide
+Base.showable(::MIME\"image/png\", x::_LiteratePNGOnly) = showable(MIME(\"image/png\"), x.value) #hide
+Base.show(io::IO, mime::MIME\"image/png\", x::_LiteratePNGOnly) = show(io, mime, x.value) #hide
+"""
 
 function preprocess(content)
-    # Preserve the package's existing `#note` shorthand while each example is
-    # executed in its own process.
-    return replace(
+    # Preserve the package's existing `#note` shorthand.
+    content = replace(
         content,
         r"^#note # (.*)$"m => s"""
             # !!! note
             #     \1""",
     )
+
+    # With execute=true, DocumenterFlavor would otherwise prefer Makie's
+    # text/html representation. Keep the visible `fig` expression unchanged,
+    # but make the hidden final expression expose only image/png so generated
+    # pages stay compact and retain Documenter @ref/@id semantics.
+    content = replace(
+        content,
+        r"(?m)^(fig[A-Za-z0-9_]*)[ \t]*$" => s"\1\n_LiteratePNGOnly(\1) #hide",
+    )
+    return PNG_WRAPPER * "\n" * content
 end
 
 Literate.markdown(
     input_file,
     output_dir;
-    flavor = Literate.DefaultFlavor(),
+    flavor = Literate.DocumenterFlavor(),
     credit = false,
     config = extra_literate_config,
     execute = true,
     preprocess,
-    postprocess,
 )
