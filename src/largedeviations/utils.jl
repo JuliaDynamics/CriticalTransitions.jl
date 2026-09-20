@@ -80,7 +80,7 @@ const _RANK_DEFICIENT_MSG =
     "rank-deficient noise is not supported. Workarounds: add a small ε on the noiseless variable to make the covariance invertible, or supply a Hamiltonian directly via FreidlinWentzellHamiltonian{IIP, D}(H_x, H_p)."
 
 function _check_rank!(a)
-    M = a isa LinearAlgebra.Diagonal ? a : Matrix(a)
+    M = Matrix(a)
     if LinearAlgebra.cond(M) > 1 / sqrt(eps(real(eltype(M))))
         throw(ArgumentError(_RANK_DEFICIENT_MSG))
     end
