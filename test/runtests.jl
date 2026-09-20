@@ -1,69 +1,27 @@
-using CriticalTransitions, StaticArrays
-const CT = CriticalTransitions
-using Test
+using CriticalTransitions
+using ParallelTestRunner: ParallelTestRunner
 
-using Random
-const SEED = 0xd8e5d8df
-Random.seed!(SEED)
+# Start with autodiscovered tests and preserve the existing default suite.
+testsuite = ParallelTestRunner.find_tests(@__DIR__)
+args = ParallelTestRunner.parse_args(ARGS)
 
-using CriticalTransitions.CTLibrary: fitzhugh_nagumo
-
-@testset "Code Quality" begin
-    include("code_quality.jl")
+if ParallelTestRunner.filter_tests!(testsuite, args)
+    # JET has its own dedicated workflow/environment, and API.jl is a legacy
+    # file that was not part of the previous runtests.jl include list.
+    delete!(testsuite, "quality/JET")
+    delete!(testsuite, "largedeviations/API")
 end
 
-@testset "CoupledSDEs" begin
-    include("CoupledSDEs.jl")
-    include("covariance.jl")
+# Preserve the shared setup that the previous monolithic runtests.jl provided.
+# ParallelTestRunner evaluates this in each isolated test sandbox.
+const init_code = quote
+    using CriticalTransitions, StaticArrays
+    const CT = CriticalTransitions
+    using Test
+    using Random
+    const SEED = 0xd8e5d8df
+    Random.seed!(SEED)
+    using CriticalTransitions.CTLibrary: fitzhugh_nagumo
 end
 
-@testset "Large Deviations" begin
-    include("largedeviations/noise_shape.jl")
-    include("largedeviations/action_fhn.jl")
-    include("largedeviations/action_canonicalization.jl")
-    include("largedeviations/action_limit_cycle.jl")
-    include("largedeviations/MAM.jl")
-    include("largedeviations/gMAM.jl")
-    include("largedeviations/sgMAM.jl")
-    include("largedeviations/sgmam_static_solve.jl")
-    include("largedeviations/sgmam_block_solve.jl")
-    include("largedeviations/hamiltonian_inplace.jl")
-    include("largedeviations/multiplicative_noise.jl")
-    include("largedeviations/gmam_static_solve.jl")
-    include("largedeviations/unified_api.jl")
-    include("largedeviations/rank_deficient_rejection.jl")
-    include("largedeviations/string_method.jl")
-    include("largedeviations/Maier_stein.jl")
-    include("largedeviations/interpolate.jl")
-    include("largedeviations/multiple_shooting.jl")
-    include("largedeviations/multiple_shooting_rejection.jl")
-    include("largedeviations/quasipotential.jl")
-end
-
-@testset "Diffusion operator" begin
-    include("diffusion_operator.jl")
-end
-
-@testset "Transition Path Theory" begin
-    include("transition_path_theory.jl")
-end
-
-@testset "Utilities" begin
-    include("utils.jl")
-end
-
-@testset "Trajectories" begin
-    include("trajectories/simulate.jl")
-    include("trajectories/transition.jl")
-end
-
-@testset "R-tipping" begin
-    include("r_tipping/RateSystem.jl")
-    include("r_tipping/phase_diagrams.jl")
-    include("r_tipping/tipping_probabilities.jl")
-end
-
-@testset "Doctests" begin
-    using Documenter
-    Documenter.doctest(CriticalTransitions)
-end
+ParallelTestRunner.runtests(CriticalTransitions, args; testsuite, init_code)
