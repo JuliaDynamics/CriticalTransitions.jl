@@ -44,14 +44,54 @@ function _transition_step_loop(
         if reached
             success = true
             CriticalTransitions.SciMLBase.terminate!(integ)
-            # `DiscreteCallback` defaults to `save_positions = (true, true)`. The normal
-            # step already saved this endpoint, so force the matching post-affect save.
             CriticalTransitions.SciMLBase.savevalues!(integ, true)
             break
         end
         check_success && !CriticalTransitions.DynamicalSystemsBase.successful_step(integ) && break
     end
 
+    sim = CriticalTransitions.SciMLBase.get_sol(integ)
+    return StateSpaceSet(sim.u), sim.t, success
+end
+
+function _run_transition_steps!(integ, x_f, rad_f, radius_directions, tmax)
+    success = false
+    while integ.t < tmax
+        CriticalTransitions.SciMLBase.step!(integ)
+        if _inside_target_noalloc(integ.u, x_f, rad_f, radius_directions)
+            success = true
+            CriticalTransitions.SciMLBase.terminate!(integ)
+            CriticalTransitions.SciMLBase.savevalues!(integ, true)
+            break
+        end
+        CriticalTransitions.DynamicalSystemsBase.successful_step(integ) || break
+    end
+    return success
+end
+
+function _transition_step_loop_barrier(
+        sys,
+        x_i,
+        x_f;
+        radii = (0.1, 0.1),
+        tmax = 1.0e3,
+        radius_directions = 1:length(current_state(sys)),
+        seed = nothing,
+        kwargs...,
+    )
+    _, rad_f = radii
+    prob = referenced_sciml_prob(sys)
+    prob = CriticalTransitions.SciMLBase.remake(
+        prob; u0 = oftype(prob.u0, x_i), tspan = (0, tmax)
+    )
+    if seed !== nothing
+        prob = CriticalTransitions.SciMLBase.remake(prob; seed = UInt64(seed))
+    end
+    diffeq_kw = NamedTuple{filter(!=(:alg), keys(sys.diffeq))}(sys.diffeq)
+    integ = CriticalTransitions.SciMLBase.init(
+        prob, CriticalTransitions.solver(sys); diffeq_kw..., kwargs...
+    )
+    success = _run_transition_steps!(integ, x_f, rad_f, radius_directions, tmax)
     sim = CriticalTransitions.SciMLBase.get_sol(integ)
     return StateSpaceSet(sim.u), sim.t, success
 end
@@ -118,6 +158,29 @@ function _step_horizon(sys, x_i, tend; seed = nothing, kwargs...)
     return CriticalTransitions.SciMLBase.get_sol(integ)
 end
 
+function _run_horizon_steps!(integ, tend)
+    while integ.t < tend
+        CriticalTransitions.SciMLBase.step!(integ)
+    end
+    return integ
+end
+
+function _step_horizon_barrier(sys, x_i, tend; seed = nothing, kwargs...)
+    prob = referenced_sciml_prob(sys)
+    prob = CriticalTransitions.SciMLBase.remake(
+        prob; u0 = oftype(prob.u0, x_i), tspan = (0, tend)
+    )
+    if seed !== nothing
+        prob = CriticalTransitions.SciMLBase.remake(prob; seed = UInt64(seed))
+    end
+    diffeq_kw = NamedTuple{filter(!=(:alg), keys(sys.diffeq))}(sys.diffeq)
+    integ = CriticalTransitions.SciMLBase.init(
+        prob, CriticalTransitions.solver(sys); diffeq_kw..., kwargs...
+    )
+    _run_horizon_steps!(integ, tend)
+    return CriticalTransitions.SciMLBase.get_sol(integ)
+end
+
 function benchmark_transition_callbacks!(suite)
     f(u, p, t) = [1.0]
     sys = CoupledSDEs(
@@ -162,15 +225,24 @@ function benchmark_transition_callbacks!(suite)
         seed = common.seed,
         allocation_free_condition = true,
     )
-    @assert callback_result[3] == step_result[3] == noalloc_callback_result[3] == noalloc_step_result[3]
-    @assert callback_result[2] == step_result[2] == noalloc_callback_result[2] == noalloc_step_result[2]
-    @assert callback_result[1] == step_result[1] == noalloc_callback_result[1] == noalloc_step_result[1]
+    barrier_step_result = _transition_step_loop_barrier(
+        sys,
+        x_i,
+        x_f;
+        radii = common.radii,
+        tmax = common.tmax,
+        seed = common.seed,
+    )
+    @assert callback_result[3] == step_result[3] == noalloc_callback_result[3] == noalloc_step_result[3] == barrier_step_result[3]
+    @assert callback_result[2] == step_result[2] == noalloc_callback_result[2] == noalloc_step_result[2] == barrier_step_result[2]
+    @assert callback_result[1] == step_result[1] == noalloc_callback_result[1] == noalloc_step_result[1] == barrier_step_result[1]
 
     terminal_time = callback_result[2][end]
     solve_horizon = _solve_horizon(sys, x_i, terminal_time; seed)
     step_horizon = _step_horizon(sys, x_i, terminal_time; seed)
-    @assert solve_horizon.t == step_horizon.t
-    @assert solve_horizon.u == step_horizon.u
+    barrier_horizon = _step_horizon_barrier(sys, x_i, terminal_time; seed)
+    @assert solve_horizon.t == step_horizon.t == barrier_horizon.t
+    @assert solve_horizon.u == step_horizon.u == barrier_horizon.u
     @info "transition benchmark" saved_points = length(callback_result[2]) terminal_time
 
     group = suite["Transitions"] = BenchmarkGroup()
@@ -207,10 +279,19 @@ function benchmark_transition_callbacks!(suite)
         seed = $seed,
         allocation_free_condition = true,
     )
+    group["manual step loop noalloc barrier"] = @benchmarkable _transition_step_loop_barrier(
+        $sys, $x_i, $x_f;
+        radii = $(common.radii),
+        tmax = $(common.tmax),
+        seed = $seed,
+    )
     group["solve fixed horizon no callback"] = @benchmarkable _solve_horizon(
         $sys, $x_i, $terminal_time; seed = $seed
     )
     group["step fixed horizon no callback"] = @benchmarkable _step_horizon(
+        $sys, $x_i, $terminal_time; seed = $seed
+    )
+    group["step fixed horizon barrier"] = @benchmarkable _step_horizon_barrier(
         $sys, $x_i, $terminal_time; seed = $seed
     )
     return suite
