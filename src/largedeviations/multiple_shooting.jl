@@ -5,9 +5,9 @@ Multiple-shooting BVP optimizer for the Freidlin-Wentzell instanton on a
 [`FreidlinWentzellHamiltonian`](@ref). Integrates the arclength-reparameterized Hamilton
 equations
 ```math
-\\frac{\\mathrm{d}\\varphi}{\\mathrm{d}s} = \\alpha\\,H_p,\\qquad
-\\frac{\\mathrm{d}p}{\\mathrm{d}s}       = -\\alpha\\,H_x,\\qquad
-\\alpha = L / \\|H_p\\|
+\frac{\mathrm{d}\varphi}{\mathrm{d}s} = \alpha\,H_p,\qquad
+\frac{\mathrm{d}p}{\mathrm{d}s}       = -\alpha\,H_x,\qquad
+\alpha = L / \|H_p\|
 ```
 on `s ∈ [0, 1]` with path length `L` a Newton unknown. Boundary states are parameterized by
 the unstable / stable eigenvectors of the Hamiltonian Jacobian at each fixed-point endpoint.
@@ -172,9 +172,33 @@ function _arclength_rhs!(dy, y, p_params, s)
     return nothing
 end
 
+function _arclength_rhs_backward!(dy, y, p_params, τ)
+    _arclength_rhs!(dy, y, p_params, τ)
+    @inbounds for k in eachindex(dy)
+        dy[k] = -dy[k]
+    end
+    return nothing
+end
+
 function _integrate_segment(ws::MultipleShootingWorkspace{IIP, D}, y_in, s_a, s_b, L) where {IIP, D}
     params = (H = ws.H, D = D, L = L)
     prob = SciMLBase.ODEProblem(_arclength_rhs!, collect(y_in), (s_a, s_b), params)
+    sol = SciMLBase.solve(
+        prob, ws.ode_solver;
+        abstol = ws.abstol * _SEG_TOL_FACTOR,
+        reltol = ws.reltol * _SEG_TOL_FACTOR,
+        save_everystep = false, save_start = false, dense = false,
+    )
+    return sol.u[end]
+end
+
+function _integrate_segment_backward(
+        ws::MultipleShootingWorkspace{IIP, D}, y_in, Δs, L,
+    ) where {IIP, D}
+    params = (H = ws.H, D = D, L = L)
+    prob = SciMLBase.ODEProblem(
+        _arclength_rhs_backward!, collect(y_in), (zero(Δs), Δs), params,
+    )
     sol = SciMLBase.solve(
         prob, ws.ode_solver;
         abstol = ws.abstol * _SEG_TOL_FACTOR,
@@ -379,7 +403,8 @@ function _initial_guess_manifolds(
 
     y = ws.lin_b.xstar_aug .+ ws.lin_b.U * c_b
     for i in nseg:-1:(split + 1)
-        y = _integrate_segment(ws, y, ws.grid[i + 1], ws.grid[i], L)
+        Δs = ws.grid[i + 1] - ws.grid[i]
+        y = _integrate_segment_backward(ws, y, Δs, L)
         node = i - 1
         node ≥ 1 && _store_initial_node!(interior, y, node, D)
     end
