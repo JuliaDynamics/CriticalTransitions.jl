@@ -67,11 +67,13 @@ end
         H, init, GeometricGradient(); maxiters = 1, show_progress = false
     )
 
+    # Diagnostic coarse solve: if two segments converge, singular shooting should be
+    # initialized by segment-count continuation rather than a one-shot 10-segment solve.
     res = minimize_geometric_action(
         H,
         init,
         MultipleShooting(
-            ; nshoots = 10, nlsolve = _rank_deficient_trust_region(), maxiters = 200,
+            ; nshoots = 2, nlsolve = _rank_deficient_trust_region(), maxiters = 200,
             abstol = 1.0e-8, reltol = 1.0e-7,
         );
         show_progress = false,
@@ -114,7 +116,7 @@ end
         H,
         init,
         MultipleShooting(
-            ; nshoots = 10, nlsolve = _rank_deficient_trust_region(), maxiters = 200,
+            ; nshoots = 2, nlsolve = _rank_deficient_trust_region(), maxiters = 200,
             abstol = 1.0e-8, reltol = 1.0e-7,
         );
         show_progress = false,
