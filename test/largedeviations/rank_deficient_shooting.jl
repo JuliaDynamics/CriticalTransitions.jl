@@ -46,6 +46,41 @@ function _rank_deficient_trust_region()
     )
 end
 
+# Diagnostic override: at an outgoing singular endpoint, seed the asymptotically dominant
+# activation direction (the stable drift eigenvalue closest to zero) rather than mixing all
+# activation modes to reproduce an arbitrary configuration-space tangent. Newton still sees
+# the complete D-dimensional Hamiltonian boundary manifold through lin.U * c.
+@eval CT function _project_endpoint_activation(H, lin, x_near, side::Symbol, eps_lin::T) where {T}
+    D = length(x_near)
+    xstar = collect(T, view(lin.xstar_aug, 1:D))
+    δx = collect(T, x_near .- xstar)
+    J = T.(_drift_jacobian(H, xstar))
+    A = collect(T, H.a(xstar))
+    Sf = LinearAlgebra.schur(Matrix{T}(J'))
+    select = if side === :outgoing
+        stable = findall(λ -> real(λ) < 0, Sf.values)
+        isempty(stable) && return _project_endpoint(lin, x_near, eps_lin)
+        weak = stable[argmax(real.(Sf.values[stable]))]
+        [i == weak for i in eachindex(Sf.values)]
+    elseif side === :incoming
+        [real(λ) > 0 for λ in Sf.values]
+    else
+        throw(ArgumentError("side must be :outgoing or :incoming, got $side"))
+    end
+    r = count(select)
+    r == 0 && return _project_endpoint(lin, x_near, eps_lin)
+    LinearAlgebra.ordschur!(Sf, select)
+    P = Matrix{T}(Sf.Z[:, 1:r])
+    R = Matrix{T}(Sf.T[1:r, 1:r])
+    X = LinearAlgebra.sylvester(J, R, A * P)
+    η = X \ δx
+    y_raw = vcat(X * η, P * η)
+    c_raw = lin.U' * y_raw
+    norm_lin = LinearAlgebra.norm(lin.U * c_raw)
+    scale = norm_lin > eps(T) ? eps_lin / norm_lin : eps_lin
+    return T.(c_raw .* scale)
+end
+
 @testset "Rank-deficient second-order Langevin Hamiltonian oracle" begin
     H = FreidlinWentzellHamiltonian(_rank_deficient_double_well())
     for q in (-0.9, -0.6, -0.3), v in (-0.2, 0.15)
@@ -62,14 +97,10 @@ end
     H = FreidlinWentzellHamiltonian(ds)
     init = _rank_deficient_initial_path()
 
-    # GeometricGradient still uses an inverse diffusion metric and must reject this problem.
     @test_throws ArgumentError minimize_geometric_action(
         H, init, GeometricGradient(); maxiters = 1, show_progress = false
     )
 
-    # Diagnostic: the default eps_lin = 1e-8 lies inside the arclength regularization layer
-    # max(‖H_p‖, √eps). Move only the endpoint truncation radius outward; the Hamiltonian and
-    # singular diffusion are unchanged.
     res = minimize_geometric_action(
         H,
         init,
@@ -80,8 +111,6 @@ end
         show_progress = false,
     )
 
-    # Trace normalization gives a = diag(0, 2). For damping Γ, the exact quasipotential is
-    # V(q,v) = Γ [U(q) + v²/2], hence S((-1,0) → (0,0)) = Γ ΔU = 3/4.
     @test isapprox(res.action, 0.75; rtol = 3.0e-2)
     @test _H_invariant_max(H, res) < 1.0e-5
     @test isapprox(res.path[1][1], -1.0; atol = 1.0e-5)
