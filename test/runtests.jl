@@ -19,7 +19,8 @@ const init_code = quote
     const CT = CriticalTransitions
     using Test
     using Random
-    Random.seed!(0xd8e5d8df)
+    const SEED = 0xd8e5d8df
+    Random.seed!(SEED)
     using CriticalTransitions.CTLibrary: fitzhugh_nagumo
 end
 
