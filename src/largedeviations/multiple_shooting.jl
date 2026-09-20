@@ -5,9 +5,9 @@ Multiple-shooting BVP optimizer for the Freidlin-Wentzell instanton on a
 [`FreidlinWentzellHamiltonian`](@ref). Integrates the arclength-reparameterized Hamilton
 equations
 ```math
-\frac{\mathrm{d}\varphi}{\mathrm{d}s} = \alpha\,H_p,\qquad
-\frac{\mathrm{d}p}{\mathrm{d}s}       = -\alpha\,H_x,\qquad
-\alpha = L / \|H_p\|
+\\frac{\\mathrm{d}\\varphi}{\\mathrm{d}s} = \\alpha\\,H_p,\\qquad
+\\frac{\\mathrm{d}p}{\\mathrm{d}s}       = -\\alpha\\,H_x,\\qquad
+\\alpha = L / \\|H_p\\|
 ```
 on `s ∈ [0, 1]` with path length `L` a Newton unknown. Boundary states are parameterized by
 the unstable / stable eigenvectors of the Hamiltonian Jacobian at each fixed-point endpoint.
