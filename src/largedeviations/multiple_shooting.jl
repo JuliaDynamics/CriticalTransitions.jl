@@ -338,6 +338,30 @@ function _project_endpoint(lin, x_near, eps_lin::T) where {T}
     return T.(c_raw .* scale)
 end
 
+# For a singular-noise Hamiltonian, the invariant endpoint subspace may contain both
+# deterministic modes (`p = 0`) and activation modes carrying a nonzero costate. A Euclidean
+# projection of `(δx, 0)` is biased toward the deterministic branch. Restrict the seed to the
+# coefficient-space directions visible in the momentum block, then best-fit the supplied
+# configuration tangent within that activation subspace. SVD is confined to this one-shot
+# singular initializer and never enters the shooting residual or full-rank path.
+function _project_endpoint_activation(lin, x_near, eps_lin::T) where {T}
+    D = length(x_near)
+    xstar = view(lin.xstar_aug, 1:D)
+    δx = collect(T, x_near .- xstar)
+    Ux = view(lin.U, 1:D, :)
+    Up = view(lin.U, (D + 1):(2D), :)
+    F = LinearAlgebra.svd(Matrix{T}(Up))
+    σmax = isempty(F.S) ? zero(T) : maximum(F.S)
+    tol = max(size(Up)...) * eps(T) * σmax
+    r = count(σ -> σ > tol, F.S)
+    r == 0 && return _project_endpoint(lin, x_near, eps_lin)
+    Vact = Matrix{T}(F.Vt[1:r, :]')
+    c_raw = Vact * ((Matrix{T}(Ux) * Vact) \ δx)
+    norm_lin = LinearAlgebra.norm(lin.U * c_raw)
+    scale = norm_lin > eps(T) ? eps_lin / norm_lin : eps_lin
+    return T.(c_raw .* scale)
+end
+
 function _initial_path_length(x_init, ::Type{T}) where {T}
     L0 = zero(T)
     @inbounds for i in 1:(size(x_init, 2) - 1)
@@ -415,12 +439,16 @@ end
 function _initial_guess_unknowns(ws::MultipleShootingWorkspace{IIP, D}, x_init) where {IIP, D}
     T = eltype(ws.grid)
     N = size(x_init, 2)
-    c_a = _project_endpoint(ws.lin_a, T.(x_init[:, min(2, N)]), ws.eps_lin)
-    c_b = _project_endpoint(ws.lin_b, T.(x_init[:, max(N - 1, 1)]), ws.eps_lin)
+    x_a_near = T.(x_init[:, min(2, N)])
+    x_b_near = T.(x_init[:, max(N - 1, 1)])
     L0 = _initial_path_length(x_init, T)
     if _rank_deficient_at_reference(ws, T.(x_init[:, 1]))
+        c_a = _project_endpoint_activation(ws.lin_a, x_a_near, ws.eps_lin)
+        c_b = _project_endpoint_activation(ws.lin_b, x_b_near, ws.eps_lin)
         return _initial_guess_manifolds(ws, c_a, c_b, L0)
     end
+    c_a = _project_endpoint(ws.lin_a, x_a_near, ws.eps_lin)
+    c_b = _project_endpoint(ws.lin_b, x_b_near, ws.eps_lin)
     return _initial_guess_full_rank(ws, x_init, c_a, c_b, L0)
 end
 
