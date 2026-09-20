@@ -82,4 +82,40 @@
         @test t1 == t2
         @test tr1 == tr2
     end
+
+    @testset "restricted radius directions" begin
+        using StochasticDiffEq: EM
+        drift!(du, u, p, t) = (fill!(du, 1.0); nothing)
+        sys_radius = CoupledSDEs(
+            drift!, zeros(3);
+            noise_strength = 0.0,
+            seed = 0x1234,
+            diffeq = (alg = EM(), dt = 0.01, adaptive = false),
+        )
+        x_i = zeros(3)
+        x_f = [1.0, 10.0, 1.0]
+
+        tr_sub, _, success_sub = CT.transition(
+            sys_radius, x_i, x_f;
+            radii = (0.1, 0.05),
+            tmax = 2.0,
+            radius_directions = [1, 3],
+            cut_start = false,
+            seed = 42,
+        )
+        @test success_sub
+        @test abs(tr_sub[end][1] - x_f[1]) < 0.05
+        @test abs(tr_sub[end][3] - x_f[3]) < 0.05
+        @test abs(tr_sub[end][2] - x_f[2]) > 1
+
+        _, _, success_all = CT.transition(
+            sys_radius, x_i, x_f;
+            radii = (0.1, 0.05),
+            tmax = 2.0,
+            radius_directions = 1:3,
+            cut_start = false,
+            seed = 42,
+        )
+        @test !success_all
+    end
 end
