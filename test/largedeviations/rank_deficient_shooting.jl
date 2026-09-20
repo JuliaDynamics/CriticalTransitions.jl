@@ -4,6 +4,33 @@ using LinearAlgebra
 
 const CT = CriticalTransitions
 
+# A/B override: keep the multiple-shooting BVP unchanged except for the phase anchor.
+# The production residual uses ‖Uₐcₐ‖² - ε², whose Jacobian row is O(ε). This equivalent
+# unsquared form has an O(1) derivative at the anchor and tests whether that artificial
+# scaling is responsible for the Newton plateau.
+@eval CT function _shooting_residual!(F, z, ws::MultipleShootingWorkspace{IIP, D}) where {IIP, D}
+    nseg = ws.nshoots
+    c_a, interior_flat, c_b, L = _unpack_unknowns(z, D, nseg)
+
+    diff_lin_a = ws.lin_a.U * c_a
+    y0 = ws.lin_a.xstar_aug .+ diff_lin_a
+    yend = ws.lin_b.xstar_aug .+ ws.lin_b.U * c_b
+
+    fidx = 0
+    for i in 1:nseg
+        y_in = _node_state(D, nseg, y0, yend, interior_flat, i - 1)
+        y_target = _node_state(D, nseg, y0, yend, interior_flat, i)
+        y_end = _integrate_segment(ws, y_in, ws.grid[i], ws.grid[i + 1], L)
+        @inbounds for k in 1:(2D)
+            F[fidx + k] = y_end[k] - y_target[k]
+        end
+        fidx += 2D
+    end
+
+    F[fidx + 1] = LinearAlgebra.norm(diff_lin_a) - ws.eps_lin
+    return nothing
+end
+
 function _underdamped_double_well(u, p, t)
     q, v = u
     return SA[v, q - q^3 - v]
