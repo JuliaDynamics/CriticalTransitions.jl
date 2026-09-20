@@ -15,3 +15,9 @@ rate_track_return_tip
 unforced_pcurve
 ```
 
+## Basin-overlap tipping probabilities
+
+```@docs
+tipping_probabilities
+```
+
