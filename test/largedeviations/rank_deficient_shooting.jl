@@ -23,7 +23,14 @@ end
 
 function _rank_deficient_initial_path(N = 30)
     q = collect(range(-1.0, 0.0; length = N))
-    return Matrix(vcat(q', zeros(1, N)))
+    v = zeros(N)
+    # Diagnostic only: the singular initializer uses the second and penultimate points to
+    # select endpoint activation directions. Give those points the exact asymptotic tangent
+    # of the anti-damped activation dynamics instead of the inadmissible straight v = 0 path.
+    v[2] = q[2] + 1.0
+    λ_saddle = (Γ_RD - sqrt(Γ_RD^2 + 4.0)) / 2.0
+    v[end - 1] = λ_saddle * q[end - 1]
+    return Matrix(vcat(q', v'))
 end
 
 function _H_invariant_max(H, res)
@@ -67,8 +74,6 @@ end
         H, init, GeometricGradient(); maxiters = 1, show_progress = false
     )
 
-    # Diagnostic coarse solve: if two segments converge, singular shooting should be
-    # initialized by segment-count continuation rather than a one-shot 10-segment solve.
     res = minimize_geometric_action(
         H,
         init,
