@@ -28,6 +28,9 @@ function _transition_step_loop(
         if CriticalTransitions.subnorm(integ.u - x_f; directions = radius_directions) < rad_f
             success = true
             CriticalTransitions.SciMLBase.terminate!(integ)
+            # `DiscreteCallback` defaults to `save_positions = (true, true)`. The normal
+            # step already saved this endpoint, so force the matching post-affect save.
+            CriticalTransitions.SciMLBase.savevalues!(integ, true)
             break
         end
         CriticalTransitions.DynamicalSystemsBase.successful_step(integ) || break
