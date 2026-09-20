@@ -314,37 +314,89 @@ function _project_endpoint(lin, x_near, eps_lin::T) where {T}
     return T.(c_raw .* scale)
 end
 
-# Momentum is only a Newton warm start. For full-rank diffusion retain the direct solve;
-# for singular diffusion use the minimum-norm least-squares solution. The converged BVP is
-# determined solely by Hamilton's equations and does not depend on this pseudoinverse seed.
-function _initial_momentum_guess(a::AbstractMatrix, b::AbstractVector)
-    rhs = -2 .* b
-    return LinearAlgebra.rank(a) == size(a, 1) ? a \ rhs : LinearAlgebra.pinv(a) * rhs
+function _initial_path_length(x_init, ::Type{T}) where {T}
+    L0 = zero(T)
+    @inbounds for i in 1:(size(x_init, 2) - 1)
+        L0 += LinearAlgebra.norm(T.(x_init[:, i + 1]) .- T.(x_init[:, i]))
+    end
+    return L0
 end
 
-function _initial_guess_unknowns(ws::MultipleShootingWorkspace{IIP, D}, x_init) where {IIP, D}
+function _rank_deficient_at_reference(ws::MultipleShootingWorkspace, x_ref)
+    A = Matrix(ws.H.a(x_ref))
+    κ = LinearAlgebra.cond(A)
+    return !isfinite(κ) || κ > inv(sqrt(eps(real(eltype(A)))))
+end
+
+@inline function _store_initial_node!(interior, y, i::Int, D::Int)
+    @inbounds for k in 1:(2D)
+        interior[(i - 1) * 2D + k] = y[k]
+    end
+    return nothing
+end
+
+# Preserve the established full-rank warm start exactly. This is an initializer only;
+# the shooting equations themselves are Hamiltonian in both the full-rank and singular cases.
+function _initial_guess_full_rank(
+        ws::MultipleShootingWorkspace{IIP, D}, x_init, c_a, c_b, L0,
+    ) where {IIP, D}
     T = eltype(ws.grid)
     nseg = ws.nshoots
     N = size(x_init, 2)
-    c_a = _project_endpoint(ws.lin_a, T.(x_init[:, min(2, N)]), ws.eps_lin)
-    c_b = _project_endpoint(ws.lin_b, T.(x_init[:, max(N - 1, 1)]), ws.eps_lin)
     interior = zeros(T, 2D * (nseg - 1))
     for i in 1:(nseg - 1)
         idx = clamp(round(Int, (i / nseg) * (N - 1)) + 1, 1, N)
         φ_i = T.(x_init[:, idx])
         b_i = _drift(ws.H, φ_i)
         a_i = collect(T, ws.H.a(φ_i))
-        p_i = _initial_momentum_guess(a_i, b_i)
+        p_i = a_i \ (-2 .* b_i)
         @inbounds for k in 1:D
             interior[(i - 1) * 2D + k] = φ_i[k]
             interior[(i - 1) * 2D + D + k] = p_i[k]
         end
     end
-    L0 = zero(T)
-    @inbounds for i in 1:(N - 1)
-        L0 += LinearAlgebra.norm(T.(x_init[:, i + 1]) .- T.(x_init[:, i]))
-    end
     return vcat(c_a, interior, c_b, [T(max(L0, ws.eps_lin))])
+end
+
+# For singular diffusion, never invent the missing costate through a pseudoinverse.
+# Instead, start on the Hamiltonian unstable/stable endpoint manifolds and propagate the
+# exact canonical equations from both sides. All continuity defects of this seed are then
+# concentrated near the central join rather than spread across every shooting interval.
+function _initial_guess_manifolds(
+        ws::MultipleShootingWorkspace{IIP, D}, c_a, c_b, L0,
+    ) where {IIP, D}
+    T = eltype(ws.grid)
+    nseg = ws.nshoots
+    L = T(max(L0, ws.eps_lin))
+    interior = zeros(T, 2D * (nseg - 1))
+    split = fld(nseg, 2)
+
+    y = ws.lin_a.xstar_aug .+ ws.lin_a.U * c_a
+    for i in 1:split
+        y = _integrate_segment(ws, y, ws.grid[i], ws.grid[i + 1], L)
+        i < nseg && _store_initial_node!(interior, y, i, D)
+    end
+
+    y = ws.lin_b.xstar_aug .+ ws.lin_b.U * c_b
+    for i in nseg:-1:(split + 1)
+        y = _integrate_segment(ws, y, ws.grid[i + 1], ws.grid[i], L)
+        node = i - 1
+        node ≥ 1 && _store_initial_node!(interior, y, node, D)
+    end
+
+    return vcat(c_a, interior, c_b, [L])
+end
+
+function _initial_guess_unknowns(ws::MultipleShootingWorkspace{IIP, D}, x_init) where {IIP, D}
+    T = eltype(ws.grid)
+    N = size(x_init, 2)
+    c_a = _project_endpoint(ws.lin_a, T.(x_init[:, min(2, N)]), ws.eps_lin)
+    c_b = _project_endpoint(ws.lin_b, T.(x_init[:, max(N - 1, 1)]), ws.eps_lin)
+    L0 = _initial_path_length(x_init, T)
+    if _rank_deficient_at_reference(ws, T.(x_init[:, 1]))
+        return _initial_guess_manifolds(ws, c_a, c_b, L0)
+    end
+    return _initial_guess_full_rank(ws, x_init, c_a, c_b, L0)
 end
 
 function _solve_shooting(ws::MultipleShootingWorkspace{IIP, D}, z0) where {IIP, D}
