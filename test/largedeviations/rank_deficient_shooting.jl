@@ -23,14 +23,7 @@ end
 
 function _rank_deficient_initial_path(N = 30)
     q = collect(range(-1.0, 0.0; length = N))
-    v = zeros(N)
-    # Diagnostic only: the singular initializer uses the second and penultimate points to
-    # select endpoint activation directions. Give those points the exact asymptotic tangent
-    # of the anti-damped activation dynamics instead of the inadmissible straight v = 0 path.
-    v[2] = q[2] + 1.0
-    λ_saddle = (Γ_RD - sqrt(Γ_RD^2 + 4.0)) / 2.0
-    v[end - 1] = λ_saddle * q[end - 1]
-    return Matrix(vcat(q', v'))
+    return Matrix(vcat(q', zeros(1, N)))
 end
 
 function _H_invariant_max(H, res)
@@ -74,12 +67,15 @@ end
         H, init, GeometricGradient(); maxiters = 1, show_progress = false
     )
 
+    # Diagnostic: the default eps_lin = 1e-8 lies inside the arclength regularization layer
+    # max(‖H_p‖, √eps). Move only the endpoint truncation radius outward; the Hamiltonian and
+    # singular diffusion are unchanged.
     res = minimize_geometric_action(
         H,
         init,
         MultipleShooting(
             ; nshoots = 2, nlsolve = _rank_deficient_trust_region(), maxiters = 200,
-            abstol = 1.0e-8, reltol = 1.0e-7,
+            eps_lin = 1.0e-6, abstol = 1.0e-8, reltol = 1.0e-7,
         );
         show_progress = false,
     )
@@ -122,7 +118,7 @@ end
         init,
         MultipleShooting(
             ; nshoots = 2, nlsolve = _rank_deficient_trust_region(), maxiters = 200,
-            abstol = 1.0e-8, reltol = 1.0e-7,
+            eps_lin = 1.0e-6, abstol = 1.0e-8, reltol = 1.0e-7,
         );
         show_progress = false,
     )
