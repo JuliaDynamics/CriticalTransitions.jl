@@ -5,14 +5,16 @@ Multiple-shooting BVP optimizer for the Freidlin-Wentzell instanton on a
 [`FreidlinWentzellHamiltonian`](@ref). Integrates the arclength-reparameterized Hamilton
 equations
 ```math
-\\frac{\\mathrm{d}\\varphi}{\\mathrm{d}s} = \\alpha\\,H_p,\\qquad
-\\frac{\\mathrm{d}p}{\\mathrm{d}s}       = -\\alpha\\,H_x,\\qquad
-\\alpha = L / \\|H_p\\|
+\frac{\mathrm{d}\varphi}{\mathrm{d}s} = \alpha\,H_p,\qquad
+\frac{\mathrm{d}p}{\mathrm{d}s}       = -\alpha\,H_x,\qquad
+\alpha = L / \|H_p\|
 ```
 on `s ∈ [0, 1]` with path length `L` a Newton unknown. Boundary states are parameterized by
 the unstable / stable eigenvectors of the Hamiltonian Jacobian at each fixed-point endpoint.
-The heteroclinic must not cross a drift fixed point in its interior; through-saddle
-problems must be user-split into `attractor → saddle` legs and the actions summed.
+The Hamiltonian formulation does not require the diffusion tensor to be invertible, so
+`MultipleShooting` also applies to rank-deficient noise. The heteroclinic must not cross a
+drift fixed point in its interior; through-saddle problems must be user-split into
+`attractor → saddle` legs and the actions summed.
 
 # Fields
 $(TYPEDFIELDS)
@@ -312,6 +314,14 @@ function _project_endpoint(lin, x_near, eps_lin::T) where {T}
     return T.(c_raw .* scale)
 end
 
+# Momentum is only a Newton warm start. For full-rank diffusion retain the direct solve;
+# for singular diffusion use the minimum-norm least-squares solution. The converged BVP is
+# determined solely by Hamilton's equations and does not depend on this pseudoinverse seed.
+function _initial_momentum_guess(a::AbstractMatrix, b::AbstractVector)
+    rhs = -2 .* b
+    return LinearAlgebra.rank(a) == size(a, 1) ? a \ rhs : LinearAlgebra.pinv(a) * rhs
+end
+
 function _initial_guess_unknowns(ws::MultipleShootingWorkspace{IIP, D}, x_init) where {IIP, D}
     T = eltype(ws.grid)
     nseg = ws.nshoots
@@ -324,7 +334,7 @@ function _initial_guess_unknowns(ws::MultipleShootingWorkspace{IIP, D}, x_init) 
         φ_i = T.(x_init[:, idx])
         b_i = _drift(ws.H, φ_i)
         a_i = collect(T, ws.H.a(φ_i))
-        p_i = a_i \ (-2 .* b_i)
+        p_i = _initial_momentum_guess(a_i, b_i)
         @inbounds for k in 1:D
             interior[(i - 1) * 2D + k] = φ_i[k]
             interior[(i - 1) * 2D + D + k] = p_i[k]
@@ -390,6 +400,17 @@ function _sample_path(ws::MultipleShootingWorkspace{IIP, D}, z, N::Int) where {I
     return path, pmat, arclength, T(L), H_inv_max
 end
 
+# On the zero-energy Hamiltonian instanton, the Freidlin-Wentzell action is the canonical
+# line integral ∫ p⋅dφ. This expression is valid for both full-rank and degenerate diffusion.
+function _hamiltonian_line_action(path, p)
+    D, N = size(path)
+    S = zero(promote_type(eltype(path), eltype(p)))
+    @inbounds for i in 1:(N - 1), k in 1:D
+        S += (p[k, i] + p[k, i + 1]) * (path[k, i + 1] - path[k, i]) / 2
+    end
+    return S
+end
+
 function minimize_geometric_action(
         sys::FreidlinWentzellHamiltonian,
         x_init::AbstractMatrix,
@@ -413,11 +434,7 @@ function minimize_geometric_action(
     if H_inv_max > ws.invariant_tol
         @warn "MultipleShooting: H=0 invariant violated" H_invariant_max = H_inv_max threshold = ws.invariant_tol
     end
-    b_fn = x -> _drift(sys, x)
-    A_at = x -> inv(collect(sys.a(x)))
-    v_buf = similar(path_mat)
-    integrand_buf = zeros(eltype(path_mat), N)
-    action = _geometric_action_from_drift!(b_fn, path_mat, one(eltype(path_mat)), A_at, v_buf, integrand_buf)
+    action = _hamiltonian_line_action(path_mat, p_mat)
     show_progress && @info "MultipleShooting converged" residual = resnorm iterations = niter path_length = L action = action
     return MinimumActionPath(
         StateSpaceSet(Matrix(path_mat')), action;
