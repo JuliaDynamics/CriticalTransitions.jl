@@ -59,8 +59,6 @@ function MultipleShooting(;
     )
 end
 
-# The per-segment ODE must integrate ~3 digits tighter than the Newton tolerance so that
-# integration error stays below the BVP residual floor that Newton is chasing.
 const _SEG_TOL_FACTOR = 1.0e-3
 
 function _drift(H::FreidlinWentzellHamiltonian{IIP, D}, x::AbstractVector) where {IIP, D}
@@ -221,8 +219,6 @@ end
 
 _residual_size(D::Int, nseg::Int) = 2D * nseg + 1
 
-# Return a view of node i's (φ, p) state for i ∈ 0:nseg. Endpoints come from the
-# linearization parameterization; interior nodes are direct slices of `interior_flat`.
 function _node_state(D, nseg, y0, yend, interior_flat, i)
     if i == 0
         return y0
@@ -325,10 +321,6 @@ function _build_workspace(
     )
 end
 
-# Seed (c, L)-style unstable/stable mode coefficient from the configuration tangent at the
-# endpoint, projected onto the linearization subspace and rescaled so the 2D-norm equals
-# `eps_lin` (matches the anchor residual at the outgoing side; arbitrary at the incoming
-# side, but a consistent magnitude is a decent Newton starting point).
 function _project_endpoint(lin, x_near, eps_lin::T) where {T}
     xstar = lin.xstar_aug[1:length(x_near)]
     tangent = vcat(collect(T, x_near .- xstar), zero(x_near))
@@ -338,25 +330,35 @@ function _project_endpoint(lin, x_near, eps_lin::T) where {T}
     return T.(c_raw .* scale)
 end
 
-# For a singular-noise Hamiltonian, the invariant endpoint subspace may contain both
-# deterministic modes (`p = 0`) and activation modes carrying a nonzero costate. A Euclidean
-# projection of `(δx, 0)` is biased toward the deterministic branch. Restrict the seed to the
-# coefficient-space directions visible in the momentum block, then best-fit the supplied
-# configuration tangent within that activation subspace. SVD is confined to this one-shot
-# singular initializer and never enters the shooting residual or full-rank path.
-function _project_endpoint_activation(lin, x_near, eps_lin::T) where {T}
+# Build the true Hamiltonian activation subspace rather than merely filtering for nonzero
+# costate. If `J' P = P R` is the relevant drift Schur block, Hamiltonian invariance of
+# `[X; P]` with eigenblock `-R` requires `J X + X R + A P = 0`. At the source we select
+# stable drift modes (their Hamiltonian partners are outgoing); at the target we select
+# unstable drift modes (their partners are incoming). The resulting graph is then expressed
+# in the already-established full Hamiltonian boundary basis `lin.U`.
+function _project_endpoint_activation(H, lin, x_near, side::Symbol, eps_lin::T) where {T}
     D = length(x_near)
-    xstar = view(lin.xstar_aug, 1:D)
+    xstar = collect(T, view(lin.xstar_aug, 1:D))
     δx = collect(T, x_near .- xstar)
-    Ux = view(lin.U, 1:D, :)
-    Up = view(lin.U, (D + 1):(2D), :)
-    F = LinearAlgebra.svd(Matrix{T}(Up))
-    σmax = isempty(F.S) ? zero(T) : maximum(F.S)
-    tol = max(size(Up)...) * eps(T) * σmax
-    r = count(σ -> σ > tol, F.S)
+    J = T.(_drift_jacobian(H, xstar))
+    A = collect(T, H.a(xstar))
+    Sf = LinearAlgebra.schur(Matrix{T}(J'))
+    select = if side === :outgoing
+        [real(λ) < 0 for λ in Sf.values]
+    elseif side === :incoming
+        [real(λ) > 0 for λ in Sf.values]
+    else
+        throw(ArgumentError("side must be :outgoing or :incoming, got $side"))
+    end
+    r = count(select)
     r == 0 && return _project_endpoint(lin, x_near, eps_lin)
-    Vact = Matrix{T}(F.Vt[1:r, :]')
-    c_raw = Vact * ((Matrix{T}(Ux) * Vact) \ δx)
+    LinearAlgebra.ordschur!(Sf, select)
+    P = Matrix{T}(Sf.Z[:, 1:r])
+    R = Matrix{T}(Sf.T[1:r, 1:r])
+    X = LinearAlgebra.sylvester(J, R, A * P)
+    η = X \ δx
+    y_raw = vcat(X * η, P * η)
+    c_raw = lin.U' * y_raw
     norm_lin = LinearAlgebra.norm(lin.U * c_raw)
     scale = norm_lin > eps(T) ? eps_lin / norm_lin : eps_lin
     return T.(c_raw .* scale)
@@ -383,8 +385,6 @@ end
     return nothing
 end
 
-# Preserve the established full-rank warm start exactly. This is an initializer only;
-# the shooting equations themselves are Hamiltonian in both the full-rank and singular cases.
 function _initial_guess_full_rank(
         ws::MultipleShootingWorkspace{IIP, D}, x_init, c_a, c_b, L0,
     ) where {IIP, D}
@@ -406,10 +406,6 @@ function _initial_guess_full_rank(
     return vcat(c_a, interior, c_b, [T(max(L0, ws.eps_lin))])
 end
 
-# For singular diffusion, never invent the missing costate through a pseudoinverse.
-# Instead, start on the Hamiltonian unstable/stable endpoint manifolds and propagate the
-# exact canonical equations from both sides. All continuity defects of this seed are then
-# concentrated near the central join rather than spread across every shooting interval.
 function _initial_guess_manifolds(
         ws::MultipleShootingWorkspace{IIP, D}, c_a, c_b, L0,
     ) where {IIP, D}
@@ -443,8 +439,8 @@ function _initial_guess_unknowns(ws::MultipleShootingWorkspace{IIP, D}, x_init) 
     x_b_near = T.(x_init[:, max(N - 1, 1)])
     L0 = _initial_path_length(x_init, T)
     if _rank_deficient_at_reference(ws, T.(x_init[:, 1]))
-        c_a = _project_endpoint_activation(ws.lin_a, x_a_near, ws.eps_lin)
-        c_b = _project_endpoint_activation(ws.lin_b, x_b_near, ws.eps_lin)
+        c_a = _project_endpoint_activation(ws.H, ws.lin_a, x_a_near, :outgoing, ws.eps_lin)
+        c_b = _project_endpoint_activation(ws.H, ws.lin_b, x_b_near, :incoming, ws.eps_lin)
         return _initial_guess_manifolds(ws, c_a, c_b, L0)
     end
     c_a = _project_endpoint(ws.lin_a, x_a_near, ws.eps_lin)
@@ -505,8 +501,6 @@ function _sample_path(ws::MultipleShootingWorkspace{IIP, D}, z, N::Int) where {I
     return path, pmat, arclength, T(L), H_inv_max
 end
 
-# On the zero-energy Hamiltonian instanton, the Freidlin-Wentzell action is the canonical
-# line integral ∫ p⋅dφ. This expression is valid for both full-rank and degenerate diffusion.
 function _hamiltonian_line_action(path, p)
     D, N = size(path)
     S = zero(promote_type(eltype(path), eltype(p)))
