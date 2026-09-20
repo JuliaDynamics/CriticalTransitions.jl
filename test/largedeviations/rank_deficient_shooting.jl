@@ -51,7 +51,10 @@ end
     res = minimize_geometric_action(
         H,
         init,
-        MultipleShooting(; nshoots = 10, maxiters = 200, abstol = 1.0e-8, reltol = 1.0e-7);
+        MultipleShooting(
+            ; nshoots = 10, maxiters = 200, abstol = 1.0e-8, reltol = 1.0e-7,
+            eps_lin = 1.0e-6,
+        );
         show_progress = false,
     )
 
@@ -91,7 +94,10 @@ end
     res = minimize_geometric_action(
         H,
         init,
-        MultipleShooting(; nshoots = 10, maxiters = 200, abstol = 1.0e-8, reltol = 1.0e-7);
+        MultipleShooting(
+            ; nshoots = 10, maxiters = 200, abstol = 1.0e-8, reltol = 1.0e-7,
+            eps_lin = 1.0e-6,
+        );
         show_progress = false,
     )
 
