@@ -60,6 +60,7 @@ end
 @testset "R-tipping" begin
     include("r_tipping/RateSystem.jl")
     include("r_tipping/phase_diagrams.jl")
+    include("r_tipping/tipping_probabilities.jl")
 end
 
 @testset "Doctests" begin
