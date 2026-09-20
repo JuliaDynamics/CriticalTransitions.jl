@@ -59,6 +59,8 @@ function MultipleShooting(;
     )
 end
 
+# The per-segment ODE must integrate ~3 digits tighter than the Newton tolerance so that
+# integration error stays below the BVP residual floor that Newton is chasing.
 const _SEG_TOL_FACTOR = 1.0e-3
 
 function _drift(H::FreidlinWentzellHamiltonian{IIP, D}, x::AbstractVector) where {IIP, D}
@@ -219,6 +221,8 @@ end
 
 _residual_size(D::Int, nseg::Int) = 2D * nseg + 1
 
+# Return a view of node i's (φ, p) state for i ∈ 0:nseg. Endpoints come from the
+# linearization parameterization; interior nodes are direct slices of `interior_flat`.
 function _node_state(D, nseg, y0, yend, interior_flat, i)
     if i == 0
         return y0
@@ -321,6 +325,10 @@ function _build_workspace(
     )
 end
 
+# Seed (c, L)-style unstable/stable mode coefficient from the configuration tangent at the
+# endpoint, projected onto the linearization subspace and rescaled so the 2D-norm equals
+# `eps_lin` (matches the anchor residual at the outgoing side; arbitrary at the incoming
+# side, but a consistent magnitude is a decent Newton starting point).
 function _project_endpoint(lin, x_near, eps_lin::T) where {T}
     xstar = lin.xstar_aug[1:length(x_near)]
     tangent = vcat(collect(T, x_near .- xstar), zero(x_near))
@@ -385,6 +393,8 @@ end
     return nothing
 end
 
+# Preserve the established full-rank warm start exactly. This is an initializer only;
+# the shooting equations themselves are Hamiltonian in both the full-rank and singular cases.
 function _initial_guess_full_rank(
         ws::MultipleShootingWorkspace{IIP, D}, x_init, c_a, c_b, L0,
     ) where {IIP, D}
@@ -406,6 +416,10 @@ function _initial_guess_full_rank(
     return vcat(c_a, interior, c_b, [T(max(L0, ws.eps_lin))])
 end
 
+# For singular diffusion, never invent the missing costate through a pseudoinverse.
+# Instead, start on the Hamiltonian unstable/stable endpoint manifolds and propagate the
+# exact canonical equations from both sides. All continuity defects of this seed are then
+# concentrated near the central join rather than spread across every shooting interval.
 function _initial_guess_manifolds(
         ws::MultipleShootingWorkspace{IIP, D}, c_a, c_b, L0,
     ) where {IIP, D}
@@ -501,6 +515,8 @@ function _sample_path(ws::MultipleShootingWorkspace{IIP, D}, z, N::Int) where {I
     return path, pmat, arclength, T(L), H_inv_max
 end
 
+# On the zero-energy Hamiltonian instanton, the Freidlin-Wentzell action is the canonical
+# line integral ∫ p⋅dφ. This expression is valid for both full-rank and degenerate diffusion.
 function _hamiltonian_line_action(path, p)
     D, N = size(path)
     S = zero(promote_type(eltype(path), eltype(p)))
