@@ -1,3 +1,14 @@
+function _path_matrix(path::StateSpaceSets.AbstractStateSpaceSet{D, T}) where {D, T}
+    matrix = Matrix{T}(undef, D, length(path))
+    @inbounds for j in eachindex(path)
+        point = path[j]
+        for i in 1:D
+            matrix[i, j] = point[i]
+        end
+    end
+    return matrix
+end
+
 """
     minimize_geometric_action(sys::FreidlinWentzellHamiltonian, x_initial, optimizer = GeometricGradient(; stepsize = 1e3); kwargs...)
 
@@ -13,9 +24,10 @@ Here ``p = a(x)^{-1}(\\dot x - b(x))`` is the conjugate momentum, i.e. the (dime
 ## Arguments
 * `sys::FreidlinWentzellHamiltonian`: the Hamiltonian, typically obtained from a
   `CoupledSDEs` via `FreidlinWentzellHamiltonian(ds)`.
-* `x_initial::AbstractMatrix{T}` (or `StateSpaceSet`): initial guess for the instanton, shape
-  `D × Nt` with state points in columns. Endpoints `x_initial[:, 1]` and `x_initial[:, end]`
-  are held fixed; the interior is reparameterized to uniform arclength on the first iteration.
+* `x_initial::AbstractMatrix{T}` (or `AbstractStateSpaceSet`): initial guess for the instanton,
+  represented internally as `D × Nt` with state points in columns. Endpoints
+  `x_initial[:, 1]` and `x_initial[:, end]` are held fixed; the interior is reparameterized
+  to uniform arclength on the first iteration.
 * `optimizer`: step-size control, either
   - [`GeometricGradient`](@ref) (default; backtracking projected gradient), or
   - [`AdaptiveGeometricGradient`](@ref) (multi-phase probe variant; more robust on
@@ -48,11 +60,11 @@ end
 
 function minimize_geometric_action(
         sys::FreidlinWentzellHamiltonian,
-        x_initial::StateSpaceSet,
+        x_initial::StateSpaceSets.AbstractStateSpaceSet,
         optimizer::GMAMOptimizer = GeometricGradient(; stepsize = 1.0e3);
         kwargs...,
     )
-    return minimize_geometric_action(sys, Matrix(Matrix(x_initial)'), optimizer; kwargs...)
+    return minimize_geometric_action(sys, _path_matrix(x_initial), optimizer; kwargs...)
 end
 
 function minimize_geometric_action(
