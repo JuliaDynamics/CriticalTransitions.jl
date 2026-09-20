@@ -26,8 +26,8 @@ probability from attractor `i` to attractor `j`.
 used directly and must describe the same grid points in the same order.
 """
 function tipping_probabilities(
-    basins_before::AbstractArray{<:Integer}, basins_after::AbstractArray{<:Integer}
-)
+        basins_before::AbstractArray{<:Integer}, basins_after::AbstractArray{<:Integer}
+    )
     size(basins_before) == size(basins_after) ||
         throw(DimensionMismatch("basin arrays must have identical sizes"))
 
@@ -53,8 +53,8 @@ function tipping_probabilities(
 end
 
 function tipping_probabilities(
-    BoA_before::ArrayBasinsOfAttraction, BoA_after::ArrayBasinsOfAttraction
-)
+        BoA_before::ArrayBasinsOfAttraction, BoA_after::ArrayBasinsOfAttraction
+    )
     return tipping_probabilities(BoA_before.basins, BoA_after.basins)
 end
 
