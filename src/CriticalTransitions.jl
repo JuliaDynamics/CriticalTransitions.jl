@@ -44,7 +44,7 @@ using DynamicalSystemsBase:
     diffusion_matrix,
     diffusion_function,
     current_time
-using Attractors: Attractors
+using Attractors: Attractors, ArrayBasinsOfAttraction
 
 using ConstructionBase: ConstructionBase
 using StateSpaceSets: StateSpaceSets, dimension, StateSpaceSet
@@ -88,6 +88,8 @@ include("largedeviations/methods.jl")
 include("largedeviations/MinimumActionPath.jl")
 include("largedeviations/minimize_action.jl")
 include("largedeviations/sgmam_kernels.jl")
+include("largedeviations/sgmam_static_solve.jl")
+include("largedeviations/sgmam_block_solve.jl")
 include("largedeviations/sgmam.jl")
 include("largedeviations/minimize_geometric_action.jl")
 include("largedeviations/gmam_static_solve.jl")
@@ -98,6 +100,7 @@ include("r_tipping/ForcingProfile.jl")
 include("r_tipping/RateSystem.jl")
 include("r_tipping/frozen_systems.jl")
 include("r_tipping/r_tipping_phase_diagrams.jl")
+include("r_tipping/tipping_probabilities.jl")
 
 # Diffusion operator (general SDE machinery: discrete generator + analyses)
 include("diffusion_operator/utils.jl")
@@ -140,7 +143,7 @@ export ForcingProfile, RateSystem
 export set_forcing_duration!, set_forcing_scale!, set_forcing_start!, set_forcing_reverse!
 export frozen_system, past_limit_system, future_limit_system
 export unforced_system, parameters, parameter
-export rate_track_return_tip, unforced_pcurve
+export rate_track_return_tip, unforced_pcurve, tipping_probabilities
 
 # Diffusion operator
 export CartesianGrid, DiffusionGenerator

@@ -1,5 +1,10 @@
 # Changelog for `CriticalTransitions.jl`
 
+## v0.9.1
+- Add `tipping_probability` method
+
+No breaking changes.
+
 ## v0.9
 CriticalTransitions.jl becomes a subpackage of DynamicalSystems.jl!
 
