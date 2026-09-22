@@ -1,6 +1,6 @@
 using Test
 
-@testset "auto-derived Hamiltonian derivative call forms" begin
+@testset "auto-derived Hamiltonian in-place evaluation" begin
     function linear_drift(u, p, t)
         return SA[-2 * u[1] + u[2], -u[1] - 3 * u[2]]
     end
