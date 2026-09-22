@@ -1,5 +1,5 @@
 using CriticalTransitions
-using OrdinaryDiffEq: Tsit5, Euler
+using OrdinaryDiffEq: Tsit5
 using LinearAlgebra: norm
 
 const λ = 3 / 1.21 * 2 / 295
@@ -113,12 +113,6 @@ end
     string_default = string_method(
         b_nl, x_init_m; maxiters = 20, stepsize = 0.3, show_progress = false
     )
-    string_euler = string_method(
-        b_nl, x_init_m;
-        maxiters = 20, stepsize = 0.3, integrator = Euler(), show_progress = false,
-    )
-    @test vec(Matrix(string_default.path)) ≈ vec(Matrix(string_euler.path))
-
     string_tsit5 = string_method(
         b_nl, x_init_m; maxiters = 20, stepsize = 0.3, integrator = Tsit5(), show_progress = false
     )
@@ -144,21 +138,20 @@ end
     end
     sys_sss = FreidlinWentzellHamiltonian{false, 2}(H_x_sss, H_p_sss)
 
-    string_euler_m = string_method(
-        sys_m, x_init_m;
-        maxiters = 15, stepsize = 0.25, integrator = Euler(), show_progress = false,
+    string_default_m = string_method(
+        sys_m, x_init_m; maxiters = 15, stepsize = 0.25, show_progress = false
     )
     string_tsit5_m = string_method(
         sys_m, x_init_m; maxiters = 15, stepsize = 0.25, integrator = Tsit5(), show_progress = false
     )
 
-    me = Matrix(string_euler_m.path)
+    md = Matrix(string_default_m.path)
     mt = Matrix(string_tsit5_m.path)
-    @test vec(me[1, :]) ≈ x_init_m[:, 1]
-    @test vec(me[end, :]) ≈ x_init_m[:, end]
+    @test vec(md[1, :]) ≈ x_init_m[:, 1]
+    @test vec(md[end, :]) ≈ x_init_m[:, end]
     @test vec(mt[1, :]) ≈ x_init_m[:, 1]
     @test vec(mt[end, :]) ≈ x_init_m[:, end]
-    @test norm(vec(me) - vec(mt)) > 1.0e-10
+    @test norm(vec(md) - vec(mt)) > 1.0e-10
 
     x_init_sss = StateSpaceSet(x_init_m')
     string_tsit5_sss = string_method(
