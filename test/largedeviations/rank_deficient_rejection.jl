@@ -12,23 +12,26 @@ using Test
         noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
     )
 
+    # Constructor accepts the Hamiltonian (no a(x) sampling at construction).
     sys = FreidlinWentzellHamiltonian(ds)
+    @test sys isa FreidlinWentzellHamiltonian
+
     Nt = 20
     xx = range(-1.0, 1.0; length = Nt)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     path = Matrix([xx yy]')
 
-    # Both public geometric minimizers reject rank-deficient diffusion.
     err_s = try
-        minimize_geometric_action(sys, path; maxiters = 1, show_progress = false); nothing
+        minimize_geometric_action(sys, path); nothing
     catch e
         e
     end
     @test err_s isa ArgumentError
     @test occursin("rank-deficient", sprint(showerror, err_s))
+    @test occursin("FreidlinWentzellHamiltonian", sprint(showerror, err_s))
 
     err_g = try
-        minimize_geometric_action(ds, path; maxiters = 1, show_progress = false); nothing
+        minimize_geometric_action(ds, path); nothing
     catch e
         e
     end
