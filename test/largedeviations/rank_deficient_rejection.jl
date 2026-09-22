@@ -1,8 +1,6 @@
 using CriticalTransitions, StaticArrays
 using Test
 
-const CT = CriticalTransitions
-
 @testset "Rank-deficient rejection (#325 deferred)" begin
     function langevin(u, p, t)
         x, p_ = u
@@ -14,32 +12,28 @@ const CT = CriticalTransitions
         noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
     )
 
-    # Constructor accepts the Hamiltonian (no a(x) sampling at construction).
     sys = FreidlinWentzellHamiltonian(ds)
-    @test sys isa FreidlinWentzellHamiltonian
-
-    # Rejection happens at cache build (sgMAM) or workspace build (gMAM).
     Nt = 20
     xx = range(-1.0, 1.0; length = Nt)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     path = Matrix([xx yy]')
 
+    # Both public geometric minimizers reject rank-deficient diffusion.
     err_s = try
-        CT.build_sgmam_cache(sys, path, Nt); nothing
+        minimize_geometric_action(sys, path; maxiters = 1, show_progress = false); nothing
     catch e
         e
     end
     @test err_s isa ArgumentError
-    @test occursin("rank-deficient", err_s.msg)
-    @test occursin("FreidlinWentzellHamiltonian", err_s.msg)
+    @test occursin("rank-deficient", sprint(showerror, err_s))
 
     err_g = try
-        minimize_geometric_action(ds, path); nothing
+        minimize_geometric_action(ds, path; maxiters = 1, show_progress = false); nothing
     catch e
         e
     end
     @test err_g isa ArgumentError
-    @test occursin("rank-deficient", err_g.msg)
+    @test occursin("rank-deficient", sprint(showerror, err_g))
 end
 
 @testset "Static-vector diagonal diffusion rank check (#339)" begin
@@ -50,5 +44,10 @@ end
     sys = FreidlinWentzellHamiltonian(ds)
     path = [range(-0.5, 0.5; length = 20)'; range(0.25, -0.25; length = 20)']
 
-    @test CT.build_sgmam_cache(sys, path, size(path, 2)) !== nothing
+    res = minimize_geometric_action(
+        sys, path, GeometricGradient(; stepsize = 1.0);
+        maxiters = 1, show_progress = false,
+    )
+    @test res isa MinimumActionPath
+    @test isfinite(res.action)
 end
