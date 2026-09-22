@@ -46,39 +46,73 @@ function _rank_deficient_trust_region()
     )
 end
 
-# Diagnostic override: at an outgoing singular endpoint, seed the asymptotically dominant
-# activation direction (the stable drift eigenvalue closest to zero) rather than mixing all
-# activation modes to reproduce an arbitrary configuration-space tangent. Newton still sees
-# the complete D-dimensional Hamiltonian boundary manifold through lin.U * c.
-@eval CT function _project_endpoint_activation(H, lin, x_near, side::Symbol, eps_lin::T) where {T}
-    D = length(x_near)
-    xstar = collect(T, view(lin.xstar_aug, 1:D))
-    δx = collect(T, x_near .- xstar)
-    J = T.(_drift_jacobian(H, xstar))
-    A = collect(T, H.a(xstar))
-    Sf = LinearAlgebra.schur(Matrix{T}(J'))
-    select = if side === :outgoing
-        stable = findall(λ -> real(λ) < 0, Sf.values)
-        isempty(stable) && return _project_endpoint(lin, x_near, eps_lin)
-        weak = stable[argmax(real.(Sf.values[stable]))]
-        [i == weak for i in eachindex(Sf.values)]
-    elseif side === :incoming
-        [real(λ) > 0 for λ in Sf.values]
-    else
-        throw(ArgumentError("side must be :outgoing or :incoming, got $side"))
+# Diagnostic only: obtain a globally admissible phase-space seed by solving nearby
+# full-rank Hamiltonians and continuing the regularization toward the singular problem.
+# The physical shooting equations and final action are always evaluated at δ = 0.
+function _regularized_hamiltonian(H, xref, δ)
+    D = length(xref)
+    Aδ = Matrix(H.a(xref)) + δ * I
+    Hxδ = (x, p) -> H.H_x(x, p)
+    Hpδ = (x, p) -> H.H_p(x, p) .+ δ .* p
+    return FreidlinWentzellHamiltonian{false, D}(
+        Hxδ, Hpδ; a = Base.Returns(Aδ), x_ref = collect(xref),
+    )
+end
+
+function _regularized_sgmam_seed(H, x_init)
+    path = Matrix(x_init)
+    result = nothing
+    xref = collect(view(path, :, 1))
+    optimizer = AdaptiveGeometricGradient(; stepsize = 100.0, probe_length = 25)
+    for δ in (0.3, 0.1, 0.03)
+        Hδ = _regularized_hamiltonian(H, xref, δ)
+        result = minimize_geometric_action(
+            Hδ, path, optimizer; maxiters = 200, show_progress = false,
+        )
+        path = CT._path_matrix(result.path)
     end
-    r = count(select)
-    r == 0 && return _project_endpoint(lin, x_near, eps_lin)
-    LinearAlgebra.ordschur!(Sf, select)
-    P = Matrix{T}(Sf.Z[:, 1:r])
-    R = Matrix{T}(Sf.T[1:r, 1:r])
-    X = LinearAlgebra.sylvester(J, R, A * P)
-    η = X \ δx
-    y_raw = vcat(X * η, P * η)
+    return result
+end
+
+function _project_phase_endpoint(lin, x, p, eps_lin::T) where {T}
+    y_raw = vcat(T.(x), T.(p)) .- lin.xstar_aug
     c_raw = lin.U' * y_raw
     norm_lin = LinearAlgebra.norm(lin.U * c_raw)
     scale = norm_lin > eps(T) ? eps_lin / norm_lin : eps_lin
     return T.(c_raw .* scale)
+end
+
+# Diagnostic override: use the global regularized-sgMAM continuation only to initialize the
+# exact singular Hamiltonian BVP. No regularization enters the shooting residual or action.
+@eval CT function _initial_guess_unknowns(ws::MultipleShootingWorkspace{IIP, D}, x_init) where {IIP, D}
+    T = eltype(ws.grid)
+    if !_rank_deficient_at_reference(ws, T.(x_init[:, 1]))
+        N = size(x_init, 2)
+        x_a_near = T.(x_init[:, min(2, N)])
+        x_b_near = T.(x_init[:, max(N - 1, 1)])
+        L0 = _initial_path_length(x_init, T)
+        c_a = _project_endpoint(ws.lin_a, x_a_near, ws.eps_lin)
+        c_b = _project_endpoint(ws.lin_b, x_b_near, ws.eps_lin)
+        return _initial_guess_full_rank(ws, x_init, c_a, c_b, L0)
+    end
+
+    seed = Main._regularized_sgmam_seed(ws.H, x_init)
+    path = _path_matrix(seed.path)
+    p = seed.generalized_momentum
+    N = size(path, 2)
+    c_a = Main._project_phase_endpoint(ws.lin_a, view(path, :, min(2, N)), view(p, :, min(2, N)), ws.eps_lin)
+    c_b = Main._project_phase_endpoint(ws.lin_b, view(path, :, max(N - 1, 1)), view(p, :, max(N - 1, 1)), ws.eps_lin)
+    L0 = _initial_path_length(path, T)
+
+    interior = zeros(T, 2D * (ws.nshoots - 1))
+    for i in 1:(ws.nshoots - 1)
+        idx = clamp(round(Int, (i / ws.nshoots) * (N - 1)) + 1, 1, N)
+        @inbounds for k in 1:D
+            interior[(i - 1) * 2D + k] = path[k, idx]
+            interior[(i - 1) * 2D + D + k] = p[k, idx]
+        end
+    end
+    return vcat(c_a, interior, c_b, [T(max(L0, ws.eps_lin))])
 end
 
 @testset "Rank-deficient second-order Langevin Hamiltonian oracle" begin
@@ -105,7 +139,7 @@ end
         H,
         init,
         MultipleShooting(
-            ; nshoots = 2, nlsolve = _rank_deficient_trust_region(), maxiters = 200,
+            ; nshoots = 10, nlsolve = _rank_deficient_trust_region(), maxiters = 200,
             eps_lin = 1.0e-6, abstol = 1.0e-8, reltol = 1.0e-7,
         );
         show_progress = false,
@@ -146,7 +180,7 @@ end
         H,
         init,
         MultipleShooting(
-            ; nshoots = 2, nlsolve = _rank_deficient_trust_region(), maxiters = 200,
+            ; nshoots = 10, nlsolve = _rank_deficient_trust_region(), maxiters = 200,
             eps_lin = 1.0e-6, abstol = 1.0e-8, reltol = 1.0e-7,
         );
         show_progress = false,
