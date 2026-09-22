@@ -1,6 +1,5 @@
 using CriticalTransitions
-using OrdinaryDiffEq: Tsit5
-using OrdinaryDiffEqLowOrderRK: Euler
+using OrdinaryDiffEq: Tsit5, Euler
 using LinearAlgebra: norm
 
 const λ = 3 / 1.21 * 2 / 295
@@ -18,7 +17,6 @@ function fv(u, v)
     return (-4 * γ * ω * v - 2 * λ * u + 4 * (ω0 - ω^2) * u + 3 * α * u * (u^2 + v^2)) /
         (8 * ω)
 end
-stream(u, v) = Point2f(fu(u, v), fv(u, v))
 dfvdv(u, v) = (-4 * γ * ω + 6 * α * u * v) / (8 * ω)
 dfudu(u, v) = (-4 * γ * ω - 6 * α * u * v) / (8 * ω)
 dfvdu(u, v) = (-2 * λ + 4 * (ω0 - ω^2) + 9 * α * u^2 + 3 * α * v^2) / (8 * ω)
@@ -38,7 +36,6 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
     function H_x_sss(x, p)
         u, v = eachcol(x)
         pu, pv = eachcol(p)
-
         H_u = @. pu * dfudu(u, v) + pv * dfvdu(u, v)
         H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
         return StateSpaceSet([H_u H_v])
@@ -46,7 +43,6 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
     function H_p_sss(x, p)
         u, v = eachcol(x)
         pu, pv = eachcol(p)
-
         H_pu = @. pu + fu(u, v)
         H_pv = @. pv + fv(u, v)
         return StateSpaceSet([H_pu H_pv])
@@ -61,7 +57,6 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
     function H_x_m(x, p)
         u, v = eachrow(x)
         pu, pv = eachrow(p)
-
         H_u = @. pu * dfudu(u, v) + pv * dfvdu(u, v)
         H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
         return Matrix([H_u H_v]')
@@ -69,7 +64,6 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
     function H_p_m(x, p)
         u, v = eachrow(x)
         pu, pv = eachrow(p)
-
         H_pu = @. pu + fu(u, v)
         H_pv = @. pv + fv(u, v)
         return Matrix([H_pu H_pv]')
@@ -87,13 +81,11 @@ end
 @testset "String method endpoints pinned" begin
     Nt_small = 50
     s_small = range(0; stop = 1, length = Nt_small)
-
     xa2 = [-1.0, 0.0]
     xb2 = [1.0, 0.0]
     x_init_m = xa2 .* (1 .- s_small)' .+ xb2 .* s_small' .+ [0.0, 0.3] .* sinpi.(s_small)'
 
     b_rot(x) = [-x[2], x[1]]
-
     string_m = string_method(
         b_rot, x_init_m; maxiters = 25, stepsize = 0.2, show_progress = false
     )
@@ -113,13 +105,11 @@ end
 @testset "String method integrator keyword" begin
     Nt_small = 60
     s_small = range(0; stop = 1, length = Nt_small)
-
     xa2 = [-1.0, 0.0]
     xb2 = [1.0, 0.0]
     x_init_m = xa2 .* (1 .- s_small)' .+ xb2 .* s_small' .+ [0.0, 0.25] .* sinpi.(s_small)'
 
     b_nl(x) = [-x[1] + 0.2 * x[2]^3, -0.5 * x[2] - 0.1 * x[1]^3]
-
     string_default = string_method(
         b_nl, x_init_m; maxiters = 20, stepsize = 0.3, show_progress = false
     )
@@ -127,7 +117,6 @@ end
         b_nl, x_init_m;
         maxiters = 20, stepsize = 0.3, integrator = Euler(), show_progress = false,
     )
-
     @test vec(Matrix(string_default.path)) ≈ vec(Matrix(string_euler.path))
 
     string_tsit5 = string_method(
