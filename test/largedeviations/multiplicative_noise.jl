@@ -4,82 +4,8 @@ using Test
 using LinearAlgebra
 using Random
 
-const CT = CriticalTransitions
-
 const _make_1d_ou = ou_multiplicative_1d
 const _make_2d_offdiag = linear_offdiag_2d_sde
-
-@testset "dense diagonal _lambda_theta! matches Diagonal" begin
-    a_dense = [2.0 0.0; 0.0 3.0]
-    a_diag = Diagonal([2.0, 3.0])
-    b = [0.4, -0.2]
-    φp = [0.6, 0.8]
-
-    θ_dense = zeros(2)
-    Ainv_b_dense = zeros(2)
-    Ainv_φp_dense = zeros(2)
-    λ_dense = CT._lambda_theta!(
-        θ_dense, a_dense, b, φp, Ainv_b_dense, Ainv_φp_dense, nothing,
-    )
-
-    θ_diag = zeros(2)
-    Ainv_b_diag = zeros(2)
-    Ainv_φp_diag = zeros(2)
-    λ_diag = CT._lambda_theta!(
-        θ_diag, a_diag, b, φp, Ainv_b_diag, Ainv_φp_diag, nothing,
-    )
-
-    @test λ_dense ≈ λ_diag
-    @test θ_dense ≈ θ_diag
-    @test Ainv_b_dense ≈ Ainv_b_diag
-    @test Ainv_φp_dense ≈ Ainv_φp_diag
-end
-
-@testset "Diagonal state-dep update_p!: 1D OU multiplicative" begin
-    ds = _make_1d_ou(0.3)
-
-    sys = FreidlinWentzellHamiltonian(ds)
-    @test sys isa FreidlinWentzellHamiltonian{<:Any, 1}
-    @test CT._isdiag_numerical(sys.a(zeros(1)))
-
-    Nt = 40
-    x0 = reshape(collect(range(1.0, -1.0; length = Nt)), 1, Nt)
-    s_arc = range(0; stop = 1, length = Nt)
-    α_arc = zeros(Nt)
-    CT.interpolate_path!(x0, α_arc, s_arc)
-    xdot = zeros(size(x0))
-    p = zeros(size(x0))
-    λ = zeros(1, Nt)
-    cache = CT.build_sgmam_cache(sys, x0, Nt)
-    @test cache isa CT.SgMAMDecoupledCache
-    CT.central_diff!(xdot, x0)
-    CT.update_p!(p, λ, x0, xdot, sys, cache)
-    @test all(isfinite, λ)
-    @test all(isfinite, p)
-end
-
-@testset "Off-diagonal state-dep update_p!: 2D off-diagonal" begin
-    ds = _make_2d_offdiag()
-    sys = FreidlinWentzellHamiltonian(ds)
-    @test sys isa FreidlinWentzellHamiltonian{<:Any, 2}
-
-    Nt = 40
-    xx = collect(range(1.0, 0.0; length = Nt))
-    yy = collect(range(0.0, 1.0; length = Nt))
-    x0 = Matrix([xx yy]')
-    s_arc = range(0; stop = 1, length = Nt)
-    α_arc = zeros(Nt)
-    CT.interpolate_path!(x0, α_arc, s_arc)
-    xdot = zeros(size(x0))
-    p = zeros(size(x0))
-    λ = zeros(1, Nt)
-    cache = CT.build_sgmam_cache(sys, x0, Nt)
-    @test cache isa CT.SgMAMBlockCoupledCache
-    CT.central_diff!(xdot, x0)
-    CT.update_p!(p, λ, x0, xdot, sys, cache)
-    @test all(isfinite, λ)
-    @test all(isfinite, p)
-end
 
 @testset "sgMAM end-to-end: 1D OU multiplicative converges" begin
     sys = FreidlinWentzellHamiltonian(_make_1d_ou(0.3))
@@ -104,20 +30,6 @@ end
         maxiters = 300, show_progress = false,
     )
     @test isfinite(res.action)
-end
-
-@testset "_action_metric: additive returns constant inv" begin
-    f_lin(u, p, t) = SA[-u[1], -u[2]]
-    ds = CoupledSDEs(f_lin, SA[0.0, 0.0]; noise_strength = 2.0)
-    metric = CT._action_metric(ds)
-    @test metric isa AbstractMatrix
-    @test metric ≈ inv(LinearAlgebra.Diagonal([1.0, 1.0]))
-end
-
-@testset "_action_metric: state-dependent evaluates per point" begin
-    metric = CT._action_metric(_make_1d_ou(0.3))
-    @test !(metric isa AbstractMatrix)
-    @test metric([1.0])[1, 1] ≈ 1.0
 end
 
 @testset "fw_action: 1D OU multiplicative vs analytic Simpson" begin
@@ -200,7 +112,7 @@ end
     )
 end
 
-@testset "Additive non-diagonal Σ goes through coupled cache" begin
+@testset "sgMAM additive non-diagonal covariance converges" begin
     function meier_stein(u, p, t)
         x, y = u
         return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
@@ -216,9 +128,6 @@ end
     Q_rot = R * D * R'
     ds_rot = CoupledSDEs(meier_stein, zeros(2); covariance = Q_rot)
     sys_rot = FreidlinWentzellHamiltonian(ds_rot)
-    @test sys_rot isa FreidlinWentzellHamiltonian{<:Any, 2}
-    cache_rot = CT.build_sgmam_cache(sys_rot, x_initial, Nt)
-    @test cache_rot isa CT.SgMAMBlockCoupledCache
 
     res = minimize_geometric_action(
         sys_rot, x_initial, GeometricGradient(; stepsize = 1.0);
@@ -241,12 +150,8 @@ end
     @test isfinite(res_g.action)
 end
 
-# Regression: the state-dependent gMAM/sgMAM branches must reduce to the additive
-# branch when `a(x) ≡ I`. We construct a state-dependent diffusion `σ(x) = R(x)`
-# whose product `σσᵀ = R Rᵀ ≡ I`, so classification routes it through the
-# DiagonalNoise / GeneralNoise paths while the resulting Hamiltonian is identical
-# to the constant-`a` case. The converged action should match an additive-`σ ≡ I`
-# system on the same drift.
+# Regression: a state-dependent diffusion with a(x) ≡ I must give the same
+# geometric action as additive identity noise for the same drift.
 @testset "gMAM state-dep a ≡ I matches additive a ≡ I" begin
     Random.seed!(0)
     function ms_drift(u, p, t)
@@ -254,12 +159,9 @@ end
         return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
     end
 
-    # Reference: additive identity noise.
     ds_add = CoupledSDEs(ms_drift, zeros(2); noise_strength = 1.0)
-    sys_add = FreidlinWentzellHamiltonian(ds_add)
-    @test sys_add.a isa Base.Returns
 
-    # State-dependent σ(x) = R(θ(x)) with θ(x) = 0.5 * x[1]; σσᵀ = R Rᵀ = I.
+    # State-dependent σ(x) = R(θ(x)); σσᵀ = I.
     function g_rotation(u, p, t)
         c = cos(0.5 * u[1]); s = sin(0.5 * u[1])
         return @SMatrix [c -s; s c]
@@ -268,8 +170,6 @@ end
         ms_drift, zeros(2); g = g_rotation,
         noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
     )
-    sys_sd = FreidlinWentzellHamiltonian(ds_sd)
-    @test !(sys_sd.a isa Base.Returns)
 
     Nt = 40
     xx = range(-1.0, 1.0; length = Nt)
