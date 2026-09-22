@@ -1,11 +1,30 @@
 using CriticalTransitions, StaticArrays
-using CriticalTransitions.CTLibrary: ou_multiplicative_1d, linear_offdiag_2d_sde
 using Test
 using LinearAlgebra
 using Random
 
-const _make_1d_ou = ou_multiplicative_1d
-const _make_2d_offdiag = linear_offdiag_2d_sde
+function _make_1d_ou(α)
+    b(u, p, t) = SA[-u[1]]
+    g(u, p, t) = SA[sqrt(1 + α * u[1]^2);;]
+    return CoupledSDEs(
+        b, SA[1.0]; g = g, noise_prototype = SMatrix{1, 1}(0.0),
+    )
+end
+
+function _make_2d_offdiag()
+    b(u, p, t) = SA[-u[1], -u[2]]
+    function g(u, p, t)
+        s11 = 1 + 0.2 * u[1]
+        s22 = 1 + 0.2 * u[2]
+        s12 = 0.3 * u[2]
+        s21 = 0.3 * u[1]
+        return SMatrix{2, 2}(s11, s21, s12, s22)
+    end
+    return CoupledSDEs(
+        b, SA[1.0, 0.0]; g = g,
+        noise_prototype = SMatrix{2, 2}(zeros(2, 2)),
+    )
+end
 
 @testset "sgMAM end-to-end: 1D OU multiplicative converges" begin
     sys = FreidlinWentzellHamiltonian(_make_1d_ou(0.3))
@@ -42,7 +61,8 @@ end
     S = fw_action(ds, path, time)
 
     function simpson(f, a, b, n)
-        h = (b - a) / n; s = f(a) + f(b)
+        h = (b - a) / n
+        s = f(a) + f(b)
         for i in 1:2:(n - 1)
             s += 4 * f(a + i * h)
         end
@@ -70,12 +90,6 @@ end
 end
 
 @testset "MAM (FW) on multiplicative noise agrees with gMAM at large T" begin
-    # Cross-algorithm correctness check: MAM (time-parameterized FW) and gMAM
-    # (geometric / time-eliminated FW) compute the same physical instanton
-    # action up to discretization. The continuous identity
-    # `inf_T S_T^{FW}[φ] = S_geo[φ]` is exact, but the discrete trapezoid is
-    # only reparameterization-invariant up to `O(1/N²)` curvature terms, so
-    # we expect a few-percent gap at moderate `N`, not bitwise agreement.
     Random.seed!(0)
     ds = _make_1d_ou(0.3)
     Nt = 80
@@ -87,11 +101,6 @@ end
     )
     S_g = res_g.action
 
-    # Run MAM (FW) over a range of T. At small T the uniform-Δt constraint is
-    # restrictive (action is dominated by the kinetic `|φ̇|²/T` term); as T
-    # grows the optimizer can cluster path points to simulate the
-    # FW-natural non-uniform speed profile, and the action drops toward the
-    # gMAM value.
     init = reduce(hcat, range([1.0], [-1.0]; length = Nt))
     Ts = [0.5, 1.0, 4.0, 16.0]
     S_mam = map(Ts) do T
@@ -102,9 +111,6 @@ end
     @test issorted(S_mam; rev = true)
     @test S_mam[1] > 3 * S_g
     @test S_mam[end] ≈ S_g rtol = 0.05
-
-    # `functional = "OM"` is rejected for multiplicative noise (the OM
-    # correction term is only implemented for additive diffusion).
     @test_throws ArgumentError minimize_action(
         ds, init, 1.0;
         functional = "OM", noise_strength = 0.1,
@@ -150,8 +156,6 @@ end
     @test isfinite(res_g.action)
 end
 
-# Regression: a state-dependent diffusion with a(x) ≡ I must give the same
-# geometric action as additive identity noise for the same drift.
 @testset "gMAM state-dep a ≡ I matches additive a ≡ I" begin
     Random.seed!(0)
     function ms_drift(u, p, t)
@@ -161,9 +165,9 @@ end
 
     ds_add = CoupledSDEs(ms_drift, zeros(2); noise_strength = 1.0)
 
-    # State-dependent σ(x) = R(θ(x)); σσᵀ = I.
     function g_rotation(u, p, t)
-        c = cos(0.5 * u[1]); s = sin(0.5 * u[1])
+        c = cos(0.5 * u[1])
+        s = sin(0.5 * u[1])
         return @SMatrix [c -s; s c]
     end
     ds_sd = CoupledSDEs(
