@@ -1,9 +1,15 @@
 using Random
 Random.seed!(SEED)
 
+function _fhn_action(u, p, t)
+    x, y = u
+    ϵ, β, α, γ, κ, I = p
+    return SA[(-α * x^3 + γ * x - κ * y + I) / ϵ, -β * y + x]
+end
+
 p = [1.0, 3.0, 1.0, 1.0, 1.0, 0.0]
 σ = 0.2
-sys = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength = σ)
+sys = CoupledSDEs(_fhn_action, zeros(2), p; noise_strength = σ)
 
 T, N = 2.0, 100
 x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
