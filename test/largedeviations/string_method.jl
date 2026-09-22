@@ -1,5 +1,6 @@
 using CriticalTransitions
 using OrdinaryDiffEq: Tsit5
+using OrdinaryDiffEqLowOrderRK: Euler
 using LinearAlgebra: norm
 
 const λ = 3 / 1.21 * 2 / 295
@@ -23,19 +24,18 @@ dfudu(u, v) = (-4 * γ * ω - 6 * α * u * v) / (8 * ω)
 dfvdu(u, v) = (-2 * λ + 4 * (ω0 - ω^2) + 9 * α * u^2 + 3 * α * v^2) / (8 * ω)
 dfudv(u, v) = (-2 * λ - 4 * (ω0 - ω^2) - 3 * α * u^2 - 9 * α * v^2) / (8 * ω)
 
-Nt = 500  # number of discrete time steps
+Nt = 500
 s = collect(range(0; stop = 1, length = Nt))
 
 xa = [-0.0208, 0.0991]
 xb = -xa
 xsaddle = [0.0, 0.0]
 
-# Initial trajectory
 xx = @. (xb[1] - xa[1]) * s + xa[1] + 4 * s * (1 - s) * xsaddle[1]
 yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(2π * s)
 
 @testset "StateSpaceSet vs Matrix" begin
-    function H_x_sss(x, p) # ℜ² → ℜ²
+    function H_x_sss(x, p)
         u, v = eachcol(x)
         pu, pv = eachcol(p)
 
@@ -43,7 +43,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
         return StateSpaceSet([H_u H_v])
     end
-    function H_p_sss(x, p) # ℜ² → ℜ²
+    function H_p_sss(x, p)
         u, v = eachcol(x)
         pu, pv = eachcol(p)
 
@@ -53,14 +53,12 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
     end
 
     sys_sss = FreidlinWentzellHamiltonian{false, 2}(H_x_sss, H_p_sss)
-
     x_init_sss = StateSpaceSet([xx yy])
-
     string_sss = string_method(
         sys_sss, x_init_sss; maxiters = 500, stepsize = 0.5, show_progress = false
     )
 
-    function H_x_m(x, p) # ℜ² → ℜ²
+    function H_x_m(x, p)
         u, v = eachrow(x)
         pu, pv = eachrow(p)
 
@@ -68,7 +66,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
         H_v = @. pu * dfudv(u, v) + pv * dfvdv(u, v)
         return Matrix([H_u H_v]')
     end
-    function H_p_m(x, p) # ℜ² → ℜ²
+    function H_p_m(x, p)
         u, v = eachrow(x)
         pu, pv = eachrow(p)
 
@@ -78,9 +76,7 @@ yy = @. (xb[2] - xa[2]) * s + xa[2] + 4 * s * (1 - s) * xsaddle[2] + 0.01 * sin(
     end
 
     sys_m = FreidlinWentzellHamiltonian{false, 2}(H_x_m, H_p_m)
-
     x_init_m = Matrix([xx yy]')
-
     string_m = string_method(
         sys_m, x_init_m; maxiters = 500, stepsize = 0.5, show_progress = false
     )
@@ -94,7 +90,6 @@ end
 
     xa2 = [-1.0, 0.0]
     xb2 = [1.0, 0.0]
-
     x_init_m = xa2 .* (1 .- s_small)' .+ xb2 .* s_small' .+ [0.0, 0.3] .* sinpi.(s_small)'
 
     b_rot(x) = [-x[2], x[1]]
@@ -129,12 +124,8 @@ end
         b_nl, x_init_m; maxiters = 20, stepsize = 0.3, show_progress = false
     )
     string_euler = string_method(
-        b_nl,
-        x_init_m;
-        maxiters = 20,
-        stepsize = 0.3,
-        integrator = CriticalTransitions.Euler(),
-        show_progress = false,
+        b_nl, x_init_m;
+        maxiters = 20, stepsize = 0.3, integrator = Euler(), show_progress = false,
     )
 
     @test vec(Matrix(string_default.path)) ≈ vec(Matrix(string_euler.path))
@@ -160,19 +151,13 @@ end
     H_x_sss(x, p) = StateSpaceSet(zeros(length(x), D))
     function H_p_sss(x, p)
         m = Matrix(x)
-        # Ensure we build a StateSpaceSet from a Nt×D matrix (points in rows),
-        # regardless of whether Matrix(StateSpaceSet) returns D×Nt or Nt×D.
         return size(m, 1) == length(x) ? StateSpaceSet(-m) : StateSpaceSet(-permutedims(m))
     end
     sys_sss = FreidlinWentzellHamiltonian{false, 2}(H_x_sss, H_p_sss)
 
     string_euler_m = string_method(
-        sys_m,
-        x_init_m;
-        maxiters = 15,
-        stepsize = 0.25,
-        integrator = CriticalTransitions.Euler(),
-        show_progress = false,
+        sys_m, x_init_m;
+        maxiters = 15, stepsize = 0.25, integrator = Euler(), show_progress = false,
     )
     string_tsit5_m = string_method(
         sys_m, x_init_m; maxiters = 15, stepsize = 0.25, integrator = Tsit5(), show_progress = false
@@ -188,12 +173,8 @@ end
 
     x_init_sss = StateSpaceSet(x_init_m')
     string_tsit5_sss = string_method(
-        sys_sss,
-        x_init_sss;
-        maxiters = 15,
-        stepsize = 0.25,
-        integrator = Tsit5(),
-        show_progress = false,
+        sys_sss, x_init_sss;
+        maxiters = 15, stepsize = 0.25, integrator = Tsit5(), show_progress = false,
     )
     ms = Matrix(string_tsit5_sss.path)
     @test vec(ms[1, :]) ≈ x_init_m[:, 1]
