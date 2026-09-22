@@ -96,12 +96,16 @@ end
         return _initial_guess_full_rank(ws, x_init, c_a, c_b, L0)
     end
 
-    seed = Main._regularized_sgmam_seed(ws.H, x_init)
+    seed = Main.var"##largedeviations/rank_deficient_shooting#225"._regularized_sgmam_seed(ws.H, x_init)
     path = _path_matrix(seed.path)
     p = seed.generalized_momentum
     N = size(path, 2)
-    c_a = Main._project_phase_endpoint(ws.lin_a, view(path, :, min(2, N)), view(p, :, min(2, N)), ws.eps_lin)
-    c_b = Main._project_phase_endpoint(ws.lin_b, view(path, :, max(N - 1, 1)), view(p, :, max(N - 1, 1)), ws.eps_lin)
+    c_a = Main.var"##largedeviations/rank_deficient_shooting#225"._project_phase_endpoint(
+        ws.lin_a, view(path, :, min(2, N)), view(p, :, min(2, N)), ws.eps_lin,
+    )
+    c_b = Main.var"##largedeviations/rank_deficient_shooting#225"._project_phase_endpoint(
+        ws.lin_b, view(path, :, max(N - 1, 1)), view(p, :, max(N - 1, 1)), ws.eps_lin,
+    )
     L0 = _initial_path_length(path, T)
 
     interior = zeros(T, 2D * (ws.nshoots - 1))
