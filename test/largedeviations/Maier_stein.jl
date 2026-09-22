@@ -1,7 +1,7 @@
 using Test
 
 @testset "Large_deviation Meier Stein" begin
-    function meier_stein(u, p, t) # out-of-place
+    function meier_stein(u, p, t)
         x, y = u
         dx = x - x^3 - 10 * x * y^2
         dy = -(1 + x^2) * y
@@ -10,7 +10,6 @@ using Test
     σ = 0.25
     sys = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
 
-    # initial path: parabola
     xx = range(-1.0, 1.0; length = 30)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     init = Matrix([xx yy]')
@@ -33,7 +32,7 @@ using Test
     end
 
     @testset "Adam" begin
-        gm = minimize_geometric_action(
+        minimize_geometric_action(
             sys, x_i, x_f; maxiters = 10, verbose = false, show_progress = false
         )
         gm = minimize_geometric_action(
@@ -58,15 +57,14 @@ using Test
     end
 
     @testset "Heteroclinic orbit vs MLP" begin
-        import CriticalTransitions as CT
-        S(x) = geometric_action(sys, CT.fix_ends(x, init[:, 1], init[:, end]), 1.0)
-
         gm = minimize_geometric_action(
             sys, init; maxiters = 500, verbose = false, show_progress = false
         )
         string = string_method(
             sys, init; maxiters = 10_000, stepsize = 0.5, show_progress = false
         )
-        @test S(permutedims(Matrix(string.path))) > S(Matrix(Matrix(gm.path)'))
+        S_string = geometric_action(sys, permutedims(Matrix(string.path)), 1.0)
+        S_gmam = geometric_action(sys, Matrix(gm.path)', 1.0)
+        @test S_string > S_gmam
     end
-end # gMAM Meier Stein
+end
