@@ -58,8 +58,7 @@ using Test
     end
 
     @testset "Heteroclinic orbit vs MLP" begin
-        import CriticalTransitions as CT
-        S(x) = geometric_action(sys, CT.fix_ends(x, init[:, 1], init[:, end]), 1.0)
+        S(x) = geometric_action(sys, x, 1.0)
 
         gm = minimize_geometric_action(
             sys, init; maxiters = 500, verbose = false, show_progress = false
