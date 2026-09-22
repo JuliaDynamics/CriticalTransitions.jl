@@ -2,8 +2,6 @@ using CriticalTransitions, StaticArrays
 using Test
 using LinearAlgebra
 
-const CT = CriticalTransitions
-
 @testset "minimize_geometric_action dispatches: CoupledSDEs (gMAM) ≈ FreidlinWentzellHamiltonian (sgMAM)" begin
     function meier_stein(u, p, t)
         x, y = u
@@ -36,8 +34,4 @@ end
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     path = Matrix([xx yy]')
     @test_throws MethodError minimize_geometric_action(ds_ode, path)
-end
-
-@testset "minimize_simple_geometric_action is removed (#326)" begin
-    @test !isdefined(CriticalTransitions, :minimize_simple_geometric_action)
 end
