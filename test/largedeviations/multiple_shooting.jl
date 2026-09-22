@@ -83,7 +83,7 @@ end
     H = FreidlinWentzellHamiltonian(ds)
     x_init = linear_ramp(-1.0, 0.0, 30)
 
-    run_silent(H, x_init, MultipleShooting(; nshoots = 8, maxiters = 200, abstol = 1.0e-6))
+    res = run_silent(H, x_init, MultipleShooting(; nshoots = 8, maxiters = 200, abstol = 1.0e-6))
 end
 
 @testset "GeneralNoise: Maier-Stein with rotated constant Σ" begin
