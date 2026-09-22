@@ -1,16 +1,12 @@
 using CriticalTransitions
 using Test
 
-function _fhn_gmam(u, p, t)
-    x, y = u
-    ϵ, β, α, γ, κ, I = p
-    return SA[(-α * x^3 + γ * x - κ * y + I) / ϵ, -β * y + x]
-end
+using CriticalTransitions.CTLibrary: fitzhugh_nagumo
 
 @testset "gMAM FitzHugh-Nagumo" begin
     p = [0.1, 3, 1, 1, 1, 0]
     σ = 0.1
-    fhn = CoupledSDEs(_fhn_gmam, zeros(2), p; noise_strength = σ)
+    fhn = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength = σ)
     x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
     x_f = SA[0.001, 0.0]
     res = minimize_geometric_action(
@@ -21,7 +17,7 @@ end
 end
 
 @testset "GeometricGradient" begin
-    function meier_stein(u, p, t)
+    function meier_stein(u, p, t) # out-of-place
         x, y = u
         dx = x - x^3 - 10 * x * y^2
         dy = -(1 + x^2) * y
@@ -30,9 +26,13 @@ end
     σ = 0.25
     sys = CoupledSDEs(meier_stein, zeros(2); noise_strength = σ)
 
+    # initial path: parabola
     xx = range(-1.0, 1.0; length = 30)
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     init = Matrix([xx yy]')
+
+    x_i = init[:, 1]
+    x_f = init[:, end]
 
     gm = minimize_geometric_action(
         sys, init, GeometricGradient(); maxiters = 500, verbose = false, show_progress = false
@@ -42,7 +42,7 @@ end
     action_val = gm.action
     @test all(isapprox.(path[2, :][(end - 5):end], 0, atol = 1.0e-3))
     @test all(isapprox.(action_val, 0.3375, atol = 1.0e-3))
-end
+end # GeometricGradient
 
 @testset "gMAM backtracking" begin
     function meier_stein(u, p, t)
@@ -58,11 +58,13 @@ end
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     init = Matrix([xx yy]')
 
+    # Huge stepsize with backtracking should not crash
     res_bt = minimize_geometric_action(
         sys, init, GeometricGradient(; stepsize = 1.0e6); maxiters = 100, show_progress = false
     )
     @test isfinite(res_bt.action)
 
+    # Step-size insensitivity: different starting stepsizes give similar action
     actions = Float64[]
     for ss in [0.01, 1.0, 1.0e3]
         res = minimize_geometric_action(
@@ -74,14 +76,17 @@ end
 end
 
 @testset "GeometricGradient constructor" begin
+    # Default
     opt = GeometricGradient()
     @test opt.stepsize isa Float64
     @test opt.max_backtracks == 10
 
+    # Type promotion: mixing Int and Float64
     opt2 = GeometricGradient(; stepsize = 1, shrink = 0.5)
     @test opt2.stepsize isa Float64
     @test opt2.stepsize == 1.0
 
+    # Fixed step (no backtracking)
     opt3 = GeometricGradient(; max_backtracks = 0, stepsize = 42.0)
     @test opt3.max_backtracks == 0
     @test opt3.stepsize == 42.0
