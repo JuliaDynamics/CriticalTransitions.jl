@@ -1,16 +1,16 @@
 """
-    rate_track_return_tip(rs::RateSystem, Δts, Δps, mapper, ics; kw...)
+    rate_track_return_tip(rs::RateSystem, Δts, Δps, bmap, sampler; kw...)
 
-Utilize the `global_continuation` functionality of Attractors.jl to
+Utilize the global continuation functionality of DynamicalSystems.jl to
 calculate a rate track-return-tip diagram for `rs` for a variety of
-forcing duration and forcing scales `Δts, Δps` with the rate system starting always at `u0`.
-Return:
+forcing duration and forcing scales `Δts, Δps`. Return:
 
 1. a matrix of size `length(Δps)` × `length(Δts)` encoding the type of rate tipping behavior.
-2. `attractors_cont`, the attractors of the global continuation of the unforced system.
+2. the attractors of the global continuation of the unforced system.
 
 ## Keyword arguments
 
+- `u0 = initial_state(rs)`: Initial condition to start each rate-return simulation.
 - `distance = Centroid()`: Distance function used when (1) matching attractors, and
   (2) mapping the end state of a rate simulation to its closest attractor through the
   `BasinMapProximity`.
@@ -27,25 +27,23 @@ Return:
 
 This function formalizes and generalizes the concept of tracking, returning, or tipping,
 in rate forced systems introduced in [Ritchie2023](@cite).
-To achieve this, it uses global continuation using `mapper, ics`.
+To achieve this, it uses global continuation using `bmap, sampler`.
 The function will run a whole `global_continuation` run over the
 parameter range `prange = p0 .+ Δps` to establish the unfrozen system attractors and assign
 unique IDs to them throughout `prange`.
-If you instead want to run the global continuation yourself,
-which allows you to change `Δts, Δps` without re-running the global continuation,
-then simply do:
+If you instead want to run the global continuation yourself, which allows you to change
+`Δts, Δps` without re-running the global continuation, then do:
 ```julia
 pcurve = unforced_pcurve(rs, Δps)
 matcher = MatchBySSSetDistance(distance)
-ascm = AttractorsSeedContinueMatch(mapper, matcher)
-_, attractors_cont = global_continuation(ascm, pcurve, ics)
+ascm = AttractorsSeedContinueMatch(bmap, matcher)
+_, attractors_cont = global_continuation(ascm, pcurve, sampler)
 rate_track_return_tip(rs, Δts, Δps, attractors_cont; distance, kw...)
 ```
 
 After the global continunation, the function will perform a
 rate simulation with duration `Δt` and scale `Δp` for all
-combinations.
-For each, it will then assign an integer corresponding
+combinations. For each, it will then assign an integer corresponding
 to the type of rate-dependent behaviour as in [Ritchie2023](@cite).
 By default, these integers are ∈ (1, 2, 3) and mean:
 
@@ -56,7 +54,7 @@ By default, these integers are ∈ (1, 2, 3) and mean:
 You can however provide a custom function that may have more involved decision logic
 via the keyword `decide_rate_outcome`.
 To find the unforced system attractor IDs at the middle and and of the rate simulation
-an `BasinMapProximity` is used.
+a `BasinMapProximity` is used.
 
 ## Notes
 
@@ -66,13 +64,13 @@ The profiles of each parameter are individual though.
 If any profile does not have the `reverse = true` option, an error is thrown.
 """
 function rate_track_return_tip(
-        rs::RateSystem, Δts, Δps, mapper::Attractors.BasinMap, ics;
+        rs::RateSystem, Δts, Δps, bmap::Attractors.BasinMap, sampler;
         distance = StateSpaceSets.Centroid(), kw...
     )
     pcurve = unforced_pcurve(rs, Δps)
     matcher = Attractors.MatchBySSSetDistance(; distance)
-    ascm = Attractors.AttractorSeedContinueMatch(mapper, matcher)
-    gco = Attractors.global_continuation(ascm, pcurve, ics)
+    ascm = Attractors.AttractorSeedContinueMatch(bmap, matcher)
+    gco = Attractors.global_continuation(ascm, pcurve, sampler)
     return rate_track_return_tip(rs, Δts, Δps, gco.attractors; distance, kw...)
 end
 
