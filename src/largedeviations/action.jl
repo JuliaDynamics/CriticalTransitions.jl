@@ -70,12 +70,16 @@ function om_action(sys::CoupledSDEs, path, time, noise_strength)
         )
     end
     σ = noise_strength
+    jac = jacobian(sys)
+    p = sys.p0
     S = zero(eltype(path))
-    @views @inbounds for i in 1:(size(path, 2) - 1)
-        S += σ^2 / 2 * (
-            (div_drift(sys, path[:, i + 1]) + div_drift(sys, path[:, i])) / 2 *
-                (time[i + 1] - time[i])
-        )
+    @views @inbounds begin
+        div_prev = tr(jac(path[:, 1], p, 0))
+        for i in 1:(size(path, 2) - 1)
+            div_next = tr(jac(path[:, i + 1], p, 0))
+            S += σ^2 / 2 * (div_next + div_prev) / 2 * (time[i + 1] - time[i])
+            div_prev = div_next
+        end
     end
     return fw_action(sys, path, time) + S
 end
@@ -149,7 +153,7 @@ function geometric_action(b::Function, path, arclength = 1.0; A = nothing)
     return _geometric_action_from_drift(b, path, arclength, A)
 end
 
-function _geometric_action_from_drift(b::Function, path, arclength::Real, A)
+function _geometric_action_from_drift(b::B, path, arclength::Real, A::M) where {B <: Function, M}
     N = size(path, 2)
     T = eltype(path)
     v_buf = similar(path)
@@ -157,7 +161,9 @@ function _geometric_action_from_drift(b::Function, path, arclength::Real, A)
     return _geometric_action_from_drift!(b, path, arclength, A, v_buf, integrand_buf)
 end
 
-function _geometric_action_from_drift!(b::Function, path, arclength::Real, A, v_buf, integrand_buf)
+function _geometric_action_from_drift!(
+        b::B, path, arclength::Real, A::M, v_buf, integrand_buf,
+    ) where {B <: Function, M}
     N = size(path, 2)
     T = eltype(path)
     path_velocity!(v_buf, path, range(zero(T), T(arclength); length = N); order = 4)

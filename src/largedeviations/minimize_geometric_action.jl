@@ -1,6 +1,7 @@
 """
     minimize_geometric_action(sys::CoupledSDEs, x_i, x_f, optimizer=GeometricGradient(); kwargs...)
     minimize_geometric_action(sys::CoupledSDEs, init::AbstractMatrix, optimizer=GeometricGradient(); kwargs...)
+    minimize_geometric_action(sys::CoupledSDEs, init::AbstractStateSpaceSet, optimizer=GeometricGradient(); kwargs...)
 
 Computes the minimizer of the geometric Freidlin-Wentzell action based on the geometric
 minimum action method (gMAM), using optimizers of Optimization.jl or the original
@@ -8,8 +9,8 @@ formulation by [heymann_pathways_2008](@citet) (projected gradient descent with 
 backtracking).
 
 The minimizer is computed for system `sys` over all paths from `x_i` to `x_f`. To set an
-initial path different from a straight line, see the multiple-dispatch method
-`minimize_geometric_action(sys::CoupledSDEs, init::AbstractMatrix, optimizer; kwargs...)`.
+initial path different from a straight line, pass either a `D × N` matrix or an
+`AbstractStateSpaceSet` containing the path points.
 
 Returns a [`MinimumActionPath`](@ref).
 
@@ -30,6 +31,13 @@ end
 
 minimize_geometric_action(sys::CoupledSDEs, init::AbstractMatrix; kwargs...) =
     minimize_geometric_action(sys, init, GeometricGradient(); kwargs...)
+
+function minimize_geometric_action(
+        sys::CoupledSDEs, init::StateSpaceSets.AbstractStateSpaceSet,
+        optimizer = GeometricGradient(); kwargs...,
+    )
+    return minimize_geometric_action(sys, _path_matrix(init), optimizer; kwargs...)
+end
 
 # Shared setup for both backtracking and Optimization.jl paths.
 function _gmam_setup(sys::CoupledSDEs, init)
@@ -172,11 +180,11 @@ end
 # Allocation-free λ, θ computation. Buffers `Ainv_b`, `Ainv_φp` live in the workspace.
 # `F_cached` may be a precomputed LU (constant non-diagonal a) or `nothing`.
 function _lambda_theta!(θ_out, a_i, b_i, φp, Ainv_b, Ainv_φp, F_cached = nothing)
-    if a_i isa LinearAlgebra.Diagonal
-        d = a_i.diag
+    if a_i isa LinearAlgebra.Diagonal || _isdiag_numerical(a_i)
         @inbounds for k in eachindex(Ainv_b)
-            Ainv_b[k] = b_i[k] / d[k]
-            Ainv_φp[k] = φp[k] / d[k]
+            d = a_i[k, k]
+            Ainv_b[k] = b_i[k] / d
+            Ainv_φp[k] = φp[k] / d
         end
     else
         F = F_cached === nothing ?
@@ -284,9 +292,11 @@ function geometric_gradient_step!(
 end
 
 function _gmam_implicit_shared!(ws::GeometricGradientWorkspace, path, N, stepsize, dx)
-    Tmat = ws.linear_cache.A
-    rhs = ws.linear_cache.b
+    cache = ws.linear_cache
+    Tmat = cache.A
+    rhs = cache.b
     fill!(Tmat.d, 1); fill!(Tmat.dl, 0); fill!(Tmat.du, 0)
+
     @inbounds for i in 2:(N - 1)
         α = stepsize * ws.lambdas[i]^2 / dx^2
         if isfinite(α)
@@ -295,6 +305,8 @@ function _gmam_implicit_shared!(ws::GeometricGradientWorkspace, path, N, stepsiz
             Tmat.du[i] = -α
         end
     end
+    _factor_tridiag!(cache)
+
     @inbounds for j in 1:size(path, 1)
         rhs[1] = path[j, 1]
         rhs[end] = path[j, end]
@@ -302,9 +314,8 @@ function _gmam_implicit_shared!(ws::GeometricGradientWorkspace, path, N, stepsiz
             rhs_val = path[j, i] + stepsize * ws.rhs_explicit[j, i - 1]
             rhs[i] = isfinite(rhs_val) ? rhs_val : path[j, i]
         end
-        LinearSolve.reinit!(ws.linear_cache; A = Tmat, b = rhs)
-        solve!(ws.linear_cache)
-        @views ws.update[j, :] .= ws.linear_cache.u
+        _solve_tridiag!(cache)
+        @views ws.update[j, :] .= cache.u
     end
     return nothing
 end

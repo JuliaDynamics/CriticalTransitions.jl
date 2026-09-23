@@ -62,11 +62,3 @@ end
         ),
     )
 end
-
-if false # isempty(VERSION.prerelease)
-    # Disabled until #280's RateSystem refactor is finished — see PR #310.
-    @testset "Code linting" begin
-        using JET
-        JET.test_package(CriticalTransitions; target_modules = (CriticalTransitions,))
-    end
-end

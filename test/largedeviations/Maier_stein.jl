@@ -40,6 +40,19 @@ using Test
             sys, init; maxiters = 500, verbose = false, show_progress = false
         )
 
+        sss = StateSpaceSet(init')
+        sss_view = view(sss, :)
+        @test CT._path_matrix(sss) == init
+        @test CT._path_matrix(sss_view) == init
+        for x_init in (sss, sss_view)
+            gm_sss = minimize_geometric_action(
+                sys, x_init; maxiters = 2, verbose = false, show_progress = false
+            )
+            @test gm_sss isa MinimumActionPath
+            @test gm_sss.path[1] == x_i
+            @test gm_sss.path[end] == x_f
+        end
+
         path = Matrix(gm.path)'
         action_val = gm.action
         @test all(isapprox.(path[2, :][(end - 5):end], 0, atol = 0.01))

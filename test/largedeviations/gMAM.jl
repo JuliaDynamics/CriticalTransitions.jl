@@ -7,6 +7,22 @@ const CT = CriticalTransitions
 
 using CriticalTransitions.CTLibrary: fitzhugh_nagumo
 
+@testset "tridiagonal cache reuses one factorization across right-hand sides" begin
+    L = 6
+    cache = CT._init_tridiag_cache(Float64, L)
+    Tmat = cache.A
+    rhs = cache.b
+    fill!(Tmat.d, 4); fill!(Tmat.dl, -1); fill!(Tmat.du, -1)
+    A_ref = Tridiagonal(copy(Tmat.dl), copy(Tmat.d), copy(Tmat.du))
+    CT._factor_tridiag!(cache)
+    for j in 1:3
+        b_j = j .* collect(1.0:L)
+        rhs .= b_j
+        CT._solve_tridiag!(cache)
+        @test cache.u ≈ A_ref \ b_j
+    end
+end
+
 @testset "GeometricGradientWorkspace constructs cleanly" begin
     f_lin(u, p, t) = SA[-u[1], -u[2]]
     ds_iso = CoupledSDEs(f_lin, SA[0.0, 0.0]; noise_strength = 1.0)
