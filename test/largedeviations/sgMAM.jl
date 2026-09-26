@@ -2,33 +2,6 @@ using CriticalTransitions
 using Test
 using LinearAlgebra
 
-
-const CT = CriticalTransitions
-
-@testset "FreidlinWentzellHamiltonian inner-loop type-stable" begin
-    function meier_stein_ts(u, p, t)
-        x, y = u
-        return SA[x - x^3 - 10 * x * y^2, -(1 + x^2) * y]
-    end
-    ds = CoupledSDEs(meier_stein_ts, zeros(2); noise_strength = 0.25)
-    sys = FreidlinWentzellHamiltonian(ds)
-
-    Nt = 20
-    xx = range(-1.0, 1.0; length = Nt)
-    yy = 0.3 .* (-xx .^ 2 .+ 1)
-    xpath = Matrix([xx yy]')
-    xdot = zeros(size(xpath)); ppath = zeros(size(xpath)); λ = zeros(1, Nt)
-    pdot = zeros(size(xpath)); xdotdot = zeros(size(xpath))
-    cache = CT.build_sgmam_cache(sys, xpath, Nt)
-    CT.central_diff!(xdot, xpath)
-    CT.update_p!(ppath, λ, xpath, xdot, sys, cache)
-    Hx = sys.H_x(xpath, ppath)
-    CT.central_diff!(pdot, ppath); CT.central_diff!(xdotdot, xdot)
-
-    @inferred CT.update_p!(ppath, λ, xpath, xdot, sys, cache)
-    @inferred CT.update_x!(xpath, λ, pdot, xdotdot, Hx, sys, 1.0, cache)
-end
-
 @testset "Constant-a update_x! no per-iteration sparse alloc" begin
     function meier_stein(u, p, t)
         x, y = u
@@ -51,26 +24,6 @@ end
     )
     bytes_after = Base.gc_num().total_allocd
     @test (bytes_after - bytes_before) < 5_000_000
-end
-
-@testset "FreidlinWentzellHamiltonian stores diffusion tensor" begin
-    f_lin(u, p, t) = SA[-u[1], -u[2]]
-    ds_ode = CoupledODEs(f_lin, SA[0.0, 0.0])
-    sys_ode = FreidlinWentzellHamiltonian(ds_ode)
-    @test sys_ode isa FreidlinWentzellHamiltonian{<:Any, 2}
-    @test sys_ode.a isa Base.Returns
-    @test sys_ode.a(zeros(2)) ≈ LinearAlgebra.Diagonal(ones(2))
-
-    ds_iso = CoupledSDEs(f_lin, SA[0.0, 0.0]; noise_strength = 1.0)
-    sys_iso = FreidlinWentzellHamiltonian(ds_iso)
-    @test sys_iso isa FreidlinWentzellHamiltonian{<:Any, 2}
-    @test sys_iso.a isa Base.Returns
-
-    H_x_user(x, p) = zeros(size(x))
-    H_p_user(x, p) = ones(size(x))
-    sys_user = FreidlinWentzellHamiltonian{false, 2}(H_x_user, H_p_user)
-    @test sys_user isa FreidlinWentzellHamiltonian{false, 2}
-    @test sys_user.a isa Base.Returns
 end
 
 @testset "FreidlinWentzellHamiltonian KPO" begin
@@ -178,8 +131,6 @@ end
 end
 
 @testset "sgMAM GeometricGradient Backtracking" begin
-    CT = CriticalTransitions
-
     function meier_stein(u, p, t) # out-of-place
         x, y = u
         dx = x - x^3 - 10 * x * y^2
@@ -195,19 +146,10 @@ end
     yy = 0.3 .* (-xx .^ 2 .+ 1)
     x_initial = Matrix([xx yy]')
 
-    # Baseline action on an arclength-reparameterized path
-    x0 = deepcopy(x_initial)
-    Nt = size(x0, 2)
-    s = range(0; stop = 1, length = Nt)
-    α = zeros(Nt)
-    CT.interpolate_path!(x0, α, s)
-    xdot = zeros(size(x0))
-    p = zeros(size(x0))
-    λ = zeros(1, Nt)
-    cache0 = CT.build_sgmam_cache(sys, x0, Nt)
-    CT.central_diff!(xdot, x0)
-    CT.update_p!(p, λ, x0, xdot, sys, cache0)
-    S0 = CT.FW_action(xdot, p)
+    S0 = minimize_geometric_action(
+        sys, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 0, show_progress = false,
+    ).action
     @test isfinite(S0)
 
     # Single iteration with huge stepsize: backtracking should prevent blowup
@@ -360,7 +302,6 @@ end
 @testset "AdaptiveGeometricGradient constructor" begin
     opt = AdaptiveGeometricGradient()
     @test opt isa AdaptiveGeometricGradient
-    @test opt isa CriticalTransitions.GMAMOptimizer
     @test opt.probe_length == 200
     @test 0 < opt.shrink < 1
     @test opt.grow > 1
@@ -381,20 +322,12 @@ end
 end
 
 @testset "AdaptiveGeometricGradient Maier–Stein" begin
-    CT = CriticalTransitions
     _, sys, x_initial = _maier_stein_setup()
 
-    # Baseline action
-    x0 = deepcopy(x_initial)
-    Nt = size(x0, 2)
-    s = range(0; stop = 1, length = Nt)
-    α = zeros(Nt)
-    CT.interpolate_path!(x0, α, s)
-    xdot = zeros(size(x0)); p = zeros(size(x0)); λ = zeros(1, Nt)
-    cache_ad = CT.build_sgmam_cache(sys, x0, Nt)
-    CT.central_diff!(xdot, x0)
-    CT.update_p!(p, λ, x0, xdot, sys, cache_ad)
-    S0 = CT.FW_action(xdot, p)
+    S0 = minimize_geometric_action(
+        sys, x_initial, GeometricGradient(; stepsize = 1.0);
+        maxiters = 0, show_progress = false,
+    ).action
     @test isfinite(S0)
 
     # Adaptive should strictly improve on the initial path

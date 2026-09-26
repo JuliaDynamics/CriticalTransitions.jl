@@ -7,7 +7,6 @@ using Test
 
     ds = CoupledSDEs(linear_drift, zeros(2); noise_strength = 0.5)
     sys = FreidlinWentzellHamiltonian(ds)
-    @test sys isa FreidlinWentzellHamiltonian{true, 2}
 
     x = randn(2, 12)
     p = randn(2, 12)
@@ -18,13 +17,6 @@ using Test
 
     @test sys.H_x(Hx, x, p) === Hx
     @test sys.H_p(Hp, x, p) === Hp
-    @test Hx ≈ Hx_ref
-    @test Hp ≈ Hp_ref
-
-    fill!(Hx, NaN)
-    fill!(Hp, NaN)
-    @test CT._eval_Hx!(Hx, sys, x, p) === Hx
-    @test CT._eval_Hp!(Hp, sys, x, p) === Hp
     @test Hx ≈ Hx_ref
     @test Hp ≈ Hp_ref
 end

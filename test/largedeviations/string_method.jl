@@ -1,5 +1,6 @@
 using CriticalTransitions
 using OrdinaryDiffEq: Tsit5
+using OrdinaryDiffEqLowOrderRK: Euler
 using LinearAlgebra: norm
 
 const λ = 3 / 1.21 * 2 / 295
@@ -133,7 +134,7 @@ end
         x_init_m;
         maxiters = 20,
         stepsize = 0.3,
-        integrator = CriticalTransitions.Euler(),
+        integrator = Euler(),
         show_progress = false,
     )
 
@@ -171,7 +172,7 @@ end
         x_init_m;
         maxiters = 15,
         stepsize = 0.25,
-        integrator = CriticalTransitions.Euler(),
+        integrator = Euler(),
         show_progress = false,
     )
     string_tsit5_m = string_method(

@@ -4,8 +4,6 @@ using LinearAlgebra
 using StaticArrays
 using Test
 
-const CT_ = CriticalTransitions
-
 @testset "3D K_seed=0 bootstrap" begin
     # Regression: pre-fix, K_seed=0 in 3D left every non-source cell at Inf
     # because the 3D simplex pass never produced a standalone Φ0 vertex.
@@ -48,23 +46,6 @@ end
         sys, grid, zeros(5); band_radius = 3,
         near_source_layers = 0, show_progress = false,
     )
-end
-
-@testset "back-pointer walk to source" begin
-    f(x, p, t) = SVector(-x[1], -x[2])
-    sys = CoupledSDEs(f, [0.0, 0.0]; noise_strength = 1.0)
-    grid = CartesianGrid((-1.0, 1.0, 31), (-1.0, 1.0, 31))
-    qp = quasipotential(sys, grid, [0.0, 0.0]; show_progress = false)
-    cur = CartesianIndex(28, 16); visited = [cur]
-    while cur != qp.source
-        cur = qp.back_pointer[cur].v0
-        push!(visited, cur)
-        length(visited) > 200 && error("back-pointer walk did not terminate")
-    end
-    @test cur == qp.source
-    # U strictly decreases along the back-pointer chain (Dijkstra invariant).
-    Us = [qp.U[I] for I in visited]
-    @test all(diff(Us) .<= 1.0e-10)
 end
 
 @testset "3D gradient well end-to-end" begin

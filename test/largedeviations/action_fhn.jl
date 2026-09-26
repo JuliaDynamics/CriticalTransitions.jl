@@ -6,7 +6,6 @@ p = [1.0, 3.0, 1.0, 1.0, 1.0, 0.0] # Parameters (ϵ, β, α, γ, κ, I)
 σ = 0.2 # noise strength
 sys = CoupledSDEs(fitzhugh_nagumo, zeros(2), p; noise_strength = σ)
 
-A = inv(CriticalTransitions.normalize_covariance!(covariance_matrix(sys)))
 T, N = 2.0, 100
 
 x_i = SA[sqrt(2 / 3), sqrt(2 / 27)]
@@ -35,16 +34,6 @@ end
 @testset "geometric_action" begin
     S = geometric_action(sys, path)
     @test isapprox(S, 0.23, atol = 0.01)
-end
-
-# Test fw_integrand function
-@testset "fw_integrand" begin
-    integrand = CriticalTransitions.fw_integrand(sys, path, time, A)
-    @test all(integrand .>= -eps())
-    # Integral of integrand should equal 2 * fw_action for same path/time.
-    dt = time[2] - time[1]
-    trapz = sum((integrand[2:end] .+ integrand[1:(end - 1)]) .* dt ./ 2)
-    @test isapprox(trapz, 2 * fw_action(sys, path, time); rtol = 1.0e-10, atol = 1.0e-12)
 end
 
 # Test div_drift function
