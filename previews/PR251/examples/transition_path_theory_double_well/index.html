@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Transition path theory: Finite element method · CriticalTransitions.jl</title><meta name="title" content="Transition path theory: Finite element method · CriticalTransitions.jl"/><meta property="og:title" content="Transition path theory: Finite element method · CriticalTransitions.jl"/><meta property="twitter:title" content="Transition path theory: Finite element method · CriticalTransitions.jl"/><meta name="description" content="Documentation for CriticalTransitions.jl."/><meta property="og:description" content="Documentation for CriticalTransitions.jl."/><meta property="twitter:description" content="Documentation for CriticalTransitions.jl."/><meta property="og:url" content="https://juliadynamics.github.io/CriticalTransitions.jl/examples/transition_path_theory_double_well/"/><meta property="twitter:url" content="https://juliadynamics.github.io/CriticalTransitions.jl/examples/transition_path_theory_double_well/"/><link rel="canonical" href="https://juliadynamics.github.io/CriticalTransitions.jl/examples/transition_path_theory_double_well/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="CriticalTransitions.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CriticalTransitions.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../quickstart/">Getting started</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../tutorial/">Tutorial</a></li><li><input class="collapse-toggle" id="menuitem-3-2" type="checkbox"/><label class="tocitem" for="menuitem-3-2"><span class="docs-label">Defining a system</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../stochastic-dynamics/">Stochastic system</a></li><li><a class="tocitem" href="../RateSystem/">Nonautonomous system</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3-3" type="checkbox" checked/><label class="tocitem" for="menuitem-3-3"><span class="docs-label">System analysis</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../gMAM_Maierstein/">Large deviations: Maier-Stein system</a></li><li><a class="tocitem" href="../sgMAM_KPO/">Simple gMAM: Kerr Parametric Oscillator</a></li><li><a class="tocitem" href="../OC_mam/">Minimal action method: Optimal Control problem</a></li><li class="is-active"><a class="tocitem" href>Transition path theory: Finite element method</a><ul class="internal"><li><a class="tocitem" href="#System"><span>System</span></a></li><li><a class="tocitem" href="#Phase-space-mesh"><span>Phase space mesh</span></a></li><li><a class="tocitem" href="#Probability-density-of-reactive-trajectories"><span>Probability density of reactive trajectories</span></a></li></ul></li></ul></li></ul></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../../man/system_construction/">Define your system</a></li><li><a class="tocitem" href="../../man/systemanalysis/">Stability analysis</a></li><li><a class="tocitem" href="../../man/simulation/">Simulating the system</a></li><li><a class="tocitem" href="../../man/sampling/">Sampling transitions</a></li><li><a class="tocitem" href="../../man/largedeviations/">Large deviation theory</a></li><li><a class="tocitem" href="../../man/r-tipping/">Rate-induced transitions</a></li><li><a class="tocitem" href="../../man/transition_path_theory/">Transition path theory</a></li><li><a class="tocitem" href="../../man/utils/">Utilities</a></li><li><a class="tocitem" href="../../man/bibliography/">Bibliography</a></li></ul></li><li><a class="tocitem" href="../../refs/">References</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li><a class="is-disabled">System analysis</a></li><li class="is-active"><a href>Transition path theory: Finite element method</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Transition path theory: Finite element method</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/CriticalTransitions.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/CriticalTransitions.jl/blob/main/examples/transition_path_theory_double_well.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="TPT_example"><a class="docs-heading-anchor" href="#TPT_example">Transition Path Theory for the double well</a><a id="TPT_example-1"></a><a class="docs-heading-anchor-permalink" href="#TPT_example" title="Permalink"></a></h1><p>In this example, we explore the application of Transition Path Theory (TPT) to a double well system. We will compute various quantities of interest in TPT, such as the Hamiltonian, committor functions, reactive currents, and reaction rates. These computations will be performed on a triangular mesh in the phase space, providing insights into the system&#39;s dynamics and transition paths between different states.</p><p>As for now, TPT functionality is considered experimental, and the API may change in the future.</p><pre><code class="language-julia hljs">using CriticalTransitions
+
+using CairoMakie
+using OrdinaryDiffEq, DelaunayTriangulation, Contour</code></pre><h2 id="System"><a class="docs-heading-anchor" href="#System">System</a><a id="System-1"></a><a class="docs-heading-anchor-permalink" href="#System" title="Permalink"></a></h2><p>We consider a simple model for a particle in a double-well potential, subject to dissipation and diffusion. The equation of motion under additive Gaussian noise is given by</p><p class="math-container">\[\dot{x} = p, \\
+\dot{p} = -\gamma p - \nabla U + \sqrt{\frac{2\gamma}{\beta}} \dot{W},\]</p><p>with the potential energy <span>$U(x) = \frac{1}{4}x^4 - \frac{1}{2}x^2$</span> and the kinetic energy <span>$K(p) = p^2/2$</span>. The parameters <span>$\gamma$</span> and <span>$\beta=1/k_b T$</span> control the strength of the dissipation and noise, respectively. <span>$W(t)$</span> is a Wiener process, and the noise term is scaled by <span>$\sqrt{2\gamma/\beta}$</span> to ensure the correct temperature scaling for Langevin dynamics defined by the Hamiltonian <span>$H$</span>.</p><p>In CriticalTransitions.jl, a stochastic dynamical system of this form can be constructed as a <a href="@ref"><code>LangevinSystem</code></a>, which takes five input arguments as exemplified below: the Hamiltonian, the divergence-free part of the drift, the system&#39;s kinetic energy, the damping coefficient, and the inverse temperature (noise intensity).</p><pre><code class="language-julia hljs">beta = 20.0
+gamma = 0.5
+
+function Hamiltonian(x, y)
+    return 0.5 .* y .^ 2 .+ 0.25 .* x .^ 4 .- 0.5 .* x .^ 2
+end
+
+function KE(x)
+    return 0.5 .* (x[:, 2] .^ 2)
+end
+
+function divfree(x, y)
+    f1 = y
+    f2 = .-x .^ 3 .+ x
+    return f1, f2
+end
+
+function double_well(x, y)
+    f1 = y
+    f2 = .-gamma .* y .- x .^ 3 .+ x
+    return f1, f2
+end
+
+using CriticalTransitions: LangevinSystem
+langevin_sys = LangevinSystem(Hamiltonian, divfree, KE, gamma, beta)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">CriticalTransitions.LangevinSystem{typeof(Main.Hamiltonian), typeof(Main.divfree), typeof(Main.KE), Float64}(Main.Hamiltonian, Main.divfree, Main.KE, 0.5, 20.0)</code></pre><h2 id="Phase-space-mesh"><a class="docs-heading-anchor" href="#Phase-space-mesh">Phase space mesh</a><a id="Phase-space-mesh-1"></a><a class="docs-heading-anchor-permalink" href="#Phase-space-mesh" title="Permalink"></a></h2><p>We can easily evaluate and visualize the Hamiltonian on an equally spaced grid in phase space.</p><pre><code class="language-julia hljs">nx, ny = 41, 41
+nxy = nx * ny
+xmin, xmax = -2.0, 2.0
+ymin, ymax = -2.0, 2.0
+
+x1 = range(xmin, xmax; length=nx)
+y1 = range(ymin, ymax; length=ny)
+
+x_grid = [xx for yy in y1, xx in x1]
+y_grid = [yy for yy in y1, xx in x1]
+
+drift1, drift2 = double_well(x_grid, y_grid)
+dnorm = sqrt.(drift1 .^ 2 .+ drift2 .^ 2 .+ 1e-12)
+H_grid = Hamiltonian(x_grid, y_grid)
+
+fig = CairoMakie.contour(x1, y1, H_grid&#39;; colormap=:viridis, levels=-1:0.4:2, linewidth=2)
+v(x::Point2) = Point2f(double_well(x[1], x[2])...)
+streamplot!(
+    v,
+    -2 .. 2,
+    -2 .. 2;
+    linewidth=0.5,
+    colormap=[:black, :black],
+    gridsize=(40, 40),
+    arrow_size=8,
+)
+fig</code></pre><img src="08dd2484.png" alt="Example block output"/><p>The double well system is autonomous and respects detailed balance. In this case, the maximum likelihood path (MLP) follows parallel to a flowline of the drift field and can be computed via the string method. If the saddle point is known, one can easily compute the MLP by solving for the (reverse) flow/drift from the saddle point to each of the potential minima. The MLP from (-1,0) to (1,0) gives:</p><pre><code class="language-julia hljs">using OrdinaryDiffEq
+
+function reverse_drift!(du, u, p, t)
+    du[1] = -u[2]
+    return du[2] = -u[2] + u[1] * (u[1]^2 - 1)
+end
+
+function drift!(du, u, p, t)
+    du[1] = u[2]
+    return du[2] = -u[2] - u[1] * (u[1]^2 - 1)
+end
+
+prob0 = ODEProblem(reverse_drift!, [-0.001, 0.0], (0.0, 100.0))
+sol0 = solve(prob0, Tsit5(); abstol=1e-12, reltol=1e-12)
+
+prob1 = ODEProblem(drift!, [0.001, 0.0], (0.0, 100.0))
+sol1 = solve(prob1, Tsit5(); abstol=1e-12, reltol=1e-12)
+
+fig = streamplot(
+    v,
+    -2 .. 2,
+    -2 .. 2;
+    linewidth=0.5,
+    colormap=[:gray, :gray],
+    gridsize=(40, 40),
+    arrow_size=8,
+)
+y = sol0
+lines!(y[1, :], y[2, :]; linewidth=2, color=:black)
+y = sol1
+lines!(y[1, :], y[2, :]; linewidth=2, color=:black)
+fig</code></pre><img src="32b892e5.png" alt="Example block output"/><p>Close to the local minima <span>$(-1.0, 0.0)$</span> and <span>$(1.0, 0.0)$</span> of the potential landscape, the system under the drift will dissipate to the corresponding attractor. TPT investigates the &quot;reaction&quot; (the name originates from studies of chemical reactions) between two sets in phase space A and B; here we define the two sets to be an ellipse around these minima:</p><pre><code class="language-julia hljs">using CriticalTransitions: get_ellipse
+point_a = (-1.0, 0.0)
+point_b = (1.0, 0.0)
+radii = (0.3, 0.4)
+density = 0.04
+
+Na = round(Int, π * sum(radii) / density) # the number of points on the A-circle
+Nb = Na
+
+ptsA = get_ellipse(point_a, radii, Na)
+ptsB = get_ellipse(point_b, radii, Na);</code></pre><p>We also compute an outer boundary of the phase space defined by the maximum value of the Hamiltonian: <code>H_bound=0.5</code>. For this, we use the <code>Contour.jl</code> package to compute the contour at the level <code>H_bound</code>. Just as the ellipse around the attractors, we also re-parameterize the boundary to have a uniform grid spacing.</p><pre><code class="language-julia hljs">import Contour as CTR
+H_bound = 0.5
+cont = CTR.contour(x1, y1, H_grid, H_bound)
+yc, xc = coordinates(CTR.lines(cont)[1])
+p_outer = [xc yc]
+
+using CriticalTransitions: reparameterization
+pts_outer = reparameterization(p_outer, density);
+Nouter = size(pts_outer, 1)
+Nfix = Na + Nb + Nouter
+
+fig = scatter(ptsA[:, 1], ptsA[:, 2]; label=&quot;A points&quot;)
+scatter!(ptsB[:, 1], ptsB[:, 2]; label=&quot;B points&quot;)
+scatter!(pts_outer[:, 1], pts_outer[:, 2]; label=&quot;Outer points&quot;)
+fig</code></pre><img src="dad8eb2a.png" alt="Example block output"/><p>We would like to compute the committor, the reactive current, and the reaction rate for the double well with additive Gaussian noise. We compute these quantities on a triangular mesh between the previously computed boundaries.</p><pre><code class="language-julia hljs">using CriticalTransitions: distmesh2D, dellipse, ddiff, dunion, huniform
+box = [xmin, xmax, ymin, ymax]
+pfix = zeros(Nfix, 2)
+pfix[1:Na, :] .= ptsA
+pfix[(Na + 1):(Na + Nb), :] .= ptsB
+pfix[(Na + Nb + 1):Nfix, :] .= pts_outer
+
+function dfunc(p)
+    d0 = Hamiltonian(p[:, 1], p[:, 2])
+    dA = dellipse(p, point_a, radii)
+    dB = dellipse(p, point_b, radii)
+    d = ddiff(d0 .- H_bound, dunion(dA, dB))
+    return d
+end
+
+mesh = distmesh2D(dfunc, huniform, density, box, pfix)
+
+pts, tri = mesh.pts, mesh.tri
+fig = Figure()
+ax = Axis(fig[1, 1])
+for i in 1:size(tri, 1)
+    lines!(
+        ax,
+        [pts[tri[i, j], 1] for j in [1, 2, 3, 1]],
+        [pts[tri[i, j], 2] for j in [1, 2, 3, 1]];
+        color=:black,
+        linewidth=0.1,
+    )
+end
+fig
+
+# Committor functions</code></pre><img src="9bf317ee.png" alt="Example block output"/><p>The committor is a scalar function that measures the probability that a system, starting at a given point in phase space, reaches one designated region before another. Formally, for two disjoint sets A and B, the forward committor <span>$q_+(x, p)$</span> from A to B gives the likelihood that a trajectory initiated at x will reach B before A under the system’s dynamics. The committor boundary-value problem for a Langevin system is given by:</p><p class="math-container">\[ p \frac{\mathrm{d}q}{\mathrm{d}x} - U&#39;(x) \frac{\mathrm{d}q}{\mathrm{d}p} + \gamma [-p \frac{\mathrm{d}q}{\mathrm{d}p} + \beta^{-1} \frac{\mathrm{d}^2 q}{\mathrm{d}p^2}] = 0,\]</p><p>for <span>$(x,p) \in (A\cup B)^c$</span>, with boundary conditions <span>$q(\partial A) = 0$</span>, <span>$q(\partial B) = 1$</span>, and <span>$\nabla \nabla q = 0$</span> on the outer boundary <span>${(x,p) : H(x,p) = \mathrm{H_bound}}$</span>. The homogeneous Neumann boundary condition <span>$\nabla \nabla q = 0$</span> means that the trajectory reflects from the outer boundary whenever it reaches it. We can compute the committor function for the system using the <code>committor</code> function.</p><pre><code class="language-julia hljs">using CriticalTransitions: committor, find_boundary
+_, Aind = find_boundary(mesh.pts, point_a, radii, density)
+_, Bind = find_boundary(mesh.pts, point_b, radii, density)
+
+q = committor(langevin_sys, mesh, Aind, Bind)
+
+@show extrema(q)
+
+tricontourf(Triangulation(mesh.pts&#39;, mesh.tri&#39;), q)</code></pre><img src="3547fa70.png" alt="Example block output"/><p>We can also compute the backward committor <span>$q_{-}(x, p)$</span> from A to B, which is the probability that a trajectory initiated at x will reach A before B under the system’s dynamics. Hence, we must reverse the drift function in the Langevin system and swap the boundaries A and B in the committor function</p><pre><code class="language-julia hljs">function divfree_reverse(x, y)
+    f1, f2 = divfree(x, y)
+    return -f1, -f2
+end
+
+langevin_sys_reverse = LangevinSystem(Hamiltonian, divfree_reverse, KE, gamma, beta)
+
+qminus = committor(langevin_sys_reverse, mesh, Bind, Aind)
+
+@show extrema(qminus)
+
+tricontourf(Triangulation(mesh.pts&#39;, mesh.tri&#39;), qminus)</code></pre><img src="97f60646.png" alt="Example block output"/><p>For non-equilibrium processes, such as critical transitions in the double-well, we have <span>$q_{-}\neq 1-q_+$</span>. In particular, for Langevin dynamics of the form above, time reversal involves a momentum flip such that <span>$q_{-}(x, p)= 1-q_+(x, -p)$</span>.</p><h2 id="Probability-density-of-reactive-trajectories"><a class="docs-heading-anchor" href="#Probability-density-of-reactive-trajectories">Probability density of reactive trajectories</a><a id="Probability-density-of-reactive-trajectories-1"></a><a class="docs-heading-anchor-permalink" href="#Probability-density-of-reactive-trajectories" title="Permalink"></a></h2><p>In general, we are interested in reactive trajectories that start in A and end in B without going back to A. The probability density of finding a reactive trajectory at a point in phase space is given by:</p><p class="math-container">\[\rho_R(x, p) = \rho(x, p) q₊(x, p) q₋(x, p),\]</p><p>where <span>$\rho(x, p)$</span> is the probability density of finding a trajectory at <span>$(x,p)$</span>, <span>$\rho(x, p)$</span> is also called the invariant probability density (or invariant measure) of the system. For an overdamped Langevin system the invariant probability density reads:</p><p class="math-container">\[\rho(x, p) \approx exp(-\beta H(x,p))/Z\]</p><p>with <span>$Z=\int exp(-\beta H(x,p)) \mathrm{d}x \mathrm{d}p$</span> the normalization. We can compute the integrated invariant probability density <code>Z</code> for the mesh using the <code>invariant_pdf</code> function.</p><pre><code class="language-julia hljs">function dfuncA(p)
+    return dellipse(p, point_a, radii)
+end
+
+function dfuncB(p)
+    return dellipse(p, point_b, radii)
+end
+
+xa, ya = point_a
+xb, yb = point_b
+rx, ry = radii
+bboxA = [xa - rx, xa + rx, ya - ry, ya + ry]
+Amesh = distmesh2D(dfuncA, huniform, density, bboxA, ptsA)
+bboxB = [xb - rx, xb + rx, yb - ry, yb + ry]
+Bmesh = distmesh2D(dfuncB, huniform, density, bboxB, ptsB)
+
+using CriticalTransitions: invariant_pdf
+Z = invariant_pdf(langevin_sys, mesh, Amesh, Bmesh)
+
+@show Z</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">69.38090767145195</code></pre><p>Hence, the probability density of a reactive trajectory is given by:</p><pre><code class="language-julia hljs">mu = exp.(-beta * Hamiltonian(pts[:, 1], pts[:, 2])) / Z
+muAB = mu .* q .* qminus
+
+tricontourf(Triangulation(mesh.pts&#39;, mesh.tri&#39;), muAB)</code></pre><img src="bb5a5537.png" alt="Example block output"/><p>The current of reactive trajectories is given by:</p><p class="math-container">\[J_R = \frac{e^{-\beta H} q_{+} q_{-}}{Z}\binom{p}{-\nabla U}+k_B T \gamma Z^{-1} e^{-\beta H}\binom{0}{q_{-} \frac{\partial q_{+}}{\partial p}-q_{+} \frac{\partial q_{-}}{\partial p}}\]</p><p>and the transition rate:</p><p class="math-container">\[v_R=k_B T \gamma Z_H^{-1} \int \sum_{i=1}^d m_i\left(\frac{\partial q_{+}}{\partial p_i}\right)^2 e^{-\beta H({x}, p)} d {x} d {p}\]</p><p>These can be computed using the <code>reactive_current</code> function:</p><pre><code class="language-julia hljs">using CriticalTransitions: reactive_current
+Rcurrent, Rrate = reactive_current(langevin_sys, mesh, q, qminus, Z)
+@show Rrate</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">0.0007503902858318402</code></pre><p>Plotting the current norm reveals that the current is the strongest around the saddle point.</p><pre><code class="language-julia hljs">ARcurrent = vec(sqrt.(sum(Rcurrent .^ 2; dims=2)))
+ARCmax = maximum(ARcurrent)
+
+tricontourf(Triangulation(mesh.pts&#39;, mesh.tri&#39;), ARcurrent)</code></pre><img src="67ad24a1.png" alt="Example block output"/><p>The transition current has a direction from A to B.</p><pre><code class="language-julia hljs">c = ARcurrent ./ ARCmax
+arrows2d(
+    pts[:, 1],
+    pts[:, 2],
+    Rcurrent[:, 1] ./ ARCmax,
+    Rcurrent[:, 2] ./ ARCmax;
+    color=c,
+    lengthscale=0.1,
+)</code></pre><img src="7f4fea11.png" alt="Example block output"/><pre><code class="language-julia hljs">using CriticalTransitions: probability_reactive
+prob_reactive = probability_reactive(langevin_sys, mesh, q, qminus, Z)
+print(
+    &quot;Probability that a trajectory is reactive at a randomly picked time: &quot;, prob_reactive
+)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Probability that a trajectory is reactive at a randomly picked time: 0.0041064223137320085</code></pre><pre><code class="language-julia hljs">using CriticalTransitions: probability_last_A
+prob_lastA = probability_last_A(langevin_sys, mesh, Amesh, qminus, Z)
+print(&quot;Probability that a trajectory last visited A: &quot;, prob_lastA)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Probability that a trajectory last visited A: 0.5000049423159973</code></pre><p>Authored by O. Ameye and R. Börner</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../OC_mam/">« Minimal action method: Optimal Control problem</a><a class="docs-footer-nextpage" href="../../man/system_construction/">Define your system »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Thursday 22 January 2026 15:55">Thursday 22 January 2026</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

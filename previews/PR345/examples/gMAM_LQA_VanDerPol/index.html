@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>gMAM with Local Quadratic Approximation: escape from a limit cycle · CriticalTransitions.jl</title><meta name="title" content="gMAM with Local Quadratic Approximation: escape from a limit cycle · CriticalTransitions.jl"/><meta property="og:title" content="gMAM with Local Quadratic Approximation: escape from a limit cycle · CriticalTransitions.jl"/><meta property="twitter:title" content="gMAM with Local Quadratic Approximation: escape from a limit cycle · CriticalTransitions.jl"/><meta name="description" content="Documentation for CriticalTransitions.jl."/><meta property="og:description" content="Documentation for CriticalTransitions.jl."/><meta property="twitter:description" content="Documentation for CriticalTransitions.jl."/><meta property="og:url" content="https://juliadynamics.github.io/CriticalTransitions.jl/examples/gMAM_LQA_VanDerPol/"/><meta property="twitter:url" content="https://juliadynamics.github.io/CriticalTransitions.jl/examples/gMAM_LQA_VanDerPol/"/><link rel="canonical" href="https://juliadynamics.github.io/CriticalTransitions.jl/examples/gMAM_LQA_VanDerPol/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="https://fonts.googleapis.com/css?family=Montserrat|Source+Code+Pro&amp;display=swap" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.jpg" alt="CriticalTransitions.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CriticalTransitions.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../quickstart/">Tutorial</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../tutorial/">Tutorial</a></li><li><span class="tocitem">Defining a system</span><ul><li><a class="tocitem" href="../stochastic-dynamics/">Stochastic system</a></li><li><a class="tocitem" href="../RateSystem/">Nonautonomous system</a></li></ul></li><li><span class="tocitem">System analysis</span><ul><li><a class="tocitem" href="../gMAM_Maierstein/">Large deviations: Maier-Stein system</a></li><li><a class="tocitem" href="../sgMAM_KPO/">Simple gMAM: Kerr Parametric Oscillator</a></li><li><a class="tocitem" href="../backtracking_KPO/">Adaptive step-size control for sgMAM</a></li><li><a class="tocitem" href="../potential_string/">String method: Muller-Brown potential</a></li><li><a class="tocitem" href="../transition_path_theory_double_well/">Transition path theory: Finite element method</a></li></ul></li></ul></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../../man/system_construction/">Define your system</a></li><li><a class="tocitem" href="../../man/systemanalysis/">Stability analysis</a></li><li><a class="tocitem" href="../../man/simulation/">Simulating the system</a></li><li><a class="tocitem" href="../../man/sampling/">Sampling transitions</a></li><li><a class="tocitem" href="../../man/largedeviations/">Large deviation theory</a></li><li><a class="tocitem" href="../../man/r-tipping/">Rate-induced transitions</a></li><li><a class="tocitem" href="../../man/diffusion_operator/">Diffusion operator</a></li><li><a class="tocitem" href="../../man/transition_path_theory/">Transition path theory</a></li><li><a class="tocitem" href="../../man/utils/">Utilities</a></li><li><a class="tocitem" href="../../man/bibliography/">Bibliography</a></li></ul></li><li><a class="tocitem" href="../../api/">API</a></li><li><a class="tocitem" href="../../refs/">References</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>gMAM with Local Quadratic Approximation: escape from a limit cycle</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>gMAM with Local Quadratic Approximation: escape from a limit cycle</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/CriticalTransitions.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/CriticalTransitions.jl/blob/main/examples/gMAM_LQA_VanDerPol.jl" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="gMAM-with-Local-Quadratic-Approximation:-escape-from-a-limit-cycle"><a class="docs-heading-anchor" href="#gMAM-with-Local-Quadratic-Approximation:-escape-from-a-limit-cycle">gMAM with Local Quadratic Approximation: escape from a limit cycle</a><a id="gMAM-with-Local-Quadratic-Approximation:-escape-from-a-limit-cycle-1"></a><a class="docs-heading-anchor-permalink" href="#gMAM-with-Local-Quadratic-Approximation:-escape-from-a-limit-cycle" title="Permalink"></a></h1><p>We compute the minimum-action escape path from a stable limit cycle to a saddle point in a planar SDE, following Section 6.2 of <a href="../../refs/#lin_quasi_2018">Lin <em>et al.</em> (2018)</a>. The target value is <code>V ≈ 0.1567</code> from <a href="../../refs/#cameron_finding_2012">Cameron (2012)</a> for the forced Van der Pol oscillator.</p><p>The SDE <code>dX_t = b(X_t)\,dt + \sqrt{ε}\,σ(X_t)\,dW_t</code> has a stable limit cycle <code>Γ</code> and an unstable fixed point <code>x_s</code> inside it. As <code>ε → 0</code> the mean escape time from <code>Γ</code> over <code>x_s</code> scales as <code>\exp(V(x_s)/ε)</code>, where <code>V</code> is the Freidlin-Wentzell quasi-potential <code>V(x) = \inf_{T,φ:Γ→x} S[φ]</code> with action <code>S[φ] = \tfrac12 \int (\dot φ - b)^\mathsf{T} a^{-1} (\dot φ - b)\,dt</code> and <code>a = σ σ^\mathsf{T}</code>.</p><p>Computing <code>V</code> directly is hard because <code>S</code> must be minimized over both the path and its duration. Near <code>Γ</code> however <code>V</code> is smooth and quadratic in the transverse direction, so we can pre-compute its local shape and use it to anchor a global path optimization. This is gMAM-LQA: build a moving frame along <code>Γ</code>, solve a periodic Riccati equation for the transverse Hessian <code>G(τ)</code> of <code>V</code>, then run gMAM outside the tube with the launch point on <code>Γ</code> optimized by projected gradient on the augmented action.</p><pre><code class="language- hljs">using CriticalTransitions
+using PeriodicOrbits
+using Attractors
+using CairoMakie
+using LinearAlgebra: norm</code></pre><p>The forced Van der Pol oscillator,</p><p class="math-container">\[\dot{x} = x - \tfrac{1}{3} x^3 + y - \tfrac{1}{9} y^3, \qquad \dot{y} = x + 0.9 ,\]</p><p>has one stable limit cycle and one unstable fixed point at <code>x_s ≈ (-0.9, 0.6942)</code>. The forcing <code>+0.9</code> breaks the standard Van der Pol symmetry.</p><pre><code class="language-julia hljs">function vdp(u, p, t)
+    x, y = u
+    return SA[x - x^3 / 3 + y - y^3 / 9, x + 0.9]
+end
+
+sys_det = CoupledODEs(vdp, [2.0, 0.0])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2-dimensional CoupledODEs
+ deterministic: true
+ discrete time: false
+ in-place:      false
+ dynamic rule:  vdp
+ ODE solver:    Tsit5
+ ODE kwargs:    (abstol = 1.0e-6, reltol = 1.0e-6)
+ parameters:    SciMLBase.NullParameters()
+ time:          0.0
+ state:         [2.0, 0.0]
+</code></pre><p>Find the limit cycle with <code>AttractorsViaRecurrences</code>. We only need one point on <code>Γ</code>; the recurrent set returned by the mapper is too coarse to discretize the periodic Riccati equation, so we use it just as a seed.</p><pre><code class="language- hljs">grid = (range(-3, 3; length = 81), range(-4, 4; length = 81))
+mapper = AttractorsViaRecurrences(
+    sys_det, grid;
+    sparse = true, consecutive_recurrences = 400,
+)
+sampler, _ = statespace_sampler(HRectangle([-2.5, -3.5], [2.5, 3.5]), 42)
+fractions = basins_fractions(mapper, sampler; N = 30)
+attractors = extract_attractors(mapper)</code></pre><p><code>PeriodicOrbits.PeriodicOrbit(ds, u0, T)</code> integrates the deterministic flow for exactly one period at the resolution we want. The period <code>T ≈ 5.7966</code> is the value from Section 6.2; in general it can be obtained from <code>OptimizedShooting</code> or a Poincaré-section analysis.</p><pre><code class="language- hljs">u_on_Γ = collect(first(attractors[1]))
+T_period = 5.7966
+Nτ = 200
+po = PeriodicOrbit(sys_det, u_on_Γ, T_period; Δt = T_period / Nτ)</code></pre><p>The noise strength is set to one; the trace-normalized action used internally is invariant under rescalings of <code>σ</code>. <code>LimitCycleFrame(po, sys)</code> builds the moving frame: an orthonormal <code>d × d</code> basis <code>E(τ)</code> at each orbit sample, with first column tangent to <code>Γ</code> and remaining columns spanning the transverse subspace (the latter stored separately as <code>Ẽ</code>). It also computes the projected Jacobian <code>M̃ = Ẽ^\mathsf{T} (J - \dot E E^\mathsf{T}) Ẽ</code> and the trace-normalized projected noise covariance <code>Ã</code>. The frame is transported by the variational equation <code>\dot Φ = J(γ(τ))\,Φ</code> and sign-continued to avoid Floquet flips.</p><pre><code class="language- hljs">σ = 1.0
+sys = CoupledSDEs(vdp, u_on_Γ; noise_strength = σ)
+lc = LimitCycleFrame(po, sys)</code></pre><p>In a tube of radius <code>h</code> around <code>Γ</code>, writing <code>x = γ(τ) + Ẽ(τ)\,z</code>, the quasi-potential admits the expansion <code>V(x) = \tfrac12 z^\mathsf{T} G(τ) z + O(\|z\|^3)</code>, where <code>G(τ)</code> is the unique positive-definite <code>T</code>-periodic solution of</p><p class="math-container">\[\dot G = -\tilde M^\mathsf{T} G - G \tilde M - G \tilde A G .\]</p><p><code>local_quasipotential(lc)</code> solves this fixed-point equation by repeated integration over one period until the period map converges. In two dimensions <code>G(τ)</code> is a scalar.</p><pre><code class="language- hljs">G = local_quasipotential(lc)</code></pre><p>Outside the tube we minimize the geometric action <code>\hat S[φ]</code> over arclength-parametrized paths with prescribed endpoints. The first endpoint, however, is <em>not</em> fixed: only the tube radius <code>h</code> is constrained, and the launch parameters <code>(τ_\text{start}, \hat z)</code> are optimized jointly with the path on the augmented action</p><p class="math-container">\[\hat S_\text{tot} = \hat S[φ] + \tfrac{1}{2} h^2 \hat z^\mathsf{T} G(τ_\text{start}) \hat z .\]</p><p>The algorithm alternates inner gMAM sweeps with frozen endpoints and outer projected-gradient steps on <code>(τ_\text{start}, \hat z)</code>. The converged value of <code>\hat S_\text{tot}</code> equals the quasi-potential at the target, up to an <code>O(h^3)</code> discretization error.</p><pre><code class="language- hljs">x_saddle = SA[-0.9, 0.6942]
+mp = minimize_geometric_action(
+    sys, lc, x_saddle, GeometricGradient(; stepsize = 0.005);
+    G = G,
+    tube_radius = 0.05,
+    npoints = 160,
+    inner_maxiters = 300,
+    maxiters = 200,
+    reltol = 1.0e-7,
+)</code></pre><p>Below we plot the optimal escape path together with <code>G(τ)</code>, the transverse Hessian of <code>V</code> along <code>Γ</code>. The launch point on <code>Γ</code> is marked with a gold star, the saddle with a white circle.</p><pre><code class="language- hljs">γ_mat = reduce(hcat, [collect(p) for p in lc.γ])
+G_scalar = vec(G[1, 1, :])
+map_pts = reduce(hcat, [collect(p) for p in mp.path])
+
+x_lo, x_hi = -2.5, 1.5
+y_lo, y_hi = -0.5, 4.2
+odeSol(x, y) = Point2f(vdp(SA[x, y], nothing, 0.0)...)
+launch_idx = argmin([norm(γ_mat[:, k] .- map_pts[:, 1]) for k in 1:Nτ])
+
+set_theme!(theme_light(); fontsize = 13, fonts = (regular = &quot;TeX Gyre Heros&quot;, italic = &quot;TeX Gyre Heros Italic&quot;))
+
+fig = Figure(; size = (1000, 460))
+
+ax1 = Axis(
+    fig[1, 1];
+    xlabel = &quot;x&quot;, ylabel = &quot;y&quot;,
+    title = &quot;Optimal escape path  Γ → saddle&quot;,
+    aspect = DataAspect(),
+)
+streamplot!(
+    ax1, odeSol, (x_lo, x_hi), (y_lo, y_hi);
+    gridsize = (22, 22), arrow_size = 7, stepsize = 0.01,
+    colormap = [(:gray60, 0.5), (:gray60, 0.5)],
+)
+lines!(
+    ax1, γ_mat[1, :], γ_mat[2, :];
+    color = :crimson, linewidth = 3, label = &quot;limit cycle Γ&quot;,
+)
+lines!(
+    ax1, map_pts[1, :], map_pts[2, :];
+    color = :darkorange, linewidth = 3, label = &quot;MAP&quot;,
+)
+scatter!(
+    ax1, [γ_mat[1, launch_idx]], [γ_mat[2, launch_idx]];
+    marker = :star5, color = :gold, strokecolor = :black, strokewidth = 1.2,
+    markersize = 18, label = &quot;launch point&quot;,
+)
+scatter!(
+    ax1, [x_saddle[1]], [x_saddle[2]];
+    color = :white, strokecolor = :black, strokewidth = 1.4, markersize = 14,
+    label = &quot;saddle&quot;,
+)
+axislegend(ax1; position = :rb, framevisible = true, padding = 6, rowgap = 1)
+limits!(ax1, x_lo, x_hi, y_lo, y_hi)
+
+ax2 = Axis(
+    fig[1, 2];
+    xlabel = &quot;τ / T&quot;,
+    ylabel = &quot;transverse Hessian  G(τ)&quot;,
+    title = &quot;Quasi-potential coefficient along Γ&quot;,
+)
+τ_norm = range(0, 1; length = Nτ)
+band!(ax2, τ_norm, zero(τ_norm), G_scalar; color = (:indigo, 0.15))
+lines!(ax2, τ_norm, G_scalar; color = :indigo, linewidth = 2.5)
+vlines!(
+    ax2, [launch_idx / Nτ]; color = :gold, linewidth = 2, linestyle = :dash,
+    label = &quot;τ_start / T&quot;,
+)
+axislegend(ax2; position = :rt, framevisible = false)
+xlims!(ax2, 0, 1)
+ylims!(ax2, 0, nothing)
+fig</code></pre><p>The path leaves <code>Γ</code> from the side closest to the saddle and reaches <code>x_s</code> along the slow manifold. <code>G(τ)</code> is strongly modulated along the cycle, varying by more than an order of magnitude between its peak and its minimum on the slow branch.</p><p>It is tempting to expect the launch to coincide with the minimum of <code>G(τ)</code>, since <code>\tfrac12 h^2 G(τ_\text{start})</code> is the LQA cost of crossing the tube boundary. It does not, and the reason is quantitative: at <code>h = 0.05</code> the boundary term is <code>\tfrac12 h^2 G \sim 10^{-3}</code> while the path action is <code>\sim 10^{-1}</code>, so the boundary contribution is sub-percent of the total. The minimization is dominated by <code>\hat S[φ]</code> and the launch ends up where <code>Γ</code> is closest to <code>x_s</code> in the Onsager-Machlup geodesic sense. The relative weight of the two terms is set by <code>h</code>: at smaller <code>h</code> the boundary term is even more negligible, while at larger <code>h</code> it starts to bias the launch toward small <code>G(τ)</code>, at the cost of degrading the LQA itself.</p><p>A second view of the same information, with <code>Γ</code> colored by <code>G(τ)</code>:</p><pre><code class="language- hljs">fig2 = Figure(; size = (620, 480))
+ax = Axis(
+    fig2[1, 1];
+    xlabel = &quot;x&quot;, ylabel = &quot;y&quot;,
+    title = &quot;Local quasi-potential stiffness G(τ) on Γ&quot;,
+    aspect = DataAspect(),
+)
+streamplot!(
+    ax, odeSol, (x_lo, x_hi), (y_lo, y_hi);
+    gridsize = (22, 22), arrow_size = 7, stepsize = 0.01,
+    colormap = [(:gray70, 0.5), (:gray70, 0.5)],
+)
+sc = scatter!(
+    ax, γ_mat[1, :], γ_mat[2, :];
+    color = G_scalar, colormap = :viridis, markersize = 8,
+)
+Colorbar(fig2[1, 2], sc; label = &quot;G(τ)&quot;)
+lines!(ax, map_pts[1, :], map_pts[2, :]; color = :darkorange, linewidth = 3)
+scatter!(
+    ax, [γ_mat[1, launch_idx]], [γ_mat[2, launch_idx]];
+    marker = :star5, color = :gold, strokecolor = :black, strokewidth = 1.2,
+    markersize = 18,
+)
+scatter!(
+    ax, [x_saddle[1]], [x_saddle[2]];
+    color = :white, strokecolor = :black, strokewidth = 1.4, markersize = 14,
+)
+limits!(ax, x_lo, x_hi, y_lo, y_hi)
+fig2</code></pre><p>The computed action is</p><pre><code class="language- hljs">mp.action</code></pre><p>against the <a href="../../refs/#cameron_finding_2012">Cameron (2012)</a> reference <code>0.1567</code>, with relative error</p><pre><code class="language- hljs">abs(mp.action - 0.1567) / 0.1567</code></pre><p>i.e. around half a percent, inside both the path discretization error and the <code>O(h)</code> correction expected from the LQA. The action value is the leading exponent of the Kramers escape time <code>\mathbb{E}\,τ \sim \exp(V/ε)</code>, so a small change in <code>V</code> is a multiplicative shift in the predicted escape time.</p><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 27 May 2026 08:50">Wednesday 27 May 2026</span>. Using Julia version 1.10.11.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

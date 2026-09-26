@@ -1,0 +1,5666 @@
+window.BENCHMARK_DATA = {
+  "lastUpdate": 1790182201612,
+  "repoUrl": "https://github.com/JuliaDynamics/CriticalTransitions.jl",
+  "entries": {
+    "Benchmark Results": [
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "80ecdfa7e06758b42fdfb45aafc27cc04f96459f",
+          "message": "docs: overhaul (#178)\n\nFull revision of docs, first logo draft\n\n* fix install command\n\n* updated CoupledSDEs docs\n\n* added logo\n\n* Added flowchart.drawio\n\n* worked on docs\n\n* fixed CoupledSDEs docstring not showing\n\n* revised quickstart page\n\n* correct \"conecpts\" to \"concepts\"\n\n* worked on docs\n\n* format\n\n* added references page\n\n* revised Manual sections and index page\n\n* format\n\n* fix merge\n\n---------\n\nCo-authored-by: reykboerner <reyk.boerner@reading.ac.uk>\nCo-authored-by: reykboerner <r.borner@uu.nl>",
+          "timestamp": "2025-08-06T12:21:56+02:00",
+          "tree_id": "49a3c4da2bfcd92669a4e8229083ad7391ccdff0",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/80ecdfa7e06758b42fdfb45aafc27cc04f96459f"
+        },
+        "date": 1754476057422,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 90124715,
+            "unit": "ns",
+            "extra": "gctime=11905503\nmemory=220494096\nallocs=410240\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=375207135\nmemory=4138029184\nallocs=112014889\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 714891421,
+            "unit": "ns",
+            "extra": "gctime=112004064.5\nmemory=2207174816\nallocs=3377834\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "41898282+github-actions[bot]@users.noreply.github.com",
+            "name": "github-actions[bot]",
+            "username": "github-actions[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8a431e9849a4524426774cbd5d50eb578ac58154",
+          "message": "CompatHelper: bump compat for IntervalArithmetic to 1, (keep existing compat) (#200)\n\n* CompatHelper: bump compat for IntervalArithmetic to 1, (keep existing compat)\n\n* update reference\n\n* fix typo, bump verison\n\n---------\n\nCo-authored-by: CompatHelper Julia <compathelper_noreply@julialang.org>\nCo-authored-by: reykboerner <r.borner@uu.nl>",
+          "timestamp": "2025-09-25T12:20:08+02:00",
+          "tree_id": "b33b8b705cd8592e95034398f68b67d2205977c4",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/8a431e9849a4524426774cbd5d50eb578ac58154"
+        },
+        "date": 1758795936988,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 92238073.5,
+            "unit": "ns",
+            "extra": "gctime=13385051.5\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=390285010\nmemory=4138027152\nallocs=112014837\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 745922108.5,
+            "unit": "ns",
+            "extra": "gctime=116724530\nmemory=2207190160\nallocs=3378334\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3f3d126feeb7f55ade7a533174c7e0eceed10c14",
+          "message": "build: benchmark on v1.11 (#206)",
+          "timestamp": "2025-10-19T13:41:20+02:00",
+          "tree_id": "56466bc78cf5dcdc92831a2483e55401bbcfe8a6",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/3f3d126feeb7f55ade7a533174c7e0eceed10c14"
+        },
+        "date": 1760874412726,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 88335747,
+            "unit": "ns",
+            "extra": "gctime=11842418\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=328491072\nmemory=4138027152\nallocs=112014837\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 672580551,
+            "unit": "ns",
+            "extra": "gctime=94337914\nmemory=2207190624\nallocs=3378374\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "88832655+raphael-roemer@users.noreply.github.com",
+            "name": "raphael-roemer",
+            "username": "raphael-roemer"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c43082599e29174c5a22540a89bf54181baac445",
+          "message": "feat: add RateSystem (#117)\n\n* added first draft for RateSystem\n\n* incorporated RateSystem file\n\n* small typo fix\n\n* undid wrong fix\n\n* Removed RateSystem Lines\n\n* Return RateSystem changes\n\n* Again delete Rate stuff\n\n* Include Rate stuff again\n\n* added new RateSystem Version\n\n* Compressed RateSystemDraft2.jl script, created RateSystemTestsDraft.jl script, created a dev folder, updated src/CriticalTransitions.jl file.\n\n* Corrected src/CriticalTransitions.jl file.\n\n* Moved contents of dev/ file to test/ file and reset src/CriticalTransitions.jl file to be in line with that of the main branch.\n\n* Collected all old and new RateSystem scripts into the test/ratesystem folder.\n\n* yep\n\n* Added PolynomialRoots to dependencies.\n\n* See previous.\n\n* See previous again.\n\n* Exported truscottbrindley-mod-gen-det function.\n\n* Removed CoupledODEs functionality from systems/ folder.\n\n* Removed the system I added.\n\n* Starting a RateSystem Example\n\n* work on example of RateSystem\n\n* work on example of RateSystem\n\n* work on example of RateSystem\n\n* work on example of RateSystem\n\n* added documentation in RateSystem file\n\n* corrected mistake in RateSystem file\n\n* improved documentation of test2\n\n* work on the example for RateSystem\n\n* added codes for the RateSystem example\n\n* correction in MaierStein example\n\n* small corrections in Test and RateSystemDraft\n\n* addition to RateSystem example\n\n* additions to RateSystem example\n\n* additions to RateSystem example\n\n* correction in RateSystem example\n\n* correction in RateSystem.jl\n\n* added RateSystem.md to pages.jl\n\n* moved RateSystem source code to src\n\n* applied formatter, fixed typo, disabled spell check until PR review\n\n* remove CairoMakie dep\n\n* added RateSystem test\n\n* small fix\n\n* applied Formatter\n\n* small edits in docs and added docstring drafts\n\n* deleted test/ratesystem/RateSystem.jl\n\n* deleted test/ratesystem/RateSystemDraft1.jl and test/ratesystem/RateSystemTestDraft1.jl\n\n* deleted test/ratesystem\n\n* deleted examples/RateSystem.jl\n\n* expanded documentaation of RateSystem\n\n* expanded documentation\n\n* added plot of parameter shift in RateSystem documentation\n\n* deleted NLPModelsIpopt from project.toml\n\n* fixed error in Project.toml\n\n* fixed quotation marks in quickstart.md\n\n* removed the ! from apply_ramping\n\n* fixed error in documentation of RateSystem\n\n* resolving documentation issue with RateProtocol-plot\n\n* improved documentation of apply_ramping\n\n* correction in tes of RaateSystem\n\n* corrected typo in RateProtocol docstring\n\n* added plot of lambda to example of RateSystem\n\n* removed unnecessary formatting information and improved beginning of RateSystem example\n\n* correction in docstring\n\n* recovered docs/Project.toml\n\n* updated .toml and applied Formatter\n\n* fixed typo in RateSystem.md\n\n* enable spell checking again\n\n* imporved docstring of apply_ramping\n\n* improved docstring of RateProtocol\n\n* imporved docstring of apply_ramping\n\n* imporved docstring of apply_ramping\n\n* imporved docstring of apply_ramping\n\n* fixed spelling mistake in RateSystem example\n\n* improved RateSytem Example\n\n* changed name of R-Tipping documentation page\n\n* improved RateSytem Example\n\n* fix spelling\n\n* changed t_start,t_end to time_interval\n\n* corrected typo\n\n* corrected typo\n\n* changed how to access the dynamic rule within modified_drift\n\n* changed how to access the dynamic rule within apply_ramping\n\n* included referrenced_sciml_prob in exported functions from DynamicalSystemsBase\n\n* changed back to t_start and t_end to allow compatibility with the R-Tipping functionality branch, but stored the time_interval version in new file r_tipping/RateSystemTimeInterval.jl\n\n* adapted docs as well\n\n* adapted test as well\n\n* correction in test\n\n* changed RateProtocol to RateConfig\n\n* changed RateProtocol to RateConfig in .md file\n\n* changed p_lambda to p_parameter\n\n* corrected typo\n\n* corrected typo\n\n* corrected typo\n\n* changed lambda to p throughout\n\n* corrected typo\n\n* corrected typo\n\n* 1st try implementing dt dp setting\n\n* changed error in test\n\n* exported RateConfig\n\n* added stretching/compression of ramping given by ramp_t_length\n\n* change of reference window of ramping function\n\n* change of reference window of ramping function\n\n* changed rp to rc\n\n* adapted example in docs to explain dp dt structure\n\n* further adapted example in docs to explain dp dt structure\n\n* corrected typo\n\n* improved example of r-tipping\n\n* changed the start and end point conditions to recommendations\n\n* updated docstrings\n\n* Implemented changes to the RateSystem.jl source file (from discussions on 25.08.25).\n\n* 1st and 2ndIteration of RateSystem\n\n* Added the third iteration of RateSystem.jl.\n\n* typo corrected\n\n* typo corrected\n\n* typo corrected\n\n* typo corrected\n\n* typo corrected\n\n* typo corrected\n\n* typo corrected\n\n* added example CriticalTransitions.jl/examples/RateSys3rdIterTest.jl\n\n* Updated example test RateSys3rdIterTest.jl and made corrections to RateSystem.jl.\n\n* corrected typos\n\n* corrected typos\n\n* added benchmarking in 'examples/RateSys3rdIterTest.jl' to test the speed of the RateSystem setup\n\n* corrected error\n\n* made a deepcop of auto_sys to avoid changing auto_sys\n\n* added docs\n\n* added documentation of the example\n\n* adapted docstrings, updated tests\n\n* corrected docstrings\n\n* corrected docstrings\n\n* corrected docstrings\n\n* improved docs\n\n* started changes towards RateSystem interface\n\n* small addition\n\n* corrected typo\n\n* corrected typo\n\n* corrected typo\n\n* added example for new RateSystem version\n\n* corrected errors in RateSystem.jl\n\n* corrected error in RateSystem.jl\n\n* corrected error in RateSystem.jl\n\n* Added documentation in RateSys4thIter.jl\n\n* Renamed RateSys4thIter.jl to RateSys4thIterTest.jl\n\n* added and expanded docstrings in RateSystem.jl\n\n* corrected docstrings in RateSystem.jl\n\n* corrected docstrings in RateSystem.jl\n\n* corrected docstrings in RateSystem.jl\n\n* corrected docstrings in RateSystem.jl\n\n* corrected docstrings in RateSystem.jl\n\n* Added test for new RateSystem setup\n\n* added .md file for current version\n\n* added linkcheck_ignore = [..] to make.jl to ignore this broken link from EXTERNAL docstrings - internal linkcheck is not affected\n\n* trying to fix docs error\n\n* trying to fix docs error\n\n* trying to fix docs error\n\n* trying to fix docs error\n\n* fixed docs\n\n* format and fix spell check\n\n* fix spell check\n\n* add :referrenced_sciml_prob to public import exception\n\n* update benchmarks to use benchamrtools\n\n* removed placeholder reference\n\n* replace 'section_start/end' fields with 'interval' tuple\n\n* work on making RateSystem a proper ContinuousTimeDynamicalSystem subtype\n\n* removed outdated RateSystem files\n\n* format\n\n* remove copied CoupledODEs source code\n\n* build(deps): bump JET to v0.10\n\n* feat: ContinuousTimeDynamicalSystem helper functions\n\n* format\n\n* add obtaining info tests\n\n* make `RateConfig` concrete\n\n* make RateSystemForcing concrete\n\n* fix example\n\n* docs: add DynamicalSystemsBase and Attractors as remotes\n\n* add trajectory method\n\n* fix example to use updated RateConfig reference for parameter function\n\n* format\n\n* simplify structurce and fix performance\n\n* fix spelling\n\n* fix docs\n\n* docs: update example title\n\n* fix docs\n\n* refactor after discussion with @Datseris and @oameye\n\n* remove unused import\n\n* fix get_forcing and add deepcopy's for debugging\n\n* added debug test script\n\n* fix it: use the agreed scenario of NDR becoming the system equations of motion\n\n* deepcopy the params for rate system (debatable)\n\n* clean tests, rename forcing_length to forcing_duration\n\n* finish docstrings\n\n* update docs\n\n* fix benchmarks\n\n* fix example\n\n* format\n\n* small changes in docs\n\n---------\n\nCo-authored-by: Orjan Ameye <orjan.ameye@hotmail.com>\nCo-authored-by: Reyk Börner <reyk.boerner@reading.ac.uk>\nCo-authored-by: Ryan Deeley <ryan.deeley@uni-oldenburg.de>\nCo-authored-by: reykboerner <r.borner@uu.nl>\nCo-authored-by: Datseris <datseris.george@gmail.com>",
+          "timestamp": "2025-11-03T21:39:46+01:00",
+          "tree_id": "f5b48105fd377406c450336fcc6eca07be3ea1a8",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/c43082599e29174c5a22540a89bf54181baac445"
+        },
+        "date": 1762202782106,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 90216835,
+            "unit": "ns",
+            "extra": "gctime=12344444\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=377680889\nmemory=4138027152\nallocs=112014837\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 741955261.5,
+            "unit": "ns",
+            "extra": "gctime=121679369.5\nmemory=2207520464\nallocs=3397504\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 66855,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 69650,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "r.borner@uu.nl",
+            "name": "Reyk Börner",
+            "username": "reykboerner"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "971e6889df568378d09bc4e958fb3c7306e1c3a1",
+          "message": "bugfix: frozen_system and docs update (#210)\n\n* update install instructions in docs\n\n* fix frozen_system bug\n\n* bump MTK compat in test/Project.toml\n\n* format\n\n* replace mtkcompile with structural_simplify again\n\n* streamline RateSystem example\n\n* refine docs\n\n---------\n\nCo-authored-by: Orjan Ameye <orjan.ameye@hotmail.com>",
+          "timestamp": "2025-11-11T00:42:26+01:00",
+          "tree_id": "bc8811545edf9bbd6dd1cbf3aae59bf44ff57e56",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/971e6889df568378d09bc4e958fb3c7306e1c3a1"
+        },
+        "date": 1762818544001,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 88126716,
+            "unit": "ns",
+            "extra": "gctime=11824751\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=365835574\nmemory=4138027152\nallocs=112014837\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 736896052,
+            "unit": "ns",
+            "extra": "gctime=118591340.5\nmemory=2207479728\nallocs=3397954\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 60053,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40406,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "71acaed2aa1011a51709e86f6b24fe4a48600f32",
+          "message": "build(deps): bump actions/checkout from 5 to 6 (#215)\n\nBumps [actions/checkout](https://github.com/actions/checkout) from 5 to 6.\n- [Release notes](https://github.com/actions/checkout/releases)\n- [Changelog](https://github.com/actions/checkout/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/actions/checkout/compare/v5...v6)\n\n---\nupdated-dependencies:\n- dependency-name: actions/checkout\n  dependency-version: '6'\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2025-11-24T17:28:22+01:00",
+          "tree_id": "e024e3edd9f7cc12bf5975e115ee0e6061de36d2",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/71acaed2aa1011a51709e86f6b24fe4a48600f32"
+        },
+        "date": 1764002101225,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 112947706,
+            "unit": "ns",
+            "extra": "gctime=20364923\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=507025414\nmemory=4138027152\nallocs=112014837\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 770254628,
+            "unit": "ns",
+            "extra": "gctime=137569934\nmemory=2207148416\nallocs=3377234\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 78566,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 54700,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ffed1b77378c1d65ab186234dcc3d53358022f68",
+          "message": "fix(deps): set LinearSolve compat (#221)\n\n* fix(deps): set LinearSolve compat\n\n* Nonlinear solve compat",
+          "timestamp": "2026-01-17T11:30:33+01:00",
+          "tree_id": "c9a0c55c4f2705f23232cba78b7781b83fd9ee3c",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/ffed1b77378c1d65ab186234dcc3d53358022f68"
+        },
+        "date": 1768646235355,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 89037247.5,
+            "unit": "ns",
+            "extra": "gctime=11938786.5\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=338556306\nmemory=4138027152\nallocs=112014837\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 681720791,
+            "unit": "ns",
+            "extra": "gctime=97396866\nmemory=2207206672\nallocs=3377684\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 65874,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40616,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "59bfdaf3b829a561efeab3583c5c72a98ac5cc0e",
+          "message": "fix: add parameter handling in H_x and H_p functions (#218)\n\n* fix: add parameter handling in H_x and H_p functions\n\n* format",
+          "timestamp": "2026-01-17T11:59:59+01:00",
+          "tree_id": "173248f66ae33ae1ef998d91b398301867553711",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/59bfdaf3b829a561efeab3583c5c72a98ac5cc0e"
+        },
+        "date": 1768647811880,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 89734682,
+            "unit": "ns",
+            "extra": "gctime=12156706\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=385821597\nmemory=4138027152\nallocs=112014837\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 739759275.5,
+            "unit": "ns",
+            "extra": "gctime=119635529.5\nmemory=2207144896\nallocs=3378104\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 83847,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 61224,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6436d5f981a9cd4285874ee128c2782a293b523a",
+          "message": "build(deps): bump JET (#226)\n\n* build(deps): bump JET\n\n* fix JET tests",
+          "timestamp": "2026-01-17T18:49:57+01:00",
+          "tree_id": "a4264a6357fc3a617e8430feb919aabeefde06e8",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/6436d5f981a9cd4285874ee128c2782a293b523a"
+        },
+        "date": 1768672407525,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 88641085,
+            "unit": "ns",
+            "extra": "gctime=11677086\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=320934387\nmemory=4138027152\nallocs=112014837\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 664857005,
+            "unit": "ns",
+            "extra": "gctime=91212799\nmemory=2207242032\nallocs=3378694\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 58749,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40315,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "423ae9fd0332381319e7669c766e17a7c9b1be0a",
+          "message": "Add warning when Nmax reached before generating N transitions (#223)\n\n* Initial plan\n\n* Add warning when Nmax is reached in transitions function\n\nCo-authored-by: oameye <57623933+oameye@users.noreply.github.com>\n\n* fix: tmax kwargs is respected in transitions\n\n* commit to check the new stats\n\n* add more comparison values\n\n* make tests less strict\n\n* Refactor tests for fitzhugh_nagumo: remove debug output and ensure Nmax warning is properly tested\n\n* Add warning for maximum attempts in fitzhugh_nagumo transitions test\n\n* fix warning test\n\n* restict warning test to release\n\n* fix version string\n\n* Fix condition for Nmax warning test in fitzhugh_nagumo transitions\n\n* fix it once and for all?\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: oameye <57623933+oameye@users.noreply.github.com>\nCo-authored-by: Orjan Ameye <orjan.ameye@hotmail.com>",
+          "timestamp": "2026-01-18T09:46:52+01:00",
+          "tree_id": "956e9de6def742efe9a2a00768fdb558c76b93ff",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/423ae9fd0332381319e7669c766e17a7c9b1be0a"
+        },
+        "date": 1768726232536,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 89452577.5,
+            "unit": "ns",
+            "extra": "gctime=12074430.5\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=347660829\nmemory=4138027152\nallocs=112014837\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 714846631,
+            "unit": "ns",
+            "extra": "gctime=108644146\nmemory=2207154384\nallocs=3378344\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 58359,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40196,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "255d32ce5761ff0c33d0bb5cce7f3e0d55fd2946",
+          "message": "build(deps): update (Non)LinearSolve (#225)\n\n* build(deps): update (Non)LinearSolve\n\n* commit to get new stats",
+          "timestamp": "2026-01-18T10:00:54+01:00",
+          "tree_id": "9d5ad0fa3f5b8a0bf4cc6a083bfacd0dd60f922e",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/255d32ce5761ff0c33d0bb5cce7f3e0d55fd2946"
+        },
+        "date": 1768727173642,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 90114364,
+            "unit": "ns",
+            "extra": "gctime=12678640\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=334604075\nmemory=4138027152\nallocs=112014837\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 684126742,
+            "unit": "ns",
+            "extra": "gctime=100731148\nmemory=2189214912\nallocs=3278114\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 59851,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40966,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c693a5b0747bbeeb9e63947a030a1bfc67aab2cd",
+          "message": "bump Optimization (#231)\n\n* bump Optimization\n\n* bump MTK to v10\n\n* fix(tests): adjust variable ordering for MTK v10 compatibility\n\n* style(tests): remove unnecessary blank lines in sgMAM.jl",
+          "timestamp": "2026-01-18T13:32:25+01:00",
+          "tree_id": "4f9e99e3c4c343e27e55f9813da3dc3d50412e90",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/c693a5b0747bbeeb9e63947a030a1bfc67aab2cd"
+        },
+        "date": 1768739758407,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 88401232,
+            "unit": "ns",
+            "extra": "gctime=11729852\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=327740426\nmemory=4137128784\nallocs=111994292\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 674861017,
+            "unit": "ns",
+            "extra": "gctime=93458475\nmemory=2189277904\nallocs=3279124\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 58439,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40295,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19688\nallocs=12\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8f5adefaf230839c035d52ba9a4658672cb31fdf",
+          "message": "refactor: simple geometric minimal action method (#191)\n\n* refactor: simple geometric minimal action method\n\n* format\n\n* rename ExtendedHamiltonianSystem to ExtendedPhaseSpace\n\n* update docstring\n\n* fix benchmarks",
+          "timestamp": "2026-01-21T18:01:28+01:00",
+          "tree_id": "035f01d996c52aaaf684a1ad6eee32d92178dc4d",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/8f5adefaf230839c035d52ba9a4658672cb31fdf"
+        },
+        "date": 1769015237819,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 88852228,
+            "unit": "ns",
+            "extra": "gctime=11525624\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=337803416\nmemory=4137128784\nallocs=111994292\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 676953945,
+            "unit": "ns",
+            "extra": "gctime=94041394\nmemory=2189234000\nallocs=3277744\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 58389,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40064,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "872ac0be45981a994d5f54308b5cacad646bde85",
+          "message": "fix: vendeheydenMethod (#239)\n\n* fix: vendeheydenMethod\n\n* update docs and bump version number\n\n* fix: emove redundant verbosity tests in CoupledSDEs\n\n---------\n\nCo-authored-by: reykboerner <r.borner@uu.nl>",
+          "timestamp": "2026-01-21T18:29:47+01:00",
+          "tree_id": "38ddced349c6df2cc16c0ae98ea4b44b8823c595",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/872ac0be45981a994d5f54308b5cacad646bde85"
+        },
+        "date": 1769016809356,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 90139378,
+            "unit": "ns",
+            "extra": "gctime=11840049\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=340053884\nmemory=4078989744\nallocs=111994292\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 704445979,
+            "unit": "ns",
+            "extra": "gctime=109548676\nmemory=2189240368\nallocs=3278614\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 58269,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40416,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9459441d0ea377f754c7b69f5014d8aba37bb237",
+          "message": "fix: update sgMAM method to reduce allocations (#242)",
+          "timestamp": "2026-01-21T20:05:01+01:00",
+          "tree_id": "64664e26ff96fc845e4403bca68e8abf3a68e0db",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/9459441d0ea377f754c7b69f5014d8aba37bb237"
+        },
+        "date": 1769022563919,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 92048034.5,
+            "unit": "ns",
+            "extra": "gctime=13134915\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=9740088\nmemory=102759072\nallocs=2006016\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=420042860\nmemory=4078989744\nallocs=111994292\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 736403298,
+            "unit": "ns",
+            "extra": "gctime=121412482.5\nmemory=2172404944\nallocs=3257866\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 58599,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40385,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "411465f19eb9a9778990fa4224875a8466795aad",
+          "message": "improve performance HeymannVandenEijnden (#244)\n\n* feat: add HeymannVandenEijnden method to Maier-Stein benchmark\n\n* improve performance HeymannVandenEijnden\n\n* format",
+          "timestamp": "2026-01-21T21:37:54+01:00",
+          "tree_id": "1109047fcf02f76855addb946b3bc6baf6124a0d",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/411465f19eb9a9778990fa4224875a8466795aad"
+        },
+        "date": 1769028111360,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 87920966,
+            "unit": "ns",
+            "extra": "gctime=11531026\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=37759664\nallocs=765104\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=337509360\nmemory=4078989744\nallocs=111994292\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 667299721,
+            "unit": "ns",
+            "extra": "gctime=96655748\nmemory=2172463504\nallocs=3258026\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 58419,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40225,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2772d81fab44ecdfa48cdf630db8523e0b5b21b4",
+          "message": "docs: references for string method and geometric minimum action method (#248)",
+          "timestamp": "2026-01-22T00:17:10+01:00",
+          "tree_id": "9c853b99440d99d59502de709e7f5854b5a4ea06",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/2772d81fab44ecdfa48cdf630db8523e0b5b21b4"
+        },
+        "date": 1769037863108,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 87837226,
+            "unit": "ns",
+            "extra": "gctime=11694686.5\nmemory=220493552\nallocs=410229\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=5241677\nmemory=37759664\nallocs=765104\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=340578244\nmemory=4078989744\nallocs=111994292\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 680268078,
+            "unit": "ns",
+            "extra": "gctime=97175603\nmemory=2172404416\nallocs=3257656\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 58159.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40095,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4c236ddb492213852881ec377c1482b98dc25e07",
+          "message": "feat: update string method to sciml integrator (#247)\n\n* feat: update string method to sciml integrator\n\n* format\n\n* update benchmarks\n\n* format\n\n* only bench euler",
+          "timestamp": "2026-01-22T09:43:43+01:00",
+          "tree_id": "ce9206ee75d030b985e4e579659b70e5a3cea245",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/4c236ddb492213852881ec377c1482b98dc25e07"
+        },
+        "date": 1769071662858,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 96183257,
+            "unit": "ns",
+            "extra": "gctime=12217506\nmemory=222466432\nallocs=440738\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=37759664\nallocs=765104\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=309413632\nmemory=4078989744\nallocs=111994292\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 655778398.5,
+            "unit": "ns",
+            "extra": "gctime=87818854\nmemory=2172477664\nallocs=3258116\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 58348,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40235,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1c26a2096c454768f8a589d1044a0467a60e79fa",
+          "message": "test: add LC action test (#250)",
+          "timestamp": "2026-01-22T12:13:39+01:00",
+          "tree_id": "86c8d5fc4071f5366ae3bbdc1269ad923f7f5ed2",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/1c26a2096c454768f8a589d1044a0467a60e79fa"
+        },
+        "date": 1769080651125,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 96212608,
+            "unit": "ns",
+            "extra": "gctime=12315656\nmemory=222466432\nallocs=440738\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=37759664\nallocs=765104\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=315645017\nmemory=4078989744\nallocs=111994292\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 657810128,
+            "unit": "ns",
+            "extra": "gctime=87998298\nmemory=2172431072\nallocs=3257146\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 58449,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40235,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4a822d7536817bf2d62dc8c1e5c645a3769676f6",
+          "message": "feat(perf): optimize linear solve operations in gmam and sgmam (#251)\n\n* feat(perf): optimize linear solve operations in geometric minimum action method and sgMAM\n\n* format",
+          "timestamp": "2026-01-22T16:51:55+01:00",
+          "tree_id": "692a0230efb66da85d8b16605f9144f2d8bad400",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/4a822d7536817bf2d62dc8c1e5c645a3769676f6"
+        },
+        "date": 1769097466612,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 102340377.5,
+            "unit": "ns",
+            "extra": "gctime=13606559\nmemory=222466432\nallocs=440738\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=37695664\nallocs=767104\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=343271224\nmemory=4078989744\nallocs=111994292\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 276834640.5,
+            "unit": "ns",
+            "extra": "gctime=43609258\nmemory=711307312\nallocs=1509598\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 59621,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 42379,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e8e899d1a8702ef1ba152ceb66cdbb1ceb1428e6",
+          "message": "Refactor large deviation (#257)\n\n* refactor: uniformize API and output for action minimizers\n\n* update docs and examples\n\n* rename venheyden method to geometricgradient\n\n* format and update benchmarks\n\n* update docstrings\n\n* fix benchmarks\n\n* format",
+          "timestamp": "2026-01-23T16:21:15+01:00",
+          "tree_id": "97fcf531b515b6fad7f17aa01064be066052e6eb",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/e8e899d1a8702ef1ba152ceb66cdbb1ceb1428e6"
+        },
+        "date": 1769182115624,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 109726727,
+            "unit": "ns",
+            "extra": "gctime=18166375\nmemory=222466480\nallocs=440740\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=7622196\nmemory=37690480\nallocs=766868\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=7106255\nmemory=37690480\nallocs=766868\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 316469501,
+            "unit": "ns",
+            "extra": "gctime=65319215\nmemory=711216256\nallocs=1509346\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 66013,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40505,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b77c1f46b308a2891c533882309c4b6b9c96b21e",
+          "message": "feat: add converged option to GradientDescent (#259)\n\n* feat: add converged option to GradientDescent\n\n* format\n\n* remove duplicate benchmark entry for Maier-Stein (HeymannVandenEijnden)\n\n* fix benchmarks?\n\n* format",
+          "timestamp": "2026-01-24T10:11:11+01:00",
+          "tree_id": "1ea0fd4abfa27770dc6f72d00c18d32b2ff5db88",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/b77c1f46b308a2891c533882309c4b6b9c96b21e"
+        },
+        "date": 1769246172352,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 96840025.5,
+            "unit": "ns",
+            "extra": "gctime=11677569\nmemory=222466480\nallocs=440740\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 34109467,
+            "unit": "ns",
+            "extra": "gctime=5247746.5\nmemory=37690480\nallocs=766868\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 2242463904,
+            "unit": "ns",
+            "extra": "gctime=5303982\nmemory=37690480\nallocs=766868\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 265237622,
+            "unit": "ns",
+            "extra": "gctime=39620328\nmemory=711385360\nallocs=1509814\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 59923,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 40641.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c03ceb2fc4a76e18275deb8d2ac8dd3255a5b23b",
+          "message": "Add verbose option to sgmam (#265)",
+          "timestamp": "2026-01-28T12:33:20+01:00",
+          "tree_id": "f08779d482159f164d5583cb79c424ac582a9312",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/c03ceb2fc4a76e18275deb8d2ac8dd3255a5b23b"
+        },
+        "date": 1769600427062,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 115000102,
+            "unit": "ns",
+            "extra": "gctime=20935728\nmemory=222466480\nallocs=440740\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 37104992,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=37690480\nallocs=766868\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1817176098,
+            "unit": "ns",
+            "extra": "gctime=422587876.5\nmemory=3447340160\nallocs=83292138\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 323129760.5,
+            "unit": "ns",
+            "extra": "gctime=65777506.5\nmemory=711433056\nallocs=1509946\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 74104.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 54591.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7ecd256db3d77dabe442f8360578e1073b8f8f3c",
+          "message": "build(deps): pin StochasticDiffEq version :/ (#286)",
+          "timestamp": "2026-03-20T08:26:47+01:00",
+          "tree_id": "cb4a3cc917b81ec4cdcab8e79fdd16f75f8edb9a",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/7ecd256db3d77dabe442f8360578e1073b8f8f3c"
+        },
+        "date": 1773992036695,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 98063242,
+            "unit": "ns",
+            "extra": "gctime=12615656\nmemory=222465392\nallocs=440737\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 35932879.5,
+            "unit": "ns",
+            "extra": "gctime=2737819\nmemory=37690464\nallocs=766868\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1682091950,
+            "unit": "ns",
+            "extra": "gctime=270879181.5\nmemory=3447341904\nallocs=83292161\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 284196277.5,
+            "unit": "ns",
+            "extra": "gctime=42611262\nmemory=711346336\nallocs=1509706\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 65662,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 39734,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cb847a3949d472af6e9da277fc9152b562230d5c",
+          "message": "build(deps): bump julia-actions/cache from 2 to 3 (#281)\n\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Orjan Ameye <orjan.ameye@hotmail.com>",
+          "timestamp": "2026-03-20T08:27:05+01:00",
+          "tree_id": "3f585e754cd270e292f06ee3bf3ef5a779b755c8",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/cb847a3949d472af6e9da277fc9152b562230d5c"
+        },
+        "date": 1773992064965,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 99802651,
+            "unit": "ns",
+            "extra": "gctime=13228243\nmemory=222465392\nallocs=440737\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 36904958,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=37690464\nallocs=766868\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1747983066.5,
+            "unit": "ns",
+            "extra": "gctime=290740619.5\nmemory=3447341904\nallocs=83292161\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 288322937,
+            "unit": "ns",
+            "extra": "gctime=42848739\nmemory=711359344\nallocs=1509742\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 63628,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 42408,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "02b0c7ceaa178d5ea262de8021edf99a8c8a6957",
+          "message": "refactor and rename: minimum action methods with type based optimizers  (#267)\n\n* refactor: type based optimizers\n\n* format\n\n* stepsize inside optimizer\n\n* fix ambiquity\n\n* update related methods and documentation\n\n* fix benchmarks\n\n* update docstring, rename points -> npoints\n\n* rename minimizer methods\n\n* fix npoints\n\n---------\n\nCo-authored-by: reykboerner <r.borner@uu.nl>",
+          "timestamp": "2026-03-28T02:35:59+01:00",
+          "tree_id": "6af518941bade72f02e163cf3c5c62fb26d88473",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/02b0c7ceaa178d5ea262de8021edf99a8c8a6957"
+        },
+        "date": 1774662192759,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 116090312.5,
+            "unit": "ns",
+            "extra": "gctime=21420311\nmemory=222465392\nallocs=440737\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 36823339,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=37690464\nallocs=766868\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1816070678,
+            "unit": "ns",
+            "extra": "gctime=434382261\nmemory=3447341904\nallocs=83292161\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 332664366,
+            "unit": "ns",
+            "extra": "gctime=72424184\nmemory=711411376\nallocs=1509886\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":10,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 75813,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 54186,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"gctrial\":true,\"time_tolerance\":0.05,\"evals_set\":false,\"samples\":10000,\"evals\":1,\"gcsample\":false,\"seconds\":20,\"overhead\":0,\"memory_tolerance\":0.01}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fb5ee28003fe06933225c35119be421375c2e534",
+          "message": "build(deps): bump julia-actions/setup-julia from 2 to 3 (#299)\n\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-04-22T08:13:56+02:00",
+          "tree_id": "6230bfe5112eedc99b1db8d6ee86e8859da20f07",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/fb5ee28003fe06933225c35119be421375c2e534"
+        },
+        "date": 1776838917620,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 36668022,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=37690464\nallocs=766868\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1751648700,
+            "unit": "ns",
+            "extra": "gctime=289726426.5\nmemory=3447341904\nallocs=83292161\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 280735022.5,
+            "unit": "ns",
+            "extra": "gctime=45201474\nmemory=711376688\nallocs=1509790\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 99885416,
+            "unit": "ns",
+            "extra": "gctime=12924469\nmemory=222466448\nallocs=440753\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Rate System/trajectory/Hard coded",
+            "value": 66024,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":20,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Rate System/trajectory/RateSystem",
+            "value": 46608,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=19448\nallocs=5\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":20,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b6fc82b02cfc47e83e99306cae7318ca14e20eb6",
+          "message": "fix: unbreak CI on main (#310)",
+          "timestamp": "2026-05-01T14:36:08+02:00",
+          "tree_id": "94b3010ae409113115c3f34fcbe54397268a27da",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/b6fc82b02cfc47e83e99306cae7318ca14e20eb6"
+        },
+        "date": 1777639391745,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 36692760,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=37690464\nallocs=766868\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1768699427,
+            "unit": "ns",
+            "extra": "gctime=313648785.5\nmemory=3447341904\nallocs=83292161\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 281262395.5,
+            "unit": "ns",
+            "extra": "gctime=46125992\nmemory=711229264\nallocs=1509382\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 99459426,
+            "unit": "ns",
+            "extra": "gctime=12970066\nmemory=222466448\nallocs=440753\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "14fb001c4801899fd3e4a88e6e858146cc9bef2d",
+          "message": "format: Move to runic.jl (#315)",
+          "timestamp": "2026-05-02T18:10:20+02:00",
+          "tree_id": "bc37030ea1187e2f8b4726bff17567c4353cfd7d",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/14fb001c4801899fd3e4a88e6e858146cc9bef2d"
+        },
+        "date": 1777738497133,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 36759760,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=37690464\nallocs=766868\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1788924209,
+            "unit": "ns",
+            "extra": "gctime=295395888.5\nmemory=3447341904\nallocs=83292161\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 276657014,
+            "unit": "ns",
+            "extra": "gctime=42769275\nmemory=711268288\nallocs=1509490\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 98939685.5,
+            "unit": "ns",
+            "extra": "gctime=12783591\nmemory=222466448\nallocs=440753\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "874a85b03a542272c5d3d4dcfee352a9e76d4268",
+          "message": "feat: backtracking step-size control for GeometricGradient (#268)",
+          "timestamp": "2026-05-11T14:55:42+02:00",
+          "tree_id": "24dd9023109b97da53405cf0e86db7eaee77f8e7",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/874a85b03a542272c5d3d4dcfee352a9e76d4268"
+        },
+        "date": 1778504552255,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 3584300,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4672416\nallocs=102639\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1952684817,
+            "unit": "ns",
+            "extra": "gctime=430138762\nmemory=3447341904\nallocs=83292161\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 262662841,
+            "unit": "ns",
+            "extra": "gctime=42744563\nmemory=482908928\nallocs=1229792\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 105899222.5,
+            "unit": "ns",
+            "extra": "gctime=16724810\nmemory=222466448\nallocs=440753\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cc18acd3b3ecc34ed3023335dcce50b6849f027c",
+          "message": "Remove legacy `StochSystem` alias from public API (#321)\n\n* Initial plan\n\n* Remove legacy StochSystem alias and update references\n\nAgent-Logs-Url: https://github.com/JuliaDynamics/CriticalTransitions.jl/sessions/0d064a18-953e-41c3-9083-e3701c36811e\n\nCo-authored-by: oameye <57623933+oameye@users.noreply.github.com>\n\n* remove legacy test\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: oameye <57623933+oameye@users.noreply.github.com>\nCo-authored-by: reykboerner <r.borner@uu.nl>",
+          "timestamp": "2026-05-12T19:19:14+01:00",
+          "tree_id": "db29b73dc7285807eda7f464392376164594f101",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/cc18acd3b3ecc34ed3023335dcce50b6849f027c"
+        },
+        "date": 1778610387794,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 2771950,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4611360\nallocs=101127\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1451949439,
+            "unit": "ns",
+            "extra": "gctime=336251103\nmemory=3344629600\nallocs=80748578\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 252032770,
+            "unit": "ns",
+            "extra": "gctime=47483005.5\nmemory=482804864\nallocs=1229504\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 102063879,
+            "unit": "ns",
+            "extra": "gctime=15071545\nmemory=222466448\nallocs=440753\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "044f6adb86e6c28a7563a2598e2837b2e584cb9c",
+          "message": "build(deps): bump StochasticDiffEq (#323)\n\n* build(deps): bump StochasticDiffEq\n\n* fix tests\n\n* refactor: remove unused StochasticSystemsBase alias and related diffusion_matrix assignment",
+          "timestamp": "2026-05-13T12:50:23+02:00",
+          "tree_id": "a8434d4b2c201bd00a7919bce5c24a614ac0051b",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/044f6adb86e6c28a7563a2598e2837b2e584cb9c"
+        },
+        "date": 1778669860811,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 2722056.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4611360\nallocs=101127\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1365874019,
+            "unit": "ns",
+            "extra": "gctime=280660965\nmemory=3344629600\nallocs=80748578\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 231222565,
+            "unit": "ns",
+            "extra": "gctime=33628354\nmemory=482913264\nallocs=1229804\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 100340349.5,
+            "unit": "ns",
+            "extra": "gctime=13372589\nmemory=222466448\nallocs=440753\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ba2c086a209d31dbda5c8012fd05b6440d13eb04",
+          "message": "build(deps): bump  OrdinaryDiffEqLowOrderRK, StochasticDiffEq, .. (#330)",
+          "timestamp": "2026-05-14T09:46:24+02:00",
+          "tree_id": "32c31f3719b642408612469406abf529a88de6c1",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/ba2c086a209d31dbda5c8012fd05b6440d13eb04"
+        },
+        "date": 1778745196967,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 2724418,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4611360\nallocs=101128\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1358027509,
+            "unit": "ns",
+            "extra": "gctime=276448464\nmemory=3344629600\nallocs=80748578\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 229693575.5,
+            "unit": "ns",
+            "extra": "gctime=34493292\nmemory=482917600\nallocs=1229816\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 100385573,
+            "unit": "ns",
+            "extra": "gctime=13317963\nmemory=222465520\nallocs=440739\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9322d31f34d019f6ed4ce5d34a20a320b8a29eeb",
+          "message": "fix: update DynamicalSystemsBase and remove StochasticSystemsBase (#335)",
+          "timestamp": "2026-05-18T11:12:34+02:00",
+          "tree_id": "d1d16e16e4513e0daa38bba4fc31e5603d852ba0",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/9322d31f34d019f6ed4ce5d34a20a320b8a29eeb"
+        },
+        "date": 1779095889755,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 3079754,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4597648\nallocs=100628\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1605094162.5,
+            "unit": "ns",
+            "extra": "gctime=447230816.5\nmemory=3321373984\nallocs=79900717\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 281522674,
+            "unit": "ns",
+            "extra": "gctime=53242713\nmemory=482588064\nallocs=1228904\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 108519972,
+            "unit": "ns",
+            "extra": "gctime=17011554\nmemory=222465536\nallocs=440739\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bba2bed4bb74e94de6b07ed1b6859fe148b85b98",
+          "message": "feat: adaptive geometric gradient (#334)",
+          "timestamp": "2026-05-21T11:42:44+02:00",
+          "tree_id": "7d0ebb98f91fb413d2607aabd19609f4db35023c",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/bba2bed4bb74e94de6b07ed1b6859fe148b85b98"
+        },
+        "date": 1779356897713,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 2738106,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4597648\nallocs=100628\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1319344712.5,
+            "unit": "ns",
+            "extra": "gctime=273622567\nmemory=3321373984\nallocs=79900717\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 226129518,
+            "unit": "ns",
+            "extra": "gctime=32348945.5\nmemory=482939280\nallocs=1229876\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 99177683,
+            "unit": "ns",
+            "extra": "gctime=13097675\nmemory=222465536\nallocs=440739\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "150e6a79f78bff4bcad7c9c2a08411e22465da71",
+          "message": "fix: Freidlin-Wentzell action conventions and /2 bugs (#329)",
+          "timestamp": "2026-05-21T11:46:12+02:00",
+          "tree_id": "ed80d461ae735118d7252e83207190c2bf2e95a9",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/150e6a79f78bff4bcad7c9c2a08411e22465da71"
+        },
+        "date": 1779357114020,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 2931985,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4597648\nallocs=100628\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1535878731,
+            "unit": "ns",
+            "extra": "gctime=414579538\nmemory=3321373984\nallocs=79900717\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 269391611,
+            "unit": "ns",
+            "extra": "gctime=44357291\nmemory=482358256\nallocs=1228268\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 106087577.5,
+            "unit": "ns",
+            "extra": "gctime=16822603.5\nmemory=222465536\nallocs=440739\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3a9a24376570edb5199aa0841e822eec617be6ca",
+          "message": "fix(transitions): forward sys.diffeq and reseed per call (#331)",
+          "timestamp": "2026-05-21T13:09:14+02:00",
+          "tree_id": "ce3e7019f1ef430ddded5b7c3b0be79b971c5e99",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/3a9a24376570edb5199aa0841e822eec617be6ca"
+        },
+        "date": 1779361922362,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 2713951,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4597648\nallocs=100628\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 1442248644,
+            "unit": "ns",
+            "extra": "gctime=322813488\nmemory=3321373984\nallocs=79900717\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 239443047.5,
+            "unit": "ns",
+            "extra": "gctime=38837261.5\nmemory=482956624\nallocs=1229924\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 99584467,
+            "unit": "ns",
+            "extra": "gctime=13369931.5\nmemory=222465536\nallocs=440739\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3e9d5c7822d85bea0f89beff39fef77a791b4b66",
+          "message": "feat: multiplicative noise (#338)",
+          "timestamp": "2026-05-24T17:30:56+02:00",
+          "tree_id": "40af9e9ed7ced930a90d50a6164e16daa3f9502f",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/3e9d5c7822d85bea0f89beff39fef77a791b4b66"
+        },
+        "date": 1779637137965,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 880813,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243472\nallocs=2148\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 356161497,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5642656\nallocs=59694\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3389630,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2113136\nallocs=66677\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6328511.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121648\nallocs=97464\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 151522657,
+            "unit": "ns",
+            "extra": "gctime=11221364\nmemory=141004880\nallocs=370309\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 4300985,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4513920\nallocs=102051\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 10298318,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9428744\nallocs=96963\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 43133178.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2590896\nallocs=70282\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "acb1ae6e4c3dd6367b090dd17082c57b469ecd6c",
+          "message": "feat: discrete diffusion operator on Cartesian grids (#327)",
+          "timestamp": "2026-05-25T11:15:24+02:00",
+          "tree_id": "8e50f397236324d8139e7c73f155032e1fcd5f2e",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/acb1ae6e4c3dd6367b090dd17082c57b469ecd6c"
+        },
+        "date": 1779700811724,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 891579,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243472\nallocs=2148\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 351703657,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5642656\nallocs=59694\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3361980,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2113136\nallocs=66677\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6382648.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121648\nallocs=97464\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 151085804,
+            "unit": "ns",
+            "extra": "gctime=11020813\nmemory=141004880\nallocs=370309\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 4384336,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4513920\nallocs=102051\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 10219046,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9428744\nallocs=96963\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 43526543,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2590896\nallocs=70282\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "206213b726e1f3d7166132fe7f37c3022a2bafec",
+          "message": "feat: OLIM quasipotential solver (#346)",
+          "timestamp": "2026-06-01T19:12:21+02:00",
+          "tree_id": "308f3aab654ef068822c12a887bf328b8d027173",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/206213b726e1f3d7166132fe7f37c3022a2bafec"
+        },
+        "date": 1780334740917,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 879493,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243600\nallocs=2148\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 350518249,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5642960\nallocs=59694\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3389556,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2113264\nallocs=66677\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6352264.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121776\nallocs=97464\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 19713844696,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=603392\nallocs=189\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 687282826,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=181008\nallocs=780\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 11619555990,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=895328\nallocs=196\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 158565810.5,
+            "unit": "ns",
+            "extra": "gctime=14569743.5\nmemory=141005008\nallocs=370309\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 4789432.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4514048\nallocs=102051\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 8106937,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9428872\nallocs=96963\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42569602,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2591392\nallocs=70282\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a127c358b4df6c77f4e6d6177e73baab07f0c9cd",
+          "message": "feat(tpt): CTMC formulation of TPT on DiffusionGenerator (#343)",
+          "timestamp": "2026-06-01T20:44:39+02:00",
+          "tree_id": "d7820c075915e54a133c04a33eb3361ce7f81299",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/a127c358b4df6c77f4e6d6177e73baab07f0c9cd"
+        },
+        "date": 1780339986344,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 695168,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243600\nallocs=2148\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 279197668.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5642960\nallocs=59694\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 2686209.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2113264\nallocs=66677\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 5005096,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121776\nallocs=97464\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 14741742456,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=603392\nallocs=189\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 528294293,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=181008\nallocs=780\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 8606861472.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=895328\nallocs=196\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 122168647,
+            "unit": "ns",
+            "extra": "gctime=10163733\nmemory=141005008\nallocs=370309\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 3567648,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4035616\nallocs=90918\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 6297032.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9428872\nallocs=96963\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 34858568,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2591392\nallocs=70282\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1a50e967673d28a084d5673174d3bb2c5135a3b1",
+          "message": "feat: multiple-shooting BVP for the Freidlin-Wentzell instanton (#347)",
+          "timestamp": "2026-06-01T21:56:49+02:00",
+          "tree_id": "7a541b70683efa199a795e8571f444e82221730a",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/1a50e967673d28a084d5673174d3bb2c5135a3b1"
+        },
+        "date": 1780344347322,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 848411.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243248\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 339180774.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5643552\nallocs=59696\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3310452,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2112912\nallocs=66674\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6221954,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121424\nallocs=97461\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 19069997635.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=603392\nallocs=189\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 651879303.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=181008\nallocs=780\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 11917714733,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=895328\nallocs=196\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 157869631,
+            "unit": "ns",
+            "extra": "gctime=11164941\nmemory=141006688\nallocs=370311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 4683144,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4514768\nallocs=102053\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 8714541,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429928\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42400879,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593072\nallocs=70284\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d9c50c1ffd074372ac283c6bef5c98489c5c1212",
+          "message": "feat: degenerate noise OLIM (rank-1 diffusion) (#351)",
+          "timestamp": "2026-06-03T15:39:37+02:00",
+          "tree_id": "587b4e8da2bc7f20f5a8bca6fe5222e623b33e0e",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/d9c50c1ffd074372ac283c6bef5c98489c5c1212"
+        },
+        "date": 1780494623560,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 869674.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243248\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 350692948,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5643552\nallocs=59696\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3380366,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2112912\nallocs=66674\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6315633,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121424\nallocs=97461\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 19500851714.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 612785756,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 9943359453.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 150112835,
+            "unit": "ns",
+            "extra": "gctime=10501574\nmemory=141006688\nallocs=370311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 4258913,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4514768\nallocs=102053\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 8020044,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429928\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42954620.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593072\nallocs=70284\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b374dd6d1be5761ee0d8d593600d499158fef395",
+          "message": "docs(build): answer some TODO's (#344)",
+          "timestamp": "2026-06-03T19:51:32+02:00",
+          "tree_id": "474e76272b1599dd59c5dc06a914ea3fab8f463f",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/b374dd6d1be5761ee0d8d593600d499158fef395"
+        },
+        "date": 1780509702459,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 889412,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243248\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 358073255.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5643552\nallocs=59696\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3431185.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2112912\nallocs=66674\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6366792,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121424\nallocs=97461\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 19512475930.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 609256612,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 9880992555.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 155422442,
+            "unit": "ns",
+            "extra": "gctime=12410892\nmemory=141006688\nallocs=370311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 4445687,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4514768\nallocs=102053\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 8118746,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429912\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42981765.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593072\nallocs=70284\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "88832655+raphael-roemer@users.noreply.github.com",
+            "name": "raphael-roemer",
+            "username": "raphael-roemer"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e7c49fbf0e41b1429b4c2c69534f3c1947e0d23e",
+          "message": "Finalise RateSystem (#316)\n\n* first go at implementing the agreed TODOs (not yet double-checked)\n\n* fixed bugs, should now run as intended\n\n* updated docstrings and implemented last TODO\n\n* tidied up AND added tests\n\n* added CoupledSDEs functionality and corresponding testset\n\n* spell check fixes AND extended SDE testset\n\n* rename forcers, add 1-parameter RateSystem constructor\n\n* fix syntax bug\n\n* added and restructured tests\n\n* fixed bug in new testsets\n\n* included ModelingToolkit again\n\n* added 2-parameter-shifts tests that are exactly like 1-parameter cases, just split up into 2parameters\n\n* included ModelinToolkit again\n\n* add API function for ForcingProfile\n\n* fix parameters function\n\n* move ForcingProfile code to separate file\n\n* update RateSystem\n\n* still WIP\n\n* implement update_parameters! with set_parameters! call\n\n* remove function with try statement\n\n* implemented review comments\n\n* updated RateSystemSpec constructor\n\n* reverted last commit\n\n* Merge main branch into FinaliseRateSystem branch for consistency (#336)\n\n* build(deps): bump crate-ci/typos from 1.45.2 to 1.46.0 (#317)\n\nBumps [crate-ci/typos](https://github.com/crate-ci/typos) from 1.45.2 to 1.46.0.\n- [Release notes](https://github.com/crate-ci/typos/releases)\n- [Changelog](https://github.com/crate-ci/typos/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/crate-ci/typos/compare/v1.45.2...v1.46.0)\n\n---\nupdated-dependencies:\n- dependency-name: crate-ci/typos\n  dependency-version: 1.46.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\n\n* feat: backtracking step-size control for GeometricGradient (#268)\n\n* Remove legacy `StochSystem` alias from public API (#321)\n\n* Initial plan\n\n* Remove legacy StochSystem alias and update references\n\nAgent-Logs-Url: https://github.com/JuliaDynamics/CriticalTransitions.jl/sessions/0d064a18-953e-41c3-9083-e3701c36811e\n\nCo-authored-by: oameye <57623933+oameye@users.noreply.github.com>\n\n* remove legacy test\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: oameye <57623933+oameye@users.noreply.github.com>\nCo-authored-by: reykboerner <r.borner@uu.nl>\n\n* build(deps): bump crate-ci/typos from 1.46.0 to 1.46.1 (#322)\n\nBumps [crate-ci/typos](https://github.com/crate-ci/typos) from 1.46.0 to 1.46.1.\n- [Release notes](https://github.com/crate-ci/typos/releases)\n- [Changelog](https://github.com/crate-ci/typos/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/crate-ci/typos/compare/v1.46.0...v1.46.1)\n\n---\nupdated-dependencies:\n- dependency-name: crate-ci/typos\n  dependency-version: 1.46.1\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\n\n* build(deps): bump StochasticDiffEq (#323)\n\n* build(deps): bump StochasticDiffEq\n\n* fix tests\n\n* refactor: remove unused StochasticSystemsBase alias and related diffusion_matrix assignment\n\n* build(deps): bump  OrdinaryDiffEqLowOrderRK, StochasticDiffEq, .. (#330)\n\n* fix: update DynamicalSystemsBase and remove StochasticSystemsBase (#335)\n\n---------\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Orjan Ameye <orjan.ameye@hotmail.com>\nCo-authored-by: Copilot <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: oameye <57623933+oameye@users.noreply.github.com>\nCo-authored-by: reykboerner <r.borner@uu.nl>\n\n* updated docstrings in RateSystem.jl\n\n* removed StochasticSystemsBase as this extension was removed from src/sde_utlis.jl\n\n* Restore src/largedeviations/sgmam.jl from origin/main (fix missing include)\n\n* trying to fix tests again\n\n* typofix in referenced_sciml_prob()\n\n* updated RateSystem docs via updating examples/RateSystem.jl and regenerating .md file\n\n* updated docs\n\n* hopefully fixed tests\n\n* exported parameter\n\n* fix wrong parameterization of Specs; fix missing copy\n\n* WIP on updating tutorial and making it work\n\n* finito\n\n* remove obsolete rate system examples\n\n* finish docs for rate system\n\n---------\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: reykboerner <r.borner@uu.nl>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Orjan Ameye <orjan.ameye@hotmail.com>\nCo-authored-by: Copilot <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: oameye <57623933+oameye@users.noreply.github.com>\nCo-authored-by: Datseris <datseris.george@gmail.com>",
+          "timestamp": "2026-06-03T21:58:46+01:00",
+          "tree_id": "f05c14b4988c6eff19a5ec38203b8ef160bb6c4b",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/e7c49fbf0e41b1429b4c2c69534f3c1947e0d23e"
+        },
+        "date": 1780521160172,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 754836,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243248\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 272590760,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5643552\nallocs=59696\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3276333,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2112912\nallocs=66674\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6036280,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121424\nallocs=97461\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 13995509973,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 522289308.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 9090628812,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 162642620.5,
+            "unit": "ns",
+            "extra": "gctime=15596317\nmemory=141006688\nallocs=370311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 3724387,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4036336\nallocs=90920\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 8412164,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429928\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 43467193.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593072\nallocs=70284\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "aaabe768eba780f2676251489b91126208627aea",
+          "message": "cleanup #316 aftermath (#356)",
+          "timestamp": "2026-06-04T11:31:16+02:00",
+          "tree_id": "4eb58f0e82b9eac2b2032eba20d53372c31c23a1",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/aaabe768eba780f2676251489b91126208627aea"
+        },
+        "date": 1780566267979,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 842822.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243248\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 337776545.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5643552\nallocs=59696\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3301936.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2112912\nallocs=66674\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6144501,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121424\nallocs=97461\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18792031427,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 586489169,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10439710665,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 152314440,
+            "unit": "ns",
+            "extra": "gctime=8872741\nmemory=141006688\nallocs=370311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 4476158.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4514768\nallocs=102053\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 8149156,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429912\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42090839,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593072\nallocs=70284\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6761c18aa3813ac09083e578badc661fe716b34f",
+          "message": "docs: rewrite the manual (#355)",
+          "timestamp": "2026-06-04T12:43:17+02:00",
+          "tree_id": "e6bd502895f182ff07f85bd76d5d8e6e18a187b1",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/6761c18aa3813ac09083e578badc661fe716b34f"
+        },
+        "date": 1780570334193,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 844376,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243248\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 337523941.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5643552\nallocs=59696\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3293302,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2112912\nallocs=66674\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6177667.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121424\nallocs=97461\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18725380190.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 587258855,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10363381833,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 155052245.5,
+            "unit": "ns",
+            "extra": "gctime=10079240\nmemory=141006688\nallocs=370311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 4422544.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4514768\nallocs=102053\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 8101540.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429912\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42790199,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593072\nallocs=70284\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "datseris.george@gmail.com",
+            "name": "George Datseris",
+            "username": "Datseris"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9c177cee9526b4bf32c04597200b9045d71286db",
+          "message": "Rate-return version 2 (#358)\n\n* first go at implementing the agreed TODOs (not yet double-checked)\n\n* fixed bugs, should now run as intended\n\n* updated docstrings and implemented last TODO\n\n* tidied up AND added tests\n\n* added CoupledSDEs functionality and corresponding testset\n\n* spell check fixes AND extended SDE testset\n\n* rename forcers, add 1-parameter RateSystem constructor\n\n* fix syntax bug\n\n* added and restructured tests\n\n* fixed bug in new testsets\n\n* included ModelingToolkit again\n\n* added 2-parameter-shifts tests that are exactly like 1-parameter cases, just split up into 2parameters\n\n* included ModelinToolkit again\n\n* add API function for ForcingProfile\n\n* fix parameters function\n\n* move ForcingProfile code to separate file\n\n* update RateSystem\n\n* still WIP\n\n* implement update_parameters! with set_parameters! call\n\n* remove function with try statement\n\n* implemented review comments\n\n* updated RateSystemSpec constructor\n\n* reverted last commit\n\n* Merge main branch into FinaliseRateSystem branch for consistency (#336)\n\n* build(deps): bump crate-ci/typos from 1.45.2 to 1.46.0 (#317)\n\nBumps [crate-ci/typos](https://github.com/crate-ci/typos) from 1.45.2 to 1.46.0.\n- [Release notes](https://github.com/crate-ci/typos/releases)\n- [Changelog](https://github.com/crate-ci/typos/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/crate-ci/typos/compare/v1.45.2...v1.46.0)\n\n---\nupdated-dependencies:\n- dependency-name: crate-ci/typos\n  dependency-version: 1.46.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\n\n* feat: backtracking step-size control for GeometricGradient (#268)\n\n* Remove legacy `StochSystem` alias from public API (#321)\n\n* Initial plan\n\n* Remove legacy StochSystem alias and update references\n\nAgent-Logs-Url: https://github.com/JuliaDynamics/CriticalTransitions.jl/sessions/0d064a18-953e-41c3-9083-e3701c36811e\n\nCo-authored-by: oameye <57623933+oameye@users.noreply.github.com>\n\n* remove legacy test\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: oameye <57623933+oameye@users.noreply.github.com>\nCo-authored-by: reykboerner <r.borner@uu.nl>\n\n* build(deps): bump crate-ci/typos from 1.46.0 to 1.46.1 (#322)\n\nBumps [crate-ci/typos](https://github.com/crate-ci/typos) from 1.46.0 to 1.46.1.\n- [Release notes](https://github.com/crate-ci/typos/releases)\n- [Changelog](https://github.com/crate-ci/typos/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/crate-ci/typos/compare/v1.46.0...v1.46.1)\n\n---\nupdated-dependencies:\n- dependency-name: crate-ci/typos\n  dependency-version: 1.46.1\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\n\n* build(deps): bump StochasticDiffEq (#323)\n\n* build(deps): bump StochasticDiffEq\n\n* fix tests\n\n* refactor: remove unused StochasticSystemsBase alias and related diffusion_matrix assignment\n\n* build(deps): bump  OrdinaryDiffEqLowOrderRK, StochasticDiffEq, .. (#330)\n\n* fix: update DynamicalSystemsBase and remove StochasticSystemsBase (#335)\n\n---------\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Orjan Ameye <orjan.ameye@hotmail.com>\nCo-authored-by: Copilot <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: oameye <57623933+oameye@users.noreply.github.com>\nCo-authored-by: reykboerner <r.borner@uu.nl>\n\n* updated docstrings in RateSystem.jl\n\n* removed StochasticSystemsBase as this extension was removed from src/sde_utlis.jl\n\n* Restore src/largedeviations/sgmam.jl from origin/main (fix missing include)\n\n* trying to fix tests again\n\n* typofix in referenced_sciml_prob()\n\n* updated RateSystem docs via updating examples/RateSystem.jl and regenerating .md file\n\n* updated docs\n\n* hopefully fixed tests\n\n* exported parameter\n\n* fix wrong parameterization of Specs; fix missing copy\n\n* WIP on updating tutorial and making it work\n\n* finito\n\n* remove obsolete rate system examples\n\n* finish docs for rate system\n\n* add reversable tipping parameters\n\n* add reverse example in tutorial\n\n* copy original parameters to rate system\n\n* add forcing reverse function\n\n* fix incorrect forcing of time and parameter types\n\n* update tutorial to have reyks code\n\n* add rtipping phase diagrams (not working)\n\n* revert everything to start and just add `reverse = true`.\n\n* fix tests by commenting out DistMesh2D\n\n* reexport Attractors, Remove unecessary StaticArrays\n\n* almost finish rate phase diagram\n\n* remove unecessary using static arrays\n\n* finish docstring of phase diagrams\n\n* remove sparse arrays more\n\n* finish the source code and tutorial but FUCK it doesn't work again\n\n* use correct steady state\n\n* change the parameter value to bistable\n\n* revert unnecsaary changes from merge commit\n\n* format\n\n* more clean up\n\n* fix explicit imports\n\n* fix docs\n\n* fix LLM review\n\n* add current_time to DynamicalSystemsBase imports\n\n---------\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: raphael-roemer <raphael-roemer@t-online.de>\nCo-authored-by: reykboerner <r.borner@uu.nl>\nCo-authored-by: raphael-roemer <88832655+raphael-roemer@users.noreply.github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Orjan Ameye <orjan.ameye@hotmail.com>\nCo-authored-by: Copilot <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: oameye <57623933+oameye@users.noreply.github.com>",
+          "timestamp": "2026-06-12T09:42:20+02:00",
+          "tree_id": "a04988cbf61143a8a6ed1fcf3ee3ee745ba75eed",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/9c177cee9526b4bf32c04597200b9045d71286db"
+        },
+        "date": 1781250890562,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 698335,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243264\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 284896299,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5643552\nallocs=59696\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 2690505,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2112928\nallocs=66674\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 5001658,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121440\nallocs=97461\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 14504090677,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 459327723.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 7410026296,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 122596868.5,
+            "unit": "ns",
+            "extra": "gctime=9504608.5\nmemory=141006704\nallocs=370311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 3037225,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4036352\nallocs=90920\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 6382271,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429928\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 35443511.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593072\nallocs=70284\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a279b5f8f0cb921139e412c0ce177f0063f62160",
+          "message": "build(deps): bump actions/checkout from 6 to 7 (#369)\n\nBumps [actions/checkout](https://github.com/actions/checkout) from 6 to 7.\n- [Release notes](https://github.com/actions/checkout/releases)\n- [Changelog](https://github.com/actions/checkout/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/actions/checkout/compare/v6...v7)\n\n---\nupdated-dependencies:\n- dependency-name: actions/checkout\n  dependency-version: '7'\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-06-24T08:35:27+02:00",
+          "tree_id": "84c3e1f1d0a42a2a98a7a248ba1739711ce6e70d",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/a279b5f8f0cb921139e412c0ce177f0063f62160"
+        },
+        "date": 1782283782459,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 874639.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243264\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 337114506,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5643552\nallocs=59696\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3288676,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2112928\nallocs=66674\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6148215,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121440\nallocs=97461\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18810259842,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 587861215,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10451245040,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 151545231,
+            "unit": "ns",
+            "extra": "gctime=7864106\nmemory=141006704\nallocs=370311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 4228807.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4514784\nallocs=102053\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 7916555,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429944\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42954755,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593120\nallocs=70285\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "r.borner@uu.nl",
+            "name": "Reyk Börner",
+            "username": "reykboerner"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "64ad5172ced5fc69823b51d69f83da461f3c56c2",
+          "message": "Complete docs for stable release v0.9 (#377)\n\n* remove API section\n\n* remove duplicate sections\n\n* remove predefined systems\n\n* update pages\n\n* working on it...\n\n* restructure, add missing docstrings\n\n* implement PR#378\n\n* temporary fix for extref to Attractors.jl v1\n\n* bump compat to Attractors v2\n\n* remove broken extref\n\n* added relation between generator and hamiltonian formulation in (s)gmam\n\n* add snapshot system API\n\n* add docs for snapshot systems\n\n* format\n\n* Revert \"format\"\nbecause it did something strange\nThis reverts commit e94c0cbd364e8507247f1f21b30fbdd35725a567.\n\n---------\n\nCo-authored-by: raphael-roemer <raphael-roemer@t-online.de>",
+          "timestamp": "2026-08-13T14:46:16+02:00",
+          "tree_id": "4aaf3d7b921d26dfeac6333e9c97f9e2884ca9e1",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/64ad5172ced5fc69823b51d69f83da461f3c56c2"
+        },
+        "date": 1786626046075,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 848441.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243264\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 341493191,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5641536\nallocs=59691\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3106361,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2026928\nallocs=63945\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6018732.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121440\nallocs=97461\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18886548511.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 588050173,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10375579353,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 148665400.5,
+            "unit": "ns",
+            "extra": "gctime=7266853.5\nmemory=141006704\nallocs=370311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 3475745,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=3799024\nallocs=85361\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 7937905.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429944\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42245178,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593872\nallocs=70290\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "distinct": true,
+          "id": "f649d03fb7fa4778e7372ebc9adb8f961919c1fe",
+          "message": "placeholder",
+          "timestamp": "2026-09-18T07:54:46+02:00",
+          "tree_id": "57b913f4f1f1f59e55033ecbf762c7ce34aba4de",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/f649d03fb7fa4778e7372ebc9adb8f961919c1fe"
+        },
+        "date": 1789711767374,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 838763.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243264\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 359486923.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5641536\nallocs=59691\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3076217,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2026928\nallocs=63945\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6036380,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121440\nallocs=97461\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18830495232.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 587680413.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10360683174,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 151189321,
+            "unit": "ns",
+            "extra": "gctime=8479388\nmemory=141006704\nallocs=370311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 3470811,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=3799024\nallocs=85361\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 7822055,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429944\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 41590822,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593872\nallocs=70290\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "distinct": true,
+          "id": "91ef8ea52f6d318f5e0718f9473937b2b22a2708",
+          "message": "Revert accidental placeholder file",
+          "timestamp": "2026-09-18T07:54:59+02:00",
+          "tree_id": "f2964fa9629766e3380baa8e75ade6056e74a84c",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/91ef8ea52f6d318f5e0718f9473937b2b22a2708"
+        },
+        "date": 1789711804479,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 855359.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=243264\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 339515021.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5641536\nallocs=59691\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3154778,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2026928\nallocs=63945\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6222502,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=4121440\nallocs=97461\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18776963301,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 593929525,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10375384273,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 154033292.5,
+            "unit": "ns",
+            "extra": "gctime=10021799\nmemory=141006704\nallocs=370311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 3514152,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=3799024\nallocs=85361\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 8025094,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429928\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42865591,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593872\nallocs=70290\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "206ba4020af216d531edceffcd5ade9ed8aff119",
+          "message": "build(deps): bump the all-julia-packages group across 2 directories with 6 updates (#384)\n\n* build(deps): bump the all-julia-packages group across 2 directories with 6 updates\n\nUpdates the requirements on [LinearSolve](https://github.com/SciML/LinearSolve.jl), Random, LinearAlgebra, Test, [JET](https://github.com/aviatesk/JET.jl) and Logging to permit the latest version.\n\nUpdates `LinearSolve` to 5.17.6\n- [Release notes](https://github.com/SciML/LinearSolve.jl/releases)\n- [Commits](https://github.com/SciML/LinearSolve.jl/compare/v3.47.0...v5.17.6)\n\nUpdates `Random` to \n\nUpdates `LinearAlgebra` to \n\nUpdates `LinearSolve` to 5.17.6\n- [Release notes](https://github.com/SciML/LinearSolve.jl/releases)\n- [Commits](https://github.com/SciML/LinearSolve.jl/compare/v3.47.0...v5.17.6)\n\nUpdates `Test` to \n\nUpdates `JET` to 0.12.1\n- [Release notes](https://github.com/aviatesk/JET.jl/releases)\n- [Changelog](https://github.com/aviatesk/JET.jl/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/aviatesk/JET.jl/commits/v0.12.1)\n\nUpdates `Logging` to \n\n---\nupdated-dependencies:\n- dependency-name: LinearSolve\n  dependency-version: 5.17.6\n  dependency-type: direct:production\n  dependency-group: all-julia-packages\n- dependency-name: Random\n  dependency-version:\n  dependency-type: direct:production\n  dependency-group: all-julia-packages\n- dependency-name: LinearAlgebra\n  dependency-version:\n  dependency-type: direct:production\n  dependency-group: all-julia-packages\n- dependency-name: LinearSolve\n  dependency-version: 5.17.6\n  dependency-type: direct:production\n  dependency-group: all-julia-packages\n- dependency-name: Test\n  dependency-version:\n  dependency-type: direct:production\n  dependency-group: all-julia-packages\n- dependency-name: JET\n  dependency-version: 0.12.1\n  dependency-type: direct:production\n  dependency-group: all-julia-packages\n- dependency-name: Logging\n  dependency-version:\n  dependency-type: direct:production\n  dependency-group: all-julia-packages\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\n\n* Fix gMAM under LinearSolve v5 and unblock CI checks\n\nLinearSolve v5 takes the `alias_A = true` license and factorizes the\ntridiagonal operator in place, overwriting d/dl/du with the LU factors;\nv3 did not. `_gmam_implicit_shared!` assembled that operator once and\nthen called `reinit!(; A = Tmat)` once per state component, so every\nsolve after the first refactorized the LU factors instead of the\noperator and returned a wrong update.\n\nHand the operator to the cache once and reuse the factorization across\ncomponents. This is also faster: the Maier-Stein gMAM benchmark drops\nfrom 848us to 530us against the v3 baseline, since the operator is now\nfactorized once per step rather than once per component.\n\nVerified on identical trees differing only in LinearSolve version. The\nFitzHugh-Nagumo geometric action was 0.98163 under v5 (expected 0.18)\nand is now 0.17942485 under both v3.87 and v5.17.6. All 287\nlargedeviations tests pass under v5.17.6.\n\nAlso fixes two pre-existing CI failures that predate this branch and\nalso fail on main: a missing trailing newline in frozen_systems.jl that\nbroke the Runic check, and three @ref links missing backticks in\nsystem_construction.md that broke the docs cross-reference stage.\n\n* Run JET in its own workflow and environment\n\nJET cannot be installed on the LTS Julia: 0.9.19 and 0.9.20 require\n1.11, and 0.10/0.11 require 1.12, so only JET <= 0.9.18 resolves on\n1.10. julia-actions/julia-runtest defaults force_latest_compatible_version\nto auto, which turns it on for Dependabot and CompatHelper pull requests,\npinning every compat entry to its newest allowed version. That forced JET\nto 0.12 on the lts job and made the test sandbox unsatisfiable, which is\nwhy the failure only ever showed up on compat-bump branches.\n\nMove JET out of the test sandbox, following SecondQuantizedAlgebra: the\nanalysis lives in test/quality/JET.jl and runs from a dedicated JET\nworkflow on Julia 1 via a plain julia invocation, so force_latest never\ngoverns it. JET gets its own test/quality/Project.toml rather than\nstaying in test/Project.toml, which is what keeps the lts sandbox free\nof it.\n\nVerified with Pkg.test(force_latest_compatible_version=true) on Julia\n1.10, the exact configuration CI failed on: resolution now succeeds.\n\nThe check was previously dead code behind `if false`. It is live again\nwith an allowlist, so new reports fail the job. The five current reports\nare all in the diffusion operator (_fill_axis! and _solve_dirichlet union\nsplits), not the RateSystem refactor the old comment attributed them to.\n\n* fix JET failures\n\n* Skip linkcheck for docs.sciml.ai\n\nThe docs build failed on a curl timeout against\ndocs.sciml.ai/DiffEqDocs/stable/solvers/sde_solve, not a broken link:\nbuild_docs_with_style hardcodes linkcheck_timeout = 2, and a two-second\nbudget against a third-party redirect is unreliable.\n\nThe ignore list already covered diffeq.sciml.ai, but that domain now\nredirects to docs.sciml.ai, so the redirect target was never skipped.\nCover it too. This matches the stated intent of the surrounding comment\nand applies to the three docs.sciml.ai links in the manual.\n\n* fix JET\n\n* Fall back to non-adaptive expv_timestep on Krylov happy breakdown\n\nExponentialUtilities 1.35 throws InexactError: Int64(Inf) from\nexpv_timestep when the Krylov residual is near zero, which is exactly\nwhat a stationary density produces: norm(Qᵀρ) ≈ 2e-14 for the 1D OU\ntest. LinearSolve v5 raises the ExponentialUtilities floor from 1.31 to\n1.35, so the bump exposes it.\n\nUpstream cause is krylov_phiv_adaptive.jl:468,\n\n    m_new = m + ceil(Int, log(omega / gamma) / log(kappa))\n\nConsecutive error estimates coincide when the Arnoldi process has\nalready converged, so kappa == 1, log(kappa) == 0 and the quotient is\nInf. The line is unchanged since 1.31; what changed is the abstol and\noperator-norm refactor that now drives the estimates into that branch.\n\nReproducible without this package: a graph Laplacian with b near its\nnull space fails on 1.35.3 and passes on 1.31.0, for residuals from\n2e-15 to 2e-9.\n\nRetry non-adaptively when the adaptive call throws InexactError, from a\npristine copy of b since the failed attempt may have mutated it. The\nnon-adaptive stepper is exact for this input (5e-15). Any other error\nrethrows, so unrelated failures are not masked.\n\n* Refactor propagate_density function and remove unused _expv_timestep\n\n* fix ExponentialUtilities\n\n---------\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Orjan Ameye <orjan.ameye@hotmail.com>",
+          "timestamp": "2026-09-18T11:12:09+02:00",
+          "tree_id": "d7b50ec91289810c691de7ca8cace6268be1ea82",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/206ba4020af216d531edceffcd5ade9ed8aff119"
+        },
+        "date": 1789723781493,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 810509,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=68544\nallocs=815\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 336997545,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5641536\nallocs=59691\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3109203.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1927568\nallocs=63623\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 5981483,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=3701824\nallocs=95694\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18823610109.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 587681177,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10410764194,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 142482587,
+            "unit": "ns",
+            "extra": "gctime=5785970\nmemory=89166704\nallocs=230311\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 3442633.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=3667264\nallocs=84934\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 7830480,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429928\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 43191437,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593328\nallocs=70287\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6b3d736f0464aa47a21656d1f43612dac637d491",
+          "message": "Fix rank check for static-vector diffusion (#389)",
+          "timestamp": "2026-09-20T09:02:56+02:00",
+          "tree_id": "b44978e83faa185fe514f0c83d3c081b41d3aede",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/6b3d736f0464aa47a21656d1f43612dac637d491"
+        },
+        "date": 1789888840332,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 834060,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=85664\nallocs=915\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 339580588.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3251604,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1927568\nallocs=63623\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6204309,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=3701824\nallocs=95694\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18829055553.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 590025077,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10420431576,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 143235399,
+            "unit": "ns",
+            "extra": "gctime=7026142\nmemory=89175264\nallocs=230361\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 3555183,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=3667264\nallocs=84934\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 8140511,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429928\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 41775241,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593328\nallocs=70287\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cab5353feac7df0a50e4e1170b0fd8f9cdb2e83f",
+          "message": "Cache Jacobian in Onsager-Machlup action (#390)",
+          "timestamp": "2026-09-20T09:03:42+02:00",
+          "tree_id": "ab742ec120a8f65bea219b14c3c701405869ebf9",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/cab5353feac7df0a50e4e1170b0fd8f9cdb2e83f"
+        },
+        "date": 1789888874039,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 845289.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=85664\nallocs=915\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 339798993,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3103511.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1927568\nallocs=63623\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6068887.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=3701824\nallocs=95694\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18789355507.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 591614728,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10411623251,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 143148302,
+            "unit": "ns",
+            "extra": "gctime=6355628\nmemory=89175264\nallocs=230361\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 3392995,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=3667264\nallocs=84934\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 7986801.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=9429944\nallocs=96965\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 41706287,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593328\nallocs=70287\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "60ca59c02f3c9195598cd30cdefa75473c3d139f",
+          "message": "Make auto-derived Hamiltonians in-place (#394)",
+          "timestamp": "2026-09-20T09:07:21+02:00",
+          "tree_id": "2d3ff7aff2284b6b47076b01fe9ba7b6b6d9847e",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/60ca59c02f3c9195598cd30cdefa75473c3d139f"
+        },
+        "date": 1789889121579,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 905129,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=85664\nallocs=915\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 351052509,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 3239037,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1927568\nallocs=63623\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 6258681.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=3701824\nallocs=95694\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 19642282740.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 610611233,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 9826993577.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 141293157,
+            "unit": "ns",
+            "extra": "gctime=8528044\nmemory=89175264\nallocs=230361\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 1486423,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=440160\nallocs=2069\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 6292912,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=6618056\nallocs=35288\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42496702,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593328\nallocs=70287\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "22f0f9c63a6d40d1c2d9c6aeceb73b402907b6b0",
+          "message": "Track large-deviation performance hot paths (#395)",
+          "timestamp": "2026-09-20T09:08:25+02:00",
+          "tree_id": "d75d262e9e81a789c2871c15967ed4542c229884",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/22f0f9c63a6d40d1c2d9c6aeceb73b402907b6b0"
+        },
+        "date": 1789889148019,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Action kernels/Onsager-Machlup",
+            "value": 151940,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=139912\nallocs=3665\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point diagonal",
+            "value": 4.867,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point off-diagonal",
+            "value": 9.734734734734735,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point diagonal",
+            "value": 2.444,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point off-diagonal",
+            "value": 2.714,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative diagonal",
+            "value": 22694,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=21808\nallocs=881\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative off-diagonal",
+            "value": 18238,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=20224\nallocs=661\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point diagonal",
+            "value": 6.43,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point off-diagonal",
+            "value": 16.618236472945892,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":998,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative diagonal step",
+            "value": 40321,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=18944\nallocs=474\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative off-diagonal step",
+            "value": 43746,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=18800\nallocs=354\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM 10 iterations",
+            "value": 136976,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=89072\nallocs=571\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative diagonal 10 iterations",
+            "value": 183677,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=77280\nallocs=558\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative off-diagonal 10 iterations",
+            "value": 892286.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1316712\nallocs=4884\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/direct gMAM 100 iterations",
+            "value": 1615749,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=160560\nallocs=1474\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 691213,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=85664\nallocs=915\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 277941320.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 2590550.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1927568\nallocs=63623\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 4937907,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=3701824\nallocs=95694\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_p",
+            "value": 2507.1111111111113,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":9,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_x",
+            "value": 13089,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=400\nallocs=8\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 14522447326,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 459165901.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 7383937807,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 113096335,
+            "unit": "ns",
+            "extra": "gctime=7856238\nmemory=89175264\nallocs=230361\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 1114031,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=454480\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 4989366.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=6618072\nallocs=35288\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 35260621.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593328\nallocs=70287\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4ad93e65c7f239bc7f57606f92f09cd471c8e05f",
+          "message": "Specialize geometric-action callables (#400)",
+          "timestamp": "2026-09-20T09:49:52+02:00",
+          "tree_id": "e0b7b671633f0b2432d82c5ada3ab754bd7d9fad",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/4ad93e65c7f239bc7f57606f92f09cd471c8e05f"
+        },
+        "date": 1789891601900,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Action kernels/Onsager-Machlup",
+            "value": 101819,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=139912\nallocs=3665\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point diagonal",
+            "value": 2.916,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point off-diagonal",
+            "value": 8.13913913913914,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point diagonal",
+            "value": 1.9235,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point off-diagonal",
+            "value": 1.923,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative diagonal",
+            "value": 4129.375,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":8,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative off-diagonal",
+            "value": 4422.142857142857,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":7,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point diagonal",
+            "value": 3.636,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point off-diagonal",
+            "value": 14.347695390781563,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":998,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative diagonal step",
+            "value": 15459,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1472\nallocs=6\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative off-diagonal step",
+            "value": 18134,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1168\nallocs=6\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM 10 iterations",
+            "value": 117327,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=89072\nallocs=571\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative diagonal 10 iterations",
+            "value": 163422,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=77280\nallocs=558\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative off-diagonal 10 iterations",
+            "value": 769162,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1316712\nallocs=4884\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/direct gMAM 100 iterations",
+            "value": 1234590,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=160560\nallocs=1474\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 531838,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=85664\nallocs=915\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 240223363,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 966959.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=98880\nallocs=688\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 2237333,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=160992\nallocs=1196\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_p",
+            "value": 1843.1,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":10,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_x",
+            "value": 9683,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=400\nallocs=8\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 9447078127,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 351320603,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 5886645082,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 106159022,
+            "unit": "ns",
+            "extra": "gctime=6908510\nmemory=89175264\nallocs=230361\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 1046290,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=454480\nallocs=2145\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 4480208.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=6618056\nallocs=35288\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 30073813,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593328\nallocs=70287\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d6cee25be60955cbffe060740e5205e97bb919b6",
+          "message": "Exploit block-tridiagonal structure in coupled sgMAM (#415)",
+          "timestamp": "2026-09-20T10:18:13+02:00",
+          "tree_id": "75274efcd82b75d0f3414f330af0dfb38924cfed",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/d6cee25be60955cbffe060740e5205e97bb919b6"
+        },
+        "date": 1789893481050,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Action kernels/Onsager-Machlup",
+            "value": 146158.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=139912\nallocs=3665\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point diagonal",
+            "value": 5.991,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point off-diagonal",
+            "value": 9.587587587587588,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point diagonal",
+            "value": 3.105,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point off-diagonal",
+            "value": 3.106,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative diagonal",
+            "value": 6456,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":5,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative off-diagonal",
+            "value": 6544.2,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":5,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point diagonal",
+            "value": 7.741741741741742,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point off-diagonal",
+            "value": 17.508016032064127,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":998,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative diagonal step",
+            "value": 25357,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1472\nallocs=6\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative off-diagonal step",
+            "value": 28513,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1168\nallocs=6\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM 10 iterations",
+            "value": 163466,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=89072\nallocs=571\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative diagonal 10 iterations",
+            "value": 219390.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=77280\nallocs=558\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative off-diagonal 10 iterations",
+            "value": 653051,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=88744\nallocs=679\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/direct gMAM 100 iterations",
+            "value": 1938781,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=160560\nallocs=1474\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 832011.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=85664\nallocs=915\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 341654504,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 1591347,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=98880\nallocs=688\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 3491886.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=160992\nallocs=1196\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_p",
+            "value": 2918.777777777778,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":9,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_x",
+            "value": 15278,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=400\nallocs=8\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18810398218,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 590599847,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10388612430,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 139852657,
+            "unit": "ns",
+            "extra": "gctime=5118966\nmemory=89175264\nallocs=230361\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 1418725,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=440160\nallocs=2069\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 3261349.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=105768\nallocs=1035\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 41913806,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593328\nallocs=70287\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0e4028a8c3be908c8593071bce8516052a9d0525",
+          "message": "Combine sgMAM momentum fusion with Thomas solves (#428)\n\nFuse decoupled sgMAM momentum and Thomas solves",
+          "timestamp": "2026-09-20T10:18:23+02:00",
+          "tree_id": "8392fad75feaec6207c024c0aafc3b4497495d7b",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/0e4028a8c3be908c8593071bce8516052a9d0525"
+        },
+        "date": 1789893484761,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Action kernels/Onsager-Machlup",
+            "value": 179081,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=139912\nallocs=3665\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point diagonal",
+            "value": 5.991,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point off-diagonal",
+            "value": 9.8988988988989,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point diagonal",
+            "value": 3.407,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point off-diagonal",
+            "value": 3.105,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative diagonal",
+            "value": 6586.4,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":5,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative off-diagonal",
+            "value": 6460.2,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":5,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point diagonal",
+            "value": 7.741741741741742,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point off-diagonal",
+            "value": 17.60821643286573,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":998,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative diagonal step",
+            "value": 24405,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative off-diagonal step",
+            "value": 27852,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM 10 iterations",
+            "value": 118502,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=36832\nallocs=379\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative diagonal 10 iterations",
+            "value": 173396,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=30624\nallocs=416\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative off-diagonal 10 iterations",
+            "value": 643112.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=88744\nallocs=679\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/direct gMAM 100 iterations",
+            "value": 1819075,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=60448\nallocs=975\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 781737.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=41184\nallocs=566\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 339015835.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 1561922,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=33248\nallocs=465\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 3363655.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=54704\nallocs=732\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_p",
+            "value": 2918.777777777778,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":9,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_x",
+            "value": 15569,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=400\nallocs=8\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18751311692,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 591060503,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10327867172,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 91539862.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1807968\nallocs=50349\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 1046504,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=48848\nallocs=929\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 3187934,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=105768\nallocs=1035\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42473988,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593328\nallocs=70287\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a5de59e499821dcf18b1cae0852d1d4ece7133b3",
+          "message": "Add tipping probability calculation (#386)\n\n* Add tipping probability calculation\n\n* escape latex backslashes\n\n* bump version number and add dispatch method for RateSystem\n\n* remove high-level method\n\n* fix CI\n\n* format\n\n---------\n\nCo-authored-by: reykboerner <r.borner@uu.nl>",
+          "timestamp": "2026-09-20T11:09:52+02:00",
+          "tree_id": "505c7aaf64d204d55872e3e4c2581ee985b9a62b",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/a5de59e499821dcf18b1cae0852d1d4ece7133b3"
+        },
+        "date": 1789895956214,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Action kernels/Onsager-Machlup",
+            "value": 105229,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=139912\nallocs=3665\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point diagonal",
+            "value": 2.914,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point off-diagonal",
+            "value": 6.009,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point diagonal",
+            "value": 2.063,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point off-diagonal",
+            "value": 1.793,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative diagonal",
+            "value": 3253.625,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":8,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative off-diagonal",
+            "value": 3665.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":8,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point diagonal",
+            "value": 3.876,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point off-diagonal",
+            "value": 11.76876876876877,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative diagonal step",
+            "value": 13090,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative off-diagonal step",
+            "value": 16676,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM 10 iterations",
+            "value": 67032,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=36832\nallocs=379\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative diagonal 10 iterations",
+            "value": 102234,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=30624\nallocs=416\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative off-diagonal 10 iterations",
+            "value": 422324,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=88744\nallocs=679\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/direct gMAM 100 iterations",
+            "value": 994785,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=60448\nallocs=975\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 434077,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=41184\nallocs=566\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 184396802.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 827833,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=33248\nallocs=465\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 1941188,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=54704\nallocs=732\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_p",
+            "value": 1554.4,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":10,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_x",
+            "value": 8730,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=400\nallocs=8\nparams={\"evals\":3,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 10262670297,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 367265304.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 5401401090.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 52332488,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1807968\nallocs=50349\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 610063,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=48848\nallocs=929\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 2112340.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=105768\nallocs=1035\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 25052422,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593328\nallocs=70287\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "73a0c74082b2c95ff8bd85815f3de4f05d126bbe",
+          "message": "Support StateSpaceSet input in gMAM (#392)",
+          "timestamp": "2026-09-20T12:12:46+02:00",
+          "tree_id": "97f2a3a9407741ec6d77a367e915c37d4f69f6f5",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/73a0c74082b2c95ff8bd85815f3de4f05d126bbe"
+        },
+        "date": 1789900322115,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Action kernels/Onsager-Machlup",
+            "value": 165547.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=139912\nallocs=3665\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point diagonal",
+            "value": 4.053,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point off-diagonal",
+            "value": 10.71971971971972,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point diagonal",
+            "value": 3.36,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point off-diagonal",
+            "value": 3.357,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative diagonal",
+            "value": 5814.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":6,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative off-diagonal",
+            "value": 6278.166666666667,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":6,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point diagonal",
+            "value": 25.025,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point off-diagonal",
+            "value": 19.59779338014042,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":997,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative diagonal step",
+            "value": 21004,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative off-diagonal step",
+            "value": 24897,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM 10 iterations",
+            "value": 101440,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=36832\nallocs=379\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative diagonal 10 iterations",
+            "value": 157374,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=30624\nallocs=416\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative off-diagonal 10 iterations",
+            "value": 637218.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=88744\nallocs=679\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/direct gMAM 100 iterations",
+            "value": 1641781,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=60448\nallocs=975\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 704999,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=41184\nallocs=566\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 323097872,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 1342775.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=33248\nallocs=465\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 3088499,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=54704\nallocs=732\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_p",
+            "value": 2418.3333333333335,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":9,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_x",
+            "value": 12838,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=400\nallocs=8\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 13418604792,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 513220717,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 8233160560.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 84052479,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1807968\nallocs=50349\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 939341,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=48848\nallocs=929\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 3156641,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=105768\nallocs=1035\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 40140132.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593328\nallocs=70287\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": false,
+          "id": "9b92902818189e39954e4f7ba345df0f435a3f66",
+          "message": "Run tests and documentation examples in parallel (#437)\n\n* Parallelize test execution\n\n* Add ParallelTestRunner test dependency\n\n* Keep doctests in parallel test suite\n\n* Run Literate examples in parallel\n\n* Add isolated Literate example runner\n\n* Limit parallel Literate worker resources\n\n* Define shared test seed in parallel sandboxes\n\n* Preserve Documenter links and compact Makie outputs\n\n* Force Literate figure output to PNG\n\n* Simplify Literate example rendering\n\n* Raise documentation page size thresholds",
+          "timestamp": "2026-09-20T12:36:36+02:00",
+          "tree_id": "6d46a54a90401564185c07408b7435aea14bf6f5",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/9b92902818189e39954e4f7ba345df0f435a3f66"
+        },
+        "date": 1789901801797,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Action kernels/Onsager-Machlup",
+            "value": 192981,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=139912\nallocs=3665\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point diagonal",
+            "value": 6.31,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point off-diagonal",
+            "value": 11.87987987987988,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point diagonal",
+            "value": 3.495,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point off-diagonal",
+            "value": 3.495,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative diagonal",
+            "value": 6946.4,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":5,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative off-diagonal",
+            "value": 7038.25,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":4,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point diagonal",
+            "value": 7.92992992992993,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point off-diagonal",
+            "value": 20.472417251755267,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":997,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative diagonal step",
+            "value": 25969,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative off-diagonal step",
+            "value": 29645,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM 10 iterations",
+            "value": 119530,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=36832\nallocs=379\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative diagonal 10 iterations",
+            "value": 180162,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=30624\nallocs=416\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative off-diagonal 10 iterations",
+            "value": 621307,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=88744\nallocs=679\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/direct gMAM 100 iterations",
+            "value": 1923521,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=60448\nallocs=975\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 820442.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=41184\nallocs=566\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 351040301,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 1690846,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=33248\nallocs=465\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 3575994,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=54704\nallocs=732\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_p",
+            "value": 3033.375,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":8,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_x",
+            "value": 15975,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=400\nallocs=8\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 19464781487.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 612457722,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 9851267951,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 86893832,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1807968\nallocs=50349\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 1053699,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=48848\nallocs=929\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 3117817.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=105768\nallocs=1035\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42704920,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593328\nallocs=70287\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "orjan.ameye@hotmail.com",
+            "name": "Orjan Ameye",
+            "username": "oameye"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4d401693aae4ce10a2474226c0e8a2b9f27c956f",
+          "message": "Optimize transition target-radius checks (#442)",
+          "timestamp": "2026-09-20T14:16:22+02:00",
+          "tree_id": "1123d5cb2bdb5a25d6f9954619378ff678511ea1",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/4d401693aae4ce10a2474226c0e8a2b9f27c956f"
+        },
+        "date": 1789907795857,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Action kernels/Onsager-Machlup",
+            "value": 179428,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=139912\nallocs=3665\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point diagonal",
+            "value": 6.733,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point off-diagonal",
+            "value": 9.587587587587588,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point diagonal",
+            "value": 3.105,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point off-diagonal",
+            "value": 3.106,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative diagonal",
+            "value": 6544.4,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":5,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative off-diagonal",
+            "value": 6438,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":5,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point diagonal",
+            "value": 7.741741741741742,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point off-diagonal",
+            "value": 17.54809619238477,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":998,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative diagonal step",
+            "value": 24586,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative off-diagonal step",
+            "value": 27923,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM 10 iterations",
+            "value": 118282.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=36832\nallocs=379\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative diagonal 10 iterations",
+            "value": 174018,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=30624\nallocs=416\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative off-diagonal 10 iterations",
+            "value": 648229,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=88744\nallocs=679\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/direct gMAM 100 iterations",
+            "value": 1814215,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=60448\nallocs=975\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 780258,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=41184\nallocs=566\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 341221233,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 1583082,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=33248\nallocs=465\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 3370507,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=54704\nallocs=732\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_p",
+            "value": 2913.3333333333335,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":9,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_x",
+            "value": 16361,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=400\nallocs=8\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18805700050,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 588734252,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10341651528,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 91278516.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1807968\nallocs=50349\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 1052712,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=48848\nallocs=929\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 3224337,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=105768\nallocs=1035\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 41768900.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593328\nallocs=70287\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "datseris.george@gmail.com",
+            "name": "George Datseris",
+            "username": "Datseris"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d21ad95af0f1cf7abbfa46120d0d09f41e7d6578",
+          "message": "update rate_track docstring to Attractors v2 (#450)",
+          "timestamp": "2026-09-23T15:45:42+01:00",
+          "tree_id": "cfa2271d020b572c15496c980a0ebad4c3385d41",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/d21ad95af0f1cf7abbfa46120d0d09f41e7d6578"
+        },
+        "date": 1790175770319,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Action kernels/Onsager-Machlup",
+            "value": 151449,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=140232\nallocs=3673\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point diagonal",
+            "value": 4.887,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point off-diagonal",
+            "value": 10.025025025025025,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point diagonal",
+            "value": 2.714,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point off-diagonal",
+            "value": 2.714,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative diagonal",
+            "value": 5329.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":6,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative off-diagonal",
+            "value": 5426.333333333333,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":6,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point diagonal",
+            "value": 6.179,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point off-diagonal",
+            "value": 16.387775551102205,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":998,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative diagonal step",
+            "value": 20741,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative off-diagonal step",
+            "value": 23995,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM 10 iterations",
+            "value": 101410.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=36832\nallocs=379\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative diagonal 10 iterations",
+            "value": 145736,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=30624\nallocs=416\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative off-diagonal 10 iterations",
+            "value": 498308,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=88744\nallocs=679\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/direct gMAM 100 iterations",
+            "value": 1552300,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=60448\nallocs=975\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 660328,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=41184\nallocs=566\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 306903469,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 1329089,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=33248\nallocs=465\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 2905665,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=54704\nallocs=732\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_p",
+            "value": 2414.777777777778,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":9,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_x",
+            "value": 13239,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=400\nallocs=8\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 14438799852,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 459217861,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 7401572295,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 69475304,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1807968\nallocs=50349\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 869498,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=48848\nallocs=929\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 2507650,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=105768\nallocs=1035\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 34367391,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593648\nallocs=70295\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1f849514362aaa893e7e6433f063cb52de306b83",
+          "message": "build(deps): bump the all-julia-packages group across 2 directories with 4 updates (#449)\n\n* build(deps): bump the all-julia-packages group across 2 directories with 4 updates\n\nUpdates the requirements on [ExponentialUtilities](https://github.com/SciML/ExponentialUtilities.jl), [Statistics](https://github.com/JuliaStats/Statistics.jl), LinearAlgebra and [NLsolve](https://github.com/JuliaNLSolvers/NLsolve.jl) to permit the latest version.\n\nUpdates `ExponentialUtilities` to 1.35.4\n- [Release notes](https://github.com/SciML/ExponentialUtilities.jl/releases)\n- [Commits](https://github.com/SciML/ExponentialUtilities.jl/compare/v1.31.0...v1.35.4)\n\nUpdates `Statistics` to \n- [Release notes](https://github.com/JuliaStats/Statistics.jl/releases)\n- [Commits](https://github.com/JuliaStats/Statistics.jl/commits)\n\nUpdates `LinearAlgebra` to \n\nUpdates `NLsolve` to 5.0.1\n- [Release notes](https://github.com/JuliaNLSolvers/NLsolve.jl/releases)\n- [Commits](https://github.com/JuliaNLSolvers/NLsolve.jl/compare/v4.5.1...v5.0.1)\n\n---\nupdated-dependencies:\n- dependency-name: ExponentialUtilities\n  dependency-version: 1.35.4\n  dependency-type: direct:production\n  dependency-group: all-julia-packages\n- dependency-name: Statistics\n  dependency-version:\n  dependency-type: direct:production\n  dependency-group: all-julia-packages\n- dependency-name: LinearAlgebra\n  dependency-version:\n  dependency-type: direct:production\n  dependency-group: all-julia-packages\n- dependency-name: NLsolve\n  dependency-version: 5.0.1\n  dependency-type: direct:production\n  dependency-group: all-julia-packages\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\n\n* cleanup\n\n---------\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Orjan Ameye <orjan.ameye@hotmail.com>",
+          "timestamp": "2026-09-23T17:27:45+01:00",
+          "tree_id": "5a893578621a1183268969171a153f43ade568fd",
+          "url": "https://github.com/JuliaDynamics/CriticalTransitions.jl/commit/1f849514362aaa893e7e6433f063cb52de306b83"
+        },
+        "date": 1790182097460,
+        "tool": "julia",
+        "benches": [
+          {
+            "name": "Large deviation/Action kernels/Onsager-Machlup",
+            "value": 181209,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=140232\nallocs=3673\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point diagonal",
+            "value": 5.991,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/covariance point off-diagonal",
+            "value": 9.587587587587588,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point diagonal",
+            "value": 3.105,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/drift point off-diagonal",
+            "value": 3.106,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":1000,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative diagonal",
+            "value": 6472,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":5,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/gMAM objective multiplicative off-diagonal",
+            "value": 6454,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":5,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point diagonal",
+            "value": 7.741741741741742,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":999,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Action kernels/metric point off-diagonal",
+            "value": 17.53807615230461,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":998,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":3,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative diagonal step",
+            "value": 24687,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Direct gMAM kernels/multiplicative off-diagonal step",
+            "value": 27883,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=16\nallocs=1\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM 10 iterations",
+            "value": 116107,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=36832\nallocs=379\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative diagonal 10 iterations",
+            "value": 176671,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=30624\nallocs=416\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/auto sgMAM multiplicative off-diagonal 10 iterations",
+            "value": 648308.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=88744\nallocs=679\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Fixed iteration/direct gMAM 100 iterations",
+            "value": 1815223.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=60448\nallocs=975\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (HeymannVandenEijnden)",
+            "value": 782817.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=41184\nallocs=566\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/Maier-Stein (Optimisers.Adam; AutoFiniteDiff)",
+            "value": 339806968.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=5650096\nallocs=59741\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative diagonal",
+            "value": 1562839,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=33248\nallocs=465\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Geometric minimal action/multiplicative off-diagonal",
+            "value": 3365888,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=54704\nallocs=732\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_p",
+            "value": 2918.777777777778,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=0\nallocs=0\nparams={\"evals\":9,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Hamiltonian kernels/auto H_x",
+            "value": 15389,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=400\nallocs=8\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 2D multiplicative 81x81",
+            "value": 18898079902,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=605472\nallocs=209\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, 3D quadratic 11x11x11",
+            "value": 587857126,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=237176\nallocs=806\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Quasipotential/OLIM, Maier-Stein 121x81",
+            "value": 10378629028,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1211320\nallocs=222\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":30,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/KPO",
+            "value": 91137575.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=1807968\nallocs=50349\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative diagonal",
+            "value": 1046551,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=48848\nallocs=929\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/Simple geometric minimal action/multiplicative off-diagonal",
+            "value": 3251619,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=105768\nallocs=1035\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":5,\"time_tolerance\":0.05}"
+          },
+          {
+            "name": "Large deviation/String method/Kerr parametric resonator",
+            "value": 42401483.5,
+            "unit": "ns",
+            "extra": "gctime=0\nmemory=2593648\nallocs=70295\nparams={\"evals\":1,\"evals_set\":false,\"gcsample\":false,\"gctrial\":true,\"memory_tolerance\":0.01,\"overhead\":0,\"samples\":10000,\"seconds\":10,\"time_tolerance\":0.05}"
+          }
+        ]
+      }
+    ]
+  }
+}
