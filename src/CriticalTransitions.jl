@@ -92,6 +92,7 @@ include("largedeviations/sgmam_static_solve.jl")
 include("largedeviations/sgmam_block_solve.jl")
 include("largedeviations/sgmam.jl")
 include("largedeviations/minimize_geometric_action.jl")
+include("largedeviations/ritz.jl")
 include("largedeviations/gmam_static_solve.jl")
 include("largedeviations/multiple_shooting.jl")
 include("largedeviations/string_method.jl")
@@ -133,7 +134,7 @@ export FreidlinWentzellHamiltonian
 export fw_action, om_action, action, geometric_action
 export minimize_action, minimize_geometric_action, string_method
 export MinimumActionPath
-export GeometricGradient, AdaptiveGeometricGradient, MultipleShooting
+export GeometricGradient, AdaptiveGeometricGradient, MultipleShooting, Ritz
 export quasipotential
 
 export deterministic_orbit

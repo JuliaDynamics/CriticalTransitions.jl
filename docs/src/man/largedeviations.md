@@ -36,19 +36,20 @@ action
 
 ## Finding the instanton
 
-The instanton is the minimizer of the action. Several methods have been proposed to compute it; in the weak-noise limit, the minimum action path coincides with the most probable transition path. While the minimum action method (MAM) is the most basic version, it is often beneficial to minimize the [geometric action](@ref "The action") via a time-independent version called gMAM. The problem can also be cast in a Hamiltonian form, implemented as simple gMAM (sgMAM), which can have numerical advantages. In gradient systems, minimum action paths between attractors coincide with heteroclinic orbits, which can be computed via the string method.
+The instanton is the minimizer of the action. Several methods have been proposed to compute it; in the weak-noise limit, the minimum action path coincides with the most probable transition path. While the minimum action method (MAM) is the most basic version, it is often beneficial to minimize the [geometric action](@ref "The action") via a time-independent version called gMAM. The problem can also be cast in a Hamiltonian form, implemented as simple gMAM (sgMAM), or minimized globally in a Chebyshev basis with the Ritz method. In gradient systems, minimum action paths between attractors coincide with heteroclinic orbits, which can be computed via the string method.
 
-All three action-minimizers (MAM, gMAM, sgMAM) require only **autonomous** noise and reject **rank-deficient** diffusion; they all support additive, diagonal-multiplicative, and general-matrix multiplicative diffusion. The Onsager-Machlup functional (selectable in MAM via `functional = "OM"`) is the one exception: it is implemented only for additive noise and throws otherwise.
+MAM, gMAM/sgMAM, and Ritz require **autonomous** noise and reject **rank-deficient** diffusion. The Freidlin-Wentzell variants support additive, diagonal-multiplicative, and general-matrix multiplicative diffusion. The Onsager-Machlup functional is the exception: it is implemented only for additive noise, both in MAM and in Ritz.
 
 | Method | Use when |
 |---|---|
-| **MAM** ([`minimize_action`](@ref)) | The transition time ``T`` is fixed and you want the action at that ``T`` (or you specifically need the Onsager-Machlup functional, which only has a time-parameterized form). |
-| **gMAM / sgMAM** ([`minimize_geometric_action`](@ref)) | ``T`` is unknown and you want a time-reparameterization-invariant instanton. Prefer **sgMAM** (Hamiltonian picture) when an analytic [`FreidlinWentzellHamiltonian`](@ref)`(H_x, H_p)` is available or when AD-based `jacobian(ds)` evaluations are cheap; prefer **gMAM** for the closer-to-textbook geometric-action formulation. |
+| **MAM** ([`minimize_action`](@ref)) | The transition time ``T`` is fixed and you want the action at that ``T``. Supports both Freidlin-Wentzell and additive-noise Onsager-Machlup functionals. |
+| **Ritz** ([`Ritz`](@ref)) | You want a smooth global spectral representation and direct nonlinear optimization over a small number of Chebyshev degrees of freedom. At ``E=0`` the FW shell is the geometric action; ``E\ne 0`` selects a finite-time nonzero-energy shell, with signed values allowed when the shell remains real. Ritz also supports the additive-noise Onsager-Machlup functional through the same Noether reduction. |
+| **gMAM / sgMAM** ([`minimize_geometric_action`](@ref)) | ``T`` is unknown and you want a time-reparameterization-invariant Freidlin-Wentzell instanton on a local path grid. Prefer **sgMAM** (Hamiltonian picture) when an analytic [`FreidlinWentzellHamiltonian`](@ref)`(H_x, H_p)` is available or when AD-based `jacobian(ds)` evaluations are cheap; prefer **gMAM** for the closer-to-textbook geometric-action formulation. |
 | **Multiple shooting** ([`MultipleShooting`](@ref)) | Endpoints are hyperbolic fixed points and you want a high-accuracy boundary-value solution; best warm-started from a gMAM/sgMAM solve. |
 | **String method** ([`string_method`](@ref)) | You want the deterministic heteroclinic orbit (typical use: **gradient** systems, where it coincides with the instanton). In non-gradient systems it generally differs from the most probable transition path. |
 
 !!! info "Action minimization as an optimal control problem"
-    All of the action minimizers below (MAM, gMAM, sgMAM) can equivalently be cast as **optimal control problems**: find a path ``\mathbf{x}`` and a control ``\mathbf{u}`` that minimize a Freidlin-Wentzell-type action
+    MAM, gMAM, and sgMAM can equivalently be cast as **optimal control problems**: find a path ``\mathbf{x}`` and a control ``\mathbf{u}`` that minimize a Freidlin-Wentzell-type action
     ```math
     \int \| \mathbf{u}(t) - \mathbf{b}(\mathbf{x}(t)) \|^2 \, \text{d}t
     ```
@@ -67,6 +68,32 @@ Minimization of the specified action functional using the optimization algorithm
 
 ```@docs; canonical=false
 minimize_action
+```
+
+### Ritz method
+
+[`Ritz`](@ref) is a global spectral alternative to chain-of-states minimizers. A path is represented by a degree-``n`` Chebyshev interpolant through ``n+1`` Chebyshev-Lobatto points, differentiated spectrally, and integrated on a separate oversampled Clenshaw-Curtis grid. Only the interior Chebyshev values are optimization variables; the endpoints are fixed exactly.
+
+For the Freidlin-Wentzell Lagrangian, time-translation invariance gives a constant Noether energy ``E``. Eliminating the physical-time parametrization produces the on-shell action used by the Ritz optimizer. At ``E=0`` this reduces exactly to the geometric Freidlin-Wentzell action; nonzero ``E`` gives a finite-duration nonzero-energy shell. ``E`` may have either sign provided ``2E + \|b(x)\|_Q^2 \ge 0`` along the path. The Chebyshev construction follows [Kikuchi *et al.*, Phys. Rev. Research **2**, 033208 (2020)](https://doi.org/10.1103/PhysRevResearch.2.033208).
+
+The same reduction is implemented for the additive-noise Onsager-Machlup Lagrangian
+
+```math
+L_{\mathrm{OM}} = \frac{1}{2}\|\dot x-b(x)\|_Q^2 + \frac{\sigma^2}{2}\nabla\!\cdot b(x).
+```
+
+Its velocity-independent divergence term is retained when eliminating time, so this also covers the case where ``L_{\mathrm{OM}}`` is not positive definite. The selected shell must remain real along the complete path,
+
+```math
+\|b(x)\|_Q^2 + 2E + \sigma^2\nabla\!\cdot b(x) \ge 0.
+```
+
+If this condition fails, Ritz throws a `DomainError`; increase `energy` or use a different initial/path family. The OM variant requires `functional = "OM"` and an explicit `noise_strength`, matching [`om_action`](@ref).
+
+Ritz is most attractive when the instanton is smooth enough for spectral convergence and a low-dimensional global representation is substantially cheaper than evolving a dense local path grid. gMAM/sgMAM remain preferable when a robust local-grid flow or Hamiltonian formulation is more natural.
+
+```@docs; canonical=false
+Ritz
 ```
 
 ### Geometric minimum action method (gMAM / sgMAM)
@@ -163,7 +190,7 @@ string_method
 ```
 
 ### `MinimumActionPath`
-[gMAM/sgMAM](@ref "Geometric minimum action method (gMAM / sgMAM)") and [multiple shooting](@ref "Multiple shooting") return their output as a `MinimumActionPath`:
+[gMAM/sgMAM](@ref "Geometric minimum action method (gMAM / sgMAM)"), [Ritz](@ref "Ritz method"), and [multiple shooting](@ref "Multiple shooting") return their output as a `MinimumActionPath`:
 
 ```@docs; canonical=false
 CriticalTransitions.MinimumActionPath
