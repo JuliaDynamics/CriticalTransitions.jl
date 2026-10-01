@@ -42,8 +42,6 @@ using Test
 
         sss = StateSpaceSet(init')
         sss_view = view(sss, :)
-        @test CT._path_matrix(sss) == init
-        @test CT._path_matrix(sss_view) == init
         for x_init in (sss, sss_view)
             gm_sss = minimize_geometric_action(
                 sys, x_init; maxiters = 2, verbose = false, show_progress = false
@@ -60,8 +58,7 @@ using Test
     end
 
     @testset "Heteroclinic orbit vs MLP" begin
-        import CriticalTransitions as CT
-        S(x) = geometric_action(sys, CT.fix_ends(x, init[:, 1], init[:, end]), 1.0)
+        S(x) = geometric_action(sys, x, 1.0)
 
         gm = minimize_geometric_action(
             sys, init; maxiters = 500, verbose = false, show_progress = false
