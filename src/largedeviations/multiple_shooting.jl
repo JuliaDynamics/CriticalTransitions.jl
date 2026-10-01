@@ -11,8 +11,10 @@ equations
 ```
 on `s ∈ [0, 1]` with path length `L` a Newton unknown. Boundary states are parameterized by
 the unstable / stable eigenvectors of the Hamiltonian Jacobian at each fixed-point endpoint.
-The heteroclinic must not cross a drift fixed point in its interior; through-saddle
-problems must be user-split into `attractor → saddle` legs and the actions summed.
+The Hamiltonian formulation does not require the diffusion tensor to be invertible, so
+`MultipleShooting` also applies to rank-deficient noise. The heteroclinic must not cross a
+drift fixed point in its interior; through-saddle problems must be user-split into
+`attractor → saddle` legs and the actions summed.
 
 # Fields
 $(TYPEDFIELDS)
@@ -170,9 +172,33 @@ function _arclength_rhs!(dy, y, p_params, s)
     return nothing
 end
 
+function _arclength_rhs_backward!(dy, y, p_params, τ)
+    _arclength_rhs!(dy, y, p_params, τ)
+    @inbounds for k in eachindex(dy)
+        dy[k] = -dy[k]
+    end
+    return nothing
+end
+
 function _integrate_segment(ws::MultipleShootingWorkspace{IIP, D}, y_in, s_a, s_b, L) where {IIP, D}
     params = (H = ws.H, D = D, L = L)
     prob = SciMLBase.ODEProblem(_arclength_rhs!, collect(y_in), (s_a, s_b), params)
+    sol = SciMLBase.solve(
+        prob, ws.ode_solver;
+        abstol = ws.abstol * _SEG_TOL_FACTOR,
+        reltol = ws.reltol * _SEG_TOL_FACTOR,
+        save_everystep = false, save_start = false, dense = false,
+    )
+    return sol.u[end]
+end
+
+function _integrate_segment_backward(
+        ws::MultipleShootingWorkspace{IIP, D}, y_in, Δs, L,
+    ) where {IIP, D}
+    params = (H = ws.H, D = D, L = L)
+    prob = SciMLBase.ODEProblem(
+        _arclength_rhs_backward!, collect(y_in), (zero(Δs), Δs), params,
+    )
     sol = SciMLBase.solve(
         prob, ws.ode_solver;
         abstol = ws.abstol * _SEG_TOL_FACTOR,
@@ -312,12 +338,69 @@ function _project_endpoint(lin, x_near, eps_lin::T) where {T}
     return T.(c_raw .* scale)
 end
 
-function _initial_guess_unknowns(ws::MultipleShootingWorkspace{IIP, D}, x_init) where {IIP, D}
+# Build the true Hamiltonian activation subspace rather than merely filtering for nonzero
+# costate. If `J' P = P R` is the relevant drift Schur block, Hamiltonian invariance of
+# `[X; P]` with eigenblock `-R` requires `J X + X R + A P = 0`. At the source we select
+# stable drift modes (their Hamiltonian partners are outgoing); at the target we select
+# unstable drift modes (their partners are incoming). The resulting graph is then expressed
+# in the already-established full Hamiltonian boundary basis `lin.U`.
+function _project_endpoint_activation(H, lin, x_near, side::Symbol, eps_lin::T) where {T}
+    D = length(x_near)
+    xstar = collect(T, view(lin.xstar_aug, 1:D))
+    δx = collect(T, x_near .- xstar)
+    J = T.(_drift_jacobian(H, xstar))
+    A = collect(T, H.a(xstar))
+    Sf = LinearAlgebra.schur(Matrix{T}(J'))
+    select = if side === :outgoing
+        [real(λ) < 0 for λ in Sf.values]
+    elseif side === :incoming
+        [real(λ) > 0 for λ in Sf.values]
+    else
+        throw(ArgumentError("side must be :outgoing or :incoming, got $side"))
+    end
+    r = count(select)
+    r == 0 && return _project_endpoint(lin, x_near, eps_lin)
+    LinearAlgebra.ordschur!(Sf, select)
+    P = Matrix{T}(Sf.Z[:, 1:r])
+    R = Matrix{T}(Sf.T[1:r, 1:r])
+    X = LinearAlgebra.sylvester(J, R, A * P)
+    η = X \ δx
+    y_raw = vcat(X * η, P * η)
+    c_raw = lin.U' * y_raw
+    norm_lin = LinearAlgebra.norm(lin.U * c_raw)
+    scale = norm_lin > eps(T) ? eps_lin / norm_lin : eps_lin
+    return T.(c_raw .* scale)
+end
+
+function _initial_path_length(x_init, ::Type{T}) where {T}
+    L0 = zero(T)
+    @inbounds for i in 1:(size(x_init, 2) - 1)
+        L0 += LinearAlgebra.norm(T.(x_init[:, i + 1]) .- T.(x_init[:, i]))
+    end
+    return L0
+end
+
+function _rank_deficient_at_reference(ws::MultipleShootingWorkspace, x_ref)
+    A = Matrix(ws.H.a(x_ref))
+    κ = LinearAlgebra.cond(A)
+    return !isfinite(κ) || κ > inv(sqrt(eps(real(eltype(A)))))
+end
+
+@inline function _store_initial_node!(interior, y, i::Int, D::Int)
+    @inbounds for k in 1:(2D)
+        interior[(i - 1) * 2D + k] = y[k]
+    end
+    return nothing
+end
+
+# Preserve the established full-rank warm start exactly. This is an initializer only;
+# the shooting equations themselves are Hamiltonian in both the full-rank and singular cases.
+function _initial_guess_full_rank(
+        ws::MultipleShootingWorkspace{IIP, D}, x_init, c_a, c_b, L0,
+    ) where {IIP, D}
     T = eltype(ws.grid)
     nseg = ws.nshoots
     N = size(x_init, 2)
-    c_a = _project_endpoint(ws.lin_a, T.(x_init[:, min(2, N)]), ws.eps_lin)
-    c_b = _project_endpoint(ws.lin_b, T.(x_init[:, max(N - 1, 1)]), ws.eps_lin)
     interior = zeros(T, 2D * (nseg - 1))
     for i in 1:(nseg - 1)
         idx = clamp(round(Int, (i / nseg) * (N - 1)) + 1, 1, N)
@@ -330,11 +413,53 @@ function _initial_guess_unknowns(ws::MultipleShootingWorkspace{IIP, D}, x_init) 
             interior[(i - 1) * 2D + D + k] = p_i[k]
         end
     end
-    L0 = zero(T)
-    @inbounds for i in 1:(N - 1)
-        L0 += LinearAlgebra.norm(T.(x_init[:, i + 1]) .- T.(x_init[:, i]))
-    end
     return vcat(c_a, interior, c_b, [T(max(L0, ws.eps_lin))])
+end
+
+# For singular diffusion, never invent the missing costate through a pseudoinverse.
+# Instead, start on the Hamiltonian unstable/stable endpoint manifolds and propagate the
+# exact canonical equations from both sides. All continuity defects of this seed are then
+# concentrated near the central join rather than spread across every shooting interval.
+function _initial_guess_manifolds(
+        ws::MultipleShootingWorkspace{IIP, D}, c_a, c_b, L0,
+    ) where {IIP, D}
+    T = eltype(ws.grid)
+    nseg = ws.nshoots
+    L = T(max(L0, ws.eps_lin))
+    interior = zeros(T, 2D * (nseg - 1))
+    split = fld(nseg, 2)
+
+    y = ws.lin_a.xstar_aug .+ ws.lin_a.U * c_a
+    for i in 1:split
+        y = _integrate_segment(ws, y, ws.grid[i], ws.grid[i + 1], L)
+        i < nseg && _store_initial_node!(interior, y, i, D)
+    end
+
+    y = ws.lin_b.xstar_aug .+ ws.lin_b.U * c_b
+    for i in nseg:-1:(split + 1)
+        Δs = ws.grid[i + 1] - ws.grid[i]
+        y = _integrate_segment_backward(ws, y, Δs, L)
+        node = i - 1
+        node ≥ 1 && _store_initial_node!(interior, y, node, D)
+    end
+
+    return vcat(c_a, interior, c_b, [L])
+end
+
+function _initial_guess_unknowns(ws::MultipleShootingWorkspace{IIP, D}, x_init) where {IIP, D}
+    T = eltype(ws.grid)
+    N = size(x_init, 2)
+    x_a_near = T.(x_init[:, min(2, N)])
+    x_b_near = T.(x_init[:, max(N - 1, 1)])
+    L0 = _initial_path_length(x_init, T)
+    if _rank_deficient_at_reference(ws, T.(x_init[:, 1]))
+        c_a = _project_endpoint_activation(ws.H, ws.lin_a, x_a_near, :outgoing, ws.eps_lin)
+        c_b = _project_endpoint_activation(ws.H, ws.lin_b, x_b_near, :incoming, ws.eps_lin)
+        return _initial_guess_manifolds(ws, c_a, c_b, L0)
+    end
+    c_a = _project_endpoint(ws.lin_a, x_a_near, ws.eps_lin)
+    c_b = _project_endpoint(ws.lin_b, x_b_near, ws.eps_lin)
+    return _initial_guess_full_rank(ws, x_init, c_a, c_b, L0)
 end
 
 function _solve_shooting(ws::MultipleShootingWorkspace{IIP, D}, z0) where {IIP, D}
@@ -390,6 +515,17 @@ function _sample_path(ws::MultipleShootingWorkspace{IIP, D}, z, N::Int) where {I
     return path, pmat, arclength, T(L), H_inv_max
 end
 
+# On the zero-energy Hamiltonian instanton, the Freidlin-Wentzell action is the canonical
+# line integral ∫ p⋅dφ. This expression is valid for both full-rank and degenerate diffusion.
+function _hamiltonian_line_action(path, p)
+    D, N = size(path)
+    S = zero(promote_type(eltype(path), eltype(p)))
+    @inbounds for i in 1:(N - 1), k in 1:D
+        S += (p[k, i] + p[k, i + 1]) * (path[k, i + 1] - path[k, i]) / 2
+    end
+    return S
+end
+
 function minimize_geometric_action(
         sys::FreidlinWentzellHamiltonian,
         x_init::AbstractMatrix,
@@ -413,11 +549,7 @@ function minimize_geometric_action(
     if H_inv_max > ws.invariant_tol
         @warn "MultipleShooting: H=0 invariant violated" H_invariant_max = H_inv_max threshold = ws.invariant_tol
     end
-    b_fn = x -> _drift(sys, x)
-    A_at = x -> inv(collect(sys.a(x)))
-    v_buf = similar(path_mat)
-    integrand_buf = zeros(eltype(path_mat), N)
-    action = _geometric_action_from_drift!(b_fn, path_mat, one(eltype(path_mat)), A_at, v_buf, integrand_buf)
+    action = _hamiltonian_line_action(path_mat, p_mat)
     show_progress && @info "MultipleShooting converged" residual = resnorm iterations = niter path_length = L action = action
     return MinimumActionPath(
         StateSpaceSet(Matrix(path_mat')), action;
